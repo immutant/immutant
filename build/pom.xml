@@ -21,6 +21,13 @@
       <version>${project.version}</version>
       <type>pom</type>
     </dependency>
+
+      <dependency>
+        <groupId>org.clojure</groupId>
+        <artifactId>clojure</artifactId>
+        <scope>provided</scope>
+      </dependency>
+
   </dependencies>
 
   <modules>
@@ -42,5 +49,21 @@
       </modules>
     </profile>
   </profiles>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>clojure-maven-plugin</artifactId>
+        
+        <configuration>
+          <namespaces>
+            <namespace>!fnbox.assembly.*</namespace>
+          </namespaces>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

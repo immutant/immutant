@@ -163,6 +163,12 @@
       </dependency>
 
       <dependency>
+        <groupId>org.clojure</groupId>
+        <artifactId>clojure-contrib</artifactId>
+        <version>${version.clojure-contrib}</version>
+      </dependency>
+
+      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${version.junit}</version>
@@ -197,6 +203,7 @@
     <version.hamcrest>1.1</version.hamcrest>
     <version.jbossas>7.x.incremental.109</version.jbossas>
     <version.clojure>1.3.0-RC0</version.clojure>
+    <version.clojure-contrib>1.2.0</version.clojure-contrib>
     <version.clojure-maven-plugin>1.3.8</version.clojure-maven-plugin>
     <version.ring-servlet>0.3.11</version.ring-servlet>
   </properties>

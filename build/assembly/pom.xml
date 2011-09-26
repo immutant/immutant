@@ -1,18 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <parent>
-    <groupId>org.torquebox</groupId>
-    <artifactId>torquebox-build</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <groupId>org.fnbox</groupId>
+    <artifactId>fnbox-build</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.torquebox</groupId>
-  <artifactId>torquebox-build-assembly</artifactId>
+  <groupId>org.fnbox</groupId>
+  <artifactId>fnbox-build-assembly</artifactId>
   <packaging>pom</packaging>
-  <name>TorqueBox Build Assembly</name>
+  <name>(fn box) Build Assembly</name>
 
   <dependencies>
     <dependency>
@@ -22,62 +22,69 @@
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
+
     <dependency>
-      <groupId>org.jruby</groupId>
-      <artifactId>jruby-dist</artifactId>
-      <classifier>bin</classifier>
-      <type>zip</type>
-      <version>${version.jruby}</version>
+      <groupId>org.clojure</groupId>
+      <artifactId>clojure</artifactId>
       <scope>provided</scope>
     </dependency>
+
     <dependency>
-      <groupId>org.projectodd.stilts</groupId>
-      <artifactId>stilts-stomp-client-js</artifactId>
-      <type>js</type>
-      <version>${version.org.projectodd.stilts}</version>
+      <groupId>org.clojure</groupId>
+      <artifactId>clojure-contrib</artifactId>
       <scope>provided</scope>
     </dependency>
+
     <dependency>
-      <groupId>rubygems</groupId>
-      <artifactId>builder</artifactId>
-      <version>3.0.0</version>
-      <type>gem</type>
-      <scope>compile</scope>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.0.1</version>
     </dependency>
+
+    <dependency>
+      <groupId>clj-glob</groupId>
+      <artifactId>clj-glob</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+
   </dependencies>
 
   <build>
     <plugins>
       <plugin>
-        <groupId>de.saumya.mojo</groupId>
-        <artifactId>gem-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>install-builder</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>initialize</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>de.saumya.mojo</groupId>
-        <artifactId>jruby-maven-plugin</artifactId>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>clojure-maven-plugin</artifactId>
         <executions>
           <execution>
             <id>perform-assembly</id>
-            <inherited>true</inherited>
             <phase>package</phase>
             <goals>
-              <goal>jruby</goal>
+              <goal>run</goal>
             </goals>
             <configuration>
-              <file>bin/assemble.rb</file>
+              <script>src/main/clojure/fnbox/assembly/assembler.clj</script>
             </configuration>
           </execution>
         </executions>
       </plugin>
+
+      <!-- <plugin> -->
+      <!--   <groupId>de.saumya.mojo</groupId> -->
+      <!--   <artifactId>jruby-maven-plugin</artifactId> -->
+      <!--   <executions> -->
+      <!--     <execution> -->
+      <!--       <id>perform-assembly</id> -->
+      <!--       <inherited>true</inherited> -->
+      <!--       <phase>package</phase> -->
+      <!--       <goals> -->
+      <!--         <goal>jruby</goal> -->
+      <!--       </goals> -->
+      <!--       <configuration> -->
+      <!--         <file>bin/assemble.rb</file> -->
+      <!--       </configuration> -->
+      <!--     </execution> -->
+      <!--   </executions> -->
+      <!-- </plugin> -->
     </plugins>
   </build>
 </project>
