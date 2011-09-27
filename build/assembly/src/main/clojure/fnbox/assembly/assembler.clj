@@ -28,7 +28,7 @@
                "domain/configuration/domain-preview.xml"])))
 
 (defn create-standalone-xml []
-  (io/copy (io/file jboss-dir "standalone/configuration/standalone-preview.xml")
+  (io/copy (io/file jboss-dir "standalone/configuration/fnbox/standalone-preview.xml")
            (io/file jboss-dir "standalone/configuration/standalone.xml")))
 
 (defn assemble []

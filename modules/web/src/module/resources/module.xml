@@ -22,18 +22,19 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<module xmlns="urn:jboss:module:1.0" name="org.torquebox.clojure-web">
+<module xmlns="urn:jboss:module:1.0" name="org.fnbox.web">
 
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="ring-servlet.jar"/>
+        <resource-root path="polyglot-web.jar"/>
     </resources>
 
-    <exports>
-      <include-set>
-        <path name="org/torquebox/clojure/web/servlet"/>
-      </include-set>
-    </exports>
+    <!-- <exports> -->
+    <!--   <include-set> -->
+    <!--     <path name="org/torquebox/clojure/web/servlet"/> -->
+    <!--   </include-set> -->
+    <!-- </exports> -->
 
     <dependencies>
         <module name="javax.api"/>
@@ -49,9 +50,7 @@
         <module name="org.jboss.metadata"/>
         <module name="org.jboss.as.web"/>
         <module name="org.jboss.as.clustering.jgroups"/>
-        <module name="org.torquebox.core"/>
-        <module name="org.torquebox.clojure-core"/>
-        <module name="org.torquebox.web"/>
+        <module name="org.fnbox.core"/>
     </dependencies>
 </module>
 

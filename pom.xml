@@ -196,7 +196,6 @@
 
   <properties>
     <version.polyglot>1.0.0-SNAPSHOT</version.polyglot>
-    <version.jruby-maven-plugins>0.28.4</version.jruby-maven-plugins>
     <version.junit>4.7</version.junit>
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>
@@ -448,15 +447,6 @@
           </configuration>
         </plugin>
         <plugin>
-          <groupId>de.saumya.mojo</groupId>
-          <artifactId>jruby-maven-plugin</artifactId>
-          <version>${version.jruby-maven-plugins}</version>
-          <extensions>true</extensions>
-          <configuration>
-            <jrubyVersion>${version.jruby}</jrubyVersion>
-          </configuration>
-        </plugin>
-        <plugin>
           <groupId>com.theoryinpractise</groupId>
           <artifactId>clojure-maven-plugin</artifactId>
           <version>${version.clojure-maven-plugin}</version>
@@ -492,12 +482,6 @@
               <pluginExecutions>
                 <pluginExecution>
                   <pluginExecutionFilter>
-                    <groupId>de.saumya.mojo</groupId>
-                    <artifactId>jruby-maven-plugin</artifactId>
-                    <versionRange>[0.28.4,)</versionRange>
-                    <goals>
-                      <goal>jruby</goal>
-                    </goals>
                   </pluginExecutionFilter>
                   <action>
                     <ignore></ignore>

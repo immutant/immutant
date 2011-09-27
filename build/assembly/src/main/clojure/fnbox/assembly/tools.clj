@@ -17,15 +17,15 @@
     (:out result)))
 
 (defn with-message [message & body]
-  (comment
-    (print (str message "... "))
-    (flush)
-    (doall body)
-    (println "DONE")))
+  (print (str message "... "))
+  (flush)
+  (doall body)
+  (println "DONE"))
 
 (defn print-err [& message]
-  (binding [*out* *err*]
-    (apply println message)))
+  (comment 
+    (binding [*out* *err*]
+      (apply println message))))
 
 (defn xml-zip [path]
   (zip/xml-zip (xml/parse-trim path)))
@@ -97,7 +97,7 @@
       (reduce (fn [xml profile-name]
                 (if-let [profile (zfx/xml1-> (zip/xml-zip xml) zf/descendants :profile [(zfx/attr= :name profile-name)])]
                   (zip/root (zip/append-child profile
-                                              {:tag :subsystem :attrs {:module module-name}}))
+                                              {:tag :subsystem :attrs {:xmlns module-name}}))
                   xml))
               xml
               ["ha" "default" nil]))))
