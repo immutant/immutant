@@ -79,21 +79,12 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
     public static final String FIVE_HUNDRED_SERVLET_NAME = "fnbox.500";
     public static final String FIVE_HUNDRED_SERVLET_CLASS_NAME = FiveHundredServlet.class.getName();
 
-    public static final String LOCALHOST_MBEAN_NAME = "jboss.web:host=localhost,type=Host";
-
-    public static final String EXPANDED_WAR_URL_ATTACHMENT_NAME = "org.jboss.web.expandedWarURL";
-
     public RingWebApplicationDeployer() {
     }
 
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
-        
-        //FIXME fuck me, this entire method needs a refactoring - it's doing way too much
-        
         DeploymentUnit unit = phaseContext.getDeploymentUnit();
-        ResourceRoot resourceRoot = unit.getAttachment( Attachments.DEPLOYMENT_ROOT );
-
         RingApplicationMetaData ringMetaData = unit.getAttachment( RingApplicationMetaData.ATTACHMENT_KEY );
 
         if (ringMetaData == null) {
@@ -101,23 +92,49 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
         }
 
         ClojureApplicationMetaData appMetaData = unit.getAttachment( ClojureApplicationMetaData.ATTACHMENT_KEY );
+       
+        attachResourceRoot( unit );
+        attachTldsMetaData( unit );
+        WarMetaData warMetaData = getWarMetaData( unit );
+        JBossWebMetaData jbossWebMetaData = getJBossWebMetaData( phaseContext, warMetaData );          
         
         DeploymentTypeMarker.setType( DeploymentType.WAR, unit );
-        WarMetaData warMetaData = new WarMetaData();
         
-        final TldsMetaData tldsMetaData = new TldsMetaData();
-        // HACK: Remove reflection once SharedTldsMetaDataBuilder's constructor is public
+        setUpMimeTypes( jbossWebMetaData );
+        setUpRingFilter( unit, ringMetaData, jbossWebMetaData );
+        setUpStaticResourceServlet( ringMetaData, jbossWebMetaData );
+        ensureSomeServlet( ringMetaData, jbossWebMetaData );
         try {
-            Constructor<SharedTldsMetaDataBuilder> ctor = SharedTldsMetaDataBuilder.class.getDeclaredConstructor( ModelNode.class );
-            ctor.setAccessible( true );
-            tldsMetaData.setSharedTlds( ctor.newInstance( new Object[] { null } ) );
+            setUpHostAndContext( unit, ringMetaData, warMetaData, jbossWebMetaData );
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }
-        unit.putAttachment( TldsMetaData.ATTACHMENT_KEY, tldsMetaData );
-        unit.putAttachment( WarMetaData.ATTACHMENT_KEY, warMetaData );
-        unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, resourceRoot );
 
+        jbossWebMetaData.setVirtualHosts( ringMetaData.getHosts() );
+        
+        attachServletParameters( unit, appMetaData );
+
+    }
+
+    private void attachServletParameters(DeploymentUnit unit,
+            ClojureApplicationMetaData appMetaData) {
+        ServletContextAttribute scriptName = new ServletContextAttribute( RingFilter.CLOJURE_SCRIPT_NAME, appMetaData.getScript() );
+         unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, scriptName );
+        
+        ServletContextAttribute namespace = new ServletContextAttribute( RingFilter.CLOJURE_NAMESPACE, appMetaData.getNamespace() ); //"basic-ring.core" );
+        unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, namespace );
+        
+        ServletContextAttribute functionName = new ServletContextAttribute( RingFilter.CLOJURE_APP_FUNCTION_NAME, appMetaData.getAppFunction() ); //"fnbox-handler" );
+        unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, functionName );
+    }
+
+    private void attachResourceRoot(DeploymentUnit unit) {
+        ResourceRoot resourceRoot = unit.getAttachment( Attachments.DEPLOYMENT_ROOT );
+        unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, resourceRoot );
+    }
+
+    private JBossWebMetaData getJBossWebMetaData(
+            DeploymentPhaseContext phaseContext, WarMetaData warMetaData) {
         WebMetaData webMetaData = warMetaData.getWebMetaData();
 
         if (webMetaData == null) {
@@ -142,7 +159,7 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
             jbossWebMetaData = new JBossWebMetaData();
             warMetaData.setJbossWebMetaData( jbossWebMetaData );
         }
-
+        
         JBossServletsMetaData servlets = jbossWebMetaData.getServlets();
         if (servlets == null) {
             servlets = new JBossServletsMetaData();
@@ -155,27 +172,27 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
             jbossWebMetaData.setServletMappings( servletMappings );
         }
         
-        setUpMimeTypes( jbossWebMetaData );
-        setUpRingFilter( unit, ringMetaData, jbossWebMetaData );
-        //setUpStaticResourceServlet( appMetaData, jbossWebMetaData );
-        ensureSomeServlet( ringMetaData, jbossWebMetaData );
+        return jbossWebMetaData;
+    }
+
+    private WarMetaData getWarMetaData(DeploymentUnit unit) {
+        WarMetaData warMetaData = new WarMetaData();
+        unit.putAttachment( WarMetaData.ATTACHMENT_KEY, warMetaData );
+        return warMetaData;
+    }
+
+    private void attachTldsMetaData(DeploymentUnit unit)
+            throws DeploymentUnitProcessingException {
+        final TldsMetaData tldsMetaData = new TldsMetaData();
+        // HACK: Remove reflection once SharedTldsMetaDataBuilder's constructor is public
         try {
-            setUpHostAndContext( unit, ringMetaData, warMetaData, jbossWebMetaData );
+            Constructor<SharedTldsMetaDataBuilder> ctor = SharedTldsMetaDataBuilder.class.getDeclaredConstructor( ModelNode.class );
+            ctor.setAccessible( true );
+            tldsMetaData.setSharedTlds( ctor.newInstance( new Object[] { null } ) );
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }
-
-        jbossWebMetaData.setVirtualHosts( ringMetaData.getHosts() );
-        
-        ServletContextAttribute scriptName = new ServletContextAttribute( RingFilter.CLOJURE_SCRIPT_NAME, appMetaData.getScript() );
-         unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, scriptName );
-        
-        ServletContextAttribute namespace = new ServletContextAttribute( RingFilter.CLOJURE_NAMESPACE, appMetaData.getNamespace() ); //"basic-ring.core" );
-        unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, namespace );
-        
-        ServletContextAttribute functionName = new ServletContextAttribute( RingFilter.CLOJURE_APP_FUNCTION_NAME, appMetaData.getAppFunction() ); //"fnbox-handler" );
-        unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, functionName );
-
+        unit.putAttachment( TldsMetaData.ATTACHMENT_KEY, tldsMetaData );
     }
 
     protected void setUpRingFilter(DeploymentUnit unit, RingApplicationMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
@@ -216,38 +233,38 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
 
     }
 
-//    protected void setUpStaticResourceServlet(RingApplicationMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
-//        JBossServletsMetaData servlets = jbossWebMetaData.getServlets();
-//        if (servlets == null) {
-//            servlets = new JBossServletsMetaData();
-//            jbossWebMetaData.setServlets( servlets );
-//        }
-//
-//        List<ServletMappingMetaData> servletMappings = jbossWebMetaData.getServletMappings();
-//        if (servletMappings == null) {
-//            servletMappings = new ArrayList<ServletMappingMetaData>();
-//            jbossWebMetaData.setServletMappings( servletMappings );
-//        }
-//
-//        if (ringAppMetaData.getStaticPathPrefix() != null) {
-//            JBossServletMetaData staticServlet = new JBossServletMetaData();
-//            staticServlet.setServletClass( STATIC_RESOURCE_SERVLET_CLASS_NAME );
-//            staticServlet.setServletName( STATIC_RESROUCE_SERVLET_NAME );
-//            staticServlet.setId( STATIC_RESROUCE_SERVLET_NAME );
-//
-//            ParamValueMetaData resourceRootParam = new ParamValueMetaData();
-//            resourceRootParam.setParamName( "resource.root" );
-//            resourceRootParam.setParamValue( ringAppMetaData.getStaticPathPrefix() );
-//            staticServlet.setInitParam( Collections.singletonList( resourceRootParam ) );
-//            servlets.add( staticServlet );
-//
-//            ServletMappingMetaData staticMapping = new ServletMappingMetaData();
-//            staticMapping.setServletName( STATIC_RESROUCE_SERVLET_NAME );
-//            staticMapping.setUrlPatterns( Collections.singletonList( "/*" ) );
-//
-//            servletMappings.add( staticMapping );
-//        }
-//    }
+    protected void setUpStaticResourceServlet(RingApplicationMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
+        JBossServletsMetaData servlets = jbossWebMetaData.getServlets();
+        if (servlets == null) {
+            servlets = new JBossServletsMetaData();
+            jbossWebMetaData.setServlets( servlets );
+        }
+
+        List<ServletMappingMetaData> servletMappings = jbossWebMetaData.getServletMappings();
+        if (servletMappings == null) {
+            servletMappings = new ArrayList<ServletMappingMetaData>();
+            jbossWebMetaData.setServletMappings( servletMappings );
+        }
+
+        if (ringAppMetaData.getStaticPathPrefix() != null) {
+            JBossServletMetaData staticServlet = new JBossServletMetaData();
+            staticServlet.setServletClass( STATIC_RESOURCE_SERVLET_CLASS_NAME );
+            staticServlet.setServletName( STATIC_RESROUCE_SERVLET_NAME );
+            staticServlet.setId( STATIC_RESROUCE_SERVLET_NAME );
+
+            ParamValueMetaData resourceRootParam = new ParamValueMetaData();
+            resourceRootParam.setParamName( "resource.root" );
+            resourceRootParam.setParamValue( ringAppMetaData.getStaticPathPrefix() );
+            staticServlet.setInitParam( Collections.singletonList( resourceRootParam ) );
+            servlets.add( staticServlet );
+
+            ServletMappingMetaData staticMapping = new ServletMappingMetaData();
+            staticMapping.setServletName( STATIC_RESROUCE_SERVLET_NAME );
+            staticMapping.setUrlPatterns( Collections.singletonList( "/*" ) );
+
+            servletMappings.add( staticMapping );
+        }
+    }
 
     protected void setupRingServlet(RingApplicationMetaData ringAppMetaData, JBossServletMetaData jbossWebMetaData) {
     

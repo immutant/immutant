@@ -42,6 +42,15 @@ public class RingApplicationMetaData {
         return this.hosts;
     }
 
+    public String getStaticPathPrefix() {
+        String prefix = this.appMetaData.getString( "static" );
+        if (prefix == null) {
+            prefix = "public";
+        }
+        
+        return prefix;
+    }
+    
     public void setContextPath(String contextPath) {
         if (contextPath != null) this.contextPath = contextPath;
     }
