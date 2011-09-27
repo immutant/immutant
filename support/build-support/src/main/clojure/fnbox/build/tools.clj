@@ -1,10 +1,10 @@
-(ns fnbox.assembly.tools
+(ns fnbox.build.tools
   (:import [org.apache.commons.io FileUtils])
   (:require [clojure.java.io :as io])
   (:require [clojure.java.shell :as shell])
   (:require [clojure.string :as str])
   (:require [clojure.zip :as zip])
-    (:require [clojure.contrib.zip-filter :as zf])
+  (:require [clojure.contrib.zip-filter :as zf])
   (:require [clojure.contrib.zip-filter.xml :as zfx])
   (:require [clojure.contrib.lazy-xml :as xml])
   (:require [org.satta.glob :as glob])
@@ -23,9 +23,8 @@
   (println "DONE"))
 
 (defn print-err [& message]
-  (comment 
-    (binding [*out* *err*]
-      (apply println message))))
+  (comment (binding [*out* *err*]
+             (apply println message))))
 
 (defn xml-zip [path]
   (zip/xml-zip (xml/parse-trim path)))
@@ -35,32 +34,33 @@
                   [k (apply zfx/xml1-> (cons (xml-zip pom-path) (conj path zfx/text)))])
                 version-paths)))
 
-(def base-dir (io/file (System/getProperty "user.dir")))
-(def root-dir (-> base-dir .getParentFile .getParentFile))
-(def root-pom (io/file root-dir "pom.xml"))
+(defn init [assembly-root]
+  (def root-dir (-> assembly-root .getCanonicalFile .getParentFile .getParentFile))
+  (def root-pom (io/file root-dir "pom.xml"))
+  (def build-dir (io/file (.getCanonicalFile assembly-root) "target/stage"))
+  (def fnbox-dir (io/file build-dir "fnbox"))
+  (def jboss-dir (io/file fnbox-dir "jboss"))
 
-(def build-dir (io/file base-dir "target/stage"))
-(def fnbox-dir (io/file build-dir "fnbox"))
-(def jboss-dir (io/file fnbox-dir "jboss"))
+  (doall (map print-err [ root-dir root-pom build-dir fnbox-dir jboss-dir]))
+  
+  (def version-paths {:fnbox [:version]
+                      :jboss [:properties :version.jbossas]})
 
-(def version-paths {:fnbox [:version]
-                    :jboss [:properties :version.jbossas]})
+  (def versions (extract-versions root-pom version-paths))
 
-(def versions (extract-versions root-pom version-paths))
+  (def m2-repo (if (System/getenv "M2_REPO")
+                 (System/getenv "M2_REPO")
+                 (str (System/getenv "HOME") "/.m2/repository")))
 
-(def m2-repo (if (System/getenv "M2_REPO")
-               (System/getenv "M2_REPO")
-               (str (System/getenv "HOME") "/.m2/repository")))
+  (def jboss-zip-file
+    (str m2-repo "/org/jboss/as/jboss-as-dist/" (:jboss versions) "/jboss-as-dist-" (:jboss versions) ".zip"))
 
-(def jboss-zip-file
-  (str m2-repo "/org/jboss/as/jboss-as-dist/" (:jboss versions) "/jboss-as-dist-" (:jboss versions) ".zip"))
-
-(def fnbox-modules (reduce (fn [acc file]
-                             (assoc acc
-                               (second (re-find #"fnbox-(.*)-module" (.getName file)))
-                               file))
-                           {}
-                           (glob/glob (str (.getAbsolutePath root-dir) "/modules/*/target/*-module"))))
+  (def fnbox-modules (reduce (fn [acc file]
+                               (assoc acc
+                                 (second (re-find #"fnbox-(.*)-module" (.getName file)))
+                                 file))
+                             {}
+                             (glob/glob (str (.getAbsolutePath root-dir) "/modules/*/target/*-module")))))
 
 (defn install-module [module-dir]
   (let [name (second (re-find #"fnbox-(.*)-module" (.getName module-dir)))
@@ -119,7 +119,7 @@
   (let [in-file (io/file jboss-dir file)
         xml (xml/parse-trim in-file)
         out-file (io/file (.getParentFile in-file) (str "fnbox/" (.getName in-file)))]
-    (println (str "transforming " file))
+    (print-err (str "transforming " file))
     (io/make-parents out-file)
     (backup-current-config in-file)
     (io/copy (with-out-str

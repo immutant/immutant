@@ -24,27 +24,10 @@
     </dependency>
 
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
+      <groupId>org.fnbox</groupId>
+      <artifactId>fnbox-build-support</artifactId>
+      <version>${project.version}</version>
       <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure-contrib</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.0.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>clj-glob</groupId>
-      <artifactId>clj-glob</artifactId>
-      <version>1.0.0</version>
     </dependency>
 
   </dependencies>
@@ -62,7 +45,8 @@
               <goal>run</goal>
             </goals>
             <configuration>
-              <script>src/main/clojure/fnbox/assembly/assembler.clj</script>
+              <mainClass>fnbox.build.assembler</mainClass>
+              <args>.</args>
             </configuration>
           </execution>
         </executions>

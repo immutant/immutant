@@ -1,6 +1,7 @@
-(ns fnbox.assembly.assembler
+(ns fnbox.build.assembler
   (:require [clojure.java.io :as io])
-  (:use [fnbox.assembly.tools]))
+  (:use [fnbox.build.tools])
+  (:gen-class))
 
 (defn prepare []
   (with-message (str "Creating " fnbox-dir)
@@ -31,8 +32,8 @@
   (io/copy (io/file jboss-dir "standalone/configuration/fnbox/standalone-preview.xml")
            (io/file jboss-dir "standalone/configuration/standalone.xml")))
 
-(defn assemble []
-
+(defn assemble [assembly-dir]
+  (init assembly-dir)
   (prepare)
   (println (str "(fn box)..... " (:fnbox versions)))
   (println (str "JBoss AS..... " (:jboss versions)))
@@ -41,4 +42,6 @@
   (transform-configs)
   (create-standalone-xml))
 
-(assemble)
+(defn -main [assembly-path]
+  (println "Assembling (fn box)...")
+  (assemble (io/file assembly-path)))

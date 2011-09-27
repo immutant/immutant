@@ -37,6 +37,12 @@
       <artifactId>mockito-all</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.fnbox</groupId>
+      <artifactId>fnbox-build-support</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build> 
@@ -117,43 +123,39 @@
     </pluginManagement>
   </build> 
 
-  <!-- <profiles> -->
-  <!--   <profile> -->
-  <!--     <id>assemblage-present</id> -->
-  <!--     <activation> -->
-  <!--       <file> -->
-  <!--         <exists>../../build/assembly/target/stage/</exists> -->
-  <!--       </file> -->
-  <!--     </activation> -->
-  <!--     <build> -->
-  <!--       <pluginManagement> -->
-  <!--         <plugins> -->
-  <!--           <plugin> -->
-  <!--             <groupId>de.saumya.mojo</groupId> -->
-  <!--             <artifactId>jruby-maven-plugin</artifactId> -->
-  <!--             <executions> -->
-  <!--               <execution> -->
-  <!--                 <id>install-module</id> -->
-  <!--                 <inherited>true</inherited> -->
-  <!--                 <phase>install</phase> -->
-  <!--                 <goals> -->
-  <!--                   <goal>jruby</goal> -->
-  <!--                 </goals> -->
-  <!--                 <configuration> -->
-  <!--                   <script> -->
-  <!--                     load '${project.basedir}/../../build/assembly/lib/assembly_tool.rb' -->
-  <!--                     module_name = '${project.artifactId}' -->
-  <!--                     module_name.gsub!(/fnbox-/, '' ) -->
-  <!--                     AssemblyTool.install_module( module_name, '${project.basedir}/target/${project.artifactId}-module' ) -->
-  <!--                   </script> -->
-  <!--                 </configuration> -->
-  <!--               </execution> -->
-  <!--             </executions> -->
-  <!--           </plugin> -->
-  <!--        </plugins> -->
-  <!--       </pluginManagement> -->
-  <!--     </build> -->
-  <!--   </profile> -->
-  <!-- </profiles> -->
+  <profiles>
+    <profile>
+      <id>assemblage-present</id>
+      <activation>
+        <file>
+          <exists>../../build/assembly/target/stage/</exists>
+        </file>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>com.theoryinpractise</groupId>
+              <artifactId>clojure-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>install-module</id>
+                  <inherited>true</inherited>
+                  <phase>install</phase>
+                  <goals>
+                    <goal>run</goal>
+                  </goals>
+                  <configuration>
+                    <mainClass>fnbox.build.install_module</mainClass>
+                    <args>../../build/assembly ${project.basedir}/target/${project.artifactId}-module</args>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+         </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
