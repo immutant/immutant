@@ -116,14 +116,7 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
 
     }
 
-    private void attachServletParameters(DeploymentUnit unit,
-            ClojureApplicationMetaData appMetaData) {
-        ServletContextAttribute scriptName = new ServletContextAttribute( RingFilter.CLOJURE_SCRIPT_NAME, appMetaData.getScript() );
-         unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, scriptName );
-        
-        ServletContextAttribute namespace = new ServletContextAttribute( RingFilter.CLOJURE_NAMESPACE, appMetaData.getNamespace() ); //"basic-ring.core" );
-        unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, namespace );
-        
+    private void attachServletParameters(DeploymentUnit unit, ClojureApplicationMetaData appMetaData) {
         ServletContextAttribute functionName = new ServletContextAttribute( RingFilter.CLOJURE_APP_FUNCTION_NAME, appMetaData.getAppFunction() ); //"fnbox-handler" );
         unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, functionName );
     }

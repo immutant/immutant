@@ -122,14 +122,6 @@ public class ClojureApplicationMetaData {
         //        }
     }
 
-    public String getScript() {
-        return getString( "script" );
-    }
-
-    public String getNamespace() {
-        return getString( "namespace" );
-    }
-
     public String getAppFunction() {
         return getString( "app-function" );
     }
