@@ -34,36 +34,20 @@
     <module>assembly</module>
   </modules>
 
-  <profiles>
-    <profile>
-      <id>full</id>
-      <modules>
-        <module>dist</module>
-        <module>incremental</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>dist</id>
-      <modules>
-        <module>dist</module>
-      </modules>
-    </profile>
-  </profiles>
-
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>com.theoryinpractise</groupId>
-        <artifactId>clojure-maven-plugin</artifactId>
-        
-        <configuration>
-          <namespaces>
-            <namespace>!fnbox.assembly.*</namespace>
-          </namespaces>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+  <!-- <profiles> -->
+  <!--   <profile> -->
+  <!--     <id>full</id> -->
+  <!--     <modules> -->
+  <!--       <module>dist</module> -->
+  <!--       <module>incremental</module> -->
+  <!--     </modules> -->
+  <!--   </profile> -->
+  <!--   <profile> -->
+  <!--     <id>dist</id> -->
+  <!--     <modules> -->
+  <!--       <module>dist</module> -->
+  <!--     </modules> -->
+  <!--   </profile> -->
+  <!-- </profiles> -->
 
 </project>
