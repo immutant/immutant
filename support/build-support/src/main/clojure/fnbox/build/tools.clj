@@ -87,31 +87,49 @@
 (defn add-extensions [xml]
   (reduce add-extension xml (keys fnbox-modules)))
 
-;; this is ugly as fuck
 (defn add-subsystem [xml name]
-  (print-err (str "adding ss " name))
-  (let [module-name (str "urn:jboss:domain:fnbox-" name ":1.0")
-        zip-xml (zip/xml-zip xml)]
-    (if (zfx/xml1-> zip-xml zf/descendants :subsystem [(zfx/attr= :xmlns module-name)])
-      xml
-      (reduce (fn [xml profile-name]
-                (if-let [profile (zfx/xml1-> (zip/xml-zip xml) zf/descendants :profile [(zfx/attr= :name profile-name)])]
-                  (zip/root (zip/append-child profile
-                                              {:tag :subsystem :attrs {:xmlns module-name}}))
-                  xml))
-              xml
-              ["ha" "default" nil]))))
+  (let [module-name (str "urn:jboss:domain:fnbox-" name ":1.0")]
+    (if-let [profile (zfx/xml1-> (zip/xml-zip xml) zf/descendants :profile [:subsystem #(not= (zfx/attr % :xmlns) module-name)])]
+      (recur (zip/root (zip/append-child profile {:tag :subsystem :attrs {:xmlns module-name}}))
+             name)
+      xml)))
 
 (defn add-subsystems [xml]
   (reduce add-subsystem xml (keys fnbox-modules)))
 
 (defn set-welcome-root [xml]
-  xml)
+  (if-let [loc (zfx/xml1-> (zip/xml-zip xml) zf/descendants :virtual-server [#(not= (zfx/attr % :enable-welcome-root) "false")])]
+    (recur (zip/root (zip/edit loc #(assoc % :attrs (assoc (:attrs %) :enable-welcome-root "false")))))
+    xml))
+
+(defn add-system-properties-tag [xml]
+  (let [xml-zip (zip/xml-zip xml)]
+    (if (zfx/xml1-> xml-zip zf/descendants :system-properties)
+      xml
+      (zip/root (zip/insert-right (zfx/xml1-> xml-zip :extensions) {:tag :system-properties})))))
+
+(defn add-system-property [xml prop value]
+  (zip/root (zip/append-child (zfx/xml1-> (zip/xml-zip xml) :system-properties) {:tag :property :attrs {:name prop :value value}})))
+
+(defn replace-system-property [xml prop value]
+  (zip/root (zip/edit (zfx/xml1-> (zip/xml-zip xml) :system-properties :property [(zfx/attr= :name prop)])
+                      #(assoc % :attrs {:name prop :value value}))))
+
+(defn add-or-replace-system-property [xml prop value]
+  (if (zfx/xml1-> (zip/xml-zip xml) :system-properties :property [(zfx/attr= :name value)])
+    (replace-system-property xml prop value)
+    (add-system-property xml prop value)))
+
+(defn set-system-property [xml prop value]
+  (-> xml
+      (add-system-properties-tag)
+      (add-or-replace-system-property prop value)))
 
 (defn unquote-cookie-path [xml]
-  xml)
+  (set-system-property xml "org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR" "false"))
 
 (defn add-xa-datasource [xml]
+  ;; currently a noop
   xml)
 
 
