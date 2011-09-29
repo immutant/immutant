@@ -38,6 +38,7 @@ import org.jboss.as.server.deployment.Phase;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceController;
+import org.projectodd.polyglot.web.processors.VirtualHostInstaller;
 import org.projectodd.polyglot.web.processors.WebApplicationDefaultsProcessor;
 
 class WebSubsystemAdd extends AbstractBoottimeAddStepHandler {
@@ -79,7 +80,7 @@ class WebSubsystemAdd extends AbstractBoottimeAddStepHandler {
         
         //processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 120, new RackApplicationComponentResolverInstaller() );
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 1, new RingFilterClojureRuntimeInstaller() );
-        //processorTarget.addDeploymentProcessor( Phase.INSTALL, 2100, new VirtualHostInstaller() );
+        processorTarget.addDeploymentProcessor( Phase.INSTALL, 2100, new VirtualHostInstaller() );
     }
 
 
