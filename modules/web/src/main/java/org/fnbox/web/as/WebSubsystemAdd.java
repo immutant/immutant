@@ -38,6 +38,7 @@ import org.jboss.as.server.deployment.Phase;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceController;
+import org.projectodd.polyglot.web.processors.WebApplicationDefaultsProcessor;
 
 class WebSubsystemAdd extends AbstractBoottimeAddStepHandler {
     
@@ -66,7 +67,7 @@ class WebSubsystemAdd extends AbstractBoottimeAddStepHandler {
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 30, new WebYamlParsingProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 40, new RailsVersionProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 50, new RailsRackProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 60, new RackApplicationDefaultsProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.PARSE, 60, new WebApplicationDefaultsProcessor() );
         processorTarget.addDeploymentProcessor( Phase.PARSE, 70, new RingWebApplicationInstaller() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 1000, new RailsRuntimeProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 1100, new RackRuntimeProcessor() );
