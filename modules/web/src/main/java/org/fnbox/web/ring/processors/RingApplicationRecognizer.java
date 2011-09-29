@@ -17,9 +17,10 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.fnbox.web.ring;
+package org.fnbox.web.ring.processors;
 
-import org.fnbox.core.ClojureApplicationMetaData;
+import org.fnbox.core.ClojureMetaData;
+import org.fnbox.web.ring.RingMetaData;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
@@ -39,12 +40,12 @@ public class RingApplicationRecognizer extends FileLocatingProcessor {
         //ResourceRoot resourceRoot = unit.getAttachment( Attachments.DEPLOYMENT_ROOT );
         //VirtualFile root = resourceRoot.getRoot();
 
-        ClojureApplicationMetaData appMetaData = unit.getAttachment( ClojureApplicationMetaData.ATTACHMENT_KEY );
+        ClojureMetaData appMetaData = unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
           
         if (appMetaData != null) {
         //FIXME: for now, we assume everything is a ring app
-            RingApplicationMetaData ringMetaData = new RingApplicationMetaData( appMetaData );
-            unit.putAttachment( RingApplicationMetaData.ATTACHMENT_KEY, ringMetaData );
+            RingMetaData ringMetaData = new RingMetaData( appMetaData );
+            ringMetaData.attachTo( unit );
         }
          
 //        if (isRackApplication( root )) {

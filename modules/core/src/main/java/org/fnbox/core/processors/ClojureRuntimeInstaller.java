@@ -17,9 +17,9 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.fnbox.core.as;
+package org.fnbox.core.processors;
 
-import org.fnbox.core.ClojureApplicationMetaData;
+import org.fnbox.core.ClojureMetaData;
 import org.fnbox.core.ClojureRuntime;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
@@ -43,9 +43,7 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         DeploymentUnit deploymentUnit = phaseContext.getDeploymentUnit();
 
-        ClojureApplicationMetaData metaData = deploymentUnit.getAttachment( ClojureApplicationMetaData.ATTACHMENT_KEY );
-        
-        if (metaData == null) {
+        if (!deploymentUnit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
             return;
         }
         

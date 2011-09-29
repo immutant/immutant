@@ -19,7 +19,7 @@
 
 package org.fnbox.web.as;
 
-import org.fnbox.web.ring.RingApplicationMetaData;
+import org.fnbox.web.ring.RingMetaData;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -42,7 +42,7 @@ public class WebDependenciesProcessor implements DeploymentUnitProcessor {
         final ModuleSpecification moduleSpecification = unit.getAttachment( Attachments.MODULE_SPECIFICATION );
         final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
-        if (unit.hasAttachment( RingApplicationMetaData.ATTACHMENT_KEY )) {
+        if (unit.hasAttachment( RingMetaData.ATTACHMENT_KEY )) {
             addDependency( moduleSpecification, moduleLoader, FNBOX_WEB_ID );
         }
     }

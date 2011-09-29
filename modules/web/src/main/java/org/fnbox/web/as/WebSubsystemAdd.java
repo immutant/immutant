@@ -25,9 +25,9 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 
 import java.util.List;
 
-import org.fnbox.web.ring.RingApplicationRecognizer;
-import org.fnbox.web.ring.RingFilterClojureRuntimeInstaller;
-import org.fnbox.web.ring.RingWebApplicationDeployer;
+import org.fnbox.web.ring.processors.RingApplicationRecognizer;
+import org.fnbox.web.ring.processors.RingFilterClojureRuntimeInstaller;
+import org.fnbox.web.ring.processors.RingWebApplicationInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -67,7 +67,7 @@ class WebSubsystemAdd extends AbstractBoottimeAddStepHandler {
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 40, new RailsVersionProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 50, new RailsRackProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 60, new RackApplicationDefaultsProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.PARSE, 70, new RingWebApplicationDeployer() );
+        processorTarget.addDeploymentProcessor( Phase.PARSE, 70, new RingWebApplicationInstaller() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 1000, new RailsRuntimeProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 1100, new RackRuntimeProcessor() );
         

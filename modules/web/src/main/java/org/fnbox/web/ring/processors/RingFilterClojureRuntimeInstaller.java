@@ -1,6 +1,7 @@
-package org.fnbox.web.ring;
+package org.fnbox.web.ring.processors;
 
 import org.fnbox.core.ClojureRuntime;
+import org.fnbox.web.ring.RingMetaData;
 import org.fnbox.web.servlet.RingFilter;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -15,7 +16,7 @@ public class RingFilterClojureRuntimeInstaller implements DeploymentUnitProcesso
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         DeploymentUnit unit = phaseContext.getDeploymentUnit();
         
-        if (unit.getAttachment( RingApplicationMetaData.ATTACHMENT_KEY ) == null) {
+        if (!unit.hasAttachment( RingMetaData.ATTACHMENT_KEY )) {
             return;
         }
         

@@ -22,33 +22,24 @@ package org.fnbox.web.ring;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fnbox.core.ClojureApplicationMetaData;
+import org.fnbox.core.ClojureMetaData;
 import org.jboss.as.server.deployment.AttachmentKey;
+import org.jboss.as.server.deployment.DeploymentUnit;
+import org.projectodd.polyglot.web.WebApplicationMetaData;
 
-public class RingApplicationMetaData {
+public class RingMetaData extends WebApplicationMetaData {
 
-    public static final AttachmentKey<RingApplicationMetaData> ATTACHMENT_KEY = AttachmentKey.create(RingApplicationMetaData.class);
+    public static final AttachmentKey<RingMetaData> ATTACHMENT_KEY = AttachmentKey.create(RingMetaData.class);
     
-    public RingApplicationMetaData(ClojureApplicationMetaData appMetaData) {
+    public RingMetaData(ClojureMetaData appMetaData) {
         this.appMetaData = appMetaData;
+        setStaticPathPrefix( this.appMetaData.getString( "static" ) );
     }
 
-    public void addHost(String host) {
-        if (host != null && !this.hosts.contains( host ))
-            this.hosts.add( host );
-    }
-
-    public List<String> getHosts() {
-        return this.hosts;
-    }
-
-    public String getStaticPathPrefix() {
-        String prefix = this.appMetaData.getString( "static" );
-        if (prefix == null) {
-            prefix = "public";
-        }
-        
-        return prefix;
+    @Override
+    public void attachTo(DeploymentUnit unit) {
+        super.attachTo( unit );
+        unit.putAttachment( ATTACHMENT_KEY, this );
     }
     
     public void setContextPath(String contextPath) {
@@ -64,7 +55,7 @@ public class RingApplicationMetaData {
     }
 
     
-    private ClojureApplicationMetaData appMetaData;
+    private ClojureMetaData appMetaData;
     private List<String> hosts = new ArrayList<String>();
     private String contextPath = "/";
 }

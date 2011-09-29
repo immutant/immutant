@@ -17,7 +17,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.fnbox.web.ring;
+package org.fnbox.web.ring.processors;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -26,7 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.fnbox.core.ClojureApplicationMetaData;
+import org.fnbox.core.ClojureMetaData;
+import org.fnbox.web.ring.RingMetaData;
 import org.fnbox.web.servlet.RingFilter;
 import org.jboss.as.clustering.jgroups.subsystem.ChannelFactoryService;
 import org.jboss.as.ee.structure.DeploymentType;
@@ -69,7 +70,7 @@ import org.projectodd.polyglot.web.servlet.StaticResourceServlet;
  * Makes the JBossWebMetaData depend on the RackApplicationPool, and sets up
  * Java servlet filters to delegate to the Rack application
  */
-public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
+public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
 
     public static final String RING_FILTER_NAME = "fnbox.ring";
 
@@ -79,19 +80,19 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
     public static final String FIVE_HUNDRED_SERVLET_NAME = "fnbox.500";
     public static final String FIVE_HUNDRED_SERVLET_CLASS_NAME = FiveHundredServlet.class.getName();
 
-    public RingWebApplicationDeployer() {
+    public RingWebApplicationInstaller() {
     }
 
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         DeploymentUnit unit = phaseContext.getDeploymentUnit();
-        RingApplicationMetaData ringMetaData = unit.getAttachment( RingApplicationMetaData.ATTACHMENT_KEY );
+        RingMetaData ringMetaData = unit.getAttachment( RingMetaData.ATTACHMENT_KEY );
 
         if (ringMetaData == null) {
             return;
         }
 
-        ClojureApplicationMetaData appMetaData = unit.getAttachment( ClojureApplicationMetaData.ATTACHMENT_KEY );
+        ClojureMetaData appMetaData = unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
        
         attachResourceRoot( unit );
         attachTldsMetaData( unit );
@@ -116,7 +117,7 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
 
     }
 
-    private void attachServletParameters(DeploymentUnit unit, ClojureApplicationMetaData appMetaData) {
+    private void attachServletParameters(DeploymentUnit unit, ClojureMetaData appMetaData) {
         ServletContextAttribute functionName = new ServletContextAttribute( RingFilter.CLOJURE_APP_FUNCTION_NAME, appMetaData.getAppFunction() ); //"fnbox-handler" );
         unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, functionName );
     }
@@ -188,7 +189,7 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
         unit.putAttachment( TldsMetaData.ATTACHMENT_KEY, tldsMetaData );
     }
 
-    protected void setUpRingFilter(DeploymentUnit unit, RingApplicationMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
+    protected void setUpRingFilter(DeploymentUnit unit, RingMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
         FilterMetaData ringFilter = new FilterMetaData();
         ringFilter.setId( RING_FILTER_NAME );
         ringFilter.setFilterClass( RingFilter.class.getName() );
@@ -226,7 +227,7 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
 
     }
 
-    protected void setUpStaticResourceServlet(RingApplicationMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
+    protected void setUpStaticResourceServlet(RingMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
         JBossServletsMetaData servlets = jbossWebMetaData.getServlets();
         if (servlets == null) {
             servlets = new JBossServletsMetaData();
@@ -259,11 +260,11 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
         }
     }
 
-    protected void setupRingServlet(RingApplicationMetaData ringAppMetaData, JBossServletMetaData jbossWebMetaData) {
+    protected void setupRingServlet(RingMetaData ringAppMetaData, JBossServletMetaData jbossWebMetaData) {
     
     }
     
-    protected void ensureSomeServlet(RingApplicationMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
+    protected void ensureSomeServlet(RingMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
         JBossServletsMetaData servlets = jbossWebMetaData.getServlets();
 
         if (servlets.isEmpty()) {
@@ -282,7 +283,7 @@ public class RingWebApplicationDeployer implements DeploymentUnitProcessor {
         }
     }
 
-    protected void setUpHostAndContext(DeploymentUnit unit, RingApplicationMetaData ringAppMetaData, WarMetaData warMetaData, JBossWebMetaData jbossWebMetaData)
+    protected void setUpHostAndContext(DeploymentUnit unit, RingMetaData ringAppMetaData, WarMetaData warMetaData, JBossWebMetaData jbossWebMetaData)
             throws Exception {
         jbossWebMetaData.setContextRoot( ringAppMetaData.getContextPath() );
     }

@@ -17,14 +17,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.fnbox.core.as;
+package org.fnbox.core.processors;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fnbox.core.ClojureApplicationMetaData;
+import org.fnbox.core.ClojureMetaData;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -60,14 +60,12 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
                 return;
             }
             
-            ClojureApplicationMetaData appMetaData = new ClojureApplicationMetaData( deploymentName, 
-                    ClojureApplicationMetaData.parse(  cljFile.getPhysicalFile() ) );
+            ClojureMetaData appMetaData = new ClojureMetaData( deploymentName, 
+                    ClojureMetaData.parse(  cljFile.getPhysicalFile() ) );
             
-            deploymentUnit.putAttachment( ClojureApplicationMetaData.ATTACHMENT_KEY, appMetaData );
-            
+            appMetaData.attachTo( deploymentUnit );
+                        
             VirtualFile root = appMetaData.getApplicationRootFile();
-            System.out.println( "ROOT from cfg: " + appMetaData.getRootPath() );
-            System.out.println( "ROOT: " + root );
             ResourceRoot appRoot;
             
             if (root == null) {

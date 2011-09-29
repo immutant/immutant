@@ -19,7 +19,7 @@
 
 package org.fnbox.core.as;
 
-import org.fnbox.core.ClojureApplicationMetaData;
+import org.fnbox.core.ClojureMetaData;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -42,7 +42,7 @@ public class CoreDependenciesProcessor implements DeploymentUnitProcessor {
         final ModuleSpecification moduleSpecification = unit.getAttachment( Attachments.MODULE_SPECIFICATION );
         final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
-        if (unit.hasAttachment( ClojureApplicationMetaData.ATTACHMENT_KEY )) {
+        if (unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
             addDependency( moduleSpecification, moduleLoader, FNBOX_CORE_ID );
         }
     }

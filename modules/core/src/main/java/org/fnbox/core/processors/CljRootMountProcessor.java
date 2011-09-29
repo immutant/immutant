@@ -17,7 +17,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.fnbox.core.as;
+package org.fnbox.core.processors;
 
 import java.io.Closeable;
 import java.io.IOException;

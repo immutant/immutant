@@ -25,6 +25,10 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 
 import java.util.List;
 
+import org.fnbox.core.processors.AppCljParsingProcessor;
+import org.fnbox.core.processors.AppJarScanningProcessor;
+import org.fnbox.core.processors.CljRootMountProcessor;
+import org.fnbox.core.processors.ClojureRuntimeInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
