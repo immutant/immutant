@@ -4,11 +4,11 @@
   (:import (javax.servlet.http HttpServletRequest
                                HttpServletResponse)))
 
-(defn handler [handler]
+(defn handler [app]
   (fn [^HttpServletRequest request
        ^HttpServletResponse response]
     (.setCharacterEncoding response "UTF-8")
-    (if-let [response-map (handler (servlet/build-request-map request))]
+    (if-let [response-map (app (servlet/build-request-map request))]
       (servlet/update-servlet-response response response-map)
       (throw (NullPointerException. "Handler returned nil.")))))
 
