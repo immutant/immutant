@@ -17,9 +17,7 @@
 
 (defn install-modules []
   (with-message "Installing modules"
-    (doall (map install-module 
-                (sort-by #(if (re-matches #"-core" (.getName %)) -1 1)
-                         (vals fnbox-modules))))))
+    (doall (map install-module (vals fnbox-modules)))))
 
 (defn transform-configs []
   (doall (map transform-config

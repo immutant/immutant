@@ -41,8 +41,6 @@
   (def fnbox-dir (io/file build-dir "fnbox"))
   (def jboss-dir (io/file fnbox-dir "jboss"))
 
-  (doall (map print-err [ root-dir root-pom build-dir fnbox-dir jboss-dir]))
-  
   (def version-paths {:fnbox [:version]
                       :jboss [:properties :version.jbossas]})
 
@@ -89,13 +87,14 @@
 
 (defn add-subsystem [xml name]
   (let [module-name (str "urn:jboss:domain:fnbox-" name ":1.0")]
-    (if-let [profile (zfx/xml1-> (zip/xml-zip xml) zf/descendants :profile [:subsystem #(not= (zfx/attr % :xmlns) module-name)])]
+    (if-let [profile (zfx/xml1-> (zip/xml-zip xml) zf/descendants :profile zip/down zip/rightmost
+                                 [#(not= (zfx/attr % :xmlns) module-name)] zip/up)]
       (recur (zip/root (zip/append-child profile {:tag :subsystem :attrs {:xmlns module-name}}))
              name)
       xml)))
 
 (defn add-subsystems [xml]
-  (reduce add-subsystem xml (keys fnbox-modules)))
+  (reduce add-subsystem xml (sort-by #(if (= "core" %) -1 1) (keys fnbox-modules))))
 
 (defn set-welcome-root [xml]
   (if-let [loc (zfx/xml1-> (zip/xml-zip xml) zf/descendants :virtual-server [#(not= (zfx/attr % :enable-welcome-root) "false")])]
@@ -122,7 +121,7 @@
 
 (defn set-system-property [xml prop value]
   (-> xml
-      (add-system-properties-tag)
+      add-system-properties-tag
       (add-or-replace-system-property prop value)))
 
 (defn unquote-cookie-path [xml]
@@ -143,11 +142,11 @@
     (io/copy (with-out-str
                (xml/emit
                 (-> xml
-                    (increase-deployment-timeout)
-                    (add-extensions)
-                    (add-subsystems)
-                    (set-welcome-root)
-                    (unquote-cookie-path)
-                    (add-xa-datasource))
+                    increase-deployment-timeout
+                    add-extensions
+                    add-subsystems
+                    set-welcome-root
+                    unquote-cookie-path
+                    add-xa-datasource)
                 :indent 4))
              out-file)))
