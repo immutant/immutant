@@ -48,30 +48,6 @@ public class ClojureMetaData extends ApplicationMetaData {
         super.attachTo( unit );
         unit.putAttachment( ATTACHMENT_KEY, this );
     }
-    
-    public VirtualFile getApplicationRootFile() {
-        String path = getRootPath();
-
-        if (path == null) {
-            return null;
-        }
-        
-        String sanitizedPath = null;
-
-        if (path.indexOf( "\\\\" ) >= 0) {
-            sanitizedPath = path.replaceAll( "\\\\\\\\", "/" );
-            sanitizedPath = sanitizedPath.replaceAll( "\\\\", "" );
-        } else {
-            sanitizedPath = path.replaceAll( "\\\\", "/" );
-        }
-        
-        if ( sanitizedPath.startsWith( "~" ) ) {
-            sanitizedPath = System.getProperty( "user.home" ) + sanitizedPath.substring( 1 );
-        }
-        VirtualFile root = VFS.getChild( sanitizedPath );
-
-        return root;
-    }
 
     public String getAppFunction() {
         return getString( "app-function" );

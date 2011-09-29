@@ -65,7 +65,7 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
             
             appMetaData.attachTo( deploymentUnit );
                         
-            VirtualFile root = appMetaData.getApplicationRootFile();
+            VirtualFile root = appMetaData.getRoot();
             ResourceRoot appRoot;
             
             if (root == null) {
