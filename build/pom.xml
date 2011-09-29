@@ -9,7 +9,6 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.fnbox</groupId>
   <artifactId>fnbox-build</artifactId>
   <packaging>pom</packaging>
   <name>(fn box) Build Aggregator</name>
