@@ -127,11 +127,6 @@
 (defn unquote-cookie-path [xml]
   (set-system-property xml "org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR" "false"))
 
-(defn add-xa-datasource [xml]
-  ;; currently a noop
-  xml)
-
-
 (defn transform-config [file]
   (let [in-file (io/file jboss-dir file)
         xml (xml/parse-trim in-file)
@@ -146,7 +141,6 @@
                     add-extensions
                     add-subsystems
                     set-welcome-root
-                    unquote-cookie-path
-                    add-xa-datasource)
+                    unquote-cookie-path)
                 :indent 4))
              out-file)))
