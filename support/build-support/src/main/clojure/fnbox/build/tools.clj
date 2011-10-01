@@ -98,7 +98,7 @@
 
 (defn set-welcome-root [xml]
   (if-let [loc (zfx/xml1-> (zip/xml-zip xml) zf/descendants :virtual-server [#(not= (zfx/attr % :enable-welcome-root) "false")])]
-    (recur (zip/root (zip/edit loc #(assoc % :attrs (assoc (:attrs %) :enable-welcome-root "false")))))
+    (recur (zip/root (zip/edit loc #(update-in % [:attrs :enable-welcome-root] (constantly "false")))))
     xml))
 
 (defn add-system-properties-tag [xml]
