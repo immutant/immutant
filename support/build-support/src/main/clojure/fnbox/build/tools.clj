@@ -73,7 +73,7 @@
       (io/copy file to-file))))
 
 (defn increase-deployment-timeout [loc]
-  (zip/edit loc #(assoc-in % [:attrs :deployment-timeout] "false")))
+  (zip/edit loc #(assoc-in % [:attrs :deployment-timeout] "1200")))
 
 (defn add-extension [loc name]
   (let [module-name (str "org.fnbox." name)]
