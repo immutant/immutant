@@ -127,6 +127,11 @@
 (defn unquote-cookie-path [xml]
   (set-system-property xml "org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR" "false"))
 
+(defn remove-jms-destinations [xml]
+  (if-let [loc (zfx/xml1-> (zip/xml-zip xml) zf/descendants :jms-destinations)]
+    (-> loc zip/remove zip/root)
+    xml))
+
 (defn transform-config [file]
   (let [in-file (io/file jboss-dir file)
         xml (xml/parse-trim in-file)
@@ -141,6 +146,8 @@
                     add-extensions
                     add-subsystems
                     set-welcome-root
-                    unquote-cookie-path)
+                    unquote-cookie-path
+                    remove-jms-destinations
+                    )
                 :indent 4))
              out-file)))
