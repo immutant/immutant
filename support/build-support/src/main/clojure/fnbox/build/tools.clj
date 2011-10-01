@@ -72,10 +72,9 @@
     (when-not (.exists to-file)
       (io/copy file to-file))))
 
-(defn increase-deployment-timeout [xml]
-  xml)
+(defn increase-deployment-timeout [loc]
+  (zip/edit loc #(assoc-in % [:attrs :deployment-timeout] "false")))
 
-;; TODO Is there really a danger of the fnbox exts being there?
 (defn add-extension [loc name]
   (let [module-name (str "org.fnbox." name)]
     (zip/append-child loc {:tag :extension :attrs {:module module-name}})))
@@ -83,7 +82,6 @@
 (defn add-extensions [loc]
   (reduce add-extension loc (keys fnbox-modules)))
 
-;; TODO Is there really a danger of the fnbox subs being there?
 (defn add-subsystem [loc name]
   (let [module-name (str "urn:jboss:domain:fnbox-" name ":1.0")]
     (zip/append-child loc {:tag :subsystem :attrs {:xmlns module-name}})))
@@ -130,6 +128,7 @@
              (looking-at? :virtual-server loc) (set-welcome-root loc)
              (looking-at? :system-properties loc) (unquote-cookie-path loc)
              (looking-at? :jms-destinations loc) (zip/remove loc)
+             (looking-at? :deployment-scanner loc) (increase-deployment-timeout loc)
              :else loc)))))
   
 (defn transform-config [file]
