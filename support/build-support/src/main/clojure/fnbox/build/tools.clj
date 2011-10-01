@@ -75,79 +75,71 @@
 (defn increase-deployment-timeout [xml]
   xml)
 
-(defn add-extension [xml name]
-  (let [module-name (str "org.fnbox." name)
-        zip-xml (zip/xml-zip xml)]
-    (if (zfx/xml1-> zip-xml :extensions :extension [(zfx/attr= :module module-name)])
-      xml
-      (zip/root (zip/append-child (zfx/xml1-> zip-xml :extensions) {:tag :extension :attrs {:module module-name}})))))
+;; TODO Is there really a danger of the fnbox exts being there?
+(defn add-extension [loc name]
+  (let [module-name (str "org.fnbox." name)]
+    (zip/append-child loc {:tag :extension :attrs {:module module-name}})))
 
-(defn add-extensions [xml]
-  (reduce add-extension xml (keys fnbox-modules)))
+(defn add-extensions [loc]
+  (reduce add-extension loc (keys fnbox-modules)))
 
-(defn add-subsystem [xml name]
+;; TODO Is there really a danger of the fnbox subs being there?
+(defn add-subsystem [loc name]
   (let [module-name (str "urn:jboss:domain:fnbox-" name ":1.0")]
-    (if-let [profile (zfx/xml1-> (zip/xml-zip xml) zf/descendants :profile zip/down zip/rightmost
-                                 [#(not= (zfx/attr % :xmlns) module-name)] zip/up)]
-      (recur (zip/root (zip/append-child profile {:tag :subsystem :attrs {:xmlns module-name}}))
-             name)
-      xml)))
+    (zip/append-child loc {:tag :subsystem :attrs {:xmlns module-name}})))
 
-(defn add-subsystems [xml]
-  (reduce add-subsystem xml (sort-by #(if (= "core" %) -1 1) (keys fnbox-modules))))
+(defn add-subsystems [loc]
+  (reduce add-subsystem loc (sort-by #(if (= "core" %) -1 1) (keys fnbox-modules))))
 
-(defn set-welcome-root [xml]
-  (if-let [loc (zfx/xml1-> (zip/xml-zip xml) zf/descendants :virtual-server [#(not= (zfx/attr % :enable-welcome-root) "false")])]
-    (recur (zip/root (zip/edit loc #(update-in % [:attrs :enable-welcome-root] (constantly "false")))))
-    xml))
+(defn add-system-property [loc prop value]
+  (zip/append-child loc {:tag :property :attrs {:name prop :value value}}))
 
-(defn add-system-properties-tag [xml]
-  (let [xml-zip (zip/xml-zip xml)]
+(defn replace-system-property [loc prop value]
+  (zip/edit loc #(assoc % :attrs {:name prop :value value})))
+
+(defn set-system-property [loc prop value]
+  (if-let [child (zfx/xml1-> loc :property (zfx/attr= :name value))]
+    (zip/up (replace-system-property child prop value))
+    (add-system-property loc prop value)))
+
+(defn unquote-cookie-path [loc]
+  (set-system-property loc "org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR" "false"))
+
+(defn set-welcome-root [loc]
+  (if (= "false" (-> loc zip/node :attrs :enable-welcome-root))
+    loc
+    (zip/edit loc #(update-in % [:attrs :enable-welcome-root] (constantly "false")))))
+
+(defn looking-at? [tag loc]
+  (= tag (:tag (zip/node loc))))
+
+(defn prepare-zip [file]
+  "Make sure the doc has a <system-properties> element"
+  (let [xml-zip (zip/xml-zip (xml/parse-trim file))]
     (if (zfx/xml1-> xml-zip zf/descendants :system-properties)
-      xml
-      (zip/root (zip/insert-right (zfx/xml1-> xml-zip :extensions) {:tag :system-properties})))))
+      xml-zip
+      (zip/insert-right (zfx/xml1-> xml-zip :extensions) {:tag :system-properties}))))
 
-(defn add-system-property [xml prop value]
-  (zip/root (zip/append-child (zfx/xml1-> (zip/xml-zip xml) :system-properties) {:tag :property :attrs {:name prop :value value}})))
-
-(defn replace-system-property [xml prop value]
-  (zip/root (zip/edit (zfx/xml1-> (zip/xml-zip xml) :system-properties :property [(zfx/attr= :name prop)])
-                      #(assoc % :attrs {:name prop :value value}))))
-
-(defn add-or-replace-system-property [xml prop value]
-  (if (zfx/xml1-> (zip/xml-zip xml) :system-properties :property [(zfx/attr= :name value)])
-    (replace-system-property xml prop value)
-    (add-system-property xml prop value)))
-
-(defn set-system-property [xml prop value]
-  (-> xml
-      add-system-properties-tag
-      (add-or-replace-system-property prop value)))
-
-(defn unquote-cookie-path [xml]
-  (set-system-property xml "org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR" "false"))
-
-(defn remove-jms-destinations [xml]
-  (if-let [loc (zfx/xml1-> (zip/xml-zip xml) zf/descendants :jms-destinations)]
-    (-> loc zip/remove zip/root)
-    xml))
-
+(defn walk-the-doc [loc]
+  (if (zip/end? loc)
+    (zip/root loc)
+    (recur (zip/next
+            (cond
+             (looking-at? :extensions loc) (add-extensions loc)
+             (looking-at? :profile loc) (add-subsystems loc)
+             (looking-at? :virtual-server loc) (set-welcome-root loc)
+             (looking-at? :system-properties loc) (unquote-cookie-path loc)
+             (looking-at? :jms-destinations loc) (zip/remove loc)
+             :else loc)))))
+  
 (defn transform-config [file]
   (let [in-file (io/file jboss-dir file)
-        xml (xml/parse-trim in-file)
         out-file (io/file (.getParentFile in-file) (str "fnbox/" (.getName in-file)))]
-    (print-err (str "transforming " file))
+    (println (str "transforming " file))
     (io/make-parents out-file)
     (backup-current-config in-file)
     (io/copy (with-out-str
                (xml/emit
-                (-> xml
-                    increase-deployment-timeout
-                    add-extensions
-                    add-subsystems
-                    set-welcome-root
-                    unquote-cookie-path
-                    remove-jms-destinations
-                    )
+                (walk-the-doc (prepare-zip in-file))
                 :indent 4))
              out-file)))
