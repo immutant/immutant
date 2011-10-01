@@ -25,3 +25,12 @@ Once your repositories are configured, simply type:
 
     mvn install
 
+Dependencies
+------------
+
+(fn box) depends on polyglot: https://github.com/projectodd/jboss-polyglot
+
+You'll need to pull and build it before building (fn box), and it will
+stuff its artifacts into ~/.m2/
+
+
