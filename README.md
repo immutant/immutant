@@ -43,18 +43,7 @@ If you are using emacs, you can fire up swank via:
   
     mvn clojure:swank
     
-Install slime and clojure-mode in emacs, and connect with:
+Install slime from marmalade via the instructions at https://github.com/technomancy/swank-clojure
+under 'Connecting with SLIME'. Install clojure-mode, and connect with:
 
     M-x slime-connect
-    
-If installing slime via el-get, you may need to modify the default 
-recipe to not build and install docs. Here is the modified version:
-
-    (:name slime
-	       :description "Superior Lisp Interaction Mode for Emacs"
-	       :type git
-	       :module "slime"
-	       :url "https://github.com/nablaone/slime.git"
-	       :load-path ("." "contrib")
-	       :compile ("."))
-           
