@@ -26,5 +26,6 @@
     (are [exp val-method] (= exp (val-method metadata))
          "vfs:/tmp/"        .getRootPath
          "the-app-function" .getAppFunction
-         "app"              .getApplicationName)))
+         "app"              .getApplicationName)
+    (is (= "biscuit" (.getString metadata "ham")))))
 
