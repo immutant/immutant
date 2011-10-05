@@ -76,6 +76,10 @@ public class ClojureRuntime {
         }
     }
     
+    public ClassLoader getClassLoader() {
+        return this.classLoader;
+    }
+    
     protected Class getRuntime() {
         if (this.runtime == null) {
             try {

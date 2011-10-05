@@ -60,7 +60,6 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
 
             for (String scanRoot : SCAN_ROOTS) {
                 for (VirtualFile child : getJarFiles( root.getChild( scanRoot ) )) {
-                    System.out.println( "child: " + child.getName() );
                     final Closeable closable = child.isFile() ? mount( child, false ) : null;
                     final MountHandle mountHandle = new MountHandle( closable );
                     final ResourceRoot childResource = new ResourceRoot( child, mountHandle );
@@ -70,7 +69,6 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
             }
 
             for(String each : DIR_ROOTS) {
-                System.out.println( "ADDING: " + root.getChild( each));
                 final ResourceRoot childResource = new ResourceRoot( root.getChild( each ), null );
                 ModuleRootMarker.mark(childResource);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
