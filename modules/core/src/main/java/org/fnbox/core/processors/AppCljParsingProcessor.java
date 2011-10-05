@@ -85,11 +85,6 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
                 appRoot = new ResourceRoot( root, null );
             }
             deploymentUnit.putAttachment( Attachments.DEPLOYMENT_ROOT, appRoot );
-            
-            //hack
-//            deploymentUnit.putAttachment( Attachments.DEPLOYMENT_ROOT, new ResourceRoot( VFS.getChild( "/Users/tobias/w/test-apps/ring/basic-ring/" ), null ) );
-//            ClojureApplicationMetaData appMetaData = new ClojureApplicationMetaData( "basic-ring" );
-//            deploymentUnit.putAttachment( ClojureApplicationMetaData.ATTACHMENT_KEY, appMetaData );
 
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );

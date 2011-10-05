@@ -198,6 +198,11 @@
         <type>zip</type>
       </dependency>
 
+      <dependency>
+        <groupId>org.projectodd</groupId>
+        <artifactId>polyglot-as-test-support</artifactId>
+        <version>${version.polyglot}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
