@@ -1,4 +1,4 @@
-(ns org.fnbox.core.processors.t-ClojureRuntimeInstaller
+(ns org.fnbox.core.processors.test.ClojureRuntimeInstaller
   (:use clojure.test)
   (:use fnbox.test.as.helpers)
   (:import [org.jboss.as.server.deployment Attachments])

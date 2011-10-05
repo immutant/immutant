@@ -1,4 +1,4 @@
-(ns org.fnbox.core.processors.t-AppCljParsingProcessor
+(ns org.fnbox.core.processors.test.AppCljParsingProcessor
   (:use clojure.test)
   (:use fnbox.test.as.helpers)
   (:import [org.fnbox.core.processors AppCljParsingProcessor])

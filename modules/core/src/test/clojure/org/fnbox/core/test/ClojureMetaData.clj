@@ -1,4 +1,4 @@
-(ns org.fnbox.core.t-ClojureMetaData
+(ns org.fnbox.core.test.ClojureMetaData
   (:use clojure.test)
   (:import [org.fnbox.core ClojureMetaData])
   (:require [clojure.java.io :as io]))
