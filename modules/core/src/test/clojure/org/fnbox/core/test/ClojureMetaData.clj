@@ -4,6 +4,7 @@
   (:require [clojure.java.io :as io]))
 
 (def simple-descriptor (io/file (io/resource "simple-descriptor.clj")))
+(def hashy-descriptor (io/file (io/resource "hashy-descriptor.clj")))
 
 (deftest parse "it should parse the descriptor and return a map"
   (let [result (ClojureMetaData/parse simple-descriptor)]
@@ -14,6 +15,11 @@
         value (.getString cmd "app-function")]
     (is (= "the-app-function" value))
     (is (instance? String value))))
+
+(deftest getHash "it should return the proper value as a Hash"
+  (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse hashy-descriptor))
+        value (.getHash cmd "ham")]
+    (is (= {:biscuit "gravy"} value))))
 
 (deftest getAppFunction "it should return the proper value"
   (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse simple-descriptor))]

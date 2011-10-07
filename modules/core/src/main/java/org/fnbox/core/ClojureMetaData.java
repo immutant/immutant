@@ -57,6 +57,10 @@ public class ClojureMetaData extends ApplicationMetaData {
         return (String)this.config.get( key );
     }
  
+    public Map<String, ?> getHash(String key) {
+        return (Map<String, Object>)this.config.get( key );
+    }
+    
     public static Map<String, ?> parse(File file) throws Exception {
         ClassLoader originalCl = Thread.currentThread().getContextClassLoader();
         try {

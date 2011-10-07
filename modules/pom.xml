@@ -15,15 +15,8 @@
 
   <modules>
     <module>core</module>
-    <!-- <module>cache</module> -->
-    <!-- <module>services</module> -->
+    <module>messaging</module>
     <module>web</module>
-    <!-- <module>messaging</module> -->
-    <!-- <module>jobs</module> -->
-
-    <!-- <module>cdi</module> -->
-    <!-- <module>security</module> -->
-    <!-- <module>stomp</module> -->
   </modules>
 
   <dependencies>
