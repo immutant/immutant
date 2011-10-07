@@ -1,10 +1,15 @@
 (ns fnbox.test.helpers
-  (:use clojure.test))
+  (:use clojure.test)
+  (:require [clojure.template :as temp]))
 
 (defmacro is-not
   ;; NOTE: this won't work with any assert-expr's
   ([form] `(is-not ~form nil))
   ([form msg] `(try-expr ~msg (not ~form))))
+
+(defmacro are-not
+  [argv expr & args]
+  `(temp/do-template ~argv (is-not ~expr) ~@args))
 
 (defmethod assert-expr 'not-thrown? [msg form]
   ;; (is (not-thrown? c expr))
@@ -18,3 +23,10 @@
             (do-report {:type :fail, :message ~msg,
                      :expected '~form, :actual e#})
             e#))))
+
+(defmacro deftest-pending
+  [name & body]
+   ;; borrowed from http://techbehindtech.com/2010/06/01/marking-tests-as-pending-in-clojure/                  
+   (let [message (str "\n========\nPENDING: " name "\n========\n")]
+     `(deftest ~name
+        (println ~message))))
