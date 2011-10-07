@@ -13,11 +13,12 @@
      (println "Stopping JBoss")
      (jboss/stop))))
 
-(defn with-deployment [name descriptor f]
-  "A test fixture for deploying/undeploying an app to a running JBoss"
-  (try
-    (jboss/deploy name descriptor)
-    (f)
-    (finally
-     (jboss/undeploy name))))
+(defn with-deployment [name descriptor]
+  "Returns a test fixture for deploying/undeploying an app to a running JBoss"
+  (fn [f]
+    (try
+      (jboss/deploy name descriptor)
+      (f)
+      (finally
+       (jboss/undeploy name)))))
 
