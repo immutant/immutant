@@ -69,11 +69,15 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
             ResourceRoot appRoot;
             
             if (root == null) {
-                throw new DeploymentUnitProcessingException( "No application root specified" );
+                throw new DeploymentUnitProcessingException( "No application root specified." );
             }
             
             if ( ! root.exists() ) {
                 throw new DeploymentUnitProcessingException( "Application root does not exist: " + root.toURL().toExternalForm() );
+            }
+            
+            if (appMetaData.getAppFunction() == null) {
+                throw new DeploymentUnitProcessingException( "No app-function specified." );
             }
             
             if (root.exists() && !root.isDirectory()) {
@@ -132,5 +136,5 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
         });
 
     
-    static final Logger log = Logger.getLogger( "org.fnbox.core.as" );
+    static final Logger log = Logger.getLogger( "org.fnbox.core" );
 }

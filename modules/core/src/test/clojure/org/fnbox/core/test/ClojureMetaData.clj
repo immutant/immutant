@@ -19,3 +19,7 @@
   (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse simple-descriptor))]
     (is (= "the-app-function" (.getAppFunction cmd)))))
 
+(deftest it-should-allow-access-to-any-metadata-value
+  (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse simple-descriptor))]
+    (is (= "biscuit" (.getString cmd "ham")))))
+

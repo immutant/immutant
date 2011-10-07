@@ -15,6 +15,7 @@
 
   <modules>
     <module>as-test-support</module>
+    <module>clojure-test-support</module>
     <module>build-support</module>
   </modules>
 

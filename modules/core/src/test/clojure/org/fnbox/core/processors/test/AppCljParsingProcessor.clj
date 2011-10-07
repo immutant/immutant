@@ -1,5 +1,6 @@
 (ns org.fnbox.core.processors.test.AppCljParsingProcessor
   (:use clojure.test)
+  (:use fnbox.test.helpers)
   (:use fnbox.test.as.helpers)
   (:import [org.fnbox.core.processors AppCljParsingProcessor])
   (:import [org.fnbox.core ClojureMetaData])
@@ -16,9 +17,13 @@
   (is (thrown? RuntimeException
                (.deployResourceAs *harness* (io/resource "invalid-root-descriptor.clj") "app.clj" ))))
 
+(deftest it-should-raise-with-no-app-function-specified
+  (is (thrown? RuntimeException
+               (.deployResourceAs *harness* (io/resource "missing-app-function-descriptor.clj") "app.clj" ))))
+
 (deftest it-should-create-metadata-when-given-a-valid-root
   (let [unit (.deployResourceAs *harness* (io/resource "valid-root-descriptor.clj") "app.clj" )]
-    (is (not (nil? (.getAttachment unit ClojureMetaData/ATTACHMENT_KEY))))))
+    (is-not (nil? (.getAttachment unit ClojureMetaData/ATTACHMENT_KEY)))))
 
 (deftest it-should-populate-the-metadata
   (let [unit (.deployResourceAs *harness* (io/resource "valid-root-descriptor.clj") "app.clj" )
@@ -26,6 +31,5 @@
     (are [exp val-method] (= exp (val-method metadata))
          "vfs:/tmp/"        .getRootPath
          "the-app-function" .getAppFunction
-         "app"              .getApplicationName)
-    (is (= "biscuit" (.getString metadata "ham")))))
+         "app"              .getApplicationName)))
 
