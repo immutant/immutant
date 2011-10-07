@@ -30,8 +30,7 @@ import org.jboss.logging.Logger;
 import org.jboss.modules.Module;
 
 /**
- * Handle mounting .clj files and marking them as a DEPLOYMENT_ROOT
- * FIXME: This doesn't handle archives
+ * Attaches a ClojureRuntime to the deployment. There is one ClojureRuntime per app.
  * 
  */
 public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
@@ -57,5 +56,5 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
        
     }
         
-    static final Logger log = Logger.getLogger( "org.fnbox.core.as" );
+    static final Logger log = Logger.getLogger( "org.fnbox.core" );
 }
