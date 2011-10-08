@@ -45,7 +45,7 @@
 
 (defn descriptor [name & [content]]
   "Return a File object representing the deployment descriptor"
-  (let [fname (if (re-matches (re-pattern ".*clj$") name) name (str name ".clj"))
+  (let [fname (if (re-seq #".+\.clj$" name) name (str name ".clj"))
         file (io/file descriptor-root fname)]
     (when content
       (io/make-parents file)
