@@ -6,9 +6,7 @@
   (try
     (println "Starting JBoss")
     (jboss/start)
-    (if (jboss/wait-for-ready? 20)
-      (f)
-      (println "JBoss failed to start"))
+    (f)
     (finally
      (println "Stopping JBoss")
      (jboss/stop))))
@@ -17,7 +15,7 @@
   "Returns a test fixture for deploying/undeploying an app to a running JBoss"
   (fn [f]
     (try
-      (jboss/deploy name descriptor)
+      (when (jboss/wait-for-ready? 20) (jboss/deploy name descriptor))
       (f)
       (finally
        (jboss/undeploy name)))))
