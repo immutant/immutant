@@ -11,6 +11,7 @@
     (let [results (atom [])]
       (let [report-orig report]
         (binding [fntest.jboss/home "../build/assembly/target/stage/fnbox/jboss"
+                  fntest.jboss/descriptor-root "target/.descriptors"
                   report (fn [x] (report-orig x)
                            (swap! results conj (:type x)))]
           (with-jboss #(apply run-tests namespaces))))

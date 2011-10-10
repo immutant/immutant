@@ -4,7 +4,7 @@
   (:require [clj-http.client :as client])
   (:require [clojure.java.io :as io]))
 
-(use-fixtures :once (with-deployment "basic"
+(use-fixtures :once (with-deployment *file*
                       {
                        :root "apps/ring/basic-ring/"
                        :app-function "basic-ring.core/handler"

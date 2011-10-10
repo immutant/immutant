@@ -5,8 +5,8 @@
   (:require [clojure.java.io :as io]))
 
 (def ^:dynamic home (System/getenv "JBOSS_HOME"))
+(def ^:dynamic descriptor-root ".descriptors")
 (def api-url "http://localhost:9990/management")
-(def descriptor-root ".descriptors")
 
 (defn api [& params]
   "Params assembled into a hash that is passed to the JBoss CLI as a
