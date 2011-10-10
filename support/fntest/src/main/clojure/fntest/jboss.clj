@@ -49,7 +49,7 @@
         file (io/file descriptor-root fname)]
     (when content
       (io/make-parents file)
-      (spit file content))
+      (spit file (into content {:root (str (.getCanonicalFile (io/file (:root content))))})))
     file))
 
 (defn deploy [name content]
