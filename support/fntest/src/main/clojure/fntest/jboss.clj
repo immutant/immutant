@@ -4,7 +4,7 @@
   (:require [clj-http.client :as client])
   (:require [clojure.java.io :as io]))
 
-(def home (System/getenv "JBOSS_HOME"))
+(def ^:dynamic home (System/getenv "JBOSS_HOME"))
 (def api-url "http://localhost:9990/management")
 (def descriptor-root ".descriptors")
 

@@ -12,7 +12,7 @@
      :context-path "/basic-ring"
      }))
 
-(use-fixtures :once with-jboss deployment)
+(use-fixtures :once deployment)
 
 (deftest simple "it should work"
   (let [result (client/get "http://localhost:8080/basic-ring")]
