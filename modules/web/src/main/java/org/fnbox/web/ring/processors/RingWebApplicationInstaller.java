@@ -118,7 +118,7 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
     }
 
     private void attachServletParameters(DeploymentUnit unit, ClojureMetaData appMetaData) {
-        ServletContextAttribute functionName = new ServletContextAttribute( RingFilter.CLOJURE_APP_FUNCTION_NAME, appMetaData.getAppFunction() ); //"fnbox-handler" );
+        ServletContextAttribute functionName = new ServletContextAttribute( RingFilter.CLOJURE_APP_FUNCTION_NAME, appMetaData.getAppFunction() ); 
         unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, functionName );
     }
 

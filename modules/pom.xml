@@ -15,6 +15,7 @@
 
   <modules>
     <module>core</module>
+    <module>daemons</module>
     <module>messaging</module>
     <module>web</module>
   </modules>
