@@ -35,7 +35,7 @@ import org.jboss.as.controller.descriptions.DescriptionProvider;
 import org.jboss.dmr.ModelNode;
 
 public class DaemonsSubsystemProviders {
-    
+
     static final String RESOURCE_NAME = DaemonsSubsystemProviders.class.getPackage().getName() + ".LocalDescriptions";
 
     static final DescriptionProvider SUBSYSTEM = new DescriptionProvider() {
@@ -67,7 +67,7 @@ public class DaemonsSubsystemProviders {
             return operation;
         }
     };
-    
+
     private static ResourceBundle getResourceBundle(Locale locale) {
         if (locale == null) {
             locale = Locale.getDefault();

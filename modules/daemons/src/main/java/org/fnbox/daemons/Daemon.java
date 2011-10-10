@@ -22,20 +22,20 @@ package org.fnbox.daemons;
 import org.fnbox.core.ClojureRuntime;
 
 public class Daemon implements DaemonMBean {
-	public Daemon(ClojureRuntime runtime, String startFunction, String stopFunction) {
-		this.runtime = runtime;
-		this.startFunction = startFunction;
-		this.stopFunction = stopFunction;
-	}
+    public Daemon(ClojureRuntime runtime, String startFunction, String stopFunction) {
+        this.runtime = runtime;
+        this.startFunction = startFunction;
+        this.stopFunction = stopFunction;
+    }
 
-	public void start() {
+    public void start() {
         //TODO: call the clojure start function via the ClojureRuntime
         this.started = true;
     }
 
     public void stop() {
-    	//TODO: call the clojure start function via the ClojureRuntime
-    	this.started = false;
+        //TODO: call the clojure start function via the ClojureRuntime
+        this.started = false;
     }
 
     @Override
@@ -55,36 +55,36 @@ public class Daemon implements DaemonMBean {
         }
         return "STOPPED";
     }
-    
+
     public ClojureRuntime getRuntime() {
-		return runtime;
-	}
+        return runtime;
+    }
 
-	public void setRuntime(ClojureRuntime runtime) {
-		this.runtime = runtime;
-	}
+    public void setRuntime(ClojureRuntime runtime) {
+        this.runtime = runtime;
+    }
 
-	public String getStartFunction() {
-		return startFunction;
-	}
+    public String getStartFunction() {
+        return startFunction;
+    }
 
-	public void setStartFunction(String startFunction) {
-		this.startFunction = startFunction;
-	}
+    public void setStartFunction(String startFunction) {
+        this.startFunction = startFunction;
+    }
 
-	public String getStopFunction() {
-		return stopFunction;
-	}
+    public String getStopFunction() {
+        return stopFunction;
+    }
 
-	public void setStopFunction(String stopFunction) {
-		this.stopFunction = stopFunction;
-	}
+    public void setStopFunction(String stopFunction) {
+        this.stopFunction = stopFunction;
+    }
 
 
 
-	private boolean started;
+    private boolean started;
     private ClojureRuntime runtime;
     private String startFunction;
     private String stopFunction;
-	
+
 }

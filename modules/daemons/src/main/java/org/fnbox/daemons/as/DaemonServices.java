@@ -23,18 +23,18 @@ import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceName;
 
 public class DaemonServices {
-    
+
     private DaemonServices() {
     }
-    
+
     public static final ServiceName FNBOX = ServiceName.of( "fnbox" );
     public static final ServiceName DAEMONS = FNBOX.append( "daemons" );
-    
-   
+
+
     public static ServiceName daemon(DeploymentUnit unit, String serviceName ) {
         return unit.getServiceName().append( "daemon" ).append( serviceName );
     }
-    
+
     public static ServiceName injectable(DeploymentUnit unit, String serviceName ) {
         return daemon( unit, serviceName ).append(  "injectable" );
     }

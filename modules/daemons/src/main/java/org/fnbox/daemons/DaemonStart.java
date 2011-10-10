@@ -28,10 +28,10 @@ import org.jboss.msc.value.InjectedValue;
 
 public class DaemonStart implements Service<Daemon> {
 
-	public DaemonStart(Daemon daemon) {
-		this.daemon = daemon;
-	}
-	
+    public DaemonStart(Daemon daemon) {
+        this.daemon = daemon;
+    }
+
     @Override
     public Daemon getValue() throws IllegalStateException, IllegalArgumentException {
         return this.daemon;
@@ -40,7 +40,7 @@ public class DaemonStart implements Service<Daemon> {
     @Override
     public void start(final StartContext context) throws StartException {
         context.asynchronous();
-        
+
         context.execute(new Runnable() {
             public void run() {
                 try {
@@ -58,7 +58,7 @@ public class DaemonStart implements Service<Daemon> {
     public void stop(StopContext context) {
         getValue().stop();
     }
-    
+
     private Daemon daemon;
-    
+
 }

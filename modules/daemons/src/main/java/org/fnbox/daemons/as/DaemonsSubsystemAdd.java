@@ -44,12 +44,12 @@ public class DaemonsSubsystemAdd extends AbstractBoottimeAddStepHandler {
     protected void populateModel(ModelNode operation, ModelNode model) {
         model.setEmptyObject();
     }
-    
+
     @Override
     protected void performBoottime(OperationContext context, ModelNode operation, ModelNode model,
-                                   ServiceVerificationHandler verificationHandler,
-                                   List<ServiceController<?>> newControllers) throws OperationFailedException {
-        
+            ServiceVerificationHandler verificationHandler,
+            List<ServiceController<?>> newControllers) throws OperationFailedException {
+
         context.addStep( new AbstractDeploymentChainStep() {
             @Override
             protected void execute(DeploymentProcessorTarget processorTarget) {
@@ -57,21 +57,21 @@ public class DaemonsSubsystemAdd extends AbstractBoottimeAddStepHandler {
             }
         }, OperationContext.Stage.RUNTIME );
     }
-    
+
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
-        
+
         processorTarget.addDeploymentProcessor( Phase.PARSE, 30, new DaemonConfigurationProcessor() );
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 0, new DaemonInstaller() );
-        
+
     }
-    
+
     static ModelNode createOperation(ModelNode address) {
         final ModelNode subsystem = new ModelNode();
         subsystem.get( OP ).set( ADD );
         subsystem.get( OP_ADDR ).set( address );
         return subsystem;
     }
-    
+
     static final DaemonsSubsystemAdd ADD_INSTANCE = new DaemonsSubsystemAdd();
     static final Logger log = Logger.getLogger( "org.fnbox.daemons.as" );
 

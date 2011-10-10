@@ -39,7 +39,7 @@ import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 
 public class DaemonsSubsystemParser implements XMLStreamConstants, XMLElementReader<List<ModelNode>>, XMLElementWriter<SubsystemMarshallingContext> {
-    
+
     private static final DaemonsSubsystemParser INSTANCE = new DaemonsSubsystemParser();
 
     public static DaemonsSubsystemParser getInstance() {
@@ -51,24 +51,24 @@ public class DaemonsSubsystemParser implements XMLStreamConstants, XMLElementRea
 
     @Override
     public void readElement(final XMLExtendedStreamReader reader, final List<ModelNode> list) throws XMLStreamException {
-        
+
         requireNoAttributes(reader);
         requireNoContent(reader);
-        
+
         // Activate the services subsystem
-        
+
         final ModelNode address = new ModelNode();
         address.add(SUBSYSTEM, DaemonsExtension.SUBSYSTEM_NAME);
         address.protect();
 
         list.add(DaemonsSubsystemAdd.createOperation(address));
-        
+
         // Tell the core that we've got injectable-handlers to add.
-        
+
         final ModelNode core = new ModelNode();
         core.add(SUBSYSTEM, CoreExtension.SUBSYSTEM_NAME);
         core.protect();
-        
+
         //list.add(InjectableHandlerAdd.createOperation(core, DaemonsExtension.SUBSYSTEM_NAME, Module.getCallerModule().getIdentifier().getName() ) );
     }
 
@@ -81,5 +81,5 @@ public class DaemonsSubsystemParser implements XMLStreamConstants, XMLElementRea
 
     @SuppressWarnings("unused")
     private static final Logger log = Logger.getLogger( "org.fnbox.daemons.as" );
-    
+
 }

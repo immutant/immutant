@@ -41,7 +41,7 @@ public class DaemonsExtension extends AbstractBootstrappableExtension {
                 DaemonsSubsystemAdd.ADD_INSTANCE,
                 DaemonsSubsystemProviders.SUBSYSTEM_ADD,
                 false );
-        
+
         registration.registerXMLElementWriter(DaemonsSubsystemParser.getInstance());
     }
 
@@ -49,7 +49,7 @@ public class DaemonsExtension extends AbstractBootstrappableExtension {
     public void initializeParsers(ExtensionParsingContext context) {
         context.setSubsystemXmlMapping(Namespace.CURRENT.getUriString(), DaemonsSubsystemParser.getInstance());
     }
-    
+
     public static final String SUBSYSTEM_NAME = "fnbox-daemons";
     static final Logger log = Logger.getLogger( "org.fnbox.daemons.as" );
 

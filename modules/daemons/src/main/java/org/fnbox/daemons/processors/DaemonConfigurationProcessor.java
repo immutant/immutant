@@ -30,7 +30,7 @@ import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.logging.Logger;
 
 public class DaemonConfigurationProcessor implements DeploymentUnitProcessor {
-    
+
     public DaemonConfigurationProcessor() {
     }
 
@@ -40,11 +40,11 @@ public class DaemonConfigurationProcessor implements DeploymentUnitProcessor {
 
         ClojureMetaData appMetaData = deploymentUnit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
         Map<String, ?> daemons = appMetaData.getHash( "daemons" );
-        
+
         if (appMetaData == null || daemons == null) { 
             return;
         }
-        
+
         for(String daemon : daemons.keySet()) {
             DaemonMetaData metaData = new DaemonMetaData( daemon );
             Map <String, ?> options = (Map<String, Object>)daemons.get( daemon );
@@ -57,8 +57,8 @@ public class DaemonConfigurationProcessor implements DeploymentUnitProcessor {
 
     @Override
     public void undeploy(DeploymentUnit context) {
-       
+
     }
-        
+
     static final Logger log = Logger.getLogger( "org.fnbox.daemons" );
 }

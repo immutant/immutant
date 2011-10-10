@@ -29,7 +29,7 @@ public class DaemonMetaData {
     public static final AttachmentKey<AttachmentList<DaemonMetaData>> ATTACHMENTS_KEY = AttachmentKey.createList(DaemonMetaData.class);
 
     public DaemonMetaData(String name) {
-    	this.name = name;
+        this.name = name;
     }
 
     public void setName(String name) {
@@ -57,22 +57,22 @@ public class DaemonMetaData {
     }
 
     public String getStartFunction() {
-		return startFunction;
-	}
+        return startFunction;
+    }
 
-	public void setStartFunction(String startFunction) {
-		this.startFunction = startFunction;
-	}
+    public void setStartFunction(String startFunction) {
+        this.startFunction = startFunction;
+    }
 
-	public String getStopFunction() {
-		return stopFunction;
-	}
+    public String getStopFunction() {
+        return stopFunction;
+    }
 
-	public void setStopFunction(String stopFunction) {
-		this.stopFunction = stopFunction;
-	}
+    public void setStopFunction(String stopFunction) {
+        this.stopFunction = stopFunction;
+    }
 
-	private String startFunction;
+    private String startFunction;
     private String stopFunction;
     private String name;
     private Map<String, Object> parameters;

@@ -22,10 +22,10 @@ package org.fnbox.daemons;
 public interface DaemonMBean {
     void start() throws Exception;
     void stop() throws Exception;
-    
+
     boolean isStarted();
     boolean isStopped();
-    
+
     String getStartFunction();
     String getStopFunction();
     String getStatus() throws Exception;
