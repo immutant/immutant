@@ -245,6 +245,19 @@
       </snapshots>
     </repository>
     <repository>
+      <id>polyglot-snapshot</id>
+      <name>Polyglot SNAPSHOT builds</name>
+      <url>https://repository-torquebox.forge.cloudbees.com/snapshot</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+
+    <repository>
       <id>clojars</id>
       <name>Clojure Jars</name>
       <url>http://clojars.org/repo/</url>
