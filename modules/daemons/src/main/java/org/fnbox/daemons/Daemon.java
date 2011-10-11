@@ -29,13 +29,17 @@ public class Daemon implements DaemonMBean {
     }
 
     public void start() {
-        //TODO: call the clojure start function via the ClojureRuntime
+        this.runtime.load( "fnbox/utilities" );
+        this.runtime.invoke( "fnbox.utilities", "load-and-invoke", this.startFunction /*TODO: handle params */);
         this.started = true;
     }
 
     public void stop() {
-        //TODO: call the clojure start function via the ClojureRuntime
-        this.started = false;
+        if (this.stopFunction != null) {
+            this.runtime.load( "fnbox/utilities" );
+            this.runtime.invoke( "fnbox.utilities", "load-and-invoke", this.stopFunction );
+            this.started = false;
+        }
     }
 
     @Override

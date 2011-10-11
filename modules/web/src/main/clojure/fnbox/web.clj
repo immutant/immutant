@@ -1,6 +1,7 @@
 (ns fnbox.web
   (:require [ring.util.servlet :as servlet])
   (:require [clojure.string :as str])
+  (:require [fnbox.utilities :as util])
   (:import (javax.servlet.http HttpServletRequest
                                HttpServletResponse)))
 
@@ -13,6 +14,4 @@
       (throw (NullPointerException. "Handler returned nil.")))))
 
 (defn handle-request [app-function request response]
-  (let [[namespace function] (map symbol (str/split app-function #"/"))]
-       (require namespace)
-       ((handler (intern namespace function)) request response)))
+  ((handler (util/load-and-invoke app-function)) request response))
