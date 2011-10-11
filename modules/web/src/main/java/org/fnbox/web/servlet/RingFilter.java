@@ -98,10 +98,10 @@ public class RingFilter implements Filter {
     }
 
     protected void doRing(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-       try { 
-           this.runtime.load( "fnbox/web" );
-           this.runtime.invoke( "fnbox.web", "handle-request", this.appFunctionName, request, response );
-       } catch (Exception e) {
+        try { 
+            this.runtime.load( "fnbox/web" );
+            this.runtime.invoke( "fnbox.web", "handle-request", this.appFunctionName, request, response );
+        } catch (Exception e) {
             log.error( "Error invoking Ring filter", e );
             throw new ServletException( e );
         }
