@@ -39,12 +39,14 @@ LANGUAGE_COMMENT_DELIMS = {
   :java => [ ' *', '/*', ' */' ],
   :xml  => [ '    ', '<!--', '-->' ],
   :ruby => [ '#' ],
+  :clojure => [ ';;' ]
 }
 
 COPYRIGHT_STATEMENTS = {
-  :java => comment_wrap( COPYRIGHT_STATEMENT, *LANGUAGE_COMMENT_DELIMS[:java] ),
-  :xml  => comment_wrap( COPYRIGHT_STATEMENT, *LANGUAGE_COMMENT_DELIMS[:xml]  ),
-  :ruby => comment_wrap( COPYRIGHT_STATEMENT, *LANGUAGE_COMMENT_DELIMS[:ruby] ),
+  :java    => comment_wrap( COPYRIGHT_STATEMENT, *LANGUAGE_COMMENT_DELIMS[:java] ),
+  :xml     => comment_wrap( COPYRIGHT_STATEMENT, *LANGUAGE_COMMENT_DELIMS[:xml]  ),
+  :ruby    => comment_wrap( COPYRIGHT_STATEMENT, *LANGUAGE_COMMENT_DELIMS[:ruby] ),
+  :clojure => comment_wrap( COPYRIGHT_STATEMENT, *LANGUAGE_COMMENT_DELIMS[:clojure] )
 }
 
 def header(lang)
@@ -144,8 +146,9 @@ end
 project_dirs.each do |dir|
   $stderr.puts "Copywriting: #{dir}"
   copywrite_dir( dir, :java, "src/*/java/**/*.java" )
-  copywrite_dir( dir, :ruby, "src/*/java/**/*.rb" )
-  copywrite_dir( dir, :ruby, "lib/**/*.rb" )
+  copywrite_dir( dir, :clojure, "src/*/clojure/**/*.clj" )
+  #copywrite_dir( dir, :ruby, "src/*/java/**/*.rb" )
+  #copywrite_dir( dir, :ruby, "lib/**/*.rb" )
 end
 
 #copywrite_file( './components/base/base-spi/src/main/java/org/torquebox/interp/spi/RubyRuntimeFactory.java', :java )
