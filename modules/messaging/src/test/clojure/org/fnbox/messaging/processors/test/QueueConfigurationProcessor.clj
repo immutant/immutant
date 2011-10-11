@@ -31,7 +31,7 @@
              "/queue/two"
              "/queue/three")))
 
-(deftest-pending it-should-set-durable-if-requested
+(deftest it-should-set-durable-if-requested
   "Pending normalization of descriptor option keys"
   (let [unit (.deployResourceAs *harness* (io/resource "queue-descriptor.clj") "app.clj" )
         metadatas (.getAttachmentList unit QueueMetaData/ATTACHMENTS_KEY)]
