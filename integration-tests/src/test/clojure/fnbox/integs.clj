@@ -16,5 +16,5 @@
                            (swap! results conj (:type x)))]
           (with-jboss #(apply run-tests namespaces))))
       (shutdown-agents)
-      (System/exit (if (empty? (filter {:fail :error} @results)) 0 -1)))))
+      (System/exit (if (empty? (filter #{:fail :error} @results)) 0 -1)))))
 
