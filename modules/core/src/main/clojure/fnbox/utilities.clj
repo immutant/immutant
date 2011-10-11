@@ -18,7 +18,11 @@
 (ns fnbox.utilities
   (:require [clojure.string :as str]))
 
-(defn load-and-invoke [namespaced-fn & args]
+(defn load-and-intern [namespaced-fn]
   (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
     (require namespace)
-    (apply (intern namespace function) args)))
+    (intern namespace function)))
+
+(defn load-and-invoke [namespaced-fn & args]
+  (apply (load-and-intern namespaced-fn) args))
+
