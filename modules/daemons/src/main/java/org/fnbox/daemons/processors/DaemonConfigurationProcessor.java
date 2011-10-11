@@ -48,8 +48,12 @@ public class DaemonConfigurationProcessor implements DeploymentUnitProcessor {
         for(String daemon : daemons.keySet()) {
             DaemonMetaData metaData = new DaemonMetaData( daemon );
             Map <String, ?> options = (Map<String, Object>)daemons.get( daemon );
-            metaData.setStartFunction( (String)options.get( "startFunction" ) );
-            metaData.setStopFunction( (String)options.get( "stopFunction" ) );
+            String startFunction = (String)options.get( "start-function" );
+            if (startFunction == null || startFunction.isEmpty()) {
+                throw new DeploymentUnitProcessingException( "No start-function specified for daemon '" + daemon + "'." );
+            }
+            metaData.setStartFunction( startFunction );
+            metaData.setStopFunction( (String)options.get( "stop-function" ) );
             //TODO: handle parameters
             deploymentUnit.addToAttachmentList( DaemonMetaData.ATTACHMENTS_KEY, metaData );
         }
