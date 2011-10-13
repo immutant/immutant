@@ -18,8 +18,7 @@
 (ns fnbox.integs.basic
   (:use [fntest.core])
   (:use clojure.test)
-  (:require [clj-http.client :as client])
-  (:require [clojure.java.io :as io]))
+  (:require [clj-http.client :as client]))
 
 (use-fixtures :once (with-deployment *file*
                       {
