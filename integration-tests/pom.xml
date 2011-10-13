@@ -30,6 +30,32 @@
       <artifactId>commons-logging</artifactId>
       <version>1.1.1</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.fnbox</groupId>
+      <artifactId>fnbox-messaging</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hornetq</groupId>
+      <artifactId>hornetq-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hornetq</groupId>
+      <artifactId>hornetq-jms</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.jms</groupId>
+      <artifactId>jms</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.netty</groupId>
+      <artifactId>netty</artifactId>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
