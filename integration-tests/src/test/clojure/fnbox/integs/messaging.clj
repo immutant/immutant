@@ -28,10 +28,10 @@
                        :root "apps/ring/basic-ring/"
                        :app-function "basic-ring.core/handler"
                        :context-path "/basic-ring"
-                       :queues { ham-queue {:durable false}}
+                       :queues { ham-queue {"durable" false}}
                        }))
 
 (deftest simple "it should work"
   (publish ham-queue "testing")
-  (is (= (receive ham-queue) "testing")))
+  (is (= (receive ham-queue {:timeout 60000}) "testing")))
 

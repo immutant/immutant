@@ -28,20 +28,21 @@
   "Send a message to a destination"
   (wait_for_destination #(produce destination (encode message))))
     
-(defn receive [destination]
+(defn receive [destination & [opts]]
   "Receive a message from a destination"
-  (wait_for_destination #(decode (consume destination))))
+  (wait_for_destination #(decode (consume destination opts))))
 
 ;; privates
 
 (def connection-factory 
-  (let [connect_opts { TransportConstants/PORT_PROP_NAME (int 5445) }
+  (let [connect_opts { TransportConstants/PORT_PROP_NAME (Integer. 5445) }
         transport_config (new TransportConfiguration "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" connect_opts)]
     (HornetQJMSClient/createConnectionFactoryWithoutHA JMSFactoryType/CF (into-array [transport_config]))))
 
 (defn- with-connection [f]
   (let [connection (.createConnection connection-factory)]
     (try
+      (.start connection)
       (f connection)
       (finally (.close connection)))))
   
@@ -63,10 +64,10 @@
                         jms-msg (.createTextMessage session message)]
                     (.send producer jms-msg)))))
 
-(defn- consume [destination]
+(defn- consume [destination opts]
   (with-session (fn [session]
                   (let [consumer (.createConsumer session (java-destination destination))
-                        message (.receive consumer 10000)]
+                        message (.receive consumer (or (:timeout opts) 10000))]
                     (and message (.getText message))))))
 
 (defn- wait_for_destination [f & count]
