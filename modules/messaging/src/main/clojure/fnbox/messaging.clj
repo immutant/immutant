@@ -28,7 +28,7 @@
   "Send a message to a destination"
   (wait_for_destination #(produce destination (encode message))))
     
-(defn receive [destination & [opts]]
+(defn receive [destination & opts]
   "Receive a message from a destination"
   (wait_for_destination #(decode (consume destination opts))))
 
@@ -64,10 +64,10 @@
                         jms-msg (.createTextMessage session message)]
                     (.send producer jms-msg)))))
 
-(defn- consume [destination opts]
+(defn- consume [destination {timeout :timeout}]
   (with-session (fn [session]
                   (let [consumer (.createConsumer session (java-destination destination))
-                        message (.receive consumer (or (:timeout opts) 10000))]
+                        message (.receive consumer (or timeout 10000))]
                     (and message (.getText message))))))
 
 (defn- wait_for_destination [f & count]
