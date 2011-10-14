@@ -28,10 +28,10 @@
                        :root "apps/ring/basic-ring/"
                        :app-function "basic-ring.core/handler"
                        :context-path "/basic-ring"
-                       :queues { ham-queue {}}
+                       :queues { ham-queue {:durable false}}
                        }))
 
-;; (deftest simple "it should work"
-;;   (publish ham-queue "testing")
-;;   (is (= (receive ham-queue) "testing")))
+(deftest simple "it should work"
+  (publish ham-queue "testing")
+  (is (= (receive ham-queue) "testing")))
 

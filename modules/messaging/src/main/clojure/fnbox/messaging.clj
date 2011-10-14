@@ -22,15 +22,15 @@
   (:import (org.hornetq.api.jms HornetQJMSClient JMSFactoryType))
   (:import (javax.jms Session)))
 
-(declare with-producer-for with-consumer-for encode decode)
+(declare produce consume encode decode wait_for_destination)
 
 (defn publish [destination message]
   "Send a message to a destination"
-  (with-producer-for destination #(.send % (encode message))))
+  (wait_for_destination #(produce destination (encode message))))
     
 (defn receive [destination]
   "Receive a message from a destination"
-  (with-consumer-for destination #(decode (.receive %))))
+  (wait_for_destination #(decode (consume destination))))
 
 ;; privates
 
@@ -40,10 +40,8 @@
     (HornetQJMSClient/createConnectionFactoryWithoutHA JMSFactoryType/CF (into-array [transport_config]))))
 
 (defn- with-connection [f]
-  (println "JC: connection-factory=" connection-factory)
   (let [connection (.createConnection connection-factory)]
     (try
-      (println "JC: connection=" connection)
       (f connection)
       (finally (.close connection)))))
   
@@ -51,7 +49,6 @@
   (with-connection (fn [connection]
                      (let [session (.createSession connection false Session/AUTO_ACKNOWLEDGE)]
                        (try
-                         (println "JC: session=" session)
                          (f session)
                          (finally (.close session)))))))
 
@@ -60,21 +57,28 @@
     (HornetQDestination/fromAddress (str "jms.queue." destination ))
     (HornetQDestination/fromAddress (str "jms.topic." destination ))))
 
-(defn- with-producer-for [destination f]
+(defn- produce [destination message]
   (with-session (fn [session]
-                  (let [producer (.createProducer session (java-destination destination))]
-                    (try
-                      (println "JC: producer=" producer)
-                      (f producer)
-                      (finally (.close producer)))))))
+                  (let [producer (.createProducer session (java-destination destination))
+                        jms-msg (.createTextMessage session message)]
+                    (.send producer jms-msg)))))
 
-(defn- with-consumer-for [destination f]
+(defn- consume [destination]
   (with-session (fn [session]
-                  (let [consumer (.createConsumer session (java-destination destination))]
-                    (try
-                      (println "JC: consumer=" consumer)
-                      (f consumer)
-                      (finally (.close consumer)))))))
+                  (let [consumer (.createConsumer session (java-destination destination))
+                        message (.receive consumer 10000)]
+                    (and message (.getText message))))))
+
+(defn- wait_for_destination [f & count]
+  (let [attempts (or count 30)
+        retry #((Thread/sleep 1000) (wait_for_destination f (dec attempts)))]
+    (try
+      (f)
+      (catch javax.naming.NameNotFoundException e
+        (if (> attempts 0) (retry) (throw e)))
+      (catch javax.jms.JMSException e
+        (if (> attempts 0) (retry) (throw e))))))
+        
 
 (defn- encode [message]
   "Stringify a clojure data structure"
@@ -82,4 +86,4 @@
 
 (defn- decode [message]
   "Turn a string into a clojure data structure"
-  (load-string message))
+  (and message (load-string message)))
