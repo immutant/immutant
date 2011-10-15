@@ -22,15 +22,25 @@
   (:import (org.hornetq.api.jms HornetQJMSClient JMSFactoryType))
   (:import (javax.jms Session)))
 
-(declare produce consume encode decode wait_for_destination)
+(declare produce consume encode decode)
 
 (defn publish [destination message]
   "Send a message to a destination"
-  (wait_for_destination #(produce destination (encode message))))
+  (produce destination (encode message)))
     
 (defn receive [destination & opts]
   "Receive a message from a destination"
-  (wait_for_destination #(decode (consume destination opts))))
+  (decode (consume destination opts)))
+
+(defn wait-for-destination [f & count]
+  (let [attempts (or count 30)
+        retry #(do (Thread/sleep 1000) (wait-for-destination f (dec attempts)))]
+    (try
+      (f)
+      (catch javax.naming.NameNotFoundException e
+        (if (> attempts 0) (retry) (throw e)))
+      (catch javax.jms.JMSException e
+        (if (> attempts 0) (retry) (throw e))))))
 
 ;; privates
 
@@ -69,17 +79,6 @@
                   (let [consumer (.createConsumer session (java-destination destination))
                         message (.receive consumer (or timeout 10000))]
                     (and message (.getText message))))))
-
-(defn- wait_for_destination [f & count]
-  (let [attempts (or count 30)
-        retry #((Thread/sleep 1000) (wait_for_destination f (dec attempts)))]
-    (try
-      (f)
-      (catch javax.naming.NameNotFoundException e
-        (if (> attempts 0) (retry) (throw e)))
-      (catch javax.jms.JMSException e
-        (if (> attempts 0) (retry) (throw e))))))
-        
 
 (defn- encode [message]
   "Stringify a clojure data structure"

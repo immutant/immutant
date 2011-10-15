@@ -32,6 +32,6 @@
                        }))
 
 (deftest simple "it should work"
-  (publish ham-queue "testing")
+  (wait-for-destination #(publish ham-queue "testing"))
   (is (= (receive ham-queue :timeout 60000) "testing")))
 
