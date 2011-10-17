@@ -38,13 +38,12 @@
 
 (defn transform-configs []
   (doall (map transform-config
-              ["standalone/configuration/standalone-preview.xml"
-               "standalone/configuration/standalone-preview-ha.xml"
-               "domain/configuration/domain.xml"
-               "domain/configuration/domain-preview.xml"])))
+              ["standalone/configuration/standalone.xml"
+               "standalone/configuration/standalone-ha.xml"
+               "domain/configuration/domain.xml"])))
 
 (defn create-standalone-xml []
-  (io/copy (io/file jboss-dir "standalone/configuration/fnbox/standalone-preview.xml")
+  (io/copy (io/file jboss-dir "standalone/configuration/fnbox/standalone.xml")
            (io/file jboss-dir "standalone/configuration/standalone.xml")))
 
 (defn assemble [assembly-dir]
