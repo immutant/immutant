@@ -18,6 +18,8 @@
 (ns immutant.utilities
   (:require [clojure.string :as str]))
 
+(def registry nil)
+
 (defn load-and-intern [namespaced-fn]
   (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
     (require namespace)
@@ -26,3 +28,5 @@
 (defn load-and-invoke [namespaced-fn & args]
   (apply (load-and-intern namespaced-fn) args))
 
+(defn set-registry [v]
+  (def registry v))
