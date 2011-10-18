@@ -23,7 +23,8 @@
   (:require [clojure.zip :as zip])
   (:require [clojure.contrib.zip-filter :as zf])
   (:require [clojure.contrib.zip-filter.xml :as zfx])
-  (:require [clojure.contrib.lazy-xml :as xml])
+  (:require [clojure.xml :as xml])
+  (:require [clojure.contrib.lazy-xml :as lazy-xml])
   (:require [org.satta.glob :as glob])
   (:use [clojure.pprint :only [pprint]]))
 
@@ -44,7 +45,7 @@
              (apply println message))))
 
 (defn xml-zip [path]
-  (zip/xml-zip (xml/parse-trim path)))
+  (zip/xml-zip (xml/parse path)))
 
 (defn extract-versions [pom-path version-paths]
   (into {} (map (fn [[k path]]
@@ -130,7 +131,7 @@
 
 (defn prepare-zip [file]
   "Make sure the doc has a <system-properties> element"
-  (let [xml-zip (zip/xml-zip (xml/parse-trim file))]
+  (let [xml-zip (zip/xml-zip (xml/parse file))]
     (if (zfx/xml1-> xml-zip zf/descendants :system-properties)
       xml-zip
       (zip/insert-right (zfx/xml1-> xml-zip :extensions) {:tag :system-properties}))))
@@ -155,7 +156,7 @@
     (io/make-parents out-file)
     (backup-current-config in-file)
     (io/copy (with-out-str
-               (xml/emit
+               (lazy-xml/emit
                 (walk-the-doc (prepare-zip in-file))
                 :indent 4))
              out-file)))
