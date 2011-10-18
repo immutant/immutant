@@ -18,7 +18,7 @@
 (ns immutant.utilities
   (:require [clojure.string :as str]))
 
-(def registry nil)
+(def registry {})
 
 (defn load-and-intern [namespaced-fn]
   (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
@@ -29,4 +29,5 @@
   (apply (load-and-intern namespaced-fn) args))
 
 (defn set-registry [v]
+  (println "JC: set-registry [" v "]")
   (def registry v))
