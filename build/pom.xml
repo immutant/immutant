@@ -1,22 +1,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <parent>
-    <groupId>org.fnbox</groupId>
-    <artifactId>fnbox-parent</artifactId>
+    <groupId>org.immutant</groupId>
+    <artifactId>immutant-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>fnbox-build</artifactId>
+  <artifactId>immutant-build</artifactId>
   <packaging>pom</packaging>
-  <name>(fn box) Build Aggregator</name>
+  <name>Immutant Build Aggregator</name>
 
   <dependencies>
     <dependency>
-      <groupId>org.fnbox</groupId>
-      <artifactId>fnbox-modules-parent</artifactId>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-modules-parent</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
     </dependency>

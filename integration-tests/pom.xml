@@ -1,21 +1,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <parent>
-    <groupId>org.fnbox</groupId>
-    <artifactId>fnbox-parent</artifactId>
+    <groupId>org.immutant</groupId>
+    <artifactId>immutant-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>fnbox-integration-tests</artifactId>
+  <artifactId>immutant-integration-tests</artifactId>
   <packaging>jar</packaging>
-  <name>(fn box) Integration Tests</name>
+  <name>Immutant Integration Tests</name>
   <description />
 
   <dependencies>
     <dependency>
-      <groupId>org.fnbox</groupId>
+      <groupId>org.immutant</groupId>
       <artifactId>fntest</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -32,8 +32,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.fnbox</groupId>
-      <artifactId>fnbox-messaging</artifactId>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-messaging</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -64,7 +64,7 @@
         <groupId>com.theoryinpractise</groupId>
         <artifactId>clojure-maven-plugin</artifactId>
         <configuration>
-          <testScript>src/test/clojure/fnbox/integs.clj</testScript>
+          <testScript>src/test/clojure/immutant/integs.clj</testScript>
         </configuration>
       </plugin>
     </plugins>

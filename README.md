@@ -7,7 +7,7 @@ Requirements
 Dependencies
 ------------
 
-(fn box) depends on polyglot: https://github.com/projectodd/jboss-polyglot
+Immutant depends on polyglot: https://github.com/projectodd/jboss-polyglot
 
 Polyglot is published as a snapshot, so you may need to run mvn with the
 -U option to check for updates if you run into build issues.

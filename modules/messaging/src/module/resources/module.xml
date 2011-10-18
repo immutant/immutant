@@ -22,7 +22,7 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<module xmlns="urn:jboss:module:1.0" name="org.fnbox.messaging">
+<module xmlns="urn:jboss:module:1.0" name="org.immutant.messaging">
 
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
@@ -45,7 +45,7 @@
         <module name="org.jboss.msc"/>
         <module name="org.jboss.logging"/>
         <module name="org.jboss.vfs"/>
-        <module name="org.fnbox.core"/>
+        <module name="org.immutant.core"/>
     </dependencies>
 </module>
 

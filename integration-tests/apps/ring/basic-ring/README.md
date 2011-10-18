@@ -1,6 +1,6 @@
 # basic-ring
 
-A throwaway app that can be deployed to (fn box) in its current state.
+A throwaway app that can be deployed to Immutant in its current state.
 
 ## Usage
 

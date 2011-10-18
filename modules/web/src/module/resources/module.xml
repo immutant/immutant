@@ -22,7 +22,7 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<module xmlns="urn:jboss:module:1.0" name="org.fnbox.web">
+<module xmlns="urn:jboss:module:1.0" name="org.immutant.web">
 
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
@@ -50,7 +50,7 @@
         <module name="org.jboss.metadata"/>
         <module name="org.jboss.as.web"/>
         <module name="org.jboss.as.clustering.jgroups"/>
-        <module name="org.fnbox.core"/>
+        <module name="org.immutant.core"/>
     </dependencies>
 </module>
 
