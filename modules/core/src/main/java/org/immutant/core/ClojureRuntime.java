@@ -38,21 +38,22 @@ public class ClojureRuntime {
         this.classLoader = classLoader;
     }
    
-    public void load(String scriptBase) {
-        callStatic( getRuntime(), "load", scriptBase );
-    }
-   
-    public Object invoke(String namespace, String function, Object... args) {
-        Object func = var( namespace, function );
+    public Object invoke(String namespacedFunction, Object... args) {
+        load( CLOJURE_UTIL_NAME ); //TODO: see the performance impact of loading every call. Maybe cache these in production?
+        Object func = var( CLOJURE_UTIL_NS, "require-and-invoke" );
         
-        return invoke( func, args );
+        return invoke( func, namespacedFunction, args );    
     }
     
-    public Object invoke(Object func, Object... args) {
+    protected Object invoke(Object func, Object... args) {
         return call( func, "invoke", args );
     }
     
-    public Object var(String namespace, String varName) {
+    protected void load(String scriptBase) {
+        callStatic( getRuntime(), "load", scriptBase );
+    }
+    
+    protected Object var(String namespace, String varName) {
         return callStatic( getRuntime(), "var", namespace, varName );   
     }
     
@@ -89,7 +90,7 @@ public class ClojureRuntime {
 
             return method.invoke( obj, args );
         } catch (Exception e) {
-            throw new RuntimeException( "Failed to invoke " + methodName, e );
+            throw new RuntimeException( "Failed to call " + methodName, e );
         } finally {
             Thread.currentThread().setContextClassLoader( originalClassLoader );
         }
@@ -115,4 +116,6 @@ public class ClojureRuntime {
     private Class runtime;
     
     protected static final String RUNTIME_CLASS = "clojure.lang.RT";   
+    protected static final String CLOJURE_UTIL_NAME = "immutant/runtime";
+    protected static final String CLOJURE_UTIL_NS = "immutant.runtime";
 }

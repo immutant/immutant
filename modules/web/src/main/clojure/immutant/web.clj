@@ -31,4 +31,4 @@
       (throw (NullPointerException. "Handler returned nil.")))))
 
 (defn handle-request [app-function request response]
-  ((handler (util/load-and-intern app-function)) request response))
+  ((handler (util/require-and-intern app-function)) request response))

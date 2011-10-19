@@ -15,10 +15,23 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.utilities
-  (:require [clojure.string :as str]))
+(ns immutant.test.runtime
+  (:use immutant.runtime)
+  (:use clojure.test)
+  (:use immutant.test.helpers))
 
-(defn require-and-intern [namespaced-fn]
-  (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
-    (require namespace)
-    (intern namespace function)))
+(def a-value (atom "ham"))
+
+(defn update-a-value []
+  (reset! a-value "biscuit"))
+
+(defn update-a-value-with-arg [arg]
+   (reset! a-value arg))
+
+(deftest require-and-invoke-should-call-the-given-function
+  (require-and-invoke "immutant.test.runtime/update-a-value")
+  (is (= "biscuit" @a-value)))
+
+(deftest require-and-invoke-should-call-the-given-function-with-args
+  (require-and-invoke "immutant.test.runtime/update-a-value-with-arg" ["gravy"])
+  (is (= "gravy" @a-value)))

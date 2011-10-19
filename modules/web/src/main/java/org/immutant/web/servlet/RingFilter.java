@@ -99,8 +99,7 @@ public class RingFilter implements Filter {
 
     protected void doRing(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         try { 
-            this.runtime.load( "immutant/web" );
-            this.runtime.invoke( "immutant.web", "handle-request", this.appFunctionName, request, response );
+            this.runtime.invoke( "immutant.web/handle-request", this.appFunctionName, request, response );
         } catch (Exception e) {
             log.error( "Error invoking Ring filter", e );
             throw new ServletException( e );

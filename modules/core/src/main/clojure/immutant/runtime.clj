@@ -15,23 +15,11 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.test.utilities
-  (:use immutant.utilities)
-  (:use clojure.test)
-  (:use immutant.test.helpers))
+(ns immutant.runtime
+  "This namespace is solely for the use of ClojureRuntime. You
+   should never require it in clojure code."
+  (:require [immutant.utilities :as util]))
 
-(def a-value (ref "ham"))
+(defn require-and-invoke [namespaced-fn & [args]]
+  (apply (util/require-and-intern namespaced-fn) args))
 
-(defn update-a-value []
-  (dosync (ref-set a-value "biscuit")))
-
-(defn update-a-value-with-arg [arg]
-  (dosync (ref-set a-value arg)))
-
-(deftest load-and-invoke-should-call-the-given-function
-  (load-and-invoke "immutant.test.utilities/update-a-value")
-  (is (= "biscuit" @a-value)))
-
-(deftest load-and-invoke-should-call-the-given-function-with-args
-  (load-and-invoke "immutant.test.utilities/update-a-value-with-arg" "gravy")
-  (is (= "gravy" @a-value)))

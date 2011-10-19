@@ -29,15 +29,13 @@ public class Daemon implements DaemonMBean {
     }
 
     public void start() {
-        this.runtime.load( "immutant/utilities" );
-        this.runtime.invoke( "immutant.utilities", "load-and-invoke", this.startFunction /*TODO: handle params */);
+        this.runtime.invoke( this.startFunction /*TODO: handle params */);
         this.started = true;
     }
 
     public void stop() {
         if (this.stopFunction != null) {
-            this.runtime.load( "immutant/utilities" );
-            this.runtime.invoke( "immutant.utilities", "load-and-invoke", this.stopFunction );
+            this.runtime.invoke( this.stopFunction );
             this.started = false;
         }
     }
