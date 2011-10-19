@@ -73,7 +73,7 @@ public class ClojureRuntime {
             Thread.currentThread().setContextClassLoader( this.classLoader );
             ArrayList<Class> paramTypes = new ArrayList<Class>( args.length );
             for(Object each : args) {
-                paramTypes.add( each.getClass() );
+                paramTypes.add( each==null ? Object.class : each.getClass() );
             }
             Method method;
             try {
