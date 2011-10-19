@@ -34,6 +34,7 @@ import org.jboss.modules.ModuleLoader;
 public class CoreDependenciesProcessor implements DeploymentUnitProcessor {
     
     private static ModuleIdentifier FNBOX_CORE_ID = ModuleIdentifier.create("org.immutant.core");
+    private static ModuleIdentifier JBOSS_MSC_ID = ModuleIdentifier.create("org.jboss.msc");
 
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
@@ -44,6 +45,7 @@ public class CoreDependenciesProcessor implements DeploymentUnitProcessor {
 
         if (unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
             addDependency( moduleSpecification, moduleLoader, FNBOX_CORE_ID );
+            addDependency( moduleSpecification, moduleLoader, JBOSS_MSC_ID );
         }
     }
 
