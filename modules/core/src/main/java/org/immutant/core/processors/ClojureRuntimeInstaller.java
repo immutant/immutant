@@ -50,7 +50,7 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
         
         ClojureRuntime runtime = new ClojureRuntime( module.getClassLoader() );
         runtime.load( "immutant/utilities" );
-        runtime.invoke( "immutant.utilities", "set-registry", "it worked" );
+        runtime.invoke( "immutant.utilities", "load-and-invoke", "immutant.registry/set-registry", deploymentUnit.getServiceRegistry() );
         
         deploymentUnit.putAttachment( ClojureRuntime.ATTACHMENT_KEY, runtime );
     }
