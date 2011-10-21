@@ -20,17 +20,20 @@
   (:import (org.hornetq.core.remoting.impl.netty TransportConstants))
   (:import (org.hornetq.api.core TransportConfiguration))
   (:import (org.hornetq.api.jms HornetQJMSClient JMSFactoryType))
-  (:import (javax.jms Session)))
+  (:import (javax.jms Session))
+  (:require [clojure.data.json :as json]))
 
 (declare produce consume encode decode)
 
-(defn publish [destination message]
+(def encoding-header-name "__ContentEncoding__")
+
+(defn publish [destination message & opts]
   "Send a message to a destination"
-  (produce destination (encode message)))
+  (produce destination message opts))
     
 (defn receive [destination & opts]
   "Receive a message from a destination"
-  (decode (consume destination opts)))
+  (consume destination opts))
 
 (defn wait-for-destination [f & count]
   (let [attempts (or count 30)
@@ -68,22 +71,53 @@
     (HornetQDestination/fromAddress (str "jms.queue." destination ))
     (HornetQDestination/fromAddress (str "jms.topic." destination ))))
 
-(defn- produce [destination message]
+(defn- produce [destination message opts]
   (with-session (fn [session]
-                  (let [producer (.createProducer session (java-destination destination))
-                        jms-msg (.createTextMessage session message)]
-                    (.send producer jms-msg)))))
+                  (.send
+                   (.createProducer session (java-destination destination))
+                   (encode session message opts)))))
 
 (defn- consume [destination {timeout :timeout}]
   (with-session (fn [session]
-                  (let [consumer (.createConsumer session (java-destination destination))
-                        message (.receive consumer (or timeout 10000))]
-                    (and message (.getText message))))))
+                  (decode (.receive (.createConsumer
+                                     session
+                                     (java-destination destination)) (or timeout 10000))))))
 
-(defn- encode [message]
+
+(defn ^:private set-encoding [^javax.jms.Message msg enc]
+  (.setStringProperty msg encoding-header-name (name enc))
+  msg)
+
+(defn ^:private get-encoding [^javax.jms.Message msg]
+  (keyword (.getStringProperty msg encoding-header-name)))
+
+(defmulti encode (fn [_ _ {encoding :encoding}] (or encoding :clojure)))
+
+(defmethod encode :clojure [session message options]
   "Stringify a clojure data structure"
-  (with-out-str (binding [*print-dup* true] (pr message))))
+  (set-encoding
+   (.createTextMessage session (with-out-str
+                                 (binding [*print-dup* true]
+                                   (pr message))))
+   :clojure))
 
-(defn- decode [message]
+(defmethod encode :json [session message options]
+  "Stringify a json data structure"
+  (set-encoding
+   (.createTextMessage session (json/json-str message))
+   :json))
+
+(defmulti decode (fn [message] (get-encoding message)))
+
+(defmethod decode :clojure [message]
   "Turn a string into a clojure data structure"
-  (and message (load-string message)))
+  (and message (load-string (.getText message))))
+
+(defmethod decode :json [message]
+  "Turn a string into a json data structure"
+  (and message (json/read-json (.getText message))))
+
+(defmethod decode :default [message]
+  (throw (RuntimeException. (str "Received unknown message encoding: " (get-encoding message)))))
+
+

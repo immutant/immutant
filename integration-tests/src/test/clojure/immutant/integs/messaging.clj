@@ -35,3 +35,16 @@
   (wait-for-destination #(publish ham-queue "testing"))
   (is (= (receive ham-queue :timeout 60000) "testing")))
 
+(deftest explicit-clojure-encoding-should-work
+  (wait-for-destination #(publish ham-queue "testing" :encoding :clojure))
+  (is (= (receive ham-queue :timeout 60000) "testing")))
+
+(deftest explicit-json-encoding-should-work
+  (wait-for-destination #(publish ham-queue "testing" :encoding :json))
+  (is (= (receive ham-queue :timeout 60000) "testing")))
+
+(deftest complex-json-encoding-should-work
+  (let [message {:a "b" :c {:d "e"}}]
+    (wait-for-destination #(publish ham-queue message :encoding :json))
+    (is (= (receive ham-queue :timeout 60000) message))))
+
