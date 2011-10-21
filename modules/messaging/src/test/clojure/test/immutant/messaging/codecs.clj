@@ -13,27 +13,19 @@
           (getStringProperty [k]
             (.get properties k)))))))
 
-(defn encoded [data encoding]
-  (encode (session-mock) data {:encoding encoding}))
+(defmacro test-for [name message encoding]
+  (list 'deftest name
+        `(let [~'message ~message
+               ~'encoded (encode (session-mock) ~'message {:encoding ~encoding})]
+           (is (= (decode ~'encoded) ~'message)))))
 
-(deftest simple-text-with-clojure-encoding
-  (let [message "message"]
-    (is (= (decode (encoded message :clojure)) message))))
-
-(deftest simple-text-with-json-encoding
-  (let [message "message"]
-    (is (= (decode (encoded message :json)) message))))
-
-(deftest complex-hash-with-clojure-encoding
-  (let [message {:a "b" :c [1 2 3 {:foo 42}]}]
-    (is (= (decode (encoded message :clojure)) message))))
-
-(deftest complex-hash-with-json-encoding
-  (let [message {:a "b" :c [1 2 3 {:foo 42}]}]
-    (is (= (decode (encoded message :json)) message))))
+(test-for simple-json     "a random text message"       :json)
+(test-for simple-clojure  "a simple text message"       :clojure)
+(test-for complex-json    {:a "b" :c [1 2 3 {:foo 42}]} :json)
+(test-for complex-clojure {:a "b" :c [1 2 3 {:foo 42}]} :clojure)
 
 (deftest complex-json-encoding
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}
-        encoded (.getText (encoded message :json))]
+        encoded (.getText (encode (session-mock) message {:encoding :json}))]
     (is (= encoded "{\"a\":\"b\",\"c\":[1,2,3,{\"foo\":42}]}"))))
 
