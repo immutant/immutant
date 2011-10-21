@@ -21,11 +21,10 @@
   (:import (org.hornetq.api.core TransportConfiguration))
   (:import (org.hornetq.api.jms HornetQJMSClient JMSFactoryType))
   (:import (javax.jms Session))
+  (:require [immutant.messaging.codecs :as codecs])
   (:require [clojure.data.json :as json]))
 
-(declare produce consume encode decode)
-
-(def encoding-header-name "__ContentEncoding__")
+(declare produce consume)
 
 (defn publish [destination message & opts]
   "Send a message to a destination"
@@ -75,49 +74,13 @@
   (with-session (fn [session]
                   (.send
                    (.createProducer session (java-destination destination))
-                   (encode session message opts)))))
+                   (codecs/encode session message opts)))))
 
 (defn- consume [destination {timeout :timeout}]
   (with-session (fn [session]
-                  (decode (.receive (.createConsumer
-                                     session
-                                     (java-destination destination)) (or timeout 10000))))))
-
-
-(defn ^:private set-encoding [^javax.jms.Message msg enc]
-  (.setStringProperty msg encoding-header-name (name enc))
-  msg)
-
-(defn ^:private get-encoding [^javax.jms.Message msg]
-  (keyword (.getStringProperty msg encoding-header-name)))
-
-(defmulti encode (fn [_ _ {encoding :encoding}] (or encoding :clojure)))
-
-(defmethod encode :clojure [session message options]
-  "Stringify a clojure data structure"
-  (set-encoding
-   (.createTextMessage session (with-out-str
-                                 (binding [*print-dup* true]
-                                   (pr message))))
-   :clojure))
-
-(defmethod encode :json [session message options]
-  "Stringify a json data structure"
-  (set-encoding
-   (.createTextMessage session (json/json-str message))
-   :json))
-
-(defmulti decode (fn [message] (get-encoding message)))
-
-(defmethod decode :clojure [message]
-  "Turn a string into a clojure data structure"
-  (and message (load-string (.getText message))))
-
-(defmethod decode :json [message]
-  "Turn a string into a json data structure"
-  (and message (json/read-json (.getText message))))
-
-(defmethod decode :default [message]
-  (throw (RuntimeException. (str "Received unknown message encoding: " (get-encoding message)))))
+                  (codecs/decode
+                   (.receive (.createConsumer
+                              session
+                              (java-destination destination)) (or timeout 10000))))))
 
 
