@@ -22,6 +22,7 @@ package org.immutant.core;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -59,6 +60,10 @@ public class ClojureMetaData extends ApplicationMetaData {
  
     public Map<String, ?> getHash(String key) {
         return (Map<String, Object>)this.config.get( key );
+    }
+    
+    public List getList(String key) {
+        return (List) this.config.get( key );
     }
     
     public static Map<String, ?> parse(File file) throws Exception {

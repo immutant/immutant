@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.immutant.messaging.processors.QueueConfigurationProcessor;
 import org.immutant.messaging.processors.TopicConfigurationProcessor;
+import org.immutant.messaging.processors.MessageProcessorInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -84,7 +85,7 @@ class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {
 //        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 320, new MessagingRuntimePoolProcessor() );
 //
 //        processorTarget.addDeploymentProcessor( Phase.INSTALL, 120, new MessageProcessorComponentResolverInstaller() );
-//        processorTarget.addDeploymentProcessor( Phase.INSTALL, 220, new MessageProcessorInstaller() );
+        processorTarget.addDeploymentProcessor( Phase.INSTALL, 220, new MessageProcessorInstaller() );
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 221, new QueueInstaller() );
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 222, new TopicInstaller() );
     }
@@ -111,6 +112,6 @@ class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {
     }
 
     static final MessagingSubsystemAdd ADD_INSTANCE = new MessagingSubsystemAdd();
-    static final Logger log = Logger.getLogger( "org.torquebox.messaging.as" );
+    static final Logger log = Logger.getLogger( "org.immutant.messaging.as" );
 
 }
