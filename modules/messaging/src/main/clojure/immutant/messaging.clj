@@ -51,19 +51,11 @@
         transport_config (new TransportConfiguration "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" connect_opts)]
     (HornetQJMSClient/createConnectionFactoryWithoutHA JMSFactoryType/CF (into-array [transport_config]))))
 
-(defn- with-connection [f]
-  (let [connection (.createConnection connection-factory)]
-    (try
-      (.start connection)
-      (f connection)
-      (finally (.close connection)))))
-  
 (defn- with-session [f]
-  (with-connection (fn [connection]
-                     (let [session (.createSession connection false Session/AUTO_ACKNOWLEDGE)]
-                       (try
-                         (f session)
-                         (finally (.close session)))))))
+  (with-open [connection (.createConnection connection-factory)
+              session (.createSession connection false Session/AUTO_ACKNOWLEDGE)]
+    (.start connection)
+    (f session)))
 
 (defn- java-destination [destination]
   (if (.contains destination "queue")
