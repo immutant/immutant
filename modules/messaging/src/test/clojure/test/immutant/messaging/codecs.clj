@@ -13,16 +13,20 @@
           (getStringProperty [k]
             (.get properties k)))))))
 
-(defmacro test-for [name message encoding]
-  (list 'deftest name
-        `(let [~'message ~message
-               ~'encoded (encode (session-mock) ~'message {:encoding ~encoding})]
-           (is (= (decode ~'encoded) ~'message)))))
+(defn test-codec [message encoding]
+  (is (= (decode (encode (session-mock) message {:encoding encoding})))))
 
-(test-for simple-json     "a random text message"       :json)
-(test-for simple-clojure  "a simple text message"       :clojure)
-(test-for complex-json    {:a "b" :c [1 2 3 {:foo 42}]} :json)
-(test-for complex-clojure {:a "b" :c [1 2 3 {:foo 42}]} :clojure)
+(deftest simple-json
+  (test-codec "a random text message" :json))
+
+(deftest simple-clojure
+  (test-codec "a simple text message" :clojure))
+
+(deftest complex-json
+  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
+
+(deftest complex-clojure
+  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
 
 (deftest complex-json-encoding
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}
