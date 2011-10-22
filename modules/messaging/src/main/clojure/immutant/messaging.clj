@@ -16,13 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging
-  (:import (org.hornetq.jms.client HornetQDestination))
-  (:import (org.hornetq.core.remoting.impl.netty TransportConstants))
-  (:import (org.hornetq.api.core TransportConfiguration))
-  (:import (org.hornetq.api.jms HornetQJMSClient JMSFactoryType))
   (:import (javax.jms Session))
   (:require [immutant.messaging.codecs :as codecs])
-  (:require [clojure.data.json :as json]))
+  (:require [immutant.messaging.hornetq-direct :as hornetq]))
 
 (declare produce consume)
 
@@ -46,10 +42,7 @@
 
 ;; privates
 
-(def connection-factory 
-  (let [connect_opts { TransportConstants/PORT_PROP_NAME (Integer. 5445) }
-        transport_config (new TransportConfiguration "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" connect_opts)]
-    (HornetQJMSClient/createConnectionFactoryWithoutHA JMSFactoryType/CF (into-array [transport_config]))))
+(def connection-factory hornetq/connection-factory)
 
 (defn- with-session [f]
   (with-open [connection (.createConnection connection-factory)
@@ -58,9 +51,7 @@
     (f session)))
 
 (defn- java-destination [destination]
-  (if (.contains destination "queue")
-    (HornetQDestination/fromAddress (str "jms.queue." destination ))
-    (HornetQDestination/fromAddress (str "jms.topic." destination ))))
+  (hornetq/java-destination destination))
 
 (defn- produce [destination message opts]
   (with-session (fn [session]
