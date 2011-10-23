@@ -29,12 +29,12 @@ public enum Namespace {
     // must be first
     UNKNOWN(null),
 
-    FNBOX_CORE_1_0("urn:jboss:domain:immutant-core:1.0");
+    IMMUTANT_CORE_1_0("urn:jboss:domain:immutant-core:1.0");
 
     /**
      * The current namespace version.
      */
-    public static final Namespace CURRENT = FNBOX_CORE_1_0;
+    public static final Namespace CURRENT = IMMUTANT_CORE_1_0;
 
     private final String name;
 

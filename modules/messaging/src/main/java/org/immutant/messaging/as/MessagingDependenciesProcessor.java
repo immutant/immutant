@@ -33,7 +33,7 @@ import org.jboss.modules.ModuleLoader;
 
 public class MessagingDependenciesProcessor implements DeploymentUnitProcessor {
     
-    private static ModuleIdentifier FNBOX_MESSAGING_ID = ModuleIdentifier.create("org.immutant.messaging");
+    private static ModuleIdentifier IMMUTANT_MESSAGING_ID = ModuleIdentifier.create("org.immutant.messaging");
     private static ModuleIdentifier HORNETQ_ID = ModuleIdentifier.create("org.hornetq");
     private static ModuleIdentifier JAVAX_JMS_ID = ModuleIdentifier.create("javax.jms.api");
    
@@ -45,7 +45,7 @@ public class MessagingDependenciesProcessor implements DeploymentUnitProcessor {
         final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
         if (unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
-            addDependency( moduleSpecification, moduleLoader, FNBOX_MESSAGING_ID );
+            addDependency( moduleSpecification, moduleLoader, IMMUTANT_MESSAGING_ID );
             addDependency( moduleSpecification, moduleLoader, JAVAX_JMS_ID );
             addDependency( moduleSpecification, moduleLoader, HORNETQ_ID );
         }

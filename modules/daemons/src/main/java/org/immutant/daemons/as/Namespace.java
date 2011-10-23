@@ -26,12 +26,12 @@ public enum Namespace {
     // must be first
     UNKNOWN(null),
 
-    FNBOX_DAEMONS_1_0("urn:jboss:domain:immutant-daemons:1.0");
+    IMMUTANT_DAEMONS_1_0("urn:jboss:domain:immutant-daemons:1.0");
 
     /**
      * The current namespace version.
      */
-    public static final Namespace CURRENT = FNBOX_DAEMONS_1_0;
+    public static final Namespace CURRENT = IMMUTANT_DAEMONS_1_0;
 
     private final String name;
 

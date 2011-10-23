@@ -29,12 +29,12 @@ public enum Namespace {
     // must be first
     UNKNOWN(null),
 
-    FNBOX_WEB_1_0("urn:jboss:domain:immutant-web:1.0");
+    IMMUTANT_WEB_1_0("urn:jboss:domain:immutant-web:1.0");
 
     /**
      * The current namespace version.
      */
-    public static final Namespace CURRENT = FNBOX_WEB_1_0;
+    public static final Namespace CURRENT = IMMUTANT_WEB_1_0;
 
     private final String name;
 

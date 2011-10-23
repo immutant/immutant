@@ -27,8 +27,8 @@ public class DaemonServices {
     private DaemonServices() {
     }
 
-    public static final ServiceName FNBOX = ServiceName.of( "immutant" );
-    public static final ServiceName DAEMONS = FNBOX.append( "daemons" );
+    public static final ServiceName IMMUTANT = ServiceName.of( "immutant" );
+    public static final ServiceName DAEMONS = IMMUTANT.append( "daemons" );
 
 
     public static ServiceName daemon(DeploymentUnit unit, String serviceName ) {

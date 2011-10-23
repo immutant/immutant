@@ -28,7 +28,7 @@ public class MessagingServices {
     private MessagingServices() {
     }
 
-    public static final ServiceName MESSAGING = CoreServices.FNBOX.append( "messaging" );
+    public static final ServiceName MESSAGING = CoreServices.IMMUTANT.append( "messaging" );
 //    public static final ServiceName RUBY_CONNECTION_FACTORY = MESSAGING.append(  "ruby-connection-factory" );
 //    public static final ServiceName RUBY_XA_CONNECTION_FACTORY = MESSAGING.append(  "ruby-xa-connection-factory" );
 //    

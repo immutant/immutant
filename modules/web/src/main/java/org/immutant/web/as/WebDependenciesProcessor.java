@@ -33,7 +33,7 @@ import org.jboss.modules.ModuleLoader;
 
 public class WebDependenciesProcessor implements DeploymentUnitProcessor {
     
-    private static ModuleIdentifier FNBOX_WEB_ID = ModuleIdentifier.create("org.immutant.web");
+    private static ModuleIdentifier IMMUTANT_WEB_ID = ModuleIdentifier.create("org.immutant.web");
 
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
@@ -43,7 +43,7 @@ public class WebDependenciesProcessor implements DeploymentUnitProcessor {
         final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
         if (unit.hasAttachment( RingMetaData.ATTACHMENT_KEY )) {
-            addDependency( moduleSpecification, moduleLoader, FNBOX_WEB_ID );
+            addDependency( moduleSpecification, moduleLoader, IMMUTANT_WEB_ID );
         }
     }
 
