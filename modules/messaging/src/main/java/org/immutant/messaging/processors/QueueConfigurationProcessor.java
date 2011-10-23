@@ -39,9 +39,14 @@ public class QueueConfigurationProcessor implements DeploymentUnitProcessor {
         DeploymentUnit deploymentUnit = phaseContext.getDeploymentUnit();
 
         ClojureMetaData appMetaData = deploymentUnit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
-        Map<String, ?> queues = appMetaData.getHash( "queues" );
+                
+        if (appMetaData == null) {
+            return;
+        }
         
-        if (appMetaData == null || queues == null) { 
+        Map<String, ?> queues = appMetaData.getHash( "queues" );
+
+        if (queues == null) {
             return;
         }
         

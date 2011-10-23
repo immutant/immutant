@@ -39,9 +39,14 @@ public class TopicConfigurationProcessor implements DeploymentUnitProcessor {
         DeploymentUnit deploymentUnit = phaseContext.getDeploymentUnit();
 
         ClojureMetaData appMetaData = deploymentUnit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
+        
+        if (appMetaData == null) { 
+            return;
+        }
+
         Map<String, ?> topics = appMetaData.getHash( "topics" );
         
-        if (appMetaData == null || topics == null) { 
+        if (topics == null) {
             return;
         }
         

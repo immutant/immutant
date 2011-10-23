@@ -39,12 +39,17 @@ public class DaemonConfigurationProcessor implements DeploymentUnitProcessor {
         DeploymentUnit deploymentUnit = phaseContext.getDeploymentUnit();
 
         ClojureMetaData appMetaData = deploymentUnit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
-        Map<String, ?> daemons = appMetaData.getHash( "daemons" );
-
-        if (appMetaData == null || daemons == null) { 
+        
+        if (appMetaData == null) { 
             return;
         }
 
+        Map<String, ?> daemons = appMetaData.getHash( "daemons" );
+
+        if (daemons == null) {
+            return;
+        }
+        
         for(String daemon : daemons.keySet()) {
             DaemonMetaData metaData = new DaemonMetaData( daemon );
             Map <String, ?> options = (Map<String, Object>)daemons.get( daemon );
