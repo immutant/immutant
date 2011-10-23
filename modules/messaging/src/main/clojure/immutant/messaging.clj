@@ -50,20 +50,23 @@
     (.start connection)
     (f session)))
 
-(defn- java-destination [destination]
-  (hornetq/java-destination destination))
+(defn- destination [session name]
+  (if (.contains name "queue")
+    (.createQueue session name)
+    (.createTopic session name)))
 
-(defn- produce [destination message opts]
+(defn- produce [dest-name message opts]
   (with-session (fn [session]
-                  (.send
-                   (.createProducer session (java-destination destination))
-                   (codecs/encode session message opts)))))
+                  (let [destination (destination session dest-name)
+                        producer (.createProducer session destination)
+                        encoded (codecs/encode session message opts)]
+                  (.send producer encoded)))))
 
-(defn- consume [destination {timeout :timeout}]
+(defn- consume [dest-name {timeout :timeout}]
   (with-session (fn [session]
-                  (codecs/decode
-                   (.receive (.createConsumer
-                              session
-                              (java-destination destination)) (or timeout 10000))))))
+                  (let [destination (destination session dest-name)
+                        consumer (.createConsumer session destination)
+                        encoded (.receive consumer (or timeout 10000))]
+                    (codecs/decode encoded)))))
 
 

@@ -26,7 +26,3 @@
         transport_config (new TransportConfiguration "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" connect_opts)]
     (HornetQJMSClient/createConnectionFactoryWithoutHA JMSFactoryType/CF (into-array [transport_config]))))
 
-(defn java-destination [destination]
-  (if (.contains destination "queue")
-    (HornetQDestination/fromAddress (str "jms.queue." destination ))
-    (HornetQDestination/fromAddress (str "jms.topic." destination ))))
