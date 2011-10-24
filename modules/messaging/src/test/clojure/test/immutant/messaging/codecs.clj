@@ -14,7 +14,7 @@
             (.get properties k)))))))
 
 (defn test-codec [message encoding]
-  (is (= (decode (encode (session-mock) message {:encoding encoding})))))
+  (is (= message (decode (encode (session-mock) message {:encoding encoding})))))
 
 (deftest simple-json
   (test-codec "a random text message" :json))
