@@ -8,8 +8,7 @@ public class MessageProcessor extends BaseMessageProcessor {
     @Override
     public void onMessage(Message message) {
         MessageProcessorGroup group = (MessageProcessorGroup) getGroup();
-        // TODO: pass the real function to a wrapper to handle tx, etc
-        group.getFunction().run();
+        group.getRuntime().invoke("immutant.messaging/handle", group.getFunction(), message);
     }
     
  }

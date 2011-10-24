@@ -19,6 +19,7 @@
 
 package org.immutant.messaging;
 
+import org.immutant.core.ClojureRuntime;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceRegistry;
 import org.projectodd.polyglot.messaging.BaseMessageProcessorGroup;
@@ -29,13 +30,20 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
         super( registry, baseServiceName, destinationName, MessageProcessor.class );
     }
 
+    public void setRuntime(ClojureRuntime runtime) {
+        this.runtime = runtime;
+    }
+    public ClojureRuntime getRuntime() {
+        return this.runtime;
+    }
+
     public void setFunction(Runnable function) {
         this.function = function;
     }
-
     public Runnable getFunction() {
         return this.function;
     }
 
+    private ClojureRuntime runtime;
     private Runnable function;
 }

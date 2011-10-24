@@ -38,7 +38,11 @@
                         encoded (.receive consumer (or timeout 10000))]
                     (codecs/decode encoded)))))
 
+(defn handle [handler message]
+  (handler (codecs/decode message)))
+
 (defn wait-for-destination [f & count]
+  "Ignore exceptions, retrying until destination starts up"
   (let [attempts (or count 30)
         retry #(do (Thread/sleep 1000) (wait-for-destination f (dec attempts)))]
     (try

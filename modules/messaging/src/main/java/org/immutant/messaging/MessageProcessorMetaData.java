@@ -28,8 +28,10 @@ public class MessageProcessorMetaData {
         this.destinationName = dest;
         this.handler = handler;
         this.filter = (String) opts.get("filter");
-        this.concurrency = (Integer) opts.get("concurrency");
-        this.durable = (Boolean) opts.get("durable");
+        if (opts.get("concurrency") != null)
+            this.concurrency = (Integer) opts.get("concurrency");
+        if (opts.get("durable") != null)
+            this.durable = (Boolean) opts.get("durable");
     }
 
     public String getName() {

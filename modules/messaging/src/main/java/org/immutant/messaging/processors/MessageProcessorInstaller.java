@@ -40,6 +40,7 @@ import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
 
 import org.immutant.core.ClojureMetaData;
+import org.immutant.core.ClojureRuntime;
 import org.immutant.messaging.MessageProcessorGroup;
 import org.immutant.messaging.MessageProcessorGroupMBean;
 import org.immutant.messaging.MessageProcessorMetaData;
@@ -69,9 +70,12 @@ public class MessageProcessorInstaller implements DeploymentUnitProcessor {
         DeploymentUnit unit = phaseContext.getDeploymentUnit();
 
         final String name = metaData.getName();
+        ClojureRuntime runtime = unit.getAttachment( ClojureRuntime.ATTACHMENT_KEY );
 
         ServiceName baseServiceName = MessagingServices.messageProcessor( unit, name );
         MessageProcessorGroup service = new MessageProcessorGroup( phaseContext.getServiceRegistry(), baseServiceName, metaData.getDestinationName() );
+        service.setRuntime( runtime );
+        service.setFunction( metaData.getHandler() );
         service.setConcurrency( metaData.getConcurrency() );
         service.setDurable( metaData.getDurable() );
         service.setMessageSelector( metaData.getFilter() );

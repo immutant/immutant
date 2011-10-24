@@ -22,13 +22,15 @@
   (:require [clj-http.client :as client]))
 
 (def ham-queue "/queue/ham")
+(def biscuit-queue "/queue/biscuit")
 
 (use-fixtures :once (with-deployment *file*
                       {
                        :root "apps/ring/basic-ring/"
                        :app-function "basic-ring.core/handler"
                        :context-path "/basic-ring"
-                       :queues { ham-queue {"durable" false}}
+                       :queues { ham-queue {"durable" false} biscuit-queue {"durable" false}}
+                       :processors [ [ biscuit-queue '(fn [msg] (println "yay!" msg)) {}] ]
                        }))
 
 (deftest simple "it should work"
@@ -48,3 +50,5 @@
     (wait-for-destination #(publish ham-queue message :encoding :json))
     (is (= (receive ham-queue :timeout 60000) message))))
 
+(deftest trigger-processor-to-log-something
+  (wait-for-destination #(publish biscuit-queue "whatevs")))
