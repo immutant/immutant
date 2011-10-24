@@ -20,15 +20,23 @@
   (:require [immutant.messaging.codecs :as codecs])
   (:require [immutant.messaging.hornetq-direct :as hornetq]))
 
-(declare produce consume)
+(declare with-session destination)
 
-(defn publish [destination message & opts]
+(defn publish [dest-name message & opts]
   "Send a message to a destination"
-  (produce destination message opts))
+  (with-session (fn [session]
+                  (let [destination (destination session dest-name)
+                        producer (.createProducer session destination)
+                        encoded (codecs/encode session message opts)]
+                  (.send producer encoded)))))
     
-(defn receive [destination & opts]
+(defn receive [dest-name & {timeout :timeout}]
   "Receive a message from a destination"
-  (consume destination opts))
+  (with-session (fn [session]
+                  (let [destination (destination session dest-name)
+                        consumer (.createConsumer session destination)
+                        encoded (.receive consumer (or timeout 10000))]
+                    (codecs/decode encoded)))))
 
 (defn wait-for-destination [f & count]
   (let [attempts (or count 30)
@@ -54,19 +62,4 @@
   (if (.contains name "queue")
     (.createQueue session name)
     (.createTopic session name)))
-
-(defn- produce [dest-name message opts]
-  (with-session (fn [session]
-                  (let [destination (destination session dest-name)
-                        producer (.createProducer session destination)
-                        encoded (codecs/encode session message opts)]
-                  (.send producer encoded)))))
-
-(defn- consume [dest-name {timeout :timeout}]
-  (with-session (fn [session]
-                  (let [destination (destination session dest-name)
-                        consumer (.createConsumer session destination)
-                        encoded (.receive consumer (or timeout 10000))]
-                    (codecs/decode encoded)))))
-
 
