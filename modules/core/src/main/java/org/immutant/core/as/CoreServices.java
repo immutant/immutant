@@ -27,8 +27,9 @@ public class CoreServices {
     private CoreServices() {
     }
 
-    public static final ServiceName IMMUTANT = ServiceName.of( "immutant" );
-    public static final ServiceName CORE      = IMMUTANT.append( "core" );
+    public static final ServiceName IMMUTANT    = ServiceName.of( "immutant" );
+    public static final ServiceName CORE        = IMMUTANT.append( "core" );
+    public static final ServiceName HOUSEKEEPER = IMMUTANT.append( "housekeeper" );
     public static final ServiceName INJECTION   = CORE.append( "injection" );
     
     public static final ServiceName INJECTABLE_HANDLER_REGISTRY   = INJECTION.append( "injectable-handler-registry" );

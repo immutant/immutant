@@ -29,6 +29,7 @@ import org.immutant.core.processors.AppCljParsingProcessor;
 import org.immutant.core.processors.AppJarScanningProcessor;
 import org.immutant.core.processors.CljRootMountProcessor;
 import org.immutant.core.processors.ClojureRuntimeInstaller;
+import org.immutant.core.processors.CloserInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -81,7 +82,7 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         //processorTarget.addDeploymentProcessor( Phase.CONFIGURE_MODULE, 100, new WebRuntimePoolProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.CONFIGURE_MODULE, 500, new RailsAutoloadPathProcessor() );
         
-        //processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 120, new RackApplicationComponentResolverInstaller() );
+        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 110, new CloserInstaller() );
         processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 120, new ClojureRuntimeInstaller() );
     }
 
