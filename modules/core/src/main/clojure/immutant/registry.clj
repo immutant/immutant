@@ -18,12 +18,13 @@
 (ns immutant.registry
   (:import (org.jboss.msc.service ServiceName)))
 
-(def registry)
+(def registry nil)
 
 (defn set-registry [v]
   (def registry v))
 
 (defn service [name]
-  (let [key (ServiceName/parse name)
-        value (.getService registry key)]
-    (and value (.getValue value))))
+  (if registry
+    (let [key (ServiceName/parse name)
+          value (.getService registry key)]
+      (and value (.getValue value)))))
