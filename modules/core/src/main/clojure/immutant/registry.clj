@@ -25,6 +25,6 @@
 
 (defn service [name]
   (if registry
-    (let [key (ServiceName/parse name)
+    (let [key (if (string? name) (ServiceName/parse name) name)
           value (.getService registry key)]
       (and value (.getValue value)))))
