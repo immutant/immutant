@@ -16,7 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging
+  (:use [immutant.utilities :only (at-exit)])
   (:import (javax.jms Session))
+  (:require [immutant.registry :as lookup])
   (:require [immutant.messaging.codecs :as codecs])
   (:require [immutant.messaging.hornetq-direct :as hornetq]))
 
@@ -54,7 +56,15 @@
 
 ;; privates
 
-(def connection-factory hornetq/connection-factory)
+(def ^:private connection-factory
+  (if-let [reference-factory (lookup/service "jboss.naming.context.java.ConnectionFactory")]
+    (let [reference (.getReference reference-factory)]
+      (try
+        (.getInstance reference)
+        (finally (at-exit #(do (println "JC: released" reference) (.release reference))))))
+    (do
+      (println "WARN: unable to obtain JMS Connection Factory so we must be outside container")
+      hornetq/connection-factory)))
 
 (defn- with-session [f]
   (with-open [connection (.createConnection connection-factory)
