@@ -41,22 +41,30 @@
                     (codecs/decode encoded)))))
 
 (defn processor [dest-name f]
-  (let [connection (.createConnection connection-factory)
-        session (.createSession connection false Session/AUTO_ACKNOWLEDGE)
-        destination (destination session dest-name)
-        consumer (.createConsumer session destination)]
-    (.setMessageListener consumer (proxy [javax.jms.MessageListener] []
-                                    (onMessage [message]
-                                      (f (codecs/decode message)))))
-    (at-exit #(do (.close connection) (println "JC: closed" connection)))
-    (.start connection)))
+  (let [connection (.createConnection connection-factory)]
+    (try
+      (let [session (.createSession connection false Session/AUTO_ACKNOWLEDGE)
+            destination (destination session dest-name)
+            consumer (.createConsumer session destination)]
+        (.setMessageListener consumer (proxy [javax.jms.MessageListener] []
+                                        (onMessage [message]
+                                          (f (codecs/decode message)))))
+        (at-exit #(do (.close connection) (println "JC: closed" connection)))
+        (.start connection))
+      (catch Throwable e
+        (.close connection)
+        (throw e)))))
 
-(defn wait-for-destination [f & count]
+(defn wait-for-destination [f & [count]]
   "Ignore exceptions, retrying until destination starts up"
   (let [attempts (or count 30)
         retry #(do (Thread/sleep 1000) (wait-for-destination f (dec attempts)))]
     (try
       (f)
+      (catch RuntimeException e
+        (if (and (instance? javax.jms.JMSException (.getCause e)) (> attempts 0))
+          (retry)
+          (throw e)))
       (catch javax.naming.NameNotFoundException e
         (if (> attempts 0) (retry) (throw e)))
       (catch javax.jms.JMSException e
