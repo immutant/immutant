@@ -30,7 +30,6 @@
                        :app-function "basic-ring.core/handler"
                        :context-path "/basic-ring"
                        :queues { ham-queue {"durable" false} biscuit-queue {"durable" false}}
-                       :processors [ [ biscuit-queue '(fn [msg] (println "yay!" msg)) {}] ]
                        }))
 
 (deftest simple "it should work"
@@ -51,4 +50,6 @@
     (is (= (receive ham-queue :timeout 60000) message))))
 
 (deftest trigger-processor-to-log-something
-  (wait-for-destination #(publish biscuit-queue "whatevs")))
+  (client/get "http://localhost:8080/basic-ring/process")
+  (wait-for-destination #(publish biscuit-queue "foo"))
+  (is (= "FOO" (receive ham-queue :timeout 60000))))

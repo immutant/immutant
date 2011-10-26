@@ -22,7 +22,7 @@
   (:require [immutant.messaging.codecs :as codecs])
   (:require [immutant.messaging.hornetq-direct :as hornetq]))
 
-(declare with-session destination)
+(declare with-session destination connection-factory)
 
 (defn publish [dest-name message & opts]
   "Send a message to a destination"
@@ -40,8 +40,16 @@
                         encoded (.receive consumer (or timeout 10000))]
                     (codecs/decode encoded)))))
 
-(defn handle [handler message]
-  (handler (codecs/decode message)))
+(defn processor [dest-name f]
+  (let [connection (.createConnection connection-factory)
+        session (.createSession connection false Session/AUTO_ACKNOWLEDGE)
+        destination (destination session dest-name)
+        consumer (.createConsumer session destination)]
+    (.setMessageListener consumer (proxy [javax.jms.MessageListener] []
+                                    (onMessage [message]
+                                      (f (codecs/decode message)))))
+    (at-exit #(do (.close connection) (println "JC: closed" connection)))
+    (.start connection)))
 
 (defn wait-for-destination [f & count]
   "Ignore exceptions, retrying until destination starts up"
@@ -61,7 +69,7 @@
     (let [reference (.getReference reference-factory)]
       (try
         (.getInstance reference)
-        (finally (at-exit #(do (println "JC: released" reference) (.release reference))))))
+        (finally (at-exit #(do (.release reference) (println "JC: released" reference))))))
     (do
       (println "WARN: unable to obtain JMS Connection Factory so we must be outside container")
       hornetq/connection-factory)))
