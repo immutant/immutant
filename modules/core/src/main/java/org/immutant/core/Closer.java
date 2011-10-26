@@ -25,24 +25,20 @@ import org.jboss.logging.Logger;
 
 public class Closer implements Service<Closer> {
 
-    public void atExit(Runnable runnable) {
-        log.info("JC: adding "+runnable);
-        tasks.add(runnable);
+    public synchronized void atExit(Runnable runnable) {
+        tasks.push(runnable);
     }
 
     public void start(StartContext context) throws StartException {
-        log.info("JC: starting");
-        tasks = new ArrayList<Runnable>();
+        tasks = new ArrayDeque<Runnable>();
     }
 
-    public void stop(StopContext context) {
-        log.info("JC: stopping");
-        for (Runnable runnable: tasks) {
+    public synchronized void stop(StopContext context) {
+        while (!tasks.isEmpty()) {
             try {
-                log.info("JC: running "+runnable);
-                runnable.run();
+                tasks.pop().run();
             } catch (Throwable ignored) {
-                log.error("wtf?", ignored);
+                log.error("Didn't see this coming!", ignored);
             }
         }
     }
@@ -51,6 +47,6 @@ public class Closer implements Service<Closer> {
         return this;
     }
 
-    private List<Runnable> tasks;
+    private Deque<Runnable> tasks;
     private static final Logger log = Logger.getLogger( Closer.class );
 }
