@@ -31,5 +31,5 @@
 (deftest simple "it should work"
   (let [result (client/get "http://localhost:8080/basic-ring")]
     (println "RESPONSE" result)
-    (is (.startsWith (result :body) "Hello From Clojure inside TorqueBox!"))))
+    (is (.startsWith (result :body) "Hello from Immutant!"))))
 
