@@ -23,6 +23,7 @@ import org.jboss.as.server.deployment.*;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 
+import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Closer;
 import org.immutant.core.ClojureRuntime;
 import org.immutant.core.as.CoreServices;
@@ -32,6 +33,10 @@ public class CloserInstaller implements DeploymentUnitProcessor {
 
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         DeploymentUnit unit = phaseContext.getDeploymentUnit();
+        if (!unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
+            return;
+        }
+        
         Closer service = new Closer();
         ClojureRuntime runtime = unit.getAttachment( ClojureRuntime.ATTACHMENT_KEY );
         runtime.invoke( "immutant.registry/put", "housekeeper", service );
