@@ -5,11 +5,14 @@
 (defn init []
   (println "INIT CALLED"))
 
+(defn init-messaging []
+  (init)
+  (start-queue "/queue/ham")
+  (start-queue "/queue/biscuit")
+  (processor "/queue/biscuit" #(publish "/queue/ham" (.toUpperCase %))))
+  
 (defn handler [request]
-  (if (.endsWith (:uri request) "process")
-    (processor "/queue/biscuit" #(publish "/queue/ham" (.toUpperCase %))))
-  (let [body (str "Hello from Immutant! This is basic-ring")
-        factory (service/service "jboss.naming.context.java.ConnectionFactory")]
+  (let [body (str "Hello from Immutant! This is basic-ring")]
     {:status 200
      :headers {"Content-Type" "text/html"}
-     :body (str body "<p>" factory "</p>")}))
+     :body body}))

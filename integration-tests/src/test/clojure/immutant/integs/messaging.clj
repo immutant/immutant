@@ -18,8 +18,7 @@
 (ns immutant.integs.messaging
   (:use fntest.core)
   (:use clojure.test)
-  (:use immutant.messaging)
-  (:require [clj-http.client :as client]))
+  (:use immutant.messaging))
 
 (def ham-queue "/queue/ham")
 (def biscuit-queue "/queue/biscuit")
@@ -27,10 +26,7 @@
 (use-fixtures :once (with-deployment *file*
                       {
                        :root "apps/ring/basic-ring/"
-                       :init "basic-ring.core/init"
-                       :app-function "basic-ring.core/handler"
-                       :context-path "/basic-ring"
-                       :queues { ham-queue {"durable" false} biscuit-queue {"durable" false}}
+                       :init "basic-ring.core/init-messaging"
                        }))
 
 (deftest simple "it should work"
@@ -51,6 +47,5 @@
     (is (= (receive ham-queue :timeout 60000) message))))
 
 (deftest trigger-processor-to-log-something
-  (client/get "http://localhost:8080/basic-ring/process")
   (wait-for-destination #(publish biscuit-queue "foo"))
   (is (= "FOO" (receive ham-queue :timeout 60000))))

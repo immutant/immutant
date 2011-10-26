@@ -55,6 +55,11 @@
         (.close connection)
         (throw e)))))
 
+(defn start-queue [name & opts]
+  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
+    (.createQueue manager false name "" false (into-array String []))
+    (println "WARN: unable to start queue," name)))
+
 (defn wait-for-destination [f & [count]]
   "Ignore exceptions, retrying until destination starts up"
   (let [attempts (or count 30)
