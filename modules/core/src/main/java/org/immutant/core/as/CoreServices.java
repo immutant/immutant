@@ -49,6 +49,9 @@ public class CoreServices {
     public static ServiceName appNamespaceContextSelector(DeploymentUnit unit) {
         return unit.getServiceName().append( CORE ).append( "ns-context-selector" );
     }
-    
+
+    public static ServiceName housekeeper(DeploymentUnit unit) {
+        return unit.getServiceName().append( HOUSEKEEPER );
+    }
  
 }

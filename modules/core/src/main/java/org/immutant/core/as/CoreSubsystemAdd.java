@@ -83,9 +83,9 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         //processorTarget.addDeploymentProcessor( Phase.CONFIGURE_MODULE, 100, new WebRuntimePoolProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.CONFIGURE_MODULE, 500, new RailsAutoloadPathProcessor() );
         
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 110, new CloserInstaller() );
         processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 120, new ClojureRuntimeInstaller() );
-        
+        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 130, new CloserInstaller() );
+
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 500, new ApplicationInitializer() );
     }
 

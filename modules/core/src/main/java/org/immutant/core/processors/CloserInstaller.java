@@ -24,15 +24,19 @@ import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 
 import org.immutant.core.Closer;
+import org.immutant.core.ClojureRuntime;
 import org.immutant.core.as.CoreServices;
 
 
 public class CloserInstaller implements DeploymentUnitProcessor {
 
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
-        Closer service = new Closer();
         DeploymentUnit unit = phaseContext.getDeploymentUnit();
-        phaseContext.getServiceTarget().addService(CoreServices.HOUSEKEEPER, service)
+        Closer service = new Closer();
+        ClojureRuntime runtime = unit.getAttachment( ClojureRuntime.ATTACHMENT_KEY );
+        runtime.invoke( "immutant.registry/put", "housekeeper", service );
+
+        phaseContext.getServiceTarget().addService(CoreServices.housekeeper( unit ), service)
             .setInitialMode(Mode.ACTIVE)
             .install();
     }
