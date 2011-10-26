@@ -1,4 +1,4 @@
 {
  :root "/foo"
- :app-function "the-app-function"
+ :init "my.namespace/init"
  }

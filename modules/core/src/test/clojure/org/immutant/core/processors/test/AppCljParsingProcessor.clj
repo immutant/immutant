@@ -34,9 +34,9 @@
   (is (thrown? RuntimeException
                (.deployResourceAs *harness* (io/resource "invalid-root-descriptor.clj") "app.clj" ))))
 
-(deftest it-should-raise-with-no-app-function-specified
+(deftest it-should-raise-with-no-init-function-specified
   (is (thrown? RuntimeException
-               (.deployResourceAs *harness* (io/resource "missing-app-function-descriptor.clj") "app.clj" ))))
+               (.deployResourceAs *harness* (io/resource "missing-init-function-descriptor.clj") "app.clj" ))))
 
 (deftest it-should-create-metadata-when-given-a-valid-root
   (let [unit (.deployResourceAs *harness* (io/resource "valid-root-descriptor.clj") "app.clj" )]
@@ -46,7 +46,7 @@
   (let [unit (.deployResourceAs *harness* (io/resource "valid-root-descriptor.clj") "app.clj" )
         metadata (.getAttachment unit ClojureMetaData/ATTACHMENT_KEY)]
     (are [exp val-method] (= exp (val-method metadata))
-         "vfs:/tmp/"        .getRootPath
-         "the-app-function" .getAppFunction
-         "app"              .getApplicationName)))
+         "vfs:/tmp/"         .getRootPath
+         "my.namespace/init" .getInitFunction
+         "app"               .getApplicationName)))
 

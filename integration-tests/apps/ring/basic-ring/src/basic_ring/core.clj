@@ -4,6 +4,9 @@
 
 (def shared? "app1")
 
+(defn init []
+  (println "INIT CALLED"))
+
 (defn handler [request]
   (if (.endsWith (:uri request) "process")
     (processor "/queue/biscuit" #(publish "/queue/ham" (.toUpperCase %))))

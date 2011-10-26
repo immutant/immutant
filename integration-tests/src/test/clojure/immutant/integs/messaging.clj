@@ -27,6 +27,7 @@
 (use-fixtures :once (with-deployment *file*
                       {
                        :root "apps/ring/basic-ring/"
+                       :init "basic-ring.core/init"
                        :app-function "basic-ring.core/handler"
                        :context-path "/basic-ring"
                        :queues { ham-queue {"durable" false} biscuit-queue {"durable" false}}

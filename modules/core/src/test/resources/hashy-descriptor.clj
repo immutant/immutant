@@ -1,4 +1,4 @@
 {
- :app-function "the-app-function"
+ :init "my.namespace/init"
  :ham { :biscuit "gravy" }
  }

@@ -1,5 +1,5 @@
 {
  ;; this will probably fail on windows
  :root "/tmp"
- :app-function "the-app-function"
+ :init "my.namespace/init"
  }

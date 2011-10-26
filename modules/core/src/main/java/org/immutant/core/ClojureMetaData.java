@@ -49,6 +49,10 @@ public class ClojureMetaData extends ApplicationMetaData {
         super.attachTo( unit );
         unit.putAttachment( ATTACHMENT_KEY, this );
     }
+    
+    public String getInitFunction() {
+        return getString( "init" );
+    }
 
     public String getAppFunction() {
         return getString( "app-function" );

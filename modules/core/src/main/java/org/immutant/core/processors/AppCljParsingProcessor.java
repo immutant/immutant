@@ -76,8 +76,8 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
                 throw new DeploymentUnitProcessingException( "Application root does not exist: " + root.toURL().toExternalForm() );
             }
             
-            if (appMetaData.getAppFunction() == null) {
-                throw new DeploymentUnitProcessingException( "No app-function specified." );
+            if (appMetaData.getInitFunction() == null) {
+                throw new DeploymentUnitProcessingException( "No init function specified." );
             }
             
             if (root.exists() && !root.isDirectory()) {

@@ -25,12 +25,12 @@
 
 (deftest parse "it should parse the descriptor and return a map"
   (let [result (ClojureMetaData/parse simple-descriptor)]
-    (is (= "the-app-function" (.get result "app-function")))))
+    (is (= "my.namespace/init" (.get result "init")))))
 
 (deftest getString "it should return the proper value as a String"
   (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse simple-descriptor))
-        value (.getString cmd "app-function")]
-    (is (= "the-app-function" value))
+        value (.getString cmd "init")]
+    (is (= "my.namespace/init" value))
     (is (instance? String value))))
 
 (deftest getHash "it should return the proper value as a Hash"
@@ -38,9 +38,9 @@
         value (.getHash cmd "ham")]
     (is (= {:biscuit "gravy"} value))))
 
-(deftest getAppFunction "it should return the proper value"
+(deftest getInitFunction "it should return the proper value"
   (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse simple-descriptor))]
-    (is (= "the-app-function" (.getAppFunction cmd)))))
+    (is (= "my.namespace/init" (.getInitFunction cmd)))))
 
 (deftest it-should-allow-access-to-any-metadata-value
   (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse simple-descriptor))]
