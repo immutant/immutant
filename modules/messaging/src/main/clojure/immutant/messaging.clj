@@ -55,10 +55,25 @@
         (.close connection)
         (throw e)))))
 
-(defn start-queue [name & opts]
+(defn stop-queue [name]
   (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
-    (.createQueue manager false name "" false (into-array String []))
+    (.destroyQueue manager name)))
+  
+(defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
+  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
+    (and (.createQueue manager false name selector durable (into-array String []))
+         (at-exit #(do (stop-queue name) (println "JC: stopped queue" name))))
     (println "WARN: unable to start queue," name)))
+
+(defn stop-topic [name]
+  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
+    (.destroyTopic manager name)))
+  
+(defn start-topic [name & opts]
+  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
+    (and (.createTopic manager false name (into-array String []))
+         (at-exit #(do (stop-topic name) (println "JC: stopped topic" name))))
+    (println "WARN: unable to start topic," name)))
 
 (defn wait-for-destination [f & [count]]
   "Ignore exceptions, retrying until destination starts up"
