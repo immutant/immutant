@@ -1,5 +1,5 @@
 (ns basic-ring.core
-  (:use immutant.messaging)
+  (:require [immutant.messaging :as msg])
   (:require [immutant.registry :as service]))
 
 (def a-value (atom "default"))
@@ -11,9 +11,9 @@
 
 (defn init-messaging []
   (init)
-  (start "/queue/ham")
-  (start "/queue/biscuit")
-  (processor "/queue/biscuit" #(publish "/queue/ham" (.toUpperCase %))))
+  (msg/start "/queue/ham")
+  (msg/start "/queue/biscuit")
+  (msg/listen "/queue/biscuit" #(msg/publish "/queue/ham" (.toUpperCase %))))
   
 (defn handler [request]
   (let [body (str "Hello from Immutant! This is basic-ring <p>a-value:" @a-value "</p>")]

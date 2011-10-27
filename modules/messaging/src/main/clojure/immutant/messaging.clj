@@ -62,8 +62,8 @@
                         encoded (.receive consumer (or timeout 10000))]
                     (codecs/decode encoded)))))
 
-(defn processor [dest-name f]
-  "Pass decoded messages sent to dest-name to the function, f"
+(defn listen [dest-name f]
+  "The handler function, f, will receive any messages sent to dest-name"
   (let [connection (.createConnection connection-factory)]
     (try
       (let [session (.createSession connection false Session/AUTO_ACKNOWLEDGE)
