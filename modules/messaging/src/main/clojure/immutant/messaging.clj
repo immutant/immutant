@@ -112,9 +112,10 @@
     (f session)))
 
 (defn- destination [session name]
-  (if (.contains name "queue")
-    (.createQueue session name)
-    (.createTopic session name)))
+  (cond
+   (queue? name) (.createQueue session name)
+   (topic? name) (.createTopic session name)
+   :else (throw (Exception. "Illegal destination name"))))
 
 (defn- stop-queue [name]
   (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
@@ -124,7 +125,7 @@
   (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
     (and (.createQueue manager false name selector durable (into-array String []))
          (at-exit #(do (stop-queue name) (println "JC: stopped queue" name))))
-    (println "WARN: unable to start queue," name)))
+    (throw (Exception. (str "Unable to start queue, " name)))))
 
 (defn- stop-topic [name]
   (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
@@ -134,5 +135,5 @@
   (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
     (and (.createTopic manager false name (into-array String []))
          (at-exit #(do (stop-topic name) (println "JC: stopped topic" name))))
-    (println "WARN: unable to start topic," name)))
+    (throw (Exception. (str "Unable to start topic, " name)))))
 
