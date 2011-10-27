@@ -11,8 +11,8 @@
 
 (defn init-messaging []
   (init)
-  (start-queue "/queue/ham")
-  (start-queue "/queue/biscuit")
+  (start "/queue/ham")
+  (start "/queue/biscuit")
   (processor "/queue/biscuit" #(publish "/queue/ham" (.toUpperCase %))))
   
 (defn handler [request]

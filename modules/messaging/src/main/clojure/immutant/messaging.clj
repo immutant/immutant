@@ -22,7 +22,29 @@
   (:require [immutant.messaging.codecs :as codecs])
   (:require [immutant.messaging.hornetq-direct :as hornetq]))
 
+(declare start-queue stop-queue start-topic stop-topic)
 (declare with-session destination connection-factory)
+
+(defn queue? [name]
+  (.startsWith name "/queue"))
+
+(defn topic? [name]
+  (.startsWith name "/topic"))
+
+(defn start [name & opts]
+  "Create a message destination; name should be prefixed with either /queue or /topic"
+  (when-not (or (queue? name) (topic? name))
+    (throw (Exception. "Destination names must start with /queue or /topic")))
+  (if (queue? name)
+    (apply start-queue (cons name opts))
+    (apply start-topic (cons name opts))))
+
+(defn stop [name]
+  "Destroy message destination"
+  (cond
+   (queue? name) (stop-queue name)
+   (topic? name) (stop-topic name)
+   :else (throw (Exception. "Illegal destination name"))))
 
 (defn publish [dest-name message & opts]
   "Send a message to a destination"
@@ -41,6 +63,7 @@
                     (codecs/decode encoded)))))
 
 (defn processor [dest-name f]
+  "Pass decoded messages sent to dest-name to the function, f"
   (let [connection (.createConnection connection-factory)]
     (try
       (let [session (.createSession connection false Session/AUTO_ACKNOWLEDGE)
@@ -55,28 +78,8 @@
         (.close connection)
         (throw e)))))
 
-(defn stop-queue [name]
-  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
-    (.destroyQueue manager name)))
-  
-(defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
-  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
-    (and (.createQueue manager false name selector durable (into-array String []))
-         (at-exit #(do (stop-queue name) (println "JC: stopped queue" name))))
-    (println "WARN: unable to start queue," name)))
-
-(defn stop-topic [name]
-  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
-    (.destroyTopic manager name)))
-  
-(defn start-topic [name & opts]
-  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
-    (and (.createTopic manager false name (into-array String []))
-         (at-exit #(do (stop-topic name) (println "JC: stopped topic" name))))
-    (println "WARN: unable to start topic," name)))
-
 (defn wait-for-destination [f & [count]]
-  "Ignore exceptions, retrying until destination starts up"
+  "Ignore exceptions, retrying until destination completely starts up"
   (let [attempts (or count 30)
         retry #(do (Thread/sleep 1000) (wait-for-destination f (dec attempts)))]
     (try
@@ -112,4 +115,24 @@
   (if (.contains name "queue")
     (.createQueue session name)
     (.createTopic session name)))
+
+(defn- stop-queue [name]
+  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
+    (.destroyQueue manager name)))
+  
+(defn- start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
+  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
+    (and (.createQueue manager false name selector durable (into-array String []))
+         (at-exit #(do (stop-queue name) (println "JC: stopped queue" name))))
+    (println "WARN: unable to start queue," name)))
+
+(defn- stop-topic [name]
+  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
+    (.destroyTopic manager name)))
+  
+(defn- start-topic [name & opts]
+  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
+    (and (.createTopic manager false name (into-array String []))
+         (at-exit #(do (stop-topic name) (println "JC: stopped topic" name))))
+    (println "WARN: unable to start topic," name)))
 
