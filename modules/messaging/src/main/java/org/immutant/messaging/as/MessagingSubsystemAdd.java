@@ -25,8 +25,6 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 
 import java.util.List;
 
-import org.immutant.messaging.processors.QueueConfigurationProcessor;
-import org.immutant.messaging.processors.TopicConfigurationProcessor;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -67,25 +65,9 @@ class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
 
-//        processorTarget.addDeploymentProcessor( Phase.PARSE, 10, new BackgroundablePresetsProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.PARSE, 11, new QueueConfigurationProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.PARSE, 12, new TopicConfigurationProcessor() );
-//        processorTarget.addDeploymentProcessor( Phase.PARSE, 13, new MessagingYamlParsingProcessor() );
-//        processorTarget.addDeploymentProcessor( Phase.PARSE, 40, new TasksYamlParsingProcessor() );
-//        processorTarget.addDeploymentProcessor( Phase.PARSE, 41, new TasksScanningProcessor() );
-
         processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 3, new MessagingDependenciesProcessor() );
-
-//        processorTarget.addDeploymentProcessor( Phase.CONFIGURE_MODULE, 0, new MessagingLoadPathProcessor() );
-
         processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 11, new ApplicationNamingContextBindingProcessor() );
 
-//        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 220, new TasksInstaller() );
-//        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 320, new MessagingRuntimePoolProcessor() );
-//
-//        processorTarget.addDeploymentProcessor( Phase.INSTALL, 120, new MessageProcessorComponentResolverInstaller() );
-        processorTarget.addDeploymentProcessor( Phase.INSTALL, 221, new QueueInstaller() );
-        processorTarget.addDeploymentProcessor( Phase.INSTALL, 222, new TopicInstaller() );
     }
 
     protected void addMessagingServices(final OperationContext context, ServiceVerificationHandler verificationHandler,
