@@ -17,19 +17,10 @@
 
 (ns immutant.messaging
   (:use [immutant.utilities :only (at-exit)])
-  (:import (javax.jms Session))
+  (:use [immutant.messaging.core])
   (:require [immutant.registry :as lookup])
   (:require [immutant.messaging.codecs :as codecs])
   (:require [immutant.messaging.hornetq-direct :as hornetq]))
-
-(declare start-queue stop-queue start-topic stop-topic)
-(declare with-session destination connection-factory)
-
-(defn queue? [name]
-  (.startsWith name "/queue"))
-
-(defn topic? [name]
-  (.startsWith name "/topic"))
 
 (defn start [name & opts]
   "Create a message destination; name should be prefixed with either /queue or /topic"
@@ -66,7 +57,7 @@
   "The handler function, f, will receive any messages sent to dest-name"
   (let [connection (.createConnection connection-factory)]
     (try
-      (let [session (.createSession connection false Session/AUTO_ACKNOWLEDGE)
+      (let [session (create-session connection)
             destination (destination session dest-name)
             consumer (.createConsumer session destination)]
         (.setMessageListener consumer (proxy [javax.jms.MessageListener] []
@@ -93,47 +84,4 @@
       (catch javax.jms.JMSException e
         (if (> attempts 0) (retry) (throw e))))))
 
-;; privates
-
-(def ^:private connection-factory
-  (if-let [reference-factory (lookup/service "jboss.naming.context.java.ConnectionFactory")]
-    (let [reference (.getReference reference-factory)]
-      (try
-        (.getInstance reference)
-        (finally (at-exit #(do (.release reference) (println "JC: released" reference))))))
-    (do
-      (println "WARN: unable to obtain JMS Connection Factory so we must be outside container")
-      hornetq/connection-factory)))
-
-(defn- with-session [f]
-  (with-open [connection (.createConnection connection-factory)
-              session (.createSession connection false Session/AUTO_ACKNOWLEDGE)]
-    (.start connection)
-    (f session)))
-
-(defn- destination [session name]
-  (cond
-   (queue? name) (.createQueue session name)
-   (topic? name) (.createTopic session name)
-   :else (throw (Exception. "Illegal destination name"))))
-
-(defn- stop-queue [name]
-  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
-    (.destroyQueue manager name)))
-  
-(defn- start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
-  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
-    (and (.createQueue manager false name selector durable (into-array String []))
-         (at-exit #(do (stop-queue name) (println "JC: stopped queue" name))))
-    (throw (Exception. (str "Unable to start queue, " name)))))
-
-(defn- stop-topic [name]
-  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
-    (.destroyTopic manager name)))
-  
-(defn- start-topic [name & opts]
-  (if-let [manager (lookup/service "jboss.messaging.default.jms.manager")]
-    (and (.createTopic manager false name (into-array String []))
-         (at-exit #(do (stop-topic name) (println "JC: stopped topic" name))))
-    (throw (Exception. (str "Unable to start topic, " name)))))
 
