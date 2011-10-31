@@ -33,20 +33,20 @@
     <module>assembly</module>
   </modules>
 
-  <!-- <profiles> -->
-  <!--   <profile> -->
-  <!--     <id>full</id> -->
-  <!--     <modules> -->
-  <!--       <module>dist</module> -->
-  <!--       <module>incremental</module> -->
-  <!--     </modules> -->
-  <!--   </profile> -->
-  <!--   <profile> -->
-  <!--     <id>dist</id> -->
-  <!--     <modules> -->
-  <!--       <module>dist</module> -->
-  <!--     </modules> -->
-  <!--   </profile> -->
-  <!-- </profiles> -->
+  <profiles>
+    <profile>
+      <id>full</id>
+      <modules>
+        <module>dist</module>
+        <module>incremental</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>dist</id>
+      <modules>
+        <module>dist</module>
+      </modules>
+    </profile>
+  </profiles>
 
 </project>

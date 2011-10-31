@@ -1,17 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <parent>
-    <groupId>org.torquebox</groupId>
-    <artifactId>torquebox-build</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <groupId>org.immutant</groupId>
+    <artifactId>immutant-build</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.torquebox</groupId>
-  <artifactId>torquebox-dist</artifactId>
+  <groupId>org.immutant</groupId>
+  <artifactId>immutant-dist</artifactId>
   <packaging>pom</packaging>
-  <name>TorqueBox Build Distribution</name>
+  <name>Immutant Build Distribution</name>
   <description />
 
   <profiles>
@@ -19,8 +19,8 @@
       <id>integ</id>
       <dependencies>
         <dependency>
-          <groupId>org.torquebox</groupId>
-          <artifactId>torquebox-integration-tests</artifactId>
+          <groupId>org.immutant</groupId>
+          <artifactId>immutant-integration-tests</artifactId>
           <version>${project.version}</version>
           <type>pom</type>
           <scope>compile</scope>
@@ -32,8 +32,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.torquebox</groupId>
-      <artifactId>torquebox-build-assembly</artifactId>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-build-assembly</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
       <scope>provided</scope>
@@ -71,34 +71,34 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>de.saumya.mojo</groupId>
-        <artifactId>jruby-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>install-json</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jruby</goal>
-            </goals>
-            <configuration>
-              <args>-S gem install json_pure --no-ri --no-rdoc</args>
-              <gemHome>./target/rubygems</gemHome>
-              <gemPath>./target/rubygems</gemPath>
-            </configuration>
-          </execution>
-          <execution>
-            <id>generate-build-metadata</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jruby</goal>
-            </goals>
-            <configuration>
-              <file>bin/generate_build_metadata.rb</file>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <!-- <plugin> -->
+      <!--   <groupId>de.saumya.mojo</groupId> -->
+      <!--   <artifactId>jruby-maven-plugin</artifactId> -->
+      <!--   <executions> -->
+      <!--     <execution> -->
+      <!--       <id>install-json</id> -->
+      <!--       <phase>package</phase> -->
+      <!--       <goals> -->
+      <!--         <goal>jruby</goal> -->
+      <!--       </goals> -->
+      <!--       <configuration> -->
+      <!--         <args>-S gem install json_pure - -no-ri - -no-rdoc</args> -->
+      <!--         <gemHome>./target/rubygems</gemHome> -->
+      <!--         <gemPath>./target/rubygems</gemPath> -->
+      <!--       </configuration> -->
+      <!--     </execution> -->
+      <!--     <execution> -->
+      <!--       <id>generate-build-metadata</id> -->
+      <!--       <phase>package</phase> -->
+      <!--       <goals> -->
+      <!--         <goal>jruby</goal> -->
+      <!--       </goals> -->
+      <!--       <configuration> -->
+      <!--         <file>bin/generate_build_metadata.rb</file> -->
+      <!--       </configuration> -->
+      <!--     </execution> -->
+      <!--   </executions> -->
+      <!-- </plugin> -->
     </plugins>
   </build>
 

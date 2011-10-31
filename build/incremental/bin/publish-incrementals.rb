@@ -5,11 +5,11 @@ $: << File.dirname( __FILE__ ) + '/../lib'
 require 'dav'
 require 'find'
 require 'pathname'
-require 'json'
+#require 'json'
 
 class Publisher
 
-  BASE_URL = 'https://repository-torquebox.forge.cloudbees.com/incremental'
+  BASE_URL = 'https://repository-projectodd.forge.cloudbees.com/incremental/immutant'
 
   attr_accessor :build_number
 
@@ -25,14 +25,6 @@ class Publisher
 
   def latest_base_url
     BASE_URL + "/LATEST"
-  end
-
-  def build_gem_repo_url
-    "#{build_base_url}/gem-repo"
-  end
-
-  def latest_gem_repo_url
-    "#{latest_base_url}/gem-repo"
   end
 
   def dav_mkdir_p(url)
@@ -75,9 +67,9 @@ class Publisher
   def publish_all()
     dav_mkdir_p( build_base_url )
     publish_distribution()
-    publish_documentation()
-    publish_gem_repo()
-    publish_artifact_list()
+    #publish_documentation()
+    #publish_gem_repo()
+    #publish_artifact_list()
     
     copy_to_latest()
   end
@@ -91,27 +83,23 @@ class Publisher
   end
 
   def pdf_doc_path()
-    File.dirname(__FILE__) + '/../../../docs/en-US/target/docbook/publish/en-US/pdf/torquebox-docs-en_US.pdf'
+    File.dirname(__FILE__) + '/../../../docs/en-US/target/docbook/publish/en-US/pdf/immutant-docs-en_US.pdf'
   end
 
   def epub_path()
-    Dir[ ( ENV['M2_REPO'] || ( ENV['HOME'] + '/.m2/repository' ) ) + '/org/torquebox/torquebox-docs-en_US/*/torquebox-docs-en_US-*.epub' ].first
+    Dir[ ( ENV['M2_REPO'] || ( ENV['HOME'] + '/.m2/repository' ) ) + '/org/immutant/immutant-docs-en_US/*/immutant-docs-en_US-*.epub' ].first
   end
 
-  def yardocs_path
-    File.dirname(__FILE__) + '/../../../gems/target/yardocs'
-  end
-  
   def javadocs_path()
     File.dirname(__FILE__) + '/../../../target/site/apidocs'
   end
 
   def dist_path()
-    File.dirname(__FILE__) + '/../../dist/target/torquebox-dist-bin.zip'
+    File.dirname(__FILE__) + '/../../dist/target/immutant-dist-bin.zip'
   end
 
   def dist_modules_path()
-    File.dirname(__FILE__) + '/../../dist/target/torquebox-dist-modules.zip'
+    File.dirname(__FILE__) + '/../../dist/target/immutant-dist-modules.zip'
   end
 
   def json_metadata_path()
@@ -129,8 +117,8 @@ class Publisher
     end
     dav_mkdir_p( build_base_url + '/yardocs' )
     dav_put_r( build_base_url + '/yardocs', yardocs_path )
-    dav_put( build_base_url + '/torquebox-docs.epub', epub_path )
-    dav_put( build_base_url + '/torquebox-docs.pdf', pdf_doc_path )
+    dav_put( build_base_url + '/immutant-docs.epub', epub_path )
+    dav_put( build_base_url + '/immutant-docs.pdf', pdf_doc_path )
     dav_mkdir_p( build_base_url + '/html-docs' )
     dav_put_r( build_base_url + '/html-docs', html_docs_path )
   end

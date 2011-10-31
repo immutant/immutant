@@ -79,7 +79,7 @@
       </activation>
       <modules>
         <module>integration-tests</module>
-        <module>docs</module>
+        <!-- <module>docs</module> -->
       </modules>
     </profile>
 
@@ -93,6 +93,7 @@
       </modules>
     </profile>
 
+<!--
     <profile>
       <id>dist</id>
       <activation>
@@ -103,7 +104,7 @@
       </modules>
     </profile>
 
-    <!--
+
         <profile>
         <id>site-1.8-only</id>
         <activation>

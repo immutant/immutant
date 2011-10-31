@@ -1,12 +1,12 @@
 <assembly>
   <id>bin</id>
-  <baseDirectory>torquebox-${project.version}</baseDirectory>
+  <baseDirectory>immutant-${project.version}</baseDirectory>
   <formats>
     <format>zip</format>
   </formats>
   <fileSets>
     <fileSet>
-      <directory>${basedir}/../assembly/target/stage/torquebox</directory>
+      <directory>${basedir}/../assembly/target/stage/immutant</directory>
       <outputDirectory>/</outputDirectory>
     </fileSet>
   </fileSets>
@@ -16,14 +16,14 @@
       <outputDirectory>/docs</outputDirectory>
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
       <includes>
-        <include>org.torquebox:torquebox-docs-en_US:*:pdf</include>
+        <include>org.immutant:immutant-docs-en_US:*:pdf</include>
       </includes>
     </dependencySet>
     <dependencySet>
       <outputDirectory>/docs/html</outputDirectory>
       <unpack>true</unpack>
       <includes>
-        <include>org.torquebox:torquebox-docs-en_US:zip:html</include>
+        <include>org.immutant:immutant-docs-en_US:zip:html</include>
       </includes>
     </dependencySet>
 -->
