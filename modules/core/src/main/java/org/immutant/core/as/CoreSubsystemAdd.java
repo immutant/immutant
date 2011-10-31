@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.immutant.core.processors.AppCljParsingProcessor;
 import org.immutant.core.processors.AppJarScanningProcessor;
+import org.immutant.core.processors.AppNameRegistrar;
 import org.immutant.core.processors.ApplicationInitializer;
 import org.immutant.core.processors.CljRootMountProcessor;
 import org.immutant.core.processors.ClojureRuntimeInstaller;
@@ -67,26 +68,14 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 0, new CljRootMountProcessor() );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 20, new AppCljParsingProcessor() );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 100, new AppJarScanningProcessor() );
-
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 0, new RingApplicationRecognizer() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 10, new RailsApplicationRecognizer() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 30, new WebYamlParsingProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 40, new RailsVersionProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 50, new RailsRackProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 60, new RackApplicationDefaultsProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 70, new RingWebApplicationDeployer() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 1000, new RailsRuntimeProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 1100, new RackRuntimeProcessor() );
         
         processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new CoreDependenciesProcessor() );
         
-        //processorTarget.addDeploymentProcessor( Phase.CONFIGURE_MODULE, 100, new WebRuntimePoolProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.CONFIGURE_MODULE, 500, new RailsAutoloadPathProcessor() );
-        
         processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 120, new ClojureRuntimeInstaller() );
         processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 130, new CloserInstaller() );
+        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 140, new AppNameRegistrar() );
 
-        processorTarget.addDeploymentProcessor( Phase.INSTALL, 500, new ApplicationInitializer() );
+        processorTarget.addDeploymentProcessor( Phase.INSTALL, 10000, new ApplicationInitializer() );
     }
 
 

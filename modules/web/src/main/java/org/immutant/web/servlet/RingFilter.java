@@ -35,30 +35,12 @@ import org.jboss.logging.Logger;
 import org.projectodd.polyglot.web.servlet.HttpServletResponseCapture;
 
 public class RingFilter implements Filter {
-    public static final String RING_APP_DEPLOYMENT_INIT_PARAM = "immutant.ring.app.deployment.name";
-    public static final String CLOJURE_APP_FUNCTION_NAME = "clojure.app.function.name";
+    public static final String CLOJURE_FUNCTION = "clojure.function";
     public static final String CLOJURE_RUNTIME = "clojure.runtime";
     
     public void init(FilterConfig filterConfig) throws ServletException {
         this.runtime = (ClojureRuntime)filterConfig.getServletContext().getAttribute( CLOJURE_RUNTIME );
-        this.appFunctionName = (String)filterConfig.getServletContext().getAttribute( CLOJURE_APP_FUNCTION_NAME );
-        
-//        ServiceRegistry registry = (ServiceRegistry) filterConfig.getServletContext().getAttribute( "service.registry" );
-//
-//        ServiceName componentResolverServiceName = (ServiceName) filterConfig.getServletContext().getAttribute( "component.resolver.service-name" );
-//        this.componentResolver = (ComponentResolver) registry.getService( componentResolverServiceName ).getValue();
-//        if (this.componentResolver == null) {
-//            throw new ServletException( "Unable to obtain Rack component resolver: " + componentResolverServiceName );
-//        }
-//
-//        ServiceName runtimePoolServiceName = (ServiceName) filterConfig.getServletContext().getAttribute( "runtime.pool.service-name" );
-//        this.runtimePool = (RubyRuntimePool) registry.getService( runtimePoolServiceName ).getValue();
-//
-//        if (this.runtimePool == null) {
-//            throw new ServletException( "Unable to obtain runtime pool: " + runtimePoolServiceName );
-//        }
-//
-//        this.servletContext = filterConfig.getServletContext();
+        this.function = filterConfig.getInitParameter( CLOJURE_FUNCTION );
     }
 
     public void destroy() {
@@ -99,7 +81,7 @@ public class RingFilter implements Filter {
 
     protected void doRing(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         try { 
-            this.runtime.invoke( "immutant.web/handle-request", this.appFunctionName, request, response );
+            this.runtime.invoke( "immutant.web.util/handle-request", this.function, request, response );
         } catch (Exception e) {
             log.error( "Error invoking Ring filter", e );
             throw new ServletException( e );
@@ -107,7 +89,7 @@ public class RingFilter implements Filter {
     }
 
     private ClojureRuntime runtime;
-    private String appFunctionName;
+    private String function;
     
     private static final Logger log = Logger.getLogger( RingFilter.class );
 

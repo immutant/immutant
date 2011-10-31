@@ -23,8 +23,7 @@
 (use-fixtures :once (with-deployment *file*
                       {
                        :root "apps/ring/basic-ring/"
-                       :init "basic-ring.core/init"
-                       :app-function "basic-ring.core/handler"
+                       :init "basic-ring.core/init-web"
                        :context-path "/basic-ring"
                        }))
 

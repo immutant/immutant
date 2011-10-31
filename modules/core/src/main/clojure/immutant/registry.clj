@@ -35,3 +35,4 @@
 
 (defn service [name]
   (or (get registry name) (get-from-msc name)))
+

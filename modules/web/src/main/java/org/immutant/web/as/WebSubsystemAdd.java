@@ -28,6 +28,8 @@ import java.util.List;
 import org.immutant.web.ring.processors.RingApplicationRecognizer;
 import org.immutant.web.ring.processors.RingFilterClojureRuntimeInstaller;
 import org.immutant.web.ring.processors.RingWebApplicationInstaller;
+import org.immutant.web.ring.processors.WebContextRegistrar;
+
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -81,6 +83,7 @@ class WebSubsystemAdd extends AbstractBoottimeAddStepHandler {
         //processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 120, new RackApplicationComponentResolverInstaller() );
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 1, new RingFilterClojureRuntimeInstaller() );
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 2100, new VirtualHostInstaller() );
+        processorTarget.addDeploymentProcessor( Phase.INSTALL, Phase.INSTALL_WAR_DEPLOYMENT + 1, new WebContextRegistrar() );
     }
 
 

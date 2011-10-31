@@ -19,26 +19,19 @@
 
 package org.immutant.core.processors;
 
-import org.immutant.core.ClojureRuntime;
-import org.immutant.core.Closer;
-import org.immutant.core.as.CoreServices;
+import org.immutant.core.ClojureMetaData;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.jboss.msc.service.ServiceController.Mode;
 
 
-public class CloserInstaller extends RegisteringProcessor {
+public class AppNameRegistrar extends RegisteringProcessor {
 
     public RegistryEntry registryEntry(DeploymentPhaseContext context) {
         DeploymentUnit unit = context.getDeploymentUnit();
                 
-        Closer service = new Closer();
-                
-        context.getServiceTarget().addService(CoreServices.housekeeper( unit ), service)
-            .setInitialMode(Mode.ACTIVE)
-            .install();
+        ClojureMetaData metaData = unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
         
-        return new RegistryEntry( "housekeeper", service );
+        return new RegistryEntry( "app-name", metaData.getApplicationName() );
     }
 
 }

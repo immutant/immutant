@@ -39,7 +39,6 @@ import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.as.server.deployment.module.ResourceRoot;
 import org.jboss.as.web.SharedTldsMetaDataBuilder;
-import org.jboss.as.web.deployment.ServletContextAttribute;
 import org.jboss.as.web.deployment.TldsMetaData;
 import org.jboss.as.web.deployment.WarMetaData;
 import org.jboss.dmr.ModelNode;
@@ -102,7 +101,7 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
         DeploymentTypeMarker.setType( DeploymentType.WAR, unit );
         
         setUpMimeTypes( jbossWebMetaData );
-        setUpRingFilter( unit, ringMetaData, jbossWebMetaData );
+        //setUpRingFilter( unit, ringMetaData, jbossWebMetaData );
         setUpStaticResourceServlet( ringMetaData, jbossWebMetaData );
         ensureSomeServlet( ringMetaData, jbossWebMetaData );
         try {
@@ -113,13 +112,7 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
 
         jbossWebMetaData.setVirtualHosts( ringMetaData.getHosts() );
         
-        attachServletParameters( unit, appMetaData );
-
-    }
-
-    private void attachServletParameters(DeploymentUnit unit, ClojureMetaData appMetaData) {
-        ServletContextAttribute functionName = new ServletContextAttribute( RingFilter.CLOJURE_APP_FUNCTION_NAME, appMetaData.getAppFunction() ); 
-        unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, functionName );
+        
     }
 
     private void attachResourceRoot(DeploymentUnit unit) {
@@ -194,14 +187,6 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
         ringFilter.setId( RING_FILTER_NAME );
         ringFilter.setFilterClass( RingFilter.class.getName() );
         ringFilter.setFilterName( RING_FILTER_NAME );
-
-        List<ParamValueMetaData> initParams = new ArrayList<ParamValueMetaData>();
-        ParamValueMetaData ringAppFactory = new ParamValueMetaData();
-        ringAppFactory.setParamName( RingFilter.RING_APP_DEPLOYMENT_INIT_PARAM );
-        ringAppFactory.setParamValue( unit.getName() );
-        initParams.add( ringAppFactory );
-
-        ringFilter.setInitParam( initParams );
 
         FiltersMetaData filters = jbossWebMetaData.getFilters();
 

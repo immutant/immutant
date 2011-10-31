@@ -28,12 +28,14 @@
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="clojure.jar"/>
         <resource-root path="polyglot-core.jar"/>
+        <resource-root path="tools.logging.jar"/>
     </resources>
 
     <exports>
       <include-set>
         <path name="clojure/lang"/>
         <path name="clojure/lang/**"/>
+        <path name="clojure/tools/logging/**"/>
         <path name="org/projectodd/polyglot"/>
         <path name="org/projectodd/polyglot/**"/>
       </include-set>

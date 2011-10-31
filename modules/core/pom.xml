@@ -28,6 +28,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.logging</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.jboss.as</groupId>
       <artifactId>jboss-as-web</artifactId>
       <scope>provided</scope>

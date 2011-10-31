@@ -22,16 +22,15 @@
 
 (def a-value (atom "ham"))
 
-(defn update-a-value []
-  (reset! a-value "biscuit"))
-
-(defn update-a-value-with-arg [arg]
-   (reset! a-value arg))
+(defn update-a-value 
+  ([]    (update-a-value "biscuit"))
+  ([arg] (reset! a-value arg)))
 
 (deftest require-and-invoke-should-call-the-given-function
+  (require-and-invoke "clojure.core/println")
   (require-and-invoke "immutant.test.runtime/update-a-value")
   (is (= "biscuit" @a-value)))
 
 (deftest require-and-invoke-should-call-the-given-function-with-args
-  (require-and-invoke "immutant.test.runtime/update-a-value-with-arg" ["gravy"])
+  (require-and-invoke "immutant.test.runtime/update-a-value" ["gravy"])
   (is (= "gravy" @a-value)))

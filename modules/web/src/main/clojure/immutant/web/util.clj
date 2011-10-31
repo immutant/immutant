@@ -15,23 +15,20 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.runtime-isolation
-  (:use [fntest.core])
-  (:use clojure.test)
-  (:require [clj-http.client :as client]))
+(ns immutant.web.util
+  (:require [ring.util.servlet :as servlet])
+  (:require [clojure.string :as str])
+  (:require [immutant.utilities :as util])
+  (:import (javax.servlet.http HttpServletRequest
+                               HttpServletResponse)))
 
-(use-fixtures :each (with-deployment *file*
-                      {
-                       :root "apps/ring/basic-ring/"
-                       :init "basic-ring.core/init-web"
-                       :context-path "/basic-ring"
-                       }))
+(defn handler [app]
+  (fn [^HttpServletRequest request
+       ^HttpServletResponse response]
+    (.setCharacterEncoding response "UTF-8")
+    (if-let [response-map (app (servlet/build-request-map request))]
+      (servlet/update-servlet-response response response-map)
+      (throw (NullPointerException. "Handler returned nil.")))))
 
-(deftest verify-atom-is-the-default-value
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    (is (.contains (result :body) "a-value:default"))))
-
-(deftest verify-atom-is-still-the-default-value-on-subsequent-deploy
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    (is (.contains (result :body) "a-value:default"))))
-
+(defn handle-request [handler-function request response]
+  ((handler (load-string handler-function)) request response))
