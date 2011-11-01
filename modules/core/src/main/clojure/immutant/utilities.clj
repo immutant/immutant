@@ -26,7 +26,7 @@
     (intern namespace function)))
 
 (defn at-exit [f]
-  (if-let [closer (lookup/service "housekeeper")]
+  (if-let [closer (lookup/fetch "housekeeper")]
     (.atExit closer f)
     (println "WARN: Unable to register at-exit handler with housekeeper")))
   

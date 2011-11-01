@@ -21,7 +21,7 @@
 (def filters (ref {}))
 
 (defn filter-name [path]
-  (str "immutant.ring." (reg/service "app-name") "." path))
+  (str "immutant.ring." (reg/fetch "app-name") "." path))
 
 (defn normalize-subcontext-path [path]
   (str path "*"))

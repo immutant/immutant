@@ -38,7 +38,7 @@
                      (.addURLPattern (normalize-subcontext-path subcontext-path))
                      (.setFilterName name))]
 
-    (doto (reg/service "web-context")
+    (doto (reg/fetch "web-context")
       (.addFilterDef filter-def)
       (.addFilterMap filter-map))
 
@@ -51,7 +51,7 @@
   (if-let [{filter-def :filter filter-map :map} (@filters (filter-name subcontext-path))]
     (do
       (log/info "Stopping web service at sub-context path:" subcontext-path)
-      (doto (reg/service "web-context")
+      (doto (reg/fetch "web-context")
         (.removeFilterMap filter-map)
         (.removeFilterDef filter-def)))
     (log/warn "Attempted to stop web service at sub-context path:" subcontext-path ", but none found")))

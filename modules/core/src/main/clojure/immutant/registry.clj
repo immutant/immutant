@@ -33,6 +33,6 @@
 (defn put [k v]
   (.put registry k v))
 
-(defn service [name]
+(defn fetch [name]
   (or (get registry name) (get-from-msc name)))
 
