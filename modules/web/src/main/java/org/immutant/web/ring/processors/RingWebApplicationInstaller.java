@@ -101,7 +101,6 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
         DeploymentTypeMarker.setType( DeploymentType.WAR, unit );
         
         setUpMimeTypes( jbossWebMetaData );
-        //setUpRingFilter( unit, ringMetaData, jbossWebMetaData );
         setUpStaticResourceServlet( ringMetaData, jbossWebMetaData );
         ensureSomeServlet( ringMetaData, jbossWebMetaData );
         try {
@@ -180,36 +179,6 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
             throw new DeploymentUnitProcessingException( e );
         }
         unit.putAttachment( TldsMetaData.ATTACHMENT_KEY, tldsMetaData );
-    }
-
-    protected void setUpRingFilter(DeploymentUnit unit, RingMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
-        FilterMetaData ringFilter = new FilterMetaData();
-        ringFilter.setId( RING_FILTER_NAME );
-        ringFilter.setFilterClass( RingFilter.class.getName() );
-        ringFilter.setFilterName( RING_FILTER_NAME );
-
-        FiltersMetaData filters = jbossWebMetaData.getFilters();
-
-        if (filters == null) {
-            filters = new FiltersMetaData();
-            jbossWebMetaData.setFilters( filters );
-        }
-
-        filters.add( ringFilter );
-
-        FilterMappingMetaData filterMapping = new FilterMappingMetaData();
-        filterMapping.setFilterName( RING_FILTER_NAME );
-        filterMapping.setUrlPatterns( Collections.singletonList( "*" ) );
-
-        List<FilterMappingMetaData> filterMappings = jbossWebMetaData.getFilterMappings();
-
-        if (filterMappings == null) {
-            filterMappings = new ArrayList<FilterMappingMetaData>();
-            jbossWebMetaData.setFilterMappings( filterMappings );
-        }
-
-        filterMappings.add( filterMapping );
-
     }
 
     protected void setUpStaticResourceServlet(RingMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
