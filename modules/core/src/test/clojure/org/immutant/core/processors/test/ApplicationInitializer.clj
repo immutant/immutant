@@ -26,19 +26,19 @@
 (use-fixtures :each
               (harness-with [(ApplicationInitializer.)]))
 
-(deftest it-should-call-the-init-function
+(deftest it-should-call-the-initialize-function-with-the-init-function
   (let [phase-context (.createPhaseContext *harness*)
         unit (.getDeploymentUnit phase-context)
         func-name "a.namespace/init"]
     (doto unit
       (.putAttachment ClojureRuntime/ATTACHMENT_KEY
                       (proxy [ClojureRuntime] [(.getClassLoader (class ClojureRuntime))]
-                        (invoke [v & _]
-                          (reset! a-value v))))
+                        (invoke [initialize-fn args]
+                          (reset! a-value [initialize-fn (first args)]))))
       (.putAttachment ClojureMetaData/ATTACHMENT_KEY (ClojureMetaData. "foo" {"init" func-name})))
     
     (.deploy *harness* phase-context)
 
-    (is (= func-name @a-value))))
+    (is (= ["immutant.runtime/initialize" func-name] @a-value))))
 
 

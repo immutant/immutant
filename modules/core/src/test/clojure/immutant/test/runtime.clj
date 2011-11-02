@@ -18,19 +18,49 @@
 (ns immutant.test.runtime
   (:use immutant.runtime)
   (:use clojure.test)
-  (:use immutant.test.helpers))
+  (:use immutant.test.helpers)
+  (:require [immutant.registry :as registry])
+  (:require [clojure.java.io :as io]))
 
 (def a-value (atom "ham"))
+
+(use-fixtures :each
+              (fn [f]
+                (reset! a-value "ham")
+                (f)))
+
+(defn do-nothing [])
 
 (defn update-a-value 
   ([]    (update-a-value "biscuit"))
   ([arg] (reset! a-value arg)))
 
 (deftest require-and-invoke-should-call-the-given-function
-  (require-and-invoke "clojure.core/println")
   (require-and-invoke "immutant.test.runtime/update-a-value")
   (is (= "biscuit" @a-value)))
 
 (deftest require-and-invoke-should-call-the-given-function-with-args
   (require-and-invoke "immutant.test.runtime/update-a-value" ["gravy"])
   (is (= "gravy" @a-value)))
+
+(deftest initialize-without-an-init-fn-should-load-config
+  (registry/put "app-root" (io/file (io/resource "fake-app-root")))
+  (initialize nil)
+  (is (= "immutant.clj" @a-value)))
+
+(deftest initialize-with-an-init-fn-should-not-load-config
+  (registry/put "app-root" (io/file (io/resource "fake-app-root")))
+  (initialize "immutant.test.runtime/do-nothing")
+  (is-not (= "immutant.clj" @a-value)))
+
+(deftest initialize-with-an-init-fn-should-call-the-init-fn
+  (registry/put "app-root" (io/file (io/resource "fake-app-root")))
+  (initialize "immutant.test.runtime/update-a-value")
+  (is (= "biscuit" @a-value)))
+
+(deftest initialize-with-no-init-fn-and-no-config-should-do-nothing
+  (registry/put "app-root" (io/file (System/getProperty "java.io.tmpdir")))
+  (initialize nil)
+  (is (= "ham" @a-value)))
+
+

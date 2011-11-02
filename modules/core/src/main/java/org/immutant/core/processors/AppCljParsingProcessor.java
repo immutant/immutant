@@ -76,10 +76,6 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
                 throw new DeploymentUnitProcessingException( "Application root does not exist: " + root.toURL().toExternalForm() );
             }
             
-            if (appMetaData.getInitFunction() == null) {
-                throw new DeploymentUnitProcessingException( "No init function specified." );
-            }
-            
             if (root.exists() && !root.isDirectory()) {
                 // Expand the referenced root if it's not a directory (ie .knob archive)
                 final Closeable closable = VFS.mountZipExpanded( root, root, TempFileProviderService.provider() );

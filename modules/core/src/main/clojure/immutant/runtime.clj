@@ -18,8 +18,22 @@
 (ns immutant.runtime
   "This namespace is solely for the use of ClojureRuntime. You
    should never require it in clojure code."
-  (:require [immutant.utilities :as util]))
+  (:require [immutant.utilities :as util])
+  (:require [immutant.registry :as registry])
+  (:require [clojure.java.io :as io])
+  (:require [clojure.tools.logging :as log]))
 
 (defn require-and-invoke [namespaced-fn & [args]]
   (apply (util/require-and-intern namespaced-fn) args))
+
+(defn initialize [init-fn]
+  (let [config-file (io/file (registry/fetch "app-root") "immutant.clj")
+        config-exists (.exists config-file)]
+    (if init-fn
+      (do
+        (if config-exists
+          (log/warn "immutant.clj found in" (registry/fetch "app-name") ", but you specified an init fn; ignoring immutant.clj"))
+        (require-and-invoke init-fn))
+      (if config-exists
+        (load-file (.getAbsolutePath config-file))))))
 

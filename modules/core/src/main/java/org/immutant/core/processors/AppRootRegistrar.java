@@ -19,35 +19,23 @@
 
 package org.immutant.core.processors;
 
-import org.immutant.core.ClojureMetaData;
-import org.immutant.core.ClojureRuntime;
+import java.io.File;
+
+import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
-import org.jboss.as.server.deployment.DeploymentUnitProcessor;
+import org.jboss.as.server.deployment.module.ResourceRoot;
 
-public class ApplicationInitializer implements DeploymentUnitProcessor {
 
-    @Override
-    public void deploy(DeploymentPhaseContext context) throws DeploymentUnitProcessingException {
+public class AppRootRegistrar extends RegisteringProcessor {
+
+    public RegistryEntry registryEntry(DeploymentPhaseContext context) throws Exception {
         DeploymentUnit unit = context.getDeploymentUnit();
-        
-        ClojureMetaData metaData = unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
-        
-        if (metaData == null) {
-            return;
-        }
-        
-        ClojureRuntime runtime = unit.getAttachment( ClojureRuntime.ATTACHMENT_KEY );
-        
-        runtime.invoke( "immutant.runtime/initialize", metaData.getInitFunction() );
-        
-    }
+                
+        ResourceRoot resourceRoot = unit.getAttachment( Attachments.DEPLOYMENT_ROOT );
+        File root = resourceRoot.getRoot().getPhysicalFile();
 
-    @Override
-    public void undeploy(DeploymentUnit arg0) {
-        // TODO Auto-generated method stub
-        
+        return new RegistryEntry( "app-root", root );
     }
 
 }

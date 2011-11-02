@@ -34,10 +34,6 @@
   (is (thrown? RuntimeException
                (.deployResourceAs *harness* (io/resource "invalid-root-descriptor.clj") "app.clj" ))))
 
-(deftest it-should-raise-with-no-init-function-specified
-  (is (thrown? RuntimeException
-               (.deployResourceAs *harness* (io/resource "missing-init-function-descriptor.clj") "app.clj" ))))
-
 (deftest it-should-create-metadata-when-given-a-valid-root
   (let [unit (.deployResourceAs *harness* (io/resource "valid-root-descriptor.clj") "app.clj" )]
     (is-not (nil? (.getAttachment unit ClojureMetaData/ATTACHMENT_KEY)))))

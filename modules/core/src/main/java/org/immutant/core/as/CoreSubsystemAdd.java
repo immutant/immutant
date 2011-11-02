@@ -28,6 +28,7 @@ import java.util.List;
 import org.immutant.core.processors.AppCljParsingProcessor;
 import org.immutant.core.processors.AppJarScanningProcessor;
 import org.immutant.core.processors.AppNameRegistrar;
+import org.immutant.core.processors.AppRootRegistrar;
 import org.immutant.core.processors.ApplicationInitializer;
 import org.immutant.core.processors.CljRootMountProcessor;
 import org.immutant.core.processors.ClojureRuntimeInstaller;
@@ -74,7 +75,8 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 120, new ClojureRuntimeInstaller() );
         processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 130, new CloserInstaller() );
         processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 140, new AppNameRegistrar() );
-
+        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 141, new AppRootRegistrar() );
+        
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 10000, new ApplicationInitializer() );
     }
 

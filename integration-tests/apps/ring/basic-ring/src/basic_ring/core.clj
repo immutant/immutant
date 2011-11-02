@@ -14,6 +14,10 @@
      :headers {"Content-Type" "text/html"}
      :body body}))
 
+(defn another-handler [request]
+  (reset! a-value "another-handler")
+  (handler request))
+
 (defn init []
   (println "INIT CALLED"))
 

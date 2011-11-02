@@ -25,6 +25,7 @@ import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
+import org.jboss.logging.Logger;
 
 public abstract class RegisteringProcessor implements DeploymentUnitProcessor {
 
@@ -34,26 +35,30 @@ public abstract class RegisteringProcessor implements DeploymentUnitProcessor {
         if (!unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
             return;
         }
-        
-        ClojureRuntime runtime = unit.getAttachment( ClojureRuntime.ATTACHMENT_KEY );
-        RegistryEntry entry = registryEntry( phaseContext );
-        runtime.invoke( "immutant.registry/put", entry.key, entry.value );
+
+        try {
+            ClojureRuntime runtime = unit.getAttachment( ClojureRuntime.ATTACHMENT_KEY );
+            RegistryEntry entry = registryEntry( phaseContext );
+            runtime.invoke( "immutant.registry/put", entry.key, entry.value );
+        } catch (Exception e) {
+            throw new DeploymentUnitProcessingException( e );
+        }
     }
 
-    public abstract RegistryEntry registryEntry( DeploymentPhaseContext context );
-    
+    public abstract RegistryEntry registryEntry( DeploymentPhaseContext context ) throws Exception;
+
     @Override
     public void undeploy(DeploymentUnit arg0) {
     }
-    
-    
+
+
     protected class RegistryEntry {
         public String key;
         public Object value;
-        
+
         public RegistryEntry(String key, Object value) {
             this.key = key;
             this.value = value;
         }
-   }
+    }
 }
