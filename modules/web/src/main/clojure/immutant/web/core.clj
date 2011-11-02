@@ -24,4 +24,13 @@
   (str "immutant.ring." (reg/fetch "app-name") "." path))
 
 (defn normalize-subcontext-path [path]
-  (str path "*"))
+  "normalize subcontext path so it matches Servlet Spec v2.3, section 11.2"
+  (loop [p path]
+    (println p)
+    (condp re-matches p
+      #"^(/[^*]+)*/\*$" p                 ;; /foo/* || /*
+      #"^(|[^/].*)" (recur (str "/" p))   ;; prefix with /
+      #".*?[^/]$" (recur (str p "/"))     ;; add final /
+      #"^(/[^*]+)*/$" (recur (str p "*")) ;; postfix with *
+      (throw (IllegalArgumentException.
+              (str "The context path \"" path "\" is invalid. It should be \"/\", \"/foo\", \"/foo/\", \"foo/\", or \"foo\""))))))
