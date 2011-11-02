@@ -54,10 +54,6 @@ public class ClojureMetaData extends ApplicationMetaData {
         return getString( "init" );
     }
 
-    public String getAppFunction() {
-        return getString( "app-function" );
-    }
-
     public String getString(String key) {
         return (String)this.config.get( key );
     }
