@@ -47,8 +47,14 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
         }
         
         Module module = deploymentUnit.getAttachment( Attachments.MODULE );
-        
-        ClojureRuntime runtime = new ClojureRuntime( module.getClassLoader() );
+        ClassLoader loader;
+        if (module != null) {
+            loader = module.getClassLoader();
+        } else {
+            // this won't happen in production, but helps testing    
+            loader = this.getClass().getClassLoader(); 
+        }
+        ClojureRuntime runtime = new ClojureRuntime( loader );
         runtime.invoke( "immutant.registry/set-msc-registry", deploymentUnit.getServiceRegistry() );
         
         deploymentUnit.putAttachment( ClojureRuntime.ATTACHMENT_KEY, runtime );

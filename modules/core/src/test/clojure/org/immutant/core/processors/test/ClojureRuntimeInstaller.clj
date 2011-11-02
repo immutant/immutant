@@ -29,17 +29,14 @@
 
 (deftest it-should-install-a-runtime-if-metadata-is-present
   (let [phase-context (.createPhaseContext *harness*)
-        unit (.getDeploymentUnit phase-context)
-        module (Module/getSystemModule)]
+        unit (.getDeploymentUnit phase-context)]
     (doto unit
-      (.putAttachment ClojureMetaData/ATTACHMENT_KEY (ClojureMetaData. "foo" {}))
-      (.putAttachment Attachments/MODULE module))
+      (.putAttachment ClojureMetaData/ATTACHMENT_KEY (ClojureMetaData. "foo" {})))
     
     (.deploy *harness* phase-context)
     
     (let [runtime (.getAttachment unit ClojureRuntime/ATTACHMENT_KEY)]
-      (is (not (nil? runtime)))
-      (is (= (.getClassLoader module) (.getClassLoader runtime))))))
+      (is (not (nil? runtime))))))
 
 (deftest it-should-not-install-a-runtime-if-no-metadata-present
   (let [phase-context (.createPhaseContext *harness*)
