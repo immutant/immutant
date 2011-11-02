@@ -27,4 +27,11 @@
   (msg/start "/queue/ham")
   (msg/start "/queue/biscuit")
   (msg/listen "/queue/biscuit" #(msg/publish "/queue/ham" (.toUpperCase %))))
+
+(defn init-web-start-testing []
+  (init)
+  (web/start "/stopper"
+             (fn [r]
+               (web/stop "/stopper")
+               (handler r))))
   
