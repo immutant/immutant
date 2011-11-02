@@ -47,7 +47,10 @@ public class RingMetaData extends WebApplicationMetaData {
     }
 
     public String getContextPath() {
-        return this.appMetaData.getString( "context-path" );
+        if (this.contextPath == null) {
+            this.contextPath = this.appMetaData.getString( "context-path" );
+        }
+        return this.contextPath;
     }
 
     public String toString() {
@@ -57,5 +60,5 @@ public class RingMetaData extends WebApplicationMetaData {
     
     private ClojureMetaData appMetaData;
     private List<String> hosts = new ArrayList<String>();
-    private String contextPath = "/";
+    private String contextPath;
 }
