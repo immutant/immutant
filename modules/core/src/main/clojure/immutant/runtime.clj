@@ -24,16 +24,19 @@
   (:require [clojure.tools.logging :as log]))
 
 (defn require-and-invoke [namespaced-fn & [args]]
+  "Takes a string of the form \"namespace/fn\", requires the namespace, then invokes fn"
   (apply (util/require-and-intern namespaced-fn) args))
 
 (defn initialize [init-fn]
+  "Attempts to initialize the app by calling an init-fn (if given) or, lacking that, tries to load an immutant.clj from the app-root"
   (let [config-file (io/file (registry/fetch "app-root") "immutant.clj")
         config-exists (.exists config-file)]
     (if init-fn
       (do
         (if config-exists
-          (log/warn "immutant.clj found in" (registry/fetch "app-name") ", but you specified an init fn; ignoring immutant.clj"))
+          (log/warn "immutant.clj found in" (registry/fetch "app-name") ", but you specified an :init fn; ignoring immutant.clj"))
         (require-and-invoke init-fn))
       (if config-exists
-        (load-file (.getAbsolutePath config-file))))))
+        (load-file (.getAbsolutePath config-file))
+        (log/warn "no immutant.clj found in" (registry/fetch "app-name") "and you specified no init fn; no app initialization will be performed")))))
 
