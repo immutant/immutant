@@ -70,7 +70,7 @@ class WebSubsystemAdd extends AbstractBoottimeAddStepHandler {
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 30, new WebYamlParsingProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 40, new RailsVersionProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 50, new RailsRackProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.PARSE, 60, new WebApplicationDefaultsProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.PARSE, 60, new WebApplicationDefaultsProcessor( false, true ) );
         processorTarget.addDeploymentProcessor( Phase.PARSE, 70, new RingWebApplicationInstaller() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 1000, new RailsRuntimeProcessor() );
         //processorTarget.addDeploymentProcessor( Phase.PARSE, 1100, new RackRuntimeProcessor() );

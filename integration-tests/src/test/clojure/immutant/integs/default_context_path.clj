@@ -26,9 +26,9 @@
                        :init "basic-ring.core/init-web"
                        }))
 
-(deftest the-app-should-be-available-at "/"
+(deftest the-app-should-be-available-at "/default_context_path"
   (is (.startsWith
-       ((client/get "http://localhost:8080/") :body)
+       ((client/get "http://localhost:8080/default_context_path") :body)
        "Hello from Immutant!")))
 
 
