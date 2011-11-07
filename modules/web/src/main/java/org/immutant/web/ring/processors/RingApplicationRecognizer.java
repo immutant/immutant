@@ -29,45 +29,26 @@ import org.projectodd.polyglot.core.processors.FileLocatingProcessor;
 
 public class RingApplicationRecognizer extends FileLocatingProcessor {
 
-    //public static final String DEFAULT_RACKUP_PATH = "config.ru";
-
     public RingApplicationRecognizer() {
     }
 
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         DeploymentUnit unit = phaseContext.getDeploymentUnit();
-        //ResourceRoot resourceRoot = unit.getAttachment( Attachments.DEPLOYMENT_ROOT );
-        //VirtualFile root = resourceRoot.getRoot();
 
         ClojureMetaData appMetaData = unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
           
         if (appMetaData != null) {
-        //FIXME: for now, we assume everything is a ring app
+        //FIXME: for now, we assume everything is a ring app, and deploy a servlet container for each
             RingMetaData ringMetaData = new RingMetaData( appMetaData );
             ringMetaData.attachTo( unit );
-        }
-         
-//        if (isRackApplication( root )) {
-//            RingApplicationMetaData ringAppMetaData = unit.getAttachment( RingApplicationMetaData.ATTACHMENT_KEY );
-//
-//            if (ringAppMetaData == null) {
-//                ringAppMetaData = new RingApplicationMetaData();
-//                unit.putAttachment( RingApplicationMetaData.ATTACHMENT_KEY, ringAppMetaData );
-//            }
-//        }
+        }       
     }
 
     @Override
     public void undeploy(DeploymentUnit context) {
 
     }
-
-
-//     static boolean isRackApplication(VirtualFile file) {
-//        boolean result = hasAnyOf( file, DEFAULT_RACKUP_PATH );
-//        return result;
-//    }
 
     @SuppressWarnings("unused")
     private static final Logger log = Logger.getLogger( "org.immutant.web.rack" );
