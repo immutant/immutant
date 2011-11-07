@@ -22,39 +22,44 @@
   (:require [immutant.messaging.codecs :as codecs])
   (:require [immutant.messaging.hornetq-direct :as hornetq]))
 
-(defn start [name & opts]
+(defn start 
   "Create a message destination; name should be prefixed with either /queue or /topic"
+  [name & opts]
   (when-not (or (queue? name) (topic? name))
     (throw (Exception. "Destination names must start with /queue or /topic")))
   (if (queue? name)
     (apply start-queue (cons name opts))
     (apply start-topic (cons name opts))))
 
-(defn stop [name]
+(defn stop 
   "Destroy message destination"
+  [name]
   (cond
    (queue? name) (stop-queue name)
    (topic? name) (stop-topic name)
    :else (throw (Exception. "Illegal destination name"))))
 
-(defn publish [dest-name message & opts]
+(defn publish 
   "Send a message to a destination"
+  [dest-name message & opts]
   (with-session (fn [session]
                   (let [destination (destination session dest-name)
                         producer (.createProducer session destination)
                         encoded (codecs/encode session message opts)]
                   (.send producer encoded)))))
     
-(defn receive [dest-name & {timeout :timeout}]
+(defn receive 
   "Receive a message from a destination"
+  [dest-name & {timeout :timeout}]
   (with-session (fn [session]
                   (let [destination (destination session dest-name)
                         consumer (.createConsumer session destination)
                         encoded (.receive consumer (or timeout 10000))]
                     (codecs/decode encoded)))))
 
-(defn listen [dest-name f]
+(defn listen 
   "The handler function, f, will receive any messages sent to dest-name"
+  [dest-name f]
   (let [connection (.createConnection connection-factory)]
     (try
       (let [session (create-session connection)
@@ -69,8 +74,9 @@
         (.close connection)
         (throw e)))))
 
-(defn wait-for-destination [f & [count]]
+(defn wait-for-destination 
   "Ignore exceptions, retrying until destination completely starts up"
+  [f & [count]]
   (let [attempts (or count 30)
         retry #(do (Thread/sleep 1000) (wait-for-destination f (dec attempts)))]
     (try

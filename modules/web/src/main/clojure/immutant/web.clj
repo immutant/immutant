@@ -22,8 +22,9 @@
   (:import (org.immutant.web.servlet RingFilter))
   (:use immutant.web.core))
 
-(defn start [subcontext-path handler]
+(defn start
   "Creates a web endpoint at subcontext-path beneath the context-path of the app, handled by handler"
+  [subcontext-path handler]
   (log/info "Starting web service at sub-context path:" subcontext-path)
   (let [name (filter-name subcontext-path)
         filter-def (doto (FilterDef.)
@@ -46,8 +47,9 @@
                       assoc
                       name {:filter filter-def :map filter-map}))))
 
-(defn stop [subcontext-path]
+(defn stop 
   "Tears down the web endpoint at subcontext-path beneath the context-path of the app"
+  [subcontext-path]
   (if-let [{filter-def :filter filter-map :map} (@filters (filter-name subcontext-path))]
     (do
       (log/info "Stopping web service at sub-context path:" subcontext-path)
@@ -55,4 +57,6 @@
         (.removeFilterMap filter-map)
         (.removeFilterDef filter-def)))
     (log/warn "Attempted to stop web service at sub-context path:" subcontext-path ", but none found")))
+
+
 

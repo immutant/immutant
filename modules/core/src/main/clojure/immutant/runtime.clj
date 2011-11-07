@@ -23,12 +23,14 @@
   (:require [clojure.java.io :as io])
   (:require [clojure.tools.logging :as log]))
 
-(defn require-and-invoke [namespaced-fn & [args]]
+(defn require-and-invoke 
   "Takes a string of the form \"namespace/fn\", requires the namespace, then invokes fn"
+  [namespaced-fn & [args]]
   (apply (util/require-and-intern namespaced-fn) args))
 
-(defn initialize [init-fn]
+(defn initialize 
   "Attempts to initialize the app by calling an init-fn (if given) or, lacking that, tries to load an immutant.clj from the app-root"
+  [init-fn]
   (let [config-file (io/file (registry/fetch "app-root") "immutant.clj")
         config-exists (.exists config-file)]
     (if init-fn

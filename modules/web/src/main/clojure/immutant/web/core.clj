@@ -23,8 +23,9 @@
 (defn filter-name [path]
   (str "immutant.ring." (reg/fetch "app-name") "." path))
 
-(defn normalize-subcontext-path [path]
+(defn normalize-subcontext-path 
   "normalize subcontext path so it matches Servlet Spec v2.3, section 11.2"
+  [path]
   (loop [p path]
     (condp re-matches p
       #"^(/[^*]+)*/\*$" p                 ;; /foo/* || /*
