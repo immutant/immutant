@@ -18,8 +18,9 @@
 (ns fntest.core
   (:require [fntest.jboss :as jboss]))
 
-(defn with-jboss [f]
+(defn with-jboss
   "A test fixture for starting/stopping JBoss"
+  [f]
   (try
     (println "Starting JBoss")
     (jboss/start)
@@ -28,8 +29,9 @@
      (println "Stopping JBoss")
      (jboss/stop))))
 
-(defn with-deployment [name descriptor]
+(defn with-deployment
   "Returns a test fixture for deploying/undeploying an app to a running JBoss"
+  [name descriptor]
   (fn [f]
     (try
       (when (jboss/wait-for-ready? 20) (jboss/deploy name descriptor))
