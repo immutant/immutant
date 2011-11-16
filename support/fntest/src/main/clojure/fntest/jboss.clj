@@ -30,7 +30,9 @@
    request and returns the JBoss response as a hash"
   (try
     (let [body (json-str (apply hash-map params))
-          response (client/post api-url {:body body :throw-exceptions false})]
+          response (client/post api-url {:body body
+                                         :headers {"Content-Type" "application/json"}
+                                         :throw-exceptions false})]
       (read-json (response :body)))
     (catch Exception e)))
 
