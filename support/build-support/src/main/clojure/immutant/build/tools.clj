@@ -126,11 +126,15 @@
     loc
     (zip/edit loc #(update-in % [:attrs :enable-welcome-root] (constantly "false")))))
 
+(defn disable-security [loc]
+    (zip/edit loc #(update-in % [:attrs] dissoc :security-realm)))
+
 (defn looking-at? [tag loc]
   (= tag (:tag (zip/node loc))))
 
-(defn prepare-zip [file]
+(defn prepare-zip
   "Make sure the doc has a <system-properties> element"
+  [file]
   (let [xml-zip (zip/xml-zip (xml/parse file))]
     (if (zfx/xml1-> xml-zip zf/descendants :system-properties)
       xml-zip
@@ -147,6 +151,8 @@
              (looking-at? :system-properties loc) (unquote-cookie-path loc)
              (looking-at? :jms-destinations loc) (zip/remove loc)
              (looking-at? :deployment-scanner loc) (increase-deployment-timeout loc)
+             (looking-at? :native-interface loc) (disable-security loc)
+             (looking-at? :http-interface loc) (disable-security loc)
              :else loc)))))
   
 (defn transform-config [file]
