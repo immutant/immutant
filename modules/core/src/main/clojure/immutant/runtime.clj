@@ -18,10 +18,10 @@
 (ns immutant.runtime
   "This namespace is solely for the use of ClojureRuntime. You
    should never require it in clojure code."
-  (:require [immutant.utilities :as util])
-  (:require [immutant.registry :as registry])
-  (:require [clojure.java.io :as io])
-  (:require [clojure.tools.logging :as log]))
+  (:use [immutant.core :only [app-root app-name]])
+  (:require [immutant.utilities :as util]
+            [clojure.java.io :as io]
+            [clojure.tools.logging :as log]))
 
 (defn require-and-invoke 
   "Takes a string of the form \"namespace/fn\", requires the namespace, then invokes fn"
@@ -31,14 +31,15 @@
 (defn initialize 
   "Attempts to initialize the app by calling an init-fn (if given) or, lacking that, tries to load an immutant.clj from the app-root"
   [init-fn]
-  (let [config-file (io/file (registry/fetch "app-root") "immutant.clj")
+  (let [config-file (io/file (app-root) "immutant.clj")
         config-exists (.exists config-file)]
+    (println config-exists config-file)
     (if init-fn
       (do
         (if config-exists
-          (log/warn "immutant.clj found in" (registry/fetch "app-name") ", but you specified an :init fn; ignoring immutant.clj"))
+          (log/warn "immutant.clj found in" (app-name) ", but you specified an :init fn; ignoring immutant.clj"))
         (require-and-invoke init-fn))
       (if config-exists
         (load-file (.getAbsolutePath config-file))
-        (log/warn "no immutant.clj found in" (registry/fetch "app-name") "and you specified no init fn; no app initialization will be performed")))))
+        (log/warn "no immutant.clj found in" (app-name) "and you specified no init fn; no app initialization will be performed")))))
 
