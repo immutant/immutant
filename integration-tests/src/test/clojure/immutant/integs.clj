@@ -27,7 +27,7 @@
   (when-not *compile-files*
     (let [results (atom [])]
       (let [report-orig report]
-        (binding [fntest.jboss/home "../build/assembly/target/stage/immutant/jboss"
+        (binding [fntest.jboss/home "./target/integ-dist/jboss"
                   fntest.jboss/descriptor-root "target/.descriptors"
                   report (fn [x] (report-orig x)
                            (swap! results conj (:type x)))]

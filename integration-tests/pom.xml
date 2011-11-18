@@ -13,6 +13,11 @@
   <name>Immutant Integration Tests</name>
   <description />
 
+  <properties>
+    <assembly.dir>${project.basedir}/../build/assembly/target/stage/immutant</assembly.dir>
+    <integ.dist.dir>target/integ-dist</integ.dist.dir>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.immutant</groupId>
@@ -71,6 +76,24 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>de.saumya.mojo</groupId>
+        <artifactId>jruby-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>prepare-as</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>jruby</goal>
+            </goals>
+            <configuration>
+              <jrubyFork>false</jrubyFork>
+              <file>bin/setup-integ-dist.rb</file>
+              <args>${assembly.dir} ${integ.dist.dir}</args>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>com.theoryinpractise</groupId>
         <artifactId>clojure-maven-plugin</artifactId>
