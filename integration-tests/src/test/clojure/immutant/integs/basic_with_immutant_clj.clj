@@ -28,6 +28,6 @@
 
 (deftest simple "it should work"
   (let [result (client/get "http://localhost:8080/basic-ring")]
-    (println "RESPONSE" result)
+    ;(println "RESPONSE" result)
     (is (.contains (result :body) "another-handler"))))
 
