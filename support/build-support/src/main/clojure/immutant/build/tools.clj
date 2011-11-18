@@ -31,7 +31,7 @@
 (defn unzip [zip-file dest-dir]
   (let [result (shell/sh "unzip" "-q" "-d" (str dest-dir) zip-file)]
     (if (not= (:exit result) 0)
-      (println (str "ERROR: unzip failed: " (:err result))))
+      (println "ERROR: unzip failed:" (:err result)))
     (:out result)))
 
 (defn with-message [message & body]
@@ -158,7 +158,7 @@
 (defn transform-config [file]
   (let [in-file (io/file jboss-dir file)
         out-file (io/file (.getParentFile in-file) (str "immutant/" (.getName in-file)))]
-    (println (str "transforming " file))
+    (println "transforming" file)
     (io/make-parents out-file)
     (backup-current-config in-file)
     (io/copy (with-out-str

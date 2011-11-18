@@ -34,13 +34,14 @@
 
 (defn install-modules []
   (with-message "Installing modules"
-    (doall (map install-module (vals immutant-modules)))))
+    (doseq [mod (vals immutant-modules)]
+      (install-module mod))))
 
 (defn transform-configs []
-  (doall (map transform-config
-              ["standalone/configuration/standalone.xml"
+  (doseq [cfg ["standalone/configuration/standalone.xml"
                "standalone/configuration/standalone-ha.xml"
-               "domain/configuration/domain.xml"])))
+               "domain/configuration/domain.xml"]]
+    (transform-config cfg)))
 
 (defn create-standalone-xml []
   (io/copy (io/file jboss-dir "standalone/configuration/immutant/standalone.xml")
@@ -49,8 +50,8 @@
 (defn assemble [assembly-dir]
   (init assembly-dir)
   (prepare)
-  (println (str "Immutant..... " (:immutant versions)))
-  (println (str "JBoss AS..... " (:jboss versions)))
+  (println "Immutant..... " (:immutant versions))
+  (println "JBoss AS..... " (:jboss versions))
   (lay-down-jboss)
   (install-modules)
   (transform-configs)
