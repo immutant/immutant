@@ -20,11 +20,11 @@
 
 (def encoding-header-name "__ContentEncoding__")
 
-(defn ^:private set-encoding [^javax.jms.Message msg enc]
+(defn ^{:private true} set-encoding [^javax.jms.Message msg enc]
   (.setStringProperty msg encoding-header-name (name enc))
   msg)
 
-(defn ^:private get-encoding [^javax.jms.Message msg]
+(defn ^{:private true} get-encoding [^javax.jms.Message msg]
   (keyword (.getStringProperty msg encoding-header-name)))
 
 

@@ -18,13 +18,13 @@
 (ns immutant.registry
   (:import (org.jboss.msc.service ServiceName)))
 
-(def ^:private registry (java.util.HashMap.))
-(def ^:private msc-registry nil)
+(def ^{:private true} registry (java.util.HashMap.))
+(def ^{:private true} msc-registry nil)
 
 (defn set-msc-registry [v]
   (def msc-registry v))
 
-(defn ^:private get-from-msc [name]
+(defn ^{:private true} get-from-msc [name]
   (if msc-registry
     (let [key (if (string? name) (ServiceName/parse name) name)
           value (.getService msc-registry key)]
