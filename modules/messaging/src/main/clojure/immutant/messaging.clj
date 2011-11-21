@@ -18,9 +18,7 @@
 (ns immutant.messaging
   (:use [immutant.utilities :only (at-exit)])
   (:use [immutant.messaging.core])
-  (:require [immutant.registry :as lookup])
-  (:require [immutant.messaging.codecs :as codecs])
-  (:require [immutant.messaging.hornetq-direct :as hornetq]))
+  (:require [immutant.messaging.codecs :as codecs]))
 
 (defn start 
   "Create a message destination; name should be prefixed with either /queue or /topic"
@@ -68,7 +66,7 @@
         (.setMessageListener consumer (proxy [javax.jms.MessageListener] []
                                         (onMessage [message]
                                           (f (codecs/decode message)))))
-        (at-exit #(do (.close connection) (println "JC: closed" connection)))
+        (at-exit #(.close connection))
         (.start connection))
       (catch Throwable e
         (.close connection)

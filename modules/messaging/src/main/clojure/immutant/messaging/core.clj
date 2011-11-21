@@ -32,7 +32,7 @@
     (let [reference (.getReference reference-factory)]
       (try
         (.getInstance reference)
-        (finally (at-exit #(do (.release reference) (println "JC: released" reference))))))
+        (finally (at-exit #(.release reference)))))
     (do
       (println "WARN: unable to obtain JMS Connection Factory so we must be outside container")
       hornetq/connection-factory)))
@@ -59,7 +59,7 @@
 (defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
     (and (.createQueue manager false name selector durable (into-array String []))
-         (at-exit #(do (stop-queue name) (println "JC: stopped queue" name))))
+         (at-exit #(stop-queue name)))
     (throw (Exception. (str "Unable to start queue, " name)))))
 
 (defn stop-topic [name]
@@ -69,6 +69,6 @@
 (defn start-topic [name & opts]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
     (and (.createTopic manager false name (into-array String []))
-         (at-exit #(do (stop-topic name) (println "JC: stopped topic" name))))
+         (at-exit #(stop-topic name)))
     (throw (Exception. (str "Unable to start topic, " name)))))
 
