@@ -66,24 +66,22 @@ public class DaemonInstaller implements DeploymentUnitProcessor {
         final DaemonStart daemonStart = new DaemonStart( daemon );
         final ServiceName serviceName = DaemonServices.daemon( unit, daemonMetaData.getName() );
 
-        phaseContext.getServiceTarget().addService(serviceName, daemonStart).
-        setInitialMode(Mode.PASSIVE).
-        install();	
+        phaseContext.getServiceTarget().addService(serviceName, daemonStart).setInitialMode(Mode.PASSIVE).install();
 
         final ApplicationMetaData appMetaData = unit.getAttachment( ApplicationMetaData.ATTACHMENT_KEY );
 
         String mbeanName = ObjectNameFactory.create( "immutant.daemons", new Hashtable<String, String>() {
-            {
-                put( "app", appMetaData.getApplicationName() );
-                put( "name", StringUtil.underscore( daemonMetaData.getName() ) );
-            }
-        } ).toString();
+                {
+                    put( "app", appMetaData.getApplicationName() );
+                    put( "name", StringUtil.underscore( daemonMetaData.getName() ) );
+                }
+            } ).toString();
 
         MBeanRegistrationService<DaemonMBean> mbeanService = new MBeanRegistrationService<DaemonMBean>( mbeanName, new ImmediateValue<DaemonMBean>( daemon ) );
         phaseContext.getServiceTarget().addService( serviceName.append( "mbean" ), mbeanService )
-        .addDependency( DependencyType.OPTIONAL, MBeanServerService.SERVICE_NAME, MBeanServer.class, mbeanService.getMBeanServerInjector() )
-        .setInitialMode( Mode.PASSIVE )
-        .install(); 
+            .addDependency( DependencyType.OPTIONAL, MBeanServerService.SERVICE_NAME, MBeanServer.class, mbeanService.getMBeanServerInjector() )
+            .setInitialMode( Mode.PASSIVE )
+            .install(); 
     }
 
     @Override
