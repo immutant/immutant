@@ -25,7 +25,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 
 import java.util.List;
 
-import org.immutant.daemons.processors.DaemonInstaller;
+import org.immutant.daemons.processors.DaemonizerInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -59,7 +59,7 @@ public class DaemonsSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
 
-        processorTarget.addDeploymentProcessor( Phase.INSTALL, 0, new DaemonInstaller() );
+        processorTarget.addDeploymentProcessor( Phase.INSTALL, 0, new DaemonizerInstaller() );
 
     }
 

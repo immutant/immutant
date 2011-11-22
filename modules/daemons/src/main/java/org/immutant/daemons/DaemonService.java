@@ -19,32 +19,28 @@
 
 package org.immutant.daemons;
 
-import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
-import org.jboss.msc.value.InjectedValue;
 
-public class DaemonStart implements Service<Daemon> {
+public class DaemonService implements Service<Daemon> {
 
-    public DaemonStart(Daemon daemon) {
+    public DaemonService(Daemon daemon) {
         this.daemon = daemon;
     }
 
-    @Override
     public Daemon getValue() throws IllegalStateException, IllegalArgumentException {
         return this.daemon;
     }
 
-    @Override
     public void start(final StartContext context) throws StartException {
         context.asynchronous();
 
         context.execute(new Runnable() {
             public void run() {
                 try {
-                    DaemonStart.this.getValue().start();
+                    DaemonService.this.getValue().start();
                     context.complete();
                 } catch (Exception e) {
                     context.failed( new StartException( e ) );
@@ -54,7 +50,6 @@ public class DaemonStart implements Service<Daemon> {
 
     }
 
-    @Override
     public void stop(StopContext context) {
         getValue().stop();
     }

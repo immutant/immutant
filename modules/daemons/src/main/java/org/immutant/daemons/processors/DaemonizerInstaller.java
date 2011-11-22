@@ -17,31 +17,28 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.daemons.as;
+package org.immutant.daemons.processors;
 
+import org.immutant.core.processors.RegisteringProcessor;
+import org.immutant.daemons.Daemonizer;
+import org.immutant.daemons.as.DaemonServices;
+import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.jboss.msc.service.ServiceName;
-
-public class DaemonServices {
-
-    private DaemonServices() {
-    }
-
-    public static final ServiceName IMMUTANT = ServiceName.of( "immutant" );
-    public static final ServiceName DAEMONIZER = IMMUTANT.append( "daemonizer" );
-    public static final ServiceName DAEMONS = IMMUTANT.append( "daemons" );
+import org.jboss.msc.service.ServiceController.Mode;
 
 
-    public static ServiceName daemon(DeploymentUnit unit, String serviceName ) {
-        return unit.getServiceName().append( "daemon" ).append( serviceName );
-    }
+public class DaemonizerInstaller extends RegisteringProcessor {
 
-    public static ServiceName daemonizer(DeploymentUnit unit) {
-        return unit.getServiceName().append( DAEMONIZER );
-    }
- 
-    public static ServiceName injectable(DeploymentUnit unit, String serviceName ) {
-        return daemon( unit, serviceName ).append(  "injectable" );
+    public RegistryEntry registryEntry(DeploymentPhaseContext context) {
+        DeploymentUnit unit = context.getDeploymentUnit();
+                
+        Daemonizer service = new Daemonizer(unit);
+                
+        context.getServiceTarget().addService(DaemonServices.daemonizer( unit ), service)
+            .setInitialMode(Mode.ACTIVE)
+            .install();
+        
+        return new RegistryEntry( "daemonizer", service );
     }
 
 }

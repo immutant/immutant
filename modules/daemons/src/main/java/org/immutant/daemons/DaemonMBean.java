@@ -26,8 +26,6 @@ public interface DaemonMBean {
     boolean isStarted();
     boolean isStopped();
 
-    String getStartFunction();
-    String getStopFunction();
     String getStatus() throws Exception;
 
 }

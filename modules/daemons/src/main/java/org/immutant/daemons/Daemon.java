@@ -19,38 +19,34 @@
 
 package org.immutant.daemons;
 
-import org.immutant.core.ClojureRuntime;
 
 public class Daemon implements DaemonMBean {
-    public Daemon(ClojureRuntime runtime, String startFunction, String stopFunction) {
-        this.runtime = runtime;
+
+    public Daemon(Runnable startFunction, Runnable stopFunction) {
         this.startFunction = startFunction;
         this.stopFunction = stopFunction;
     }
 
     public void start() {
-        this.runtime.invoke( this.startFunction /*TODO: handle params */);
+        this.startFunction.run();
         this.started = true;
     }
 
     public void stop() {
         if (this.stopFunction != null) {
-            this.runtime.invoke( this.stopFunction );
+            this.stopFunction.run();
             this.started = false;
         }
     }
 
-    @Override
     public boolean isStarted() {
         return this.started;
     }
 
-    @Override
     public boolean isStopped() {
         return !isStarted();
     }
 
-    @Override
     public String getStatus() throws Exception {
         if (isStarted()) {
             return "STARTED";
@@ -58,35 +54,9 @@ public class Daemon implements DaemonMBean {
         return "STOPPED";
     }
 
-    public ClojureRuntime getRuntime() {
-        return runtime;
-    }
-
-    public void setRuntime(ClojureRuntime runtime) {
-        this.runtime = runtime;
-    }
-
-    public String getStartFunction() {
-        return startFunction;
-    }
-
-    public void setStartFunction(String startFunction) {
-        this.startFunction = startFunction;
-    }
-
-    public String getStopFunction() {
-        return stopFunction;
-    }
-
-    public void setStopFunction(String stopFunction) {
-        this.stopFunction = stopFunction;
-    }
-
-
 
     private boolean started;
-    private ClojureRuntime runtime;
-    private String startFunction;
-    private String stopFunction;
+    private Runnable startFunction;
+    private Runnable stopFunction;
 
 }
