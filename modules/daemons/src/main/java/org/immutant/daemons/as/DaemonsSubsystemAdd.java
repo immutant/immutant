@@ -59,6 +59,8 @@ public class DaemonsSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
 
+        processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new DaemonsDependenciesProcessor() );
+
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 0, new DaemonizerInstaller() );
 
     }
