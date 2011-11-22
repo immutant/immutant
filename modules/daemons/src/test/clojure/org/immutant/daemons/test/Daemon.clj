@@ -33,9 +33,7 @@
 
 (use-fixtures :each
               (fn [f]
-                (binding [*daemon* (Daemon. (ClojureRuntime. (.getClassLoader Daemon))
-                                            "org.immutant.daemons.test.Daemon/start-daemon"
-                                            "org.immutant.daemons.test.Daemon/stop-daemon")]
+                (binding [*daemon* (Daemon. start-daemon stop-daemon)]
                   (f))))
 
 (deftest start-should-call-the-start-function
@@ -47,8 +45,8 @@
   (is (= "stopped" @daemon-status)))
 
 (deftest stop-should-not-raise-if-no-stop-function-provided
-  (.setStopFunction *daemon* nil)
-  (is (not-thrown? Exception  (.stop *daemon*))))
+  (binding [*daemon* (Daemon. start-daemon nil)]
+    (is (not-thrown? Exception (.stop *daemon*)))))
 
 (deftest it-should-be-started-after-start
   (.start *daemon*)
@@ -64,9 +62,9 @@
   (is (= "STOPPED" (.getStatus *daemon*))))
 
 (deftest it-should-not-be-stopped-after-stop-if-no-stop-function-provided
-  (.setStopFunction *daemon* nil)
-  (.start *daemon*)
-  (.stop *daemon*)
-  (is-not (.isStopped *daemon*))
-  (is (.isStarted *daemon*))
-  (is (= "STARTED" (.getStatus *daemon*))))
+  (binding [*daemon* (Daemon. start-daemon nil)]
+    (.start *daemon*)
+    (.stop *daemon*)
+    (is-not (.isStopped *daemon*))
+    (is (.isStarted *daemon*))
+    (is (= "STARTED" (.getStatus *daemon*)))))
