@@ -19,7 +19,6 @@
 
 package org.immutant.core.processors;
 
-import org.immutant.core.ClojureRuntime;
 import org.immutant.core.Closer;
 import org.immutant.core.as.CoreServices;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
