@@ -31,15 +31,15 @@
 
     <dependency>
       <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.clojure</groupId>
       <artifactId>data.json</artifactId>
       <version>${version.data.json}</version>
       <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

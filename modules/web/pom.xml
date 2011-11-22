@@ -30,15 +30,15 @@
     </dependency>
 
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
       <groupId>ring</groupId>
       <artifactId>ring-servlet</artifactId>
       <version>${version.ring-servlet}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -101,15 +101,6 @@
           </execution>
         </executions>
       </plugin>
-      <!-- <plugin> -->
-      <!--   <groupId>de.saumya.mojo</groupId> -->
-      <!--   <artifactId>jruby-maven-plugin</artifactId> -->
-      <!--   <executions> -->
-      <!--     <execution> -->
-      <!--       <id>install-module</id> -->
-      <!--     </execution> -->
-      <!--   </executions> -->
-      <!-- </plugin> -->
 
     </plugins>
   </build>

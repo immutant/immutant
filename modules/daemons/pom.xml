@@ -20,6 +20,13 @@
       <version>${version.polyglot}</version>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>clojure</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>immutant-core</artifactId>
@@ -41,6 +48,28 @@
 
   <build>
     <plugins> 
+
+      <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>clojure-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+          <id>test</id>
+          <phase>test</phase>
+          <goals>
+            <goal>test</goal>
+          </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
@@ -50,17 +79,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-        <groupId>com.theoryinpractise</groupId>
-        <artifactId>clojure-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>install-module</id>
-          </execution>
-        </executions>
-      </plugin>
-
     </plugins>
   </build>
 
