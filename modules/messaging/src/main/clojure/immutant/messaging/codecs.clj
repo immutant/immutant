@@ -46,6 +46,11 @@
    (.createTextMessage session (json/json-str message))
    :json))
 
+(defmethod encode :text [session message options]
+  "Treat the payload as a raw String. No encoding is done."
+  (set-encoding
+   (.createTextMessage session message)
+   :text))
 
 ;; Decode
 
@@ -58,6 +63,10 @@
 (defmethod decode :json [message]
   "Turn a string into a json data structure"
   (and message (json/read-json (.getText message))))
+
+(defmethod decode :text [message]
+  "Treats the message payload as a raw string. No decoding is done."
+  (and message (.getText message)))
 
 (defmethod decode :default [message]
   (throw (RuntimeException. (str "Received unknown message encoding: " (get-encoding message)))))

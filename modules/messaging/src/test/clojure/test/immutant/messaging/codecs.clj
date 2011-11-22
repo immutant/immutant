@@ -42,3 +42,6 @@
         encoded (.getText (encode (session-mock) message {:encoding :json}))]
     (is (= encoded "{\"a\":\"b\",\"c\":[1,2,3,{\"foo\":42}]}"))))
 
+(deftest text
+  (test-codec "ham biscuit" :text))
+
