@@ -23,5 +23,5 @@
    and registering an optional stop function to be called at
    undeployment/shutdown"
   (if-let [daemonizer (lookup/fetch "daemonizer")]
-    (.deploy daemonizer name start-fn stop-fn)))
+    (.deploy daemonizer name #(future (start-fn)) stop-fn)))
   

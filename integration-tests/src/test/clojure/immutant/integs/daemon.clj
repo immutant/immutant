@@ -26,5 +26,7 @@
                        }))
 
 (deftest simple "it should work"
-  (is (= true true)))
+  (let [result (client/get "http://localhost:8080/daemon")]
+    ;; (println "RESPONSE" result)
+    (is (> (read-string (:body result)) 0))))
 
