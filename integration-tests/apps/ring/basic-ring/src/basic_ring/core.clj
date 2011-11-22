@@ -1,6 +1,5 @@
 (ns basic-ring.core
   (:require [immutant.messaging :as msg])
-  (:require [immutant.registry :as service])
   (:require [immutant.web :as web]))
 
 (def a-value (atom "default"))
