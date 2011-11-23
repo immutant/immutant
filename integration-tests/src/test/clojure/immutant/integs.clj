@@ -68,8 +68,16 @@
       (println "\n<<<< Finished integs with clojure" version "\n")
       (finally (remove-clojure-jars)))))
 
+(defn from-property []
+  "Gets the namespace to test from the system property 'ns'"
+  (if-let [value (read-string (System/getProperty "ns"))]
+    (if (re-find #"\." (name value))
+      (list value)
+      (list (symbol (str "immutant.integs." (name value)))))))
+
 (let [integs (io/file (.getParentFile (io/file *file*)) "integs")
-      namespaces (find-namespaces-in-dir integs)]
+      namespaces (or (from-property) (find-namespaces-in-dir integs))]
+  (println "Testing namespaces:" namespaces)
   (apply require namespaces)
   (when-not *compile-files*
     (let [results (atom [])]
