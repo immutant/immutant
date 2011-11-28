@@ -71,7 +71,7 @@
 (defn from-property []
   "Gets the namespace to test from the system property 'ns'"
   (if-let [value (read-string (System/getProperty "ns"))]
-    (if (re-find #"\." (name value))
+    (if (re-find #"^immutant\.integs\." (name value))
       (list value)
       (list (symbol (str "immutant.integs." (name value)))))))
 
