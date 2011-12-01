@@ -38,13 +38,13 @@
       (install-module mod))))
 
 (defn transform-configs []
-  (doseq [cfg ["standalone/configuration/standalone.xml"
+  (doseq [cfg ["standalone/configuration/standalone-full.xml"
                "standalone/configuration/standalone-ha.xml"
                "domain/configuration/domain.xml"]]
     (transform-config cfg)))
 
 (defn create-standalone-xml []
-  (io/copy (io/file jboss-dir "standalone/configuration/immutant/standalone.xml")
+  (io/copy (io/file jboss-dir "standalone/configuration/immutant/standalone-full.xml")
            (io/file jboss-dir "standalone/configuration/standalone.xml")))
 
 (defn assemble [assembly-dir]
