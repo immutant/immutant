@@ -16,16 +16,25 @@
 (defn test-codec [message encoding]
   (is (= message (decode (encode (session-mock) message {:encoding encoding})))))
 
-(deftest simple-json
+(deftest json-string
   (test-codec "a random text message" :json))
 
-(deftest simple-clojure
+(deftest clojure-string
   (test-codec "a simple text message" :clojure))
 
-(deftest complex-json
+(deftest clojure-date
+  (test-codec (java.util.Date.) :clojure))
+
+(deftest clojure-date-inside-hash
+  (test-codec {:date (java.util.Date.)} :clojure))
+
+(deftest clojure-date-inside-vector
+  (test-codec [(java.util.Date.)] :clojure))
+
+(deftest json-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
 
-(deftest complex-clojure
+(deftest clojure-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
 
 (deftest complex-json-encoding

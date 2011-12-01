@@ -63,3 +63,21 @@
   (throw (RuntimeException. (str "Received unknown message encoding: " (get-encoding message)))))
 
 
+;; Fallback to Java serialization for undefined print-dup methods
+
+(defn serialize [object]
+  (with-open [baos (java.io.ByteArrayOutputStream.)
+              oos (java.io.ObjectOutputStream. baos)]
+    (.writeObject oos object)
+    (.toString baos)))
+
+(defn deserialize [s]
+  (with-open [bais (java.io.ByteArrayInputStream. (.getBytes s))
+              ois (java.io.ObjectInputStream. bais)]
+    (.readObject ois)))
+
+(defmethod print-dup :default [o w]
+  (.println System/out (str "WARN: using Java serialization for " (.getName (class o))))
+  (.write w "#=(immutant.messaging.codecs/deserialize ")
+  (print-dup (serialize o) w)
+  (.write w ")"))
