@@ -69,10 +69,10 @@
   (with-open [baos (java.io.ByteArrayOutputStream.)
               oos (java.io.ObjectOutputStream. baos)]
     (.writeObject oos object)
-    (.toString baos)))
+    (.toString baos "ISO-8859-1")))
 
 (defn deserialize [s]
-  (with-open [bais (java.io.ByteArrayInputStream. (.getBytes s))
+  (with-open [bais (java.io.ByteArrayInputStream. (.getBytes s "ISO-8859-1"))
               ois (java.io.ObjectInputStream. bais)]
     (.readObject ois)))
 
