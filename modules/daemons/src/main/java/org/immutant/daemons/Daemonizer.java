@@ -46,19 +46,7 @@ public class Daemonizer implements Service<Daemonizer> {
             .setInitialMode(Mode.PASSIVE)
             .install();
 
-        final ApplicationMetaData appMetaData = unit.getAttachment( ApplicationMetaData.ATTACHMENT_KEY );
-        String mbeanName = ObjectNameFactory.create( "immutant.daemons", new Hashtable<String, String>() {
-                {
-                    put( "app", appMetaData.getApplicationName() );
-                    put( "name", daemonName );
-                }
-            } ).toString();
-
-        MBeanRegistrationService<DaemonMBean> mbeanService = new MBeanRegistrationService<DaemonMBean>( mbeanName, new ImmediateValue<DaemonMBean>( daemon ) );
-        this.serviceTarget.addService( serviceName.append( "mbean" ), mbeanService )
-            .addDependency( DependencyType.OPTIONAL, MBeanServerService.SERVICE_NAME, MBeanServer.class, mbeanService.getMBeanServerInjector() )
-            .setInitialMode( Mode.PASSIVE )
-            .install(); 
+        installMBean(serviceName, daemon);
     }
 
     public void start(StartContext context) throws StartException {
@@ -70,6 +58,22 @@ public class Daemonizer implements Service<Daemonizer> {
 
     public Daemonizer getValue() {
         return this;
+    }
+
+    protected void installMBean(final ServiceName name, Daemon daemon) {
+        final ApplicationMetaData appMetaData = unit.getAttachment( ApplicationMetaData.ATTACHMENT_KEY );
+        String mbeanName = ObjectNameFactory.create( "immutant.daemons", new Hashtable<String, String>() {
+                {
+                    put( "app", appMetaData.getApplicationName() );
+                    put( "name", name.getSimpleName() );
+                }
+            } ).toString();
+
+        MBeanRegistrationService<DaemonMBean> mbeanService = new MBeanRegistrationService<DaemonMBean>( mbeanName, new ImmediateValue<DaemonMBean>( daemon ) );
+        this.serviceTarget.addService( name.append( "mbean" ), mbeanService )
+            .addDependency( DependencyType.OPTIONAL, MBeanServerService.SERVICE_NAME, MBeanServer.class, mbeanService.getMBeanServerInjector() )
+            .setInitialMode( Mode.PASSIVE )
+            .install(); 
     }
 
     private DeploymentUnit unit;;
