@@ -30,10 +30,6 @@ import org.projectodd.polyglot.core.as.AbstractBootstrappableExtension;
 
 public class MessagingExtension extends AbstractBootstrappableExtension {
 
-    public MessagingExtension() throws ClassNotFoundException {
-        super();
-    }
-
     @Override
     public void initialize(ExtensionContext context) {
         bootstrap();
