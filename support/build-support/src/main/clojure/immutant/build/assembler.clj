@@ -37,6 +37,11 @@
     (doseq [mod (vals immutant-modules)]
       (install-module mod))))
 
+(defn install-polyglot-modules []
+  (with-message "Installing polyglot modules"
+    (doseq [mod polyglot-modules]
+      (install-polyglot-module mod))))
+
 (defn transform-configs []
   (doseq [cfg ["standalone/configuration/standalone-full.xml"
                "standalone/configuration/standalone-ha.xml"
@@ -52,8 +57,10 @@
   (prepare)
   (println "Immutant..... " (:immutant versions))
   (println "JBoss AS..... " (:jboss versions))
+  (println "Polyglot..... " (:polyglot versions))
   (lay-down-jboss)
   (install-modules)
+  (install-polyglot-modules)
   (transform-configs)
   (create-standalone-xml))
 

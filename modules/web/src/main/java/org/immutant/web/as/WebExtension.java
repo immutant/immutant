@@ -30,6 +30,10 @@ import org.projectodd.polyglot.core.as.AbstractBootstrappableExtension;
 
 public class WebExtension extends AbstractBootstrappableExtension {
 
+    public WebExtension() throws ClassNotFoundException {
+        super();
+    }
+
     @Override
     public void initialize(ExtensionContext context) {
         bootstrap();

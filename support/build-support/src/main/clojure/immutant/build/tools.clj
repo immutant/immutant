@@ -60,7 +60,8 @@
   (def jboss-dir (io/file immutant-dir "jboss"))
 
   (def version-paths {:immutant [:version]
-                      :jboss [:properties :version.jbossas]})
+                      :jboss [:properties :version.jbossas]
+                      :polyglot [:properties :version.polyglot]})
 
   (def versions (extract-versions root-pom version-paths))
 
@@ -76,13 +77,29 @@
                                  (second (re-find #"immutant-(.*)-module" (.getName file)))
                                  file))
                              {}
-                             (glob/glob (str (.getAbsolutePath root-dir) "/modules/*/target/*-module")))))
+                             (glob/glob (str (.getAbsolutePath root-dir) "/modules/*/target/*-module"))))
+  (def polyglot-modules
+    ["hasingleton"]))
+
 
 (defn install-module [module-dir]
   (let [name (second (re-find #"immutant-(.*)-module" (.getName module-dir)))
         dest-dir (io/file jboss-dir (str "modules/org/immutant/" name "/main"))]
     (FileUtils/deleteQuietly dest-dir)
     (FileUtils/copyDirectory module-dir dest-dir)))
+
+(defn install-polyglot-module [name]
+  (let [version (:polyglot versions)
+        artifact-path (str m2-repo "/org/projectodd/polyglot-" name "/" version "/polyglot-" name "-" version "-module.zip")
+        artifact-dir (io/file (System/getProperty "java.io.tmpdir") (str "immutant-" name "-" version))
+        dest-dir (io/file jboss-dir (str "modules/org/projectodd/polyglot/" name "/main"))]
+    (try 
+      (.mkdir artifact-dir)
+      (unzip artifact-path artifact-dir)
+      (FileUtils/deleteQuietly dest-dir)
+      (FileUtils/copyDirectory artifact-dir dest-dir)
+      (finally
+       (FileUtils/deleteQuietly artifact-dir)))))
 
 (defn backup-current-config [file]
   (let [to-file (io/file (.getParentFile file)
@@ -93,19 +110,28 @@
 (defn increase-deployment-timeout [loc]
   (zip/edit loc #(assoc-in % [:attrs :deployment-timeout] "1200")))
 
-(defn add-extension [loc name]
-  (let [module-name (str "org.immutant." name)]
+(defn add-extension [prefix loc name]
+  (let [module-name (str prefix name)]
     (zip/append-child loc {:tag :extension :attrs {:module module-name}})))
 
-(defn add-extensions [loc]
-  (reduce add-extension loc (keys immutant-modules)))
+(defn add-polyglot-extensions [loc]
+  (reduce (partial add-extension "org.projectodd.polyglot.") loc polyglot-modules))
 
-(defn add-subsystem [loc name]
-  (let [module-name (str "urn:jboss:domain:immutant-" name ":1.0")]
+(defn add-extensions [loc]
+  (add-polyglot-extensions
+   (reduce (partial add-extension "org.immutant.") loc (keys immutant-modules))))
+
+(defn add-subsystem [prefix loc name]
+  (let [module-name (str "urn:jboss:domain:" prefix name ":1.0")]
     (zip/append-child loc {:tag :subsystem :attrs {:xmlns module-name}})))
 
+(defn add-polyglot-subsystems [loc]
+  (reduce (partial add-subsystem "polyglot-") loc polyglot-modules))
+
 (defn add-subsystems [loc]
-  (reduce add-subsystem loc (sort-by #(if (= "core" %) -1 1) (keys immutant-modules))))
+  (add-polyglot-subsystems
+   (reduce (partial add-subsystem "immutant-") loc (keys immutant-modules))))
+
 
 (defn add-system-property [loc prop value]
   (zip/append-child loc {:tag :property :attrs {:name prop :value value}}))

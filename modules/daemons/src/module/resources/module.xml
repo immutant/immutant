@@ -41,5 +41,6 @@
         <module name="org.jboss.vfs"/>
         <module name="org.jboss.metadata"/>
         <module name="org.immutant.core"/>
+        <module name="org.projectodd.polyglot.hasingleton"/>
     </dependencies>
 </module>

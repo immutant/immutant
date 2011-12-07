@@ -29,6 +29,10 @@ import org.jboss.logging.Logger;
 import org.projectodd.polyglot.core.as.AbstractBootstrappableExtension;
 
 public class DaemonsExtension extends AbstractBootstrappableExtension {
+    
+    public DaemonsExtension() throws ClassNotFoundException {
+        super();
+    }
 
     @Override
     public void initialize(ExtensionContext context) {
