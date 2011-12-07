@@ -15,7 +15,7 @@
                 :value (fn [] @x)
                 }))
 
-(daemon/start "counter" (:start service) (:stop service))
+(daemon/start "counter" (:start service) :stop (:stop service))
 
 (defn handler [request]
   {:status 200

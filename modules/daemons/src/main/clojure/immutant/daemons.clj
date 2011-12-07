@@ -18,10 +18,12 @@
 (ns immutant.daemons
   (:require [immutant.registry :as lookup]))
 
-(defn start [name start-fn & [stop-fn]]
-  "Start a service asynchronously, creating an MBean named by name,
-   and registering an optional stop function to be called at
-   undeployment/shutdown"
+(defn start 
+  "Start a service asynchronously, creating an MBean named by name.
+   Optionally, a stop function may be passed to be called at
+   undeployment/shutdown, and if :singleton is truthy, the service
+   will start on only one node in a cluster"
+  [name start & {:keys [stop singleton]}]
   (if-let [daemonizer (lookup/fetch "daemonizer")]
-    (.deploy daemonizer name #(future (start-fn)) stop-fn)))
+    (.deploy daemonizer name #(future (start)) stop (boolean singleton))))
   
