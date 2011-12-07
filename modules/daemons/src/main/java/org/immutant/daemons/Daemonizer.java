@@ -30,6 +30,8 @@ import org.jboss.msc.service.ServiceBuilder.DependencyType;
 import org.jboss.msc.value.ImmediateValue;
 import org.jboss.logging.Logger;
 import org.projectodd.polyglot.core.app.ApplicationMetaData;
+// import org.projectodd.polyglot.hasingleton.HASingleton;
+
 
 public class Daemonizer implements Service<Daemonizer> {
 
@@ -37,14 +39,17 @@ public class Daemonizer implements Service<Daemonizer> {
         this.unit = unit;
     }
 
-    public void deploy(final String daemonName, Runnable start, Runnable stop) {
+    public void deploy(final String daemonName, Runnable start, Runnable stop, boolean singleton) {
 
         Daemon daemon = new Daemon(start, stop);
         DaemonService daemonService = new DaemonService( daemon );
         ServiceName serviceName = DaemonServices.daemon( unit, daemonName );
-        this.serviceTarget.addService(serviceName, daemonService)
-            .setInitialMode(Mode.PASSIVE)
-            .install();
+        ServiceBuilder<Daemon> builder = this.serviceTarget.addService(serviceName, daemonService);
+        // if (singleton) {
+        //     builder.addDependency(HASingleton.serviceName(unit));
+        // }
+        builder.setInitialMode(Mode.PASSIVE);
+        builder.install();
 
         installMBean(serviceName, daemon);
     }
