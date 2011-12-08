@@ -21,12 +21,15 @@ package org.immutant.core.as;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
 
-import java.util.logging.Logger;
+import java.io.IOException;
 
+import org.immutant.core.Immutant;
 import org.jboss.as.controller.ExtensionContext;
 import org.jboss.as.controller.SubsystemRegistration;
 import org.jboss.as.controller.parsing.ExtensionParsingContext;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
+import org.jboss.logging.Logger;
+import org.jboss.logging.Logger.Level;
 import org.projectodd.polyglot.core.as.AbstractBootstrappableExtension;
 
 public class CoreExtension extends AbstractBootstrappableExtension {
@@ -35,6 +38,13 @@ public class CoreExtension extends AbstractBootstrappableExtension {
     public void initialize(ExtensionContext context) {
         bootstrap();
         log.info( "Initializing Immutant Core Subsystem" );
+        try {
+            Immutant immutant = new Immutant();
+            immutant.printVersionInfo( log );
+        } catch (IOException e) {
+            log.error( "Failed to load immutant.properties", e );
+        }
+        
         final SubsystemRegistration registration = context.registerSubsystem( SUBSYSTEM_NAME );
         final ManagementResourceRegistration subsystem = registration.registerSubsystemModel( CoreSubsystemProviders.SUBSYSTEM );
 

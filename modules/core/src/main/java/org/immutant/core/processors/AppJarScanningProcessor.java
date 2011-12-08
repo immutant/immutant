@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.immutant.core.ClojureMetaData;
+import org.immutant.core.Immutant;
+import org.immutant.core.as.CoreServices;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -36,6 +38,7 @@ import org.jboss.as.server.deployment.module.MountHandle;
 import org.jboss.as.server.deployment.module.ResourceRoot;
 import org.jboss.as.server.deployment.module.TempFileProviderService;
 import org.jboss.logging.Logger;
+import org.jboss.msc.service.ServiceController;
 import org.jboss.vfs.VFS;
 import org.jboss.vfs.VirtualFile;
 import org.jboss.vfs.VirtualFileFilter;
@@ -76,7 +79,10 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
             }
 
             if (!clojureProvided) {
-                log.warn( "No clojure.jar found within " + metaData.getApplicationName() + ", Using built-in clojure.jar (what version?)" );
+                Immutant immutant = (Immutant)phaseContext.getServiceRegistry().getService( CoreServices.IMMUTANT ).getValue();
+                
+                log.warn( "No clojure.jar found within " + metaData.getApplicationName() + 
+                        ", Using built-in clojure.jar (v" + immutant.getClojureVersion() + ")" );
 
                 // FIXME this is ugly as fuck, and needs to be cleaned up
 

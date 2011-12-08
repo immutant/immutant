@@ -23,8 +23,14 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 
+import java.io.IOException;
+import java.util.Hashtable;
 import java.util.List;
 
+import javax.management.MBeanServer;
+
+import org.immutant.core.Immutant;
+import org.immutant.core.ImmutantMBean;
 import org.immutant.core.processors.AppCljParsingProcessor;
 import org.immutant.core.processors.AppJarScanningProcessor;
 import org.immutant.core.processors.AppNameRegistrar;
@@ -37,12 +43,17 @@ import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ServiceVerificationHandler;
+import org.jboss.as.jmx.MBeanRegistrationService;
+import org.jboss.as.jmx.MBeanServerService;
+import org.jboss.as.jmx.ObjectNameFactory;
 import org.jboss.as.server.AbstractDeploymentChainStep;
 import org.jboss.as.server.DeploymentProcessorTarget;
 import org.jboss.as.server.deployment.Phase;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
+import org.jboss.msc.service.ServiceBuilder.DependencyType;
 import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.Mode;
 
 class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
     
@@ -63,6 +74,12 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
             }
         }, OperationContext.Stage.RUNTIME );
         
+        try {
+            addImmutantService( context, verificationHandler, newControllers );
+        } catch (Exception e) {
+            throw new OperationFailedException( e, null );
+        }
+        
     }
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
@@ -80,7 +97,30 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 10000, new ApplicationInitializer() );
     }
 
+    @SuppressWarnings("serial")
+    protected void addImmutantService(final OperationContext context, ServiceVerificationHandler verificationHandler,
+            List<ServiceController<?>> newControllers) throws IOException {
+        Immutant immutant = new Immutant();
+        
+        newControllers.add( context.getServiceTarget().addService( CoreServices.IMMUTANT, immutant )
+                .setInitialMode( Mode.ACTIVE )
+                .addListener( verificationHandler )
+                .install() );
 
+        String mbeanName = ObjectNameFactory.create( "Immutant", new Hashtable<String, String>() {
+            {
+                put( "type", "version" );
+            }
+        } ).toString();
+
+        MBeanRegistrationService<ImmutantMBean> mbeanService = new MBeanRegistrationService<ImmutantMBean>( mbeanName );
+        newControllers.add( context.getServiceTarget().addService( CoreServices.IMMUTANT.append( "mbean" ), mbeanService )
+                .addDependency( DependencyType.OPTIONAL, MBeanServerService.SERVICE_NAME, MBeanServer.class, mbeanService.getMBeanServerInjector() )
+                .addDependency( CoreServices.IMMUTANT, ImmutantMBean.class, mbeanService.getValueInjector() )
+                .addListener( verificationHandler )
+                .setInitialMode( Mode.PASSIVE )
+                .install() );
+    }
     static ModelNode createOperation(ModelNode address) {
         final ModelNode subsystem = new ModelNode();
         subsystem.get( OP ).set( ADD );

@@ -68,9 +68,7 @@ class Publisher
     dav_mkdir_p( build_base_url )
     publish_distribution()
     #publish_documentation()
-    #publish_gem_repo()
-    #publish_artifact_list()
-    
+    publish_artifact_list()
     copy_to_latest()
   end
 
@@ -106,10 +104,6 @@ class Publisher
     File.dirname(__FILE__) + '/../../dist/target/build-metadata.json'
   end
 
-  def gem_repo_path()
-    File.dirname(__FILE__) + '/../../assembly/target/stage/gem-repo'
-  end
-
   def standalone_xml_path()
     File.dirname(__FILE__) + '/../../assembly/target/stage/immutant/jboss/standalone/configuration/standalone.xml'
   end
@@ -129,15 +123,9 @@ class Publisher
 
   def publish_distribution()
     dav_put( build_base_url + "/#{File.basename( json_metadata_path ) }", json_metadata_path )
-
     dav_put( build_base_url  + "/#{File.basename( dist_path ) }", dist_path )
     dav_put( build_base_url  + "/#{File.basename( dist_modules_path ) }", dist_modules_path )
     dav_put( build_base_url  + "/#{File.basename( standalone_xml_path ) }", standalone_xml_path )
-  end
-
-  def publish_gem_repo()
-    dav_mkdir_p( build_gem_repo_url )
-    dav_put_r( build_gem_repo_url, gem_repo_path )
   end
 
   def publish_artifact_list
