@@ -5,7 +5,7 @@ $: << File.dirname( __FILE__ ) + '/../lib'
 require 'dav'
 require 'find'
 require 'pathname'
-#require 'json'
+require 'json'
 
 class Publisher
 

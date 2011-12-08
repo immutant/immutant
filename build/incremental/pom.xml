@@ -37,20 +37,20 @@
         <groupId>de.saumya.mojo</groupId>
         <artifactId>jruby-maven-plugin</artifactId>
         <executions>
-          <!-- <execution> -->
-          <!--   <id>install-json</id> -->
-          <!--   <phase>install</phase> -->
-          <!--   <goals> -->
-          <!--     <goal>jruby</goal> -->
-          <!--   </goals> -->
-          <!--   <configuration> -->
-          <!--     <args>-S gem install json - -no-ri - -no-rdoc</args> -->
-          <!--     <gemHome>./target/rubygems</gemHome> -->
-          <!--     <gemPath>./target/rubygems</gemPath> -->
-          <!--   </configuration> -->
-          <!-- </execution> -->
           <execution>
-            <id>publish-gem-repo</id>
+            <id>install-json</id>
+            <phase>install</phase>
+            <goals>
+              <goal>jruby</goal>
+            </goals>
+            <configuration>
+              <args>-S gem install json - -no-ri - -no-rdoc</args>
+              <gemHome>./target/rubygems</gemHome>
+              <gemPath>./target/rubygems</gemPath>
+            </configuration>
+          </execution>
+          <execution>
+            <id>publish-incrementals</id>
             <phase>install</phase>
             <goals>
               <goal>jruby</goal>
