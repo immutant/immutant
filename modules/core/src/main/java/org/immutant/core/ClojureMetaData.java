@@ -21,13 +21,11 @@ package org.immutant.core;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.jboss.vfs.VFS;
-import org.jboss.vfs.VirtualFile;
 import org.projectodd.polyglot.core.app.ApplicationMetaData;
 
 import clojure.lang.Compiler;
@@ -41,7 +39,10 @@ public class ClojureMetaData extends ApplicationMetaData {
     public ClojureMetaData(String applicationName, Map<String, ?> config) {
         super( applicationName ); 
         this.config = config;
-        setRoot( getString( "root" ) );
+        String root = getString( "root" );
+        if (root != null) {
+            setRoot( new File( root ) );
+        }
     }
 
     @Override

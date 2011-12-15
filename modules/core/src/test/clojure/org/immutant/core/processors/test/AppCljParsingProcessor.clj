@@ -42,7 +42,7 @@
   (let [unit (.deployResourceAs *harness* (io/resource "valid-root-descriptor.clj") "app.clj" )
         metadata (.getAttachment unit ClojureMetaData/ATTACHMENT_KEY)]
     (are [exp val-method] (= exp (val-method metadata))
-         "vfs:/tmp/"         .getRootPath
-         "my.namespace/init" .getInitFunction
-         "app"               .getApplicationName)))
+         (io/file "/tmp/")      .getRoot
+         "my.namespace/init"    .getInitFunction
+         "app"                  .getApplicationName)))
 

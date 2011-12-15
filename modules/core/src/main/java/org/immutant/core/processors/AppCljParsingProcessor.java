@@ -20,6 +20,7 @@
 package org.immutant.core.processors;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +66,7 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
             
             appMetaData.attachTo( deploymentUnit );
                         
-            VirtualFile root = appMetaData.getRoot();
+            File root = appMetaData.getRoot();
             ResourceRoot appRoot;
             
             if (root == null) {
@@ -73,16 +74,18 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
             }
             
             if ( ! root.exists() ) {
-                throw new DeploymentUnitProcessingException( "Application root does not exist: " + root.toURL().toExternalForm() );
+                throw new DeploymentUnitProcessingException( "Application root does not exist: " + root.getAbsolutePath() );
             }
+
+            VirtualFile vfsRoot = VFS.getChild( root.toURI() );
             
             if (root.exists() && !root.isDirectory()) {
                 // Expand the referenced root if it's not a directory (ie .knob archive)
-                final Closeable closable = VFS.mountZipExpanded( root, root, TempFileProviderService.provider() );
+                final Closeable closable = VFS.mountZipExpanded( vfsRoot, vfsRoot, TempFileProviderService.provider() );
                 final MountHandle mountHandle = new MountHandle( closable );
-                appRoot = new ResourceRoot( root, mountHandle );
+                appRoot = new ResourceRoot( vfsRoot, mountHandle );
             } else {
-                appRoot = new ResourceRoot( root, null );
+                appRoot = new ResourceRoot( vfsRoot, null );
             }
             deploymentUnit.putAttachment( Attachments.DEPLOYMENT_ROOT, appRoot );
 
