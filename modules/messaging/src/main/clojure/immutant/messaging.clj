@@ -55,6 +55,11 @@
                         encoded (.receive consumer (or timeout 10000))]
                     (codecs/decode encoded)))))
 
+(defn message-seq
+  "A lazy sequence of messages received from a destination"
+  [dest-name]
+  (lazy-seq (cons (receive dest-name :timeout 0) (message-seq dest-name))))
+
 (defn listen 
   "The handler function, f, will receive any messages sent to dest-name"
   [dest-name f]

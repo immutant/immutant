@@ -49,3 +49,7 @@
 (deftest trigger-processor-to-log-something
   (wait-for-destination #(publish biscuit-queue "foo"))
   (is (= "FOO" (receive ham-queue :timeout 60000))))
+
+(deftest lazy-message-seq
+  (doseq [i (range 4)] (publish ham-queue i))
+  (is (= '(0 1 2 3) (take 4 (message-seq ham-queue)))))
