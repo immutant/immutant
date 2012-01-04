@@ -51,5 +51,6 @@
   (is (= "FOO" (receive ham-queue :timeout 60000))))
 
 (deftest lazy-message-seq
-  (doseq [i (range 4)] (publish ham-queue i))
-  (is (= '(0 1 2 3) (take 4 (message-seq ham-queue)))))
+  (let [messages (message-seq ham-queue)]
+    (doseq [i (range 4)] (publish ham-queue i))
+    (is (= '(0 1 2 3) (take 4 messages)))))
