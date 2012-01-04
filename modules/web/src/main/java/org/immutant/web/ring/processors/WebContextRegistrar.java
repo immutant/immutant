@@ -18,16 +18,13 @@
 
 package org.immutant.web.ring.processors;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import org.apache.catalina.Context;
 import org.immutant.core.processors.RegisteringProcessor;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.web.WebSubsystemServices;
+import org.jboss.as.web.deployment.WarDeploymentProcessor;
 import org.jboss.as.web.deployment.WarMetaData;
-import org.jboss.metadata.web.jboss.JBossWebMetaData;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.Value;
 
@@ -38,40 +35,16 @@ public class WebContextRegistrar extends RegisteringProcessor {
     public RegistryEntry registryEntry(DeploymentPhaseContext context) {
         DeploymentUnit unit = context.getDeploymentUnit();
         
-        // Borrowed from WarDeploymentProcessor, since we have to mimic its work
-        // to find the WebDeploymentService
-        
         final WarMetaData warMetaData = unit.getAttachment(WarMetaData.ATTACHMENT_KEY);
         if (warMetaData == null) {
             return null;
         }
-        Collection<String> hostNames = null;
-        if (warMetaData.getMergedJBossWebMetaData() != null) {
-            hostNames = warMetaData.getMergedJBossWebMetaData().getVirtualHosts();
-        }
-        if (hostNames == null || hostNames.isEmpty()) {
-            hostNames = Collections.singleton("default-host");
-        }
-        String hostName = hostNames.iterator().next();
-        if (hostName == null) {
-            throw new IllegalStateException("null host name");
-        }
-        final JBossWebMetaData webMetaData = warMetaData.getMergedJBossWebMetaData();
-        
-        String pathName;
-        if (webMetaData.getContextRoot() == null) {
-            pathName = "/" + unit.getName().substring(0, unit.getName().length() - 4);
-        } else {
-            pathName = webMetaData.getContextRoot();
-            if ("/".equals(pathName)) {
-                pathName = "";
-            } else if (pathName.length() > 0 && pathName.charAt(0) != '/') {
-                pathName = "/" + pathName;
-            }
-        }
-        
-        ServiceName serviceName = WebSubsystemServices.deploymentServiceName(hostName, pathName);
-        
+
+        String hostName = WarDeploymentProcessor.hostNameOfDeployment( warMetaData, "default-host" );
+        String pathName = WarDeploymentProcessor.pathNameOfDeployment( unit,
+                warMetaData.getMergedJBossWebMetaData() );
+        ServiceName serviceName = WebSubsystemServices.deploymentServiceName( hostName, pathName ); 
+                        
         Context webContext = ((Value<Context>)unit.getServiceRegistry().getService( serviceName )).getValue();
         
         return new RegistryEntry( "web-context", webContext );

@@ -26,9 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.immutant.core.ClojureMetaData;
 import org.immutant.web.ring.RingMetaData;
-import org.immutant.web.servlet.RingFilter;
 import org.jboss.as.clustering.jgroups.subsystem.ChannelFactoryService;
 import org.jboss.as.ee.structure.DeploymentType;
 import org.jboss.as.ee.structure.DeploymentTypeMarker;
@@ -48,9 +46,6 @@ import org.jboss.metadata.javaee.spec.ParamValueMetaData;
 import org.jboss.metadata.web.jboss.JBossServletMetaData;
 import org.jboss.metadata.web.jboss.JBossServletsMetaData;
 import org.jboss.metadata.web.jboss.JBossWebMetaData;
-import org.jboss.metadata.web.spec.FilterMappingMetaData;
-import org.jboss.metadata.web.spec.FilterMetaData;
-import org.jboss.metadata.web.spec.FiltersMetaData;
 import org.jboss.metadata.web.spec.MimeMappingMetaData;
 import org.jboss.metadata.web.spec.ServletMappingMetaData;
 import org.jboss.metadata.web.spec.WebFragmentMetaData;
@@ -91,27 +86,25 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
             return;
         }
 
-        ClojureMetaData appMetaData = unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
-       
         attachResourceRoot( unit );
         attachTldsMetaData( unit );
         WarMetaData warMetaData = getWarMetaData( unit );
         JBossWebMetaData jbossWebMetaData = getJBossWebMetaData( phaseContext, warMetaData );          
+                
+        String deploymentName = unit.getName();
+        if (deploymentName.endsWith( ".clj" )) {
+            deploymentName = deploymentName.substring( 0, deploymentName.length() - 4 );
+        }
+        jbossWebMetaData.setModuleName( deploymentName );
         
         DeploymentTypeMarker.setType( DeploymentType.WAR, unit );
         
         setUpMimeTypes( jbossWebMetaData );
         setUpStaticResourceServlet( ringMetaData, jbossWebMetaData );
         ensureSomeServlet( ringMetaData, jbossWebMetaData );
-        try {
-            setUpHostAndContext( unit, ringMetaData, warMetaData, jbossWebMetaData );
-        } catch (Exception e) {
-            throw new DeploymentUnitProcessingException( e );
-        }
 
-        jbossWebMetaData.setVirtualHosts( ringMetaData.getHosts() );
-        
-        
+        jbossWebMetaData.setContextRoot( ringMetaData.getContextPath() );
+        jbossWebMetaData.setVirtualHosts( ringMetaData.getHosts() );    
     }
 
     private void attachResourceRoot(DeploymentUnit unit) {
@@ -213,10 +206,6 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
             servletMappings.add( staticMapping );
         }
     }
-
-    protected void setupRingServlet(RingMetaData ringAppMetaData, JBossServletMetaData jbossWebMetaData) {
-    
-    }
     
     protected void ensureSomeServlet(RingMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
         JBossServletsMetaData servlets = jbossWebMetaData.getServlets();
@@ -235,11 +224,6 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
             List<ServletMappingMetaData> servletMappings = jbossWebMetaData.getServletMappings();
             servletMappings.add( fiveHundredMapping );
         }
-    }
-
-    protected void setUpHostAndContext(DeploymentUnit unit, RingMetaData ringAppMetaData, WarMetaData warMetaData, JBossWebMetaData jbossWebMetaData)
-            throws Exception {
-        jbossWebMetaData.setContextRoot( ringAppMetaData.getContextPath() );
     }
     
     protected MimeMappingMetaData createMimeMapping(String extension, String mimeType) {
