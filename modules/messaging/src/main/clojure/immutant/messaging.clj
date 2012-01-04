@@ -77,20 +77,3 @@
         (.close connection)
         (throw e)))))
 
-(defn wait-for-destination 
-  "Ignore exceptions, retrying until destination completely starts up"
-  [f & [count]]
-  (let [attempts (or count 30)
-        retry #(do (Thread/sleep 1000) (wait-for-destination f (dec attempts)))]
-    (try
-      (f)
-      (catch RuntimeException e
-        (if (and (instance? javax.jms.JMSException (.getCause e)) (> attempts 0))
-          (retry)
-          (throw e)))
-      (catch javax.naming.NameNotFoundException e
-        (if (> attempts 0) (retry) (throw e)))
-      (catch javax.jms.JMSException e
-        (if (> attempts 0) (retry) (throw e))))))
-
-

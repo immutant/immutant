@@ -30,24 +30,24 @@
                        }))
 
 (deftest simple "it should work"
-  (wait-for-destination #(publish ham-queue "testing"))
+  (publish ham-queue "testing")
   (is (= (receive ham-queue :timeout 60000) "testing")))
 
 (deftest explicit-clojure-encoding-should-work
-  (wait-for-destination #(publish ham-queue "testing" :encoding :clojure))
+  (publish ham-queue "testing" :encoding :clojure)
   (is (= (receive ham-queue :timeout 60000) "testing")))
 
 (deftest explicit-json-encoding-should-work
-  (wait-for-destination #(publish ham-queue "testing" :encoding :json))
+  (publish ham-queue "testing" :encoding :json)
   (is (= (receive ham-queue :timeout 60000) "testing")))
 
 (deftest complex-json-encoding-should-work
   (let [message {:a "b" :c {:d "e"}}]
-    (wait-for-destination #(publish ham-queue message :encoding :json))
+    (publish ham-queue message :encoding :json)
     (is (= (receive ham-queue :timeout 60000) message))))
 
 (deftest trigger-processor-to-log-something
-  (wait-for-destination #(publish biscuit-queue "foo"))
+  (publish biscuit-queue "foo")
   (is (= "FOO" (receive ham-queue :timeout 60000))))
 
 (deftest lazy-message-seq
