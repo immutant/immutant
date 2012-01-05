@@ -53,7 +53,7 @@
                   (let [destination (destination session dest-name)
                         consumer (.createConsumer session destination)
                         encoded (.receive consumer (or timeout 10000))]
-                    (codecs/decode encoded)))))
+                    (and encoded (codecs/decode encoded))))))
 
 (defn message-seq
   "A lazy sequence of messages received from a destination"

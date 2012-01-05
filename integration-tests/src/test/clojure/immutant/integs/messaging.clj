@@ -29,6 +29,9 @@
                        :init "basic-ring.core/init-messaging"
                        }))
 
+(deftest timeout-should-return-nil
+  (is (nil? (receive ham-queue :timeout 1))))
+
 (deftest simple "it should work"
   (publish ham-queue "testing")
   (is (= (receive ham-queue :timeout 60000) "testing")))
