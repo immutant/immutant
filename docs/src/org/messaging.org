@@ -15,19 +15,19 @@
 #+XSLT:
 
 * Introduction
-*** HornetQ
+** HornetQ
 
-    Immutant encapsulates the JBoss [[http://www.jboss.org/hornetq/][HornetQ message broker]].
-    It is automatically available to you, with no additional
-    configuration required to start the messaging service. HornetQ
-    supports clustered messaging, which provides load-balancing,
-    failover, and other advanced features.
+   Immutant encapsulates the JBoss [[http://www.jboss.org/hornetq/][HornetQ message broker]].
+   It is automatically available to you, with no additional
+   configuration required to start the messaging service. HornetQ
+   supports clustered messaging, which provides load-balancing,
+   failover, and other advanced features.
 
-    The term "messaging" encompasses a large area of functionality.
-    Messaging solutions are used to achieve loosely-coupled,
-    asynchronous systems. The primary actors in a messaging-based
-    system are messages, destinations, consumers, and producers. The
-    broker mediates the relationships between the other actors.
+   The term "messaging" encompasses a large area of functionality.
+   Messaging solutions are used to achieve loosely-coupled,
+   asynchronous systems. The primary actors in a messaging-based
+   system are messages, destinations, consumers, and producers. The
+   broker mediates the relationships between the other actors.
 
 * Destinations
 
