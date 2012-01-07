@@ -96,17 +96,25 @@ public class ClojureRuntime {
         }
     }
     
+    public void shutdown() {
+      invoke( "clojure.core/shutdown-agents" );
+    }
+    
     public ClassLoader getClassLoader() {
         return this.classLoader;
     }
     
+    protected Class loadClass(String className) {
+        try {
+            return this.classLoader.loadClass( className );
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException( "Failed to load " + className, e );
+        }
+    }
+    
     protected Class getRuntime() {
         if (this.runtime == null) {
-            try {
-                this.runtime = this.classLoader.loadClass( RUNTIME_CLASS );
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException( "Failed to load " + RUNTIME_CLASS, e );
-            }
+            this.runtime = loadClass( RUNTIME_CLASS );
         }
         
         return this.runtime;

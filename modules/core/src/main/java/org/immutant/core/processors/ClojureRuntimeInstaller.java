@@ -21,6 +21,8 @@ package org.immutant.core.processors;
 
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.ClojureRuntime;
+import org.immutant.core.ClojureRuntimeCloser;
+import org.immutant.core.as.CoreServices;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -28,6 +30,7 @@ import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.logging.Logger;
 import org.jboss.modules.Module;
+import org.jboss.msc.service.ServiceController.Mode;
 
 /**
  * Attaches a ClojureRuntime to the deployment. There is one ClojureRuntime per app.
@@ -58,6 +61,12 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
         runtime.invoke( "immutant.registry/set-msc-registry", deploymentUnit.getServiceRegistry() );
         
         deploymentUnit.putAttachment( ClojureRuntime.ATTACHMENT_KEY, runtime );
+        
+        ClojureRuntimeCloser service = new ClojureRuntimeCloser( runtime );
+        
+        phaseContext.getServiceTarget().addService(CoreServices.CORE.append( "runtime-closer" ), service)
+        .setInitialMode(Mode.ACTIVE)    
+        .install();
     }
 
     @Override
