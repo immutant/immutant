@@ -54,4 +54,7 @@ public class CoreServices {
         return unit.getServiceName().append( HOUSEKEEPER );
     }
  
+    public static ServiceName runtime(DeploymentUnit unit) {
+        return unit.getServiceName().append( CORE ).append( "clojure-runtime" );
+    }
 }

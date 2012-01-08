@@ -21,7 +21,6 @@ package org.immutant.core.processors;
 
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.ClojureRuntime;
-import org.immutant.core.ClojureRuntimeCloser;
 import org.immutant.core.as.CoreServices;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
@@ -62,9 +61,7 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
         
         deploymentUnit.putAttachment( ClojureRuntime.ATTACHMENT_KEY, runtime );
         
-        ClojureRuntimeCloser service = new ClojureRuntimeCloser( runtime );
-        
-        phaseContext.getServiceTarget().addService(CoreServices.CORE.append( "runtime-closer" ), service)
+        phaseContext.getServiceTarget().addService(CoreServices.runtime( deploymentUnit ), runtime)
         .setInitialMode(Mode.ACTIVE)    
         .install();
     }

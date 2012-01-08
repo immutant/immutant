@@ -23,6 +23,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.jboss.as.server.deployment.AttachmentKey;
+import org.jboss.logging.Logger;
+import org.jboss.msc.service.Service;
+import org.jboss.msc.service.StartContext;
+import org.jboss.msc.service.StartException;
+import org.jboss.msc.service.StopContext;
 
 /**
  * Wraps the clojure runtime (clojure.lang.RT) in reflection so we can load different
@@ -31,13 +36,33 @@ import org.jboss.as.server.deployment.AttachmentKey;
  * @author Toby Crawley
  *
  */
-public class ClojureRuntime {
+public class ClojureRuntime implements Service<ClojureRuntime> {
     public static final AttachmentKey<ClojureRuntime> ATTACHMENT_KEY = AttachmentKey.create( ClojureRuntime.class );
     
     public ClojureRuntime(ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
    
+    @Override
+    public void start(StartContext context) throws StartException {
+
+    }
+
+    @Override
+    public synchronized void stop(StopContext context) {
+        log.info( "Shutting down Clojure runtime" );
+        invoke( "clojure.core/shutdown-agents" );
+    }
+    
+    @Override 
+    public ClojureRuntime getValue() {
+        return this;
+    }
+    
+    public ClassLoader getClassLoader() {
+        return this.classLoader;
+    }
+    
     public Object invoke(String namespacedFunction, Object... args) {
         load( CLOJURE_UTIL_NAME ); //TODO: see the performance impact of loading every call. Maybe cache these in production?
         Object func = var( CLOJURE_UTIL_NS, "require-and-invoke" );
@@ -96,14 +121,6 @@ public class ClojureRuntime {
         }
     }
     
-    public void shutdown() {
-      invoke( "clojure.core/shutdown-agents" );
-    }
-    
-    public ClassLoader getClassLoader() {
-        return this.classLoader;
-    }
-    
     protected Class loadClass(String className) {
         try {
             return this.classLoader.loadClass( className );
@@ -126,4 +143,6 @@ public class ClojureRuntime {
     protected static final String RUNTIME_CLASS = "clojure.lang.RT";   
     protected static final String CLOJURE_UTIL_NAME = "immutant/runtime";
     protected static final String CLOJURE_UTIL_NS = "immutant.runtime";
+    
+    static final Logger log = Logger.getLogger( "org.immutant.core" );
 }
