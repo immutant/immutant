@@ -79,7 +79,7 @@
       </activation>
       <modules>
         <module>integration-tests</module>
-        <!-- <module>docs</module> -->
+        <module>docs</module>
       </modules>
     </profile>
 
