@@ -54,12 +54,16 @@
 
 (defn stop-queue [name]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
-    (.destroyQueue manager name)))
+    (try
+      (.destroyQueue manager name)
+      (println "Stopped queue" name)
+      (catch Throwable e
+        (println "WARN:" (.getMessage (.getCause e)))))))
   
 (defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
-    (and (.createQueue manager false name selector durable (into-array String []))
-         (at-exit #(stop-queue name)))
+    (do (.createQueue manager false name selector durable (into-array String []))
+        (at-exit #(stop-queue name)))
     (throw (Exception. (str "Unable to start queue, " name)))))
 
 (defn stop-topic [name]
@@ -68,8 +72,8 @@
   
 (defn start-topic [name & opts]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
-    (and (.createTopic manager false name (into-array String []))
-         (at-exit #(stop-topic name)))
+    (do (.createTopic manager false name (into-array String []))
+        (at-exit #(stop-topic name)))
     (throw (Exception. (str "Unable to start topic, " name)))))
 
 

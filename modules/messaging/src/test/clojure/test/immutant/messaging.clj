@@ -20,6 +20,21 @@
   (:use [immutant.messaging])
   (:use [clojure.test]))
 
+(def dummies { "jboss.messaging.default.jms.manager"
+               (proxy [org.hornetq.jms.server.JMSServerManager][]
+                 (createQueue [& _] false)
+                 (createTopic [& _] false))
+               "housekeeper" nil})
+
+(defn test-already-running [destination]
+  (let [names (atom (keys dummies))]
+    (with-redefs [lookup/fetch (fn [k]
+                                 (swap! names (partial remove #(= % k)))
+                                 (dummies k))]
+      (is (not (empty? @names)))
+      (is (= nil (start destination)))
+      (is (empty? @names)))))
+
 (deftest start-queue-outside-of-container
   (is (thrown-with-msg? Exception #"Unable to start queue" (start "/queue/barf"))))
 
@@ -27,19 +42,11 @@
   (is (thrown-with-msg? Exception #"Unable to start topic" (start "/topic/barf"))))
 
 (deftest queue-already-running
-  (with-redefs [lookup/fetch (fn [name]
-                                 (is (= name "jboss.messaging.default.jms.manager"))
-                                 (proxy [org.hornetq.jms.server.JMSServerManager][]
-                                   (createQueue [& _] false)))]
-    (is (= false (start "/queue/foo")))))
+  (test-already-running "/queue/foo"))
 
 (deftest topic-already-running
-  (with-redefs [lookup/fetch (fn [name]
-                                 (is (= name "jboss.messaging.default.jms.manager"))
-                                 (proxy [org.hornetq.jms.server.JMSServerManager][]
-                                   (createTopic [& _] false)))]
-    (is (= false (start "/topic/foo")))))
-
+  (test-already-running "/topic/foo"))
+  
 (deftest bad-destination-name
   (is (thrown-with-msg? Exception #"names must start with" (start "/bad/name"))))
 
