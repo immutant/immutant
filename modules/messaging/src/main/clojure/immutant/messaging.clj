@@ -30,7 +30,9 @@
     (apply start-topic (cons name opts))))
 
 (defn stop 
-  "Destroy message destination"
+  "Destroy a message destination. Typically not necessary since it
+  will be done for you when your app is undeployed. This will fail
+  with a warning if any handlers are listening"
   [name]
   (cond
    (queue? name) (stop-queue name)
@@ -61,7 +63,7 @@
   (lazy-seq (cons (receive dest-name :timeout 0) (message-seq dest-name))))
 
 (defn listen 
-  "The handler function, f, will receive any messages sent to dest-name"
+  "The handler function, f, will receive any messages sent to dest-name."
   [dest-name f]
   (let [connection (.createConnection connection-factory)]
     (try
@@ -73,7 +75,14 @@
                                           (f (codecs/decode message)))))
         (at-exit #(.close connection))
         (.start connection))
+      connection
       (catch Throwable e
         (.close connection)
         (throw e)))))
 
+(defn unlisten
+  "Pass the result of a call to listen to de-register the handler. You
+  only need to do this if you wish to stop the handler's destination
+  before your app is undeployed"
+  [listener]
+  (.close listener))

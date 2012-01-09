@@ -68,7 +68,11 @@
 
 (defn stop-topic [name]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
-    (.destroyTopic manager name)))
+    (try
+      (.destroyTopic manager name)
+      (println "Stopped topic" name)
+      (catch Throwable e
+        (println "WARN:" (.getMessage (.getCause e)))))))
   
 (defn start-topic [name & opts]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
