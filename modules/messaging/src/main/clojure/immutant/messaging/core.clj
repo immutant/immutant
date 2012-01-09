@@ -52,32 +52,26 @@
    (topic? name) (.createTopic session name)
    :else (throw (Exception. "Illegal destination name"))))
 
-(defn stop-queue [name]
+(defn stop-destination [name]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
     (try
-      (.destroyQueue manager name)
-      (println "Stopped queue" name)
+      (if (queue? name)
+        (.destroyQueue manager name)
+        (.destroyTopic manager name))
+      (println "Stopped" name)
       (catch Throwable e
         (println "WARN:" (.getMessage (.getCause e)))))))
-  
+
 (defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
     (do (.createQueue manager false name selector durable (into-array String []))
-        (at-exit #(stop-queue name)))
+        (at-exit #(stop-destination name)))
     (throw (Exception. (str "Unable to start queue, " name)))))
 
-(defn stop-topic [name]
-  (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
-    (try
-      (.destroyTopic manager name)
-      (println "Stopped topic" name)
-      (catch Throwable e
-        (println "WARN:" (.getMessage (.getCause e)))))))
-  
 (defn start-topic [name & opts]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
     (do (.createTopic manager false name (into-array String []))
-        (at-exit #(stop-topic name)))
+        (at-exit #(stop-destination name)))
     (throw (Exception. (str "Unable to start topic, " name)))))
 
 

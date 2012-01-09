@@ -34,10 +34,9 @@
   will be done for you when your app is undeployed. This will fail
   with a warning if any handlers are listening"
   [name]
-  (cond
-   (queue? name) (stop-queue name)
-   (topic? name) (stop-topic name)
-   :else (throw (Exception. "Illegal destination name"))))
+  (if (or (queue? name) (topic? name))
+    (stop-destination name)
+    (throw (Exception. "Illegal destination name"))))
 
 (defn publish 
   "Send a message to a destination"
