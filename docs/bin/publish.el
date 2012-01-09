@@ -17,6 +17,7 @@
            :email-info nil
            :creator-info nil
            :html-postamble nil
+           :style "<link rel='stylesheet' type='text/css' href='css/stylesheet.css' />"
            )
           ("static"
            :base-directory ,(expand-file-name "src/org/" dir)

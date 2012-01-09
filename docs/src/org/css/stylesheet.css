@@ -1,0 +1,12 @@
+body {
+    background-image: url("../images/bkg_gradient.gif");
+    background-repeat: repeat-x;
+    color: #333333;
+    font-family: 'Lucida Grande',Geneva,Verdana,Arial,sans-serif;
+    font-size: 12px;
+    line-height: 150%;
+    margin: 0 auto;
+    max-width: 55em;
+    padding: 0 2em;
+    text-align: justify;
+}
