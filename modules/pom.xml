@@ -16,6 +16,7 @@
   <modules>
     <module>core</module>
     <module>daemons</module>
+    <module>jobs</module>
     <module>messaging</module>
     <module>web</module>
   </modules>

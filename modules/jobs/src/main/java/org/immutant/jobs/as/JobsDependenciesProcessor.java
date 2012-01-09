@@ -17,49 +17,44 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.core.processors;
+package org.immutant.jobs.as;
 
 import org.immutant.core.ClojureMetaData;
-import org.immutant.core.ClojureRuntime;
+import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
+import org.jboss.as.server.deployment.module.ModuleDependency;
+import org.jboss.as.server.deployment.module.ModuleSpecification;
+import org.jboss.modules.Module;
+import org.jboss.modules.ModuleIdentifier;
+import org.jboss.modules.ModuleLoader;
 
-public abstract class RegisteringProcessor implements DeploymentUnitProcessor {
+public class JobsDependenciesProcessor implements DeploymentUnitProcessor {
+    
+    private static ModuleIdentifier IMMUTANT_JOBS_ID = ModuleIdentifier.create("org.immutant.jobs");
 
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         DeploymentUnit unit = phaseContext.getDeploymentUnit();
-        if (!unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
-            return;
-        }
+        
+        final ModuleSpecification moduleSpecification = unit.getAttachment( Attachments.MODULE_SPECIFICATION );
+        final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
-        try {
-            ClojureRuntime runtime = unit.getAttachment( ClojureRuntime.ATTACHMENT_KEY );
-            RegistryEntry entry = registryEntry( phaseContext );
-            if (entry != null) {
-                runtime.invoke( "immutant.registry/put", entry.key, entry.value );
-            }
-        } catch (Exception e) {
-            throw new DeploymentUnitProcessingException( e );
+        if (unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
+            addDependency( moduleSpecification, moduleLoader, IMMUTANT_JOBS_ID );
         }
     }
 
-    public abstract RegistryEntry registryEntry( DeploymentPhaseContext context ) throws Exception;
+    private void addDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, ModuleIdentifier moduleIdentifier) {
+        moduleSpecification.addLocalDependency( new ModuleDependency( moduleLoader, moduleIdentifier, false, false, false ) );
+    }
 
     @Override
-    public void undeploy(DeploymentUnit arg0) {
+    public void undeploy(DeploymentUnit context) {
+        // TODO Auto-generated method stub
+
     }
 
-
-    protected class RegistryEntry {
-        public String key;
-        public Object value;
-
-        public RegistryEntry(String key, Object value) {
-            this.key = key;
-            this.value = value;
-        }
-    }
 }
