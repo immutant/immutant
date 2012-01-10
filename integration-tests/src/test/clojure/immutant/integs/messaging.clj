@@ -25,8 +25,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/ring/basic-ring/"
-                       :init "basic-ring.core/init-messaging"
+                       :root "apps/messaging/"
                        }))
 
 (deftest timeout-should-return-nil
