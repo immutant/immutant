@@ -27,8 +27,8 @@
 (defn topic? [name]
   (.startsWith name "/topic"))
 
-(defn normalize
-  "Normalize publish options relative to default values from a producer"
+(defn wash-publish-options
+  "Wash publish options relative to default values from a producer"
   [opts producer]
   {:delivery (if (contains? opts :persistent)
                (if (:persistent opts)
