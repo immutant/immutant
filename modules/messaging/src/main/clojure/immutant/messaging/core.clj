@@ -17,7 +17,7 @@
 
 (ns immutant.messaging.core
   (:use [immutant.utilities :only (at-exit)])
-  (:import (javax.jms Session))
+  (:import (javax.jms Session DeliveryMode))
   (:require [immutant.registry :as lookup])
   (:require [immutant.messaging.hornetq-direct :as hornetq]))
 
@@ -26,6 +26,20 @@
 
 (defn topic? [name]
   (.startsWith name "/topic"))
+
+(defn normalize
+  "Normalize publish options relative to default values from a producer"
+  [opts producer]
+  {:delivery (if (contains? opts :persistent)
+               (if (:persistent opts)
+                 DeliveryMode/PERSISTENT
+                 DeliveryMode/NON_PERSISTENT)
+               (.getDeliveryMode producer))
+   :priority (let [priorities {:low 1, :normal 4, :high 7, :critical 9}]
+               (or (priorities (:priority opts))
+                   (:priority opts)
+                   (.getPriority producer)))
+   :ttl (or (:ttl opts) (.getTimeToLive producer))})
 
 (def connection-factory
   (if-let [reference-factory (lookup/fetch "jboss.naming.context.java.ConnectionFactory")]

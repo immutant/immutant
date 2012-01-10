@@ -26,8 +26,8 @@
   (when-not (or (queue? name) (topic? name))
     (throw (Exception. "Destination names must start with /queue or /topic")))
   (if (queue? name)
-    (apply start-queue (cons name opts))
-    (apply start-topic (cons name opts))))
+    (apply start-queue name opts)
+    (apply start-topic name opts)))
 
 (defn stop 
   "Destroy a message destination. Typically not necessary since it
@@ -44,8 +44,9 @@
   (with-session (fn [session]
                   (let [destination (destination session dest-name)
                         producer (.createProducer session destination)
-                        encoded (codecs/encode session message opts)]
-                  (.send producer encoded)))))
+                        encoded (codecs/encode session message opts)
+                        {:keys [delivery priority ttl]} (normalize opts producer)]
+                  (.send producer encoded delivery priority ttl)))))
     
 (defn receive 
   "Receive a message from a destination"
