@@ -55,4 +55,28 @@
 (deftest lazy-message-seq
   (let [messages (message-seq ham-queue)]
     (doseq [i (range 4)] (publish ham-queue i))
-    (is (= '(0 1 2 3) (take 4 messages)))))
+    (is (= (range 4) (take 4 messages)))))
+
+(deftest ttl-high
+  (publish ham-queue "live!" :ttl 9999)
+  (is (= "live!" (receive ham-queue :timeout 1000))))
+
+(deftest ttl-low
+  (publish ham-queue "die!" :ttl 1)
+  (is (nil? (receive ham-queue :timeout 1000))))
+
+(deftest default-priority-should-be-fifo
+  (let [messages (message-seq ham-queue)]
+    (doseq [x (range 10)] (publish ham-queue x))
+    (is (= (range 10) (take 10 messages)))))
+
+(deftest prioritize-by-integer
+  (let [messages (message-seq ham-queue)]
+    (doseq [x (range 10)] (publish ham-queue x :priority x))
+    (is (= (reverse (range 10)) (take 10 messages)))))
+
+(deftest prioritize-by-keyword
+  (let [messages (message-seq ham-queue)
+        labels [:low :normal :high :critical]]
+    (doseq [x (range 4)] (publish ham-queue x :priority (labels x)))
+    (is (= (reverse (range 4)) (take 4 messages)))))

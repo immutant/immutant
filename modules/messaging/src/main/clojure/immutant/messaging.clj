@@ -40,13 +40,13 @@
 
 (defn publish 
   "Send a message to a destination"
-  [dest-name message & opts]
+  [dest-name message & {:as opts}]
   (with-session (fn [session]
                   (let [destination (destination session dest-name)
                         producer (.createProducer session destination)
                         encoded (codecs/encode session message opts)
                         {:keys [delivery priority ttl]} (wash-publish-options opts producer)]
-                  (.send producer encoded delivery priority ttl)))))
+                    (.send producer encoded delivery priority ttl)))))
     
 (defn receive 
   "Receive a message from a destination"
