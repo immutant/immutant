@@ -50,3 +50,51 @@
 (deftest option-ttl-long
   (let [opts (wash-publish-options {:ttl 1000} producer)]
     (is (= (:ttl opts) 1000))))
+
+
+;; Tests/utilities for message property setting
+
+(defmacro message-proxy
+  "Create proxy that only responds to a single setter"
+  [setter]
+  `(let [params# (atom {})]
+     (proxy [javax.jms.Message][]
+       (~setter [k# v#] (swap! params# assoc k# v#))
+       (getObjectProperty [key#] (@params# key#)))))
+
+(defn test-properties [message properties pred]
+  (set-properties! message properties)
+  (is (every? pred (map #(.getObjectProperty message (name %)) (keys properties)))))
+  
+(deftest properties-long
+  (test-properties (message-proxy setLongProperty)
+                   {:literal 6
+                    :int     (int 6)
+                    :long    (long 6)
+                    :bigint  (bigint 6)
+                    :short   (short 6)
+                    :byte    (byte 6)}
+                   (partial = 6)))
+
+(deftest properties-double
+  (test-properties (message-proxy setDoubleProperty)
+                   {:literal 6.5
+                    :float   (float 6.5)
+                    :double  (double 6.5)}
+                   (partial = 6.5)))
+
+(deftest properties-boolean
+  (test-properties (message-proxy setBooleanProperty)
+                   {:literal true
+                    :boolean (boolean 6)}
+                   (partial = true))
+  (test-properties (message-proxy setBooleanProperty)
+                   {:literal false
+                    :boolean (boolean nil)}
+                   (partial = false)))
+
+(deftest properties-string
+  (test-properties (message-proxy setStringProperty)
+                   {:literal "{}"
+                    :hashmap {}}
+                   (partial = "{}")))

@@ -41,6 +41,18 @@
                    (.getPriority producer)))
    :ttl (or (:ttl opts) (.getTimeToLive producer))})
 
+(defn set-properties!
+  "Set user-defined properties on a JMS message. Returns message"
+  [message properties]
+  (doseq [[k,v] properties]
+    (let [key (name k)]
+      (cond
+       (integer? v) (.setLongProperty message key (long v))
+       (float? v) (.setDoubleProperty message key (double v))
+       (instance? Boolean v) (.setBooleanProperty message key v)
+       :else (.setStringProperty message key (str v)))))
+  message)
+
 (def connection-factory
   (if-let [reference-factory (lookup/fetch "jboss.naming.context.java.ConnectionFactory")]
     (let [reference (.getReference reference-factory)]

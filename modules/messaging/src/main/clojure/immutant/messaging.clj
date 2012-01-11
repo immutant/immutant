@@ -40,11 +40,12 @@
 
 (defn publish 
   "Send a message to a destination"
-  [dest-name message & {:as opts}]
+  [dest-name message & {:keys [priority persistent ttl properties encoding]
+                        :or {properties {}} :as opts}]
   (with-session (fn [session]
                   (let [destination (destination session dest-name)
                         producer (.createProducer session destination)
-                        encoded (codecs/encode session message opts)
+                        encoded (set-properties! (codecs/encode session message opts) properties)
                         {:keys [delivery priority ttl]} (wash-publish-options opts producer)]
                     (.send producer encoded delivery priority ttl)))))
     
