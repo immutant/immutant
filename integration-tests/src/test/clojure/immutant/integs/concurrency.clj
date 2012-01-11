@@ -26,8 +26,7 @@
                        }))
 
 (deftest concurrent-listeners
-  (let [results (atom #{})]
-    (time (dotimes [x 100] (publish "/queue/main" x)))
-    (time (dotimes [x 100] (swap! results conj (receive "/queue/backchannel"))))
-    (println "JC:" @results)
-    (is (> (count @results) 1))))
+  (let [threads (atom #{})]
+    (publish "/queue/main" "start")
+    (time (dotimes [x 100] (swap! threads conj (receive "/queue/backchannel"))))
+    (is (> (count @threads) 1))))
