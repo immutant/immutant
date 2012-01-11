@@ -64,17 +64,18 @@
 
 (defn listen 
   "The handler function, f, will receive any messages sent to dest-name."
-  [dest-name f]
+  [dest-name f & {:keys [concurrency] :or {concurrency 1}}]
   (let [connection (.createConnection connection-factory)]
     (try
-      (let [session (create-session connection)
-            destination (destination session dest-name)
-            consumer (.createConsumer session destination)]
-        (.setMessageListener consumer (proxy [javax.jms.MessageListener] []
-                                        (onMessage [message]
-                                          (f (codecs/decode message)))))
-        (at-exit #(.close connection))
-        (.start connection))
+      (dotimes [_ concurrency]
+        (let [session (create-session connection)
+              destination (destination session dest-name)
+              consumer (.createConsumer session destination)]
+          (.setMessageListener consumer (proxy [javax.jms.MessageListener] []
+                                          (onMessage [message]
+                                            (f (codecs/decode message)))))))
+      (at-exit #(.close connection))
+      (.start connection)
       connection
       (catch Throwable e
         (.close connection)
