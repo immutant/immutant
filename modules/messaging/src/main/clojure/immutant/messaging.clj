@@ -45,7 +45,7 @@
                   (let [destination (destination session dest-name)
                         producer (.createProducer session destination)
                         encoded (set-properties! (codecs/encode session message opts)
-                                                 (opts :properties))
+                                                 (:properties opts))
                         {:keys [delivery priority ttl]} (wash-publish-options opts producer)]
                     (.send producer encoded delivery priority ttl)))))
     
