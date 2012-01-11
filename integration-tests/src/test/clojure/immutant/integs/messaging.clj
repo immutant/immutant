@@ -81,3 +81,9 @@
         size (count labels)]
     (dotimes [x size] (publish ham-queue x :priority (labels x)))
     (is (= (reverse (range size)) (take size messages)))))
+
+(deftest select-lower-priority
+  (publish ham-queue 5 :properties {:prop 5} :priority :high)
+  (publish ham-queue 3 :properties {:prop 3} :priority :low)
+  (is (= 3 (receive ham-queue :selector "prop < 5")))
+  (is (= 5 (receive ham-queue))))

@@ -51,10 +51,10 @@
     
 (defn receive 
   "Receive a message from a destination"
-  [dest-name & {timeout :timeout}]
+  [dest-name & {:keys [timeout selector]}]
   (with-session (fn [session]
                   (let [destination (destination session dest-name)
-                        consumer (.createConsumer session destination)
+                        consumer (.createConsumer session destination selector)
                         encoded (.receive consumer (or timeout 10000))]
                     (and encoded (codecs/decode encoded))))))
 
