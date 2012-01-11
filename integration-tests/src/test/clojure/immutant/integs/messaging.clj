@@ -25,7 +25,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/messaging/"
+                       :root "apps/messaging/basic"
                        }))
 
 (deftest timeout-should-return-nil
@@ -67,16 +67,17 @@
 
 (deftest default-priority-should-be-fifo
   (let [messages (message-seq ham-queue)]
-    (doseq [x (range 10)] (publish ham-queue x))
+    (dotimes [x 10] (publish ham-queue x))
     (is (= (range 10) (take 10 messages)))))
 
 (deftest prioritize-by-integer
   (let [messages (message-seq ham-queue)]
-    (doseq [x (range 10)] (publish ham-queue x :priority x))
+    (dotimes [x 10] (publish ham-queue x :priority x))
     (is (= (reverse (range 10)) (take 10 messages)))))
 
 (deftest prioritize-by-keyword
   (let [messages (message-seq ham-queue)
-        labels [:low :normal :high :critical]]
-    (doseq [x (range 4)] (publish ham-queue x :priority (labels x)))
-    (is (= (reverse (range 4)) (take 4 messages)))))
+        labels [:low :normal :high :critical]
+        size (count labels)]
+    (dotimes [x size] (publish ham-queue x :priority (labels x)))
+    (is (= (reverse (range size)) (take size messages)))))
