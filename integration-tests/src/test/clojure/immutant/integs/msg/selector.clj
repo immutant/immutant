@@ -24,7 +24,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/messaging/basic"
+                       :root "apps/messaging/selector"
                        }))
 
 (deftest select-lower-priority
@@ -58,3 +58,8 @@
     ;; Now purge the ignored message
     (is (= "first" (receive ham-queue)))))
     
+(deftest queue-with-selector
+  (publish "/queue/filtered" "failure")
+  (is (nil? (receive "/queue/filtered" :timeout 500)))
+  (publish "/queue/filtered" "success" :properties {:color "blue"})
+  (is (= "success" (receive "/queue/filtered"))))
