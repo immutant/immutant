@@ -15,33 +15,21 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.msg.priority
+(ns immutant.integs.msg.topics
   (:use fntest.core)
   (:use clojure.test)
   (:use immutant.messaging))
 
-(def ham-queue "/queue/ham")
-(def biscuit-queue "/queue/biscuit")
+(def gravy "/topic/gravy")
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/messaging/queues"
+                       :root "apps/messaging/topics"
                        }))
 
-(deftest default-priority-should-be-fifo
-  (let [messages (message-seq ham-queue)]
-    (dotimes [x 10] (publish ham-queue x))
-    (is (= (range 10) (take 10 messages)))))
-
-(deftest prioritize-by-integer
-  (let [messages (message-seq ham-queue)]
-    (dotimes [x 10] (publish ham-queue x :priority x))
-    (is (= (reverse (range 10)) (take 10 messages)))))
-
-(deftest prioritize-by-keyword
-  (let [messages (message-seq ham-queue)
-        labels [:low :normal :high :critical]
-        size (count labels)]
-    (dotimes [x size] (publish ham-queue x :priority (labels x)))
-    (is (= (reverse (range size)) (take size messages)))))
-
+(deftest publish-to-multiple-subscribers
+  (let [msgs (pmap (fn [_] (receive gravy)) (range 10))]
+    (Thread/sleep 1000)                 ; give subscribers some time 
+    (publish gravy "biscuit")
+    (is (= 10 (count msgs)))
+    (is (every? (partial = "biscuit") msgs))))
