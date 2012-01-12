@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.messaging
+(ns immutant.integs.msg.priority
   (:use fntest.core)
   (:use clojure.test)
   (:use immutant.messaging))
@@ -27,43 +27,6 @@
                       {
                        :root "apps/messaging/basic"
                        }))
-
-(deftest timeout-should-return-nil
-  (is (nil? (receive ham-queue :timeout 1))))
-
-(deftest simple "it should work"
-  (publish ham-queue "testing")
-  (is (= (receive ham-queue :timeout 60000) "testing")))
-
-(deftest explicit-clojure-encoding-should-work
-  (publish ham-queue "testing" :encoding :clojure)
-  (is (= (receive ham-queue :timeout 60000) "testing")))
-
-(deftest explicit-json-encoding-should-work
-  (publish ham-queue "testing" :encoding :json)
-  (is (= (receive ham-queue :timeout 60000) "testing")))
-
-(deftest complex-json-encoding-should-work
-  (let [message {:a "b" :c {:d "e"}}]
-    (publish ham-queue message :encoding :json)
-    (is (= (receive ham-queue :timeout 60000) message))))
-
-(deftest trigger-processor-to-log-something
-  (publish biscuit-queue "foo")
-  (is (= "FOO" (receive ham-queue :timeout 60000))))
-
-(deftest lazy-message-seq
-  (let [messages (message-seq ham-queue)]
-    (doseq [i (range 4)] (publish ham-queue i))
-    (is (= (range 4) (take 4 messages)))))
-
-(deftest ttl-high
-  (publish ham-queue "live!" :ttl 9999)
-  (is (= "live!" (receive ham-queue :timeout 1000))))
-
-(deftest ttl-low
-  (publish ham-queue "die!" :ttl 1)
-  (is (nil? (receive ham-queue :timeout 1000))))
 
 (deftest default-priority-should-be-fifo
   (let [messages (message-seq ham-queue)]
@@ -82,8 +45,3 @@
     (dotimes [x size] (publish ham-queue x :priority (labels x)))
     (is (= (reverse (range size)) (take size messages)))))
 
-(deftest select-lower-priority
-  (publish ham-queue 5 :properties {:prop 5} :priority :high)
-  (publish ham-queue 3 :properties {:prop 3} :priority :low)
-  (is (= 3 (receive ham-queue :selector "prop < 5")))
-  (is (= 5 (receive ham-queue))))
