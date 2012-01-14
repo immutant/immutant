@@ -18,7 +18,7 @@
 (ns immutant.registry
   (:import (org.jboss.msc.service ServiceName)))
 
-(def ^{:private true} registry (java.util.HashMap.))
+(def ^{:private true} registry (atom {}))
 (def ^{:private true} msc-registry nil)
 
 (defn set-msc-registry [v]
@@ -31,8 +31,8 @@
       (and value (.getValue value)))))
   
 (defn put [k v]
-  (.put registry k v))
+  (swap! registry assoc k v))
 
 (defn fetch [name]
-  (or (get registry name) (get-from-msc name)))
+  (or (get @registry name) (get-from-msc name)))
 
