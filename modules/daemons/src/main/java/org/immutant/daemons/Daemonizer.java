@@ -19,69 +19,31 @@
 
 package org.immutant.daemons;
 
-import java.util.*;
-import javax.management.MBeanServer;
 import org.immutant.daemons.as.DaemonServices;
+import org.jboss.as.jmx.MBeanRegistrationService;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.jboss.as.jmx.*;
-import org.jboss.msc.service.*;
-import org.jboss.msc.service.ServiceController.Mode;
-import org.jboss.msc.service.ServiceBuilder.DependencyType;
+import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.ImmediateValue;
-import org.jboss.logging.Logger;
-import org.projectodd.polyglot.core.app.ApplicationMetaData;
-import org.projectodd.polyglot.hasingleton.HASingleton;
+import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
 
 
-public class Daemonizer implements Service<Daemonizer> {
+public class Daemonizer extends AtRuntimeInstaller<Daemonizer> {
 
     public Daemonizer(DeploymentUnit unit) {
-        this.unit = unit;
+        super( unit );
     }
 
     public void deploy(final String daemonName, Runnable start, Runnable stop, boolean singleton) {
 
         Daemon daemon = new Daemon(start, stop);
         DaemonService daemonService = new DaemonService( daemon );
-        ServiceName serviceName = DaemonServices.daemon( unit, daemonName );
-        ServiceBuilder<Daemon> builder = this.serviceTarget.addService(serviceName, daemonService);
-        if (singleton) {
-            builder.addDependency(HASingleton.serviceName(unit));
-        }
-        builder.setInitialMode(Mode.PASSIVE);
-        builder.install();
+        ServiceName serviceName = DaemonServices.daemon( getUnit(), daemonName );
+        deploy( serviceName, daemonService, singleton );
 
-        installMBean(serviceName, daemon);
+        installMBean( serviceName,
+                new MBeanRegistrationService<DaemonMBean>( mbeanName( "immutant.daemons", serviceName ), 
+                        new ImmediateValue<DaemonMBean>( daemon ) ) ); 
+
     }
 
-    public void start(StartContext context) throws StartException {
-        this.serviceTarget = context.getChildTarget();
-    }
-
-    public synchronized void stop(StopContext context) {
-    }
-
-    public Daemonizer getValue() {
-        return this;
-    }
-
-    protected void installMBean(final ServiceName name, Daemon daemon) {
-        final ApplicationMetaData appMetaData = unit.getAttachment( ApplicationMetaData.ATTACHMENT_KEY );
-        String mbeanName = ObjectNameFactory.create( "immutant.daemons", new Hashtable<String, String>() {
-                {
-                    put( "app", appMetaData.getApplicationName() );
-                    put( "name", name.getSimpleName() );
-                }
-            } ).toString();
-
-        MBeanRegistrationService<DaemonMBean> mbeanService = new MBeanRegistrationService<DaemonMBean>( mbeanName, new ImmediateValue<DaemonMBean>( daemon ) );
-        this.serviceTarget.addService( name.append( "mbean" ), mbeanService )
-            .addDependency( DependencyType.OPTIONAL, MBeanServerService.SERVICE_NAME, MBeanServer.class, mbeanService.getMBeanServerInjector() )
-            .setInitialMode( Mode.PASSIVE )
-            .install(); 
-    }
-
-    private DeploymentUnit unit;;
-    private ServiceTarget serviceTarget;
-    private static final Logger log = Logger.getLogger( Daemonizer.class );
 }

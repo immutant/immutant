@@ -22,6 +22,13 @@
     </dependency>
 
     <dependency>
+      <groupId>org.projectodd</groupId>
+      <artifactId>polyglot-core-extensions</artifactId>
+      <version>${version.polyglot}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
       <scope>compile</scope>

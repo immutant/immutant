@@ -28,6 +28,7 @@
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="clojure.jar"/>
         <resource-root path="polyglot-core.jar"/>
+        <resource-root path="polyglot-core-extensions.jar"/>
         <resource-root path="tools.logging.jar"/>
     </resources>
 
