@@ -29,17 +29,15 @@
     (apply start-queue name opts)
     (apply start-topic name opts)))
 
-(defn stop 
-  "Destroy a message destination. Typically not necessary since it
-  will be done for you when your app is undeployed. This will fail
-  with a warning if any handlers are listening"
-  [name]
-  (if (or (queue? name) (topic? name))
-    (stop-destination name)
-    (throw (Exception. "Illegal destination name"))))
-
 (defn publish 
-  "Send a message to a destination"
+  "Send a message to a destination
+
+   The following options are supported [default]:
+    :encoding     :clojure :json or :text [:clojure]
+    :priority     0-9 or :low :normal :high :critical [4]
+    :ttl          time to live, in ms [0=forever]
+    :persistent   whether undelivered messages survive restarts [true]
+    :properties   a hash to which selectors may be applied"
   [dest-name message & {:as opts}]
   (with-session (fn [session]
                   (let [destination (destination session dest-name)
@@ -50,7 +48,11 @@
                     (.send producer encoded delivery priority ttl)))))
     
 (defn receive 
-  "Receive a message from a destination"
+  "Receive a message from a destination
+
+   The following options are supported [default]:
+    :timeout    time in ms, after which nil is returned [10000]
+    :selector   A JMS (SQL 92) expression matching message properties"
   [dest-name & {:keys [timeout selector]}]
   (with-session (fn [session]
                   (let [destination (destination session dest-name)
@@ -59,12 +61,15 @@
                     (and encoded (codecs/decode encoded))))))
 
 (defn message-seq
-  "A lazy sequence of messages received from a destination"
-  [dest-name]
-  (lazy-seq (cons (receive dest-name :timeout 0) (message-seq dest-name))))
+  "A lazy sequence of messages received from a destination. Accepts same options as receive"
+  [dest-name & opts]
+  (lazy-seq (cons (apply receive dest-name opts) (message-seq dest-name))))
 
 (defn listen 
-  "The handler function, f, will receive any messages sent to dest-name."
+  "The handler function, f, will receive any messages sent to dest-name.
+
+   The following options are supported [default]:
+    :concurrency   the number of threads handling messages [1]"
   [dest-name f & {:keys [concurrency] :or {concurrency 1}}]
   (let [connection (.createConnection connection-factory)]
     (try
@@ -88,3 +93,13 @@
   before your app is undeployed"
   [listener]
   (.close listener))
+
+(defn stop 
+  "Destroy a message destination. Typically not necessary since it
+  will be done for you when your app is undeployed. This will fail
+  with a warning if any handlers are listening"
+  [name]
+  (if (or (queue? name) (topic? name))
+    (stop-destination name)
+    (throw (Exception. "Illegal destination name"))))
+
