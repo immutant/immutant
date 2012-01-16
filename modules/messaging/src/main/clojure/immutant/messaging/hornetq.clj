@@ -15,14 +15,15 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.messaging.hornetq-direct
+(ns immutant.messaging.hornetq
   (:import (org.hornetq.jms.client HornetQDestination))
-  (:import (org.hornetq.core.remoting.impl.netty TransportConstants))
   (:import (org.hornetq.api.core TransportConfiguration))
   (:import (org.hornetq.api.jms HornetQJMSClient JMSFactoryType)))
 
-(def connection-factory 
-  (let [connect_opts { TransportConstants/PORT_PROP_NAME (Integer. 5445) }
+(defn connection-factory
+  "Create a connection factory, typically invoked when outside container"
+  [& {:keys [host port] :or {host "localhost" port 5445}}]
+  (let [connect_opts { "host" host "port" (Integer. port) }
         transport_config (new TransportConfiguration "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" connect_opts)]
     (HornetQJMSClient/createConnectionFactoryWithoutHA JMSFactoryType/CF (into-array [transport_config]))))
 

@@ -19,7 +19,17 @@
   (:use [immutant.utilities :only (at-exit)])
   (:import (javax.jms Session DeliveryMode))
   (:require [immutant.registry :as lookup])
-  (:require [immutant.messaging.hornetq-direct :as hornetq]))
+  (:require [immutant.messaging.hornetq :as hornetq]))
+
+(def connection-factory
+  (if-let [reference-factory (lookup/fetch "jboss.naming.context.java.ConnectionFactory")]
+    (let [reference (.getReference reference-factory)]
+      (try
+        (.getInstance reference)
+        (finally (at-exit #(.release reference)))))
+    (do
+      (println "WARN: unable to obtain JMS Connection Factory so we must be outside container")
+      (hornetq/connection-factory))))
 
 (defn queue? [name]
   (.startsWith name "/queue"))
@@ -52,16 +62,6 @@
        (instance? Boolean v) (.setBooleanProperty message key v)
        :else (.setStringProperty message key (str v)))))
   message)
-
-(def connection-factory
-  (if-let [reference-factory (lookup/fetch "jboss.naming.context.java.ConnectionFactory")]
-    (let [reference (.getReference reference-factory)]
-      (try
-        (.getInstance reference)
-        (finally (at-exit #(.release reference)))))
-    (do
-      (println "WARN: unable to obtain JMS Connection Factory so we must be outside container")
-      hornetq/connection-factory)))
 
 (defn create-session [connection]
   (.createSession connection false Session/AUTO_ACKNOWLEDGE))
