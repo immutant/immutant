@@ -70,13 +70,13 @@
 
    The following options are supported [default]:
     :concurrency   the number of threads handling messages [1]"
-  [dest-name f & {:keys [concurrency] :or {concurrency 1}}]
+  [dest-name f & {:keys [concurrency selector] :or {concurrency 1}}]
   (let [connection (.createConnection connection-factory)]
     (try
       (dotimes [_ concurrency]
         (let [session (create-session connection)
               destination (destination session dest-name)
-              consumer (.createConsumer session destination)]
+              consumer (.createConsumer session destination selector)]
           (.setMessageListener consumer (proxy [javax.jms.MessageListener] []
                                           (onMessage [message]
                                             (f (codecs/decode message)))))))
