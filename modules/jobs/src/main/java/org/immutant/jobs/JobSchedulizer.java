@@ -23,7 +23,6 @@ import org.immutant.jobs.as.JobsServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceName;
-import org.jboss.msc.service.StartException;
 import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
 
 
@@ -40,16 +39,6 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
         
         deploy( serviceName, scheduler, singleton );
 
- //        installMBean( serviceName,
-//                new MBeanRegistrationService<DaemonMBean>( mbeanName( "immutant.daemons", serviceName ), 
-//                        new ImmediateValue<DaemonMBean>( daemon ) ) ); 
-
-//        try {
-//        scheduler.start( getStartContext() );
-//        } catch (StartException e) {
-//            log.error( "Failed to start scheduler: ", e );
-//        }
-//        
         return scheduler;
     }
 

@@ -24,8 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jboss.logging.Logger;
-import org.jboss.msc.service.StartContext;
-import org.jboss.msc.service.StartException;
 import org.projectodd.polyglot.jobs.BaseJobScheduler;
 import org.quartz.Job;
 import org.quartz.JobDetail;
