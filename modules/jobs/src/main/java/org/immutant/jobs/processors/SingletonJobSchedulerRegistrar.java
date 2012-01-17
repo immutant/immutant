@@ -30,16 +30,17 @@ import org.jboss.msc.value.Value;
 public class SingletonJobSchedulerRegistrar extends RegisteringProcessor {
 
     public RegistryEntry registryEntry(DeploymentPhaseContext context) {
-        DeploymentUnit unit = context.getDeploymentUnit();
-        
-        ServiceName serviceName = JobsServices.jobScheduler( unit, true );
-        Value<JobScheduler> scheduler = (Value<JobScheduler>)unit.getServiceRegistry().getService( serviceName );
-
-        if (scheduler != null) {
-            return new RegistryEntry( "singleton-job-scheduler", scheduler.getValue() );
-        } else {
-            return null;
-        }
+//        DeploymentUnit unit = context.getDeploymentUnit();
+//        
+//        ServiceName serviceName = JobsServices.jobScheduler( unit, true );
+//        Value<JobScheduler> scheduler = (Value<JobScheduler>)unit.getServiceRegistry().getService( serviceName );
+//
+//        if (scheduler != null) {
+//            return new RegistryEntry( "singleton-job-scheduler", scheduler.getValue() );
+//        } else {
+//            return null;
+//        }
+        return null;
     }
 
 }

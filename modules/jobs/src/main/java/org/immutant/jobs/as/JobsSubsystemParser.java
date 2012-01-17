@@ -32,21 +32,20 @@ import org.immutant.core.as.CoreExtension;
 import org.jboss.as.controller.persistence.SubsystemMarshallingContext;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
-import org.jboss.modules.Module;
 import org.jboss.staxmapper.XMLElementReader;
 import org.jboss.staxmapper.XMLElementWriter;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 
-public class DaemonsSubsystemParser implements XMLStreamConstants, XMLElementReader<List<ModelNode>>, XMLElementWriter<SubsystemMarshallingContext> {
+public class JobsSubsystemParser implements XMLStreamConstants, XMLElementReader<List<ModelNode>>, XMLElementWriter<SubsystemMarshallingContext> {
 
-    private static final DaemonsSubsystemParser INSTANCE = new DaemonsSubsystemParser();
+    private static final JobsSubsystemParser INSTANCE = new JobsSubsystemParser();
 
-    public static DaemonsSubsystemParser getInstance() {
+    public static JobsSubsystemParser getInstance() {
         return INSTANCE;
     }
 
-    private DaemonsSubsystemParser() {
+    private JobsSubsystemParser() {
     }
 
     @Override

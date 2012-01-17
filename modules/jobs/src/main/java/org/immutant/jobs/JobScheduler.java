@@ -23,10 +23,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.immutant.core.ClojureRuntime;
 import org.jboss.logging.Logger;
-import org.jboss.msc.inject.Injector;
-import org.jboss.msc.value.InjectedValue;
+import org.jboss.msc.service.StartContext;
+import org.jboss.msc.service.StartException;
 import org.projectodd.polyglot.jobs.BaseJobScheduler;
 import org.quartz.Job;
 import org.quartz.JobDetail;

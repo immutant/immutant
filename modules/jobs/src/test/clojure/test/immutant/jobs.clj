@@ -15,11 +15,20 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.jobs.util
-  (:require [immutant.registry :as lookup]))
+(ns test.immutant.jobs
+  (:use immutant.jobs
+        immutant.jobs.core
+        immutant.utilities
+        immutant.test.helpers
+        clojure.test
+        midje.sweet))
 
-(defn non-singleton-scheduler []
-  (lookup/fetch "job-scheduler"))
+(defn fun [])
 
-(defn singleton-scheduler []
-  (lookup/fetch "singleton-job-scheduler"))
+(deffact "schedule unschedule, create, and register an at-exit handler"
+  (schedule "name" "spec" fun) => anything
+  (provided
+    (unschedule "name") => nil
+    (create-job fun "name" "spec" false) => nil
+    (at-exit anything) => nil))
+

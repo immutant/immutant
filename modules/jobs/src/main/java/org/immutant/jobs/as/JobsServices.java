@@ -34,11 +34,16 @@ public class JobsServices {
         return unit.getServiceName().append( "scheduled_job" ).append( jobName );
     }
     
-    public static ServiceName jobScheduler(DeploymentUnit unit, boolean singleton) {
-        ServiceName name = unit.getServiceName().append( "jobs" );
+    public static ServiceName scheduler(DeploymentUnit unit, boolean singleton) {
+        ServiceName name = unit.getServiceName().append( "job_scheduler" );
         if (singleton) {
             name = name.append( "singleton" );
         }
+        
         return name;
+    }
+    
+    public static ServiceName schedulizer(DeploymentUnit unit) {
+        return unit.getServiceName().append( "job_schedulizer" );
     }
 }

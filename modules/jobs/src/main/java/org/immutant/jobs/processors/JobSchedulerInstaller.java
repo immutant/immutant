@@ -25,18 +25,19 @@ import org.immutant.jobs.as.JobsServices;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
+import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
-import org.projectodd.polyglot.core.processors.ClusterAwareProcessor;
+import org.projectodd.polyglot.core.util.ClusterUtil;
 import org.projectodd.polyglot.hasingleton.HASingleton;
 import org.projectodd.polyglot.jobs.BaseJobScheduler;
 
 /**
  * Creates a JobScheduler service if there are any job meta data
  */
-public class JobSchedulerInstaller extends ClusterAwareProcessor {
+public class JobSchedulerInstaller implements DeploymentUnitProcessor {
 
     public JobSchedulerInstaller() {
     }
@@ -49,14 +50,14 @@ public class JobSchedulerInstaller extends ClusterAwareProcessor {
             return;
         }
         
-        if (isClustered( phaseContext )) {
-            log.debug( "Deploying clustered scheduler: " + unit );
-            buildScheduler( phaseContext, true );
-            buildScheduler( phaseContext, false );
-        } else {
-            log.debug( "Deploying scheduler: " + unit );
-            buildScheduler( phaseContext, false );
-        }
+//        if (ClusterUtil.isClustered( phaseContext )) {
+//            log.debug( "Deploying clustered scheduler: " + unit );
+//            buildScheduler( phaseContext, true );
+//            buildScheduler( phaseContext, false );
+//        } else {
+//            log.debug( "Deploying scheduler: " + unit );
+//            buildScheduler( phaseContext, false );
+//        }
     }
 
     @Override
@@ -64,23 +65,23 @@ public class JobSchedulerInstaller extends ClusterAwareProcessor {
 
     }
 
-    private void buildScheduler(DeploymentPhaseContext phaseContext, boolean singleton) {
-        DeploymentUnit unit = phaseContext.getDeploymentUnit();
-        ServiceName serviceName = JobsServices.jobScheduler( unit, singleton );
-
-        JobScheduler scheduler = new JobScheduler( "JobScheduler$" + unit.getName() );
-
-        ServiceBuilder<BaseJobScheduler> builder = phaseContext.getServiceTarget().addService( serviceName, scheduler );
-        
-        if (singleton) {
-            builder.addDependency( HASingleton.serviceName( unit ) );
-            builder.setInitialMode( Mode.PASSIVE );
-        } else {
-            builder.setInitialMode( Mode.ACTIVE );
-        }
-
-        builder.install();
-    }
+//    private void buildScheduler(DeploymentPhaseContext phaseContext, boolean singleton) {
+//        DeploymentUnit unit = phaseContext.getDeploymentUnit();
+//        ServiceName serviceName = JobsServices.jobScheduler( unit, singleton );
+//
+//        JobScheduler scheduler = new JobScheduler( "JobScheduler$" + unit.getName() );
+//
+//        ServiceBuilder<BaseJobScheduler> builder = phaseContext.getServiceTarget().addService( serviceName, scheduler );
+//        
+//        if (singleton) {
+//            builder.addDependency( HASingleton.serviceName( unit ) );
+//            builder.setInitialMode( Mode.PASSIVE );
+//        } else {
+//            builder.setInitialMode( Mode.ACTIVE );
+//        }
+//
+//        builder.install();
+//    }
 
 
     private static final Logger log = Logger.getLogger( "org.immutant.jobs" );

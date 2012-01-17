@@ -25,9 +25,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 
 import java.util.List;
 
-import org.immutant.jobs.processors.JobSchedulerInstaller;
-import org.immutant.jobs.processors.NonSingletonJobSchedulerRegistrar;
-import org.immutant.jobs.processors.SingletonJobSchedulerRegistrar;
+import org.immutant.jobs.processors.JobSchedulizerInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -63,11 +61,7 @@ public class JobsSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
         processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new JobsDependenciesProcessor() );
 
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 200, new JobSchedulerInstaller() );
-        
-        processorTarget.addDeploymentProcessor( Phase.INSTALL, 9000, new NonSingletonJobSchedulerRegistrar() );
-        processorTarget.addDeploymentProcessor( Phase.INSTALL, 9001, new SingletonJobSchedulerRegistrar() );
-
+        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 200, new JobSchedulizerInstaller() );
     }
 
     static ModelNode createOperation(ModelNode address) {

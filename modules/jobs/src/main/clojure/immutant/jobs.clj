@@ -16,24 +16,23 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.jobs
-  (:use immutant.core
-        immutant.utilities)
-  (:import [org.immutant.jobs ScheduledJob]))
+  (:use immutant.utilities
+        immutant.jobs.core)
+  (:require [clojure.tools.logging :as log]))
 
 (defn unschedule [name]
-  )
+  (when-let [job (@current-jobs name)]
+    (log/info "Unscheduling job" name)
+    (stop-job job)
+    (swap! current-jobs dissoc name)))
 
-(defn schedule [f spec & options]
-  (let [opts (apply hash-map options)
-        name (get opts :name (generate-job-name))
-        singleton (get opts :singleton false)]
-    (doto (ScheduledJob. (app-name) name spec singleton)
-      (.setFn f)
-      (.setNonSingletonJobScheduler )
-      (.setSingletonJobScheduler (lookup/fetch "singleton-job-scheduler"))
-      (.start))
-    (at-exit (partial unschedule name)))
-  ;;return the name
-  "name")
+(defn schedule [name spec f & options]
+  (unschedule name)
+  (log/info "Scheduling job" name "at" spec)
+  (swap! current-jobs assoc name
+         (create-job f name spec (boolean (:singleton (apply hash-map options)))))
+  (at-exit (partial unschedule name))
+  ;; register the mbean
+  )
 
 

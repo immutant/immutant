@@ -20,24 +20,25 @@
 package org.immutant.jobs.processors;
 
 import org.immutant.core.processors.RegisteringProcessor;
-import org.immutant.jobs.JobScheduler;
+import org.immutant.jobs.JobSchedulizer;
 import org.immutant.jobs.as.JobsServices;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.jboss.msc.service.ServiceName;
-import org.jboss.msc.value.Value;
+import org.jboss.msc.service.ServiceController.Mode;
 
 
-public class NonSingletonJobSchedulerRegistrar extends RegisteringProcessor {
+public class JobSchedulizerInstaller extends RegisteringProcessor {
 
     public RegistryEntry registryEntry(DeploymentPhaseContext context) {
-//        DeploymentUnit unit = context.getDeploymentUnit();
-//        
-//        ServiceName serviceName = JobsServices.jobScheduler( unit, false );
-//        Value<JobScheduler> scheduler = (Value<JobScheduler>)unit.getServiceRegistry().getRequiredService( serviceName );
-//
-//        return new RegistryEntry( "job-scheduler", scheduler.getValue() );
-        return null;
+        DeploymentUnit unit = context.getDeploymentUnit();
+                
+        JobSchedulizer service = new JobSchedulizer(unit);
+                
+        context.getServiceTarget().addService(JobsServices.schedulizer( unit ), service)
+            .setInitialMode(Mode.ACTIVE)
+            .install();
+        
+        return new RegistryEntry( "job-schedulizer", service );
     }
 
 }

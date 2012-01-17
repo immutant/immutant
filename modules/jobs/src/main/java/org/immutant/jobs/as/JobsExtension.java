@@ -42,12 +42,12 @@ public class JobsExtension extends AbstractBootstrappableExtension {
                 JobsSubsystemProviders.SUBSYSTEM_ADD,
                 false );
 
-        registration.registerXMLElementWriter(DaemonsSubsystemParser.getInstance());
+        registration.registerXMLElementWriter(JobsSubsystemParser.getInstance());
     }
 
     @Override
     public void initializeParsers(ExtensionParsingContext context) {
-        context.setSubsystemXmlMapping(Namespace.CURRENT.getUriString(), DaemonsSubsystemParser.getInstance());
+        context.setSubsystemXmlMapping(Namespace.CURRENT.getUriString(), JobsSubsystemParser.getInstance());
     }
 
     public static final String SUBSYSTEM_NAME = "immutant-jobs";
