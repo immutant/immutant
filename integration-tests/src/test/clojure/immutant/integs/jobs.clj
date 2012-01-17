@@ -42,9 +42,8 @@
       (is (> (:a-value (get-values)) next-value)))))
 
 (deftest rescheduling
-  (let [initial-value (:another-value (get-values))]
-    (Thread/sleep 1000)
-    (is (> (:another-value (get-values "reschedule")) initial-value))
-    (Thread/sleep 1000)
-    (is (= (:another-value (get-values)) "rescheduled"))))
+  (is (> (:another-value (get-values)) 0))
+  (get-values "reschedule")
+  (Thread/sleep 2000)
+  (is (= (:another-value (get-values)) "rescheduled")))
 
