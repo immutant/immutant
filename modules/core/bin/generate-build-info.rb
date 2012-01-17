@@ -24,10 +24,13 @@ class BuildInfo
     }
   end
 
+  def m2_repo
+    ENV['M2_REPO'] || (ENV['HOME'] + '/.m2/repository')
+  end
+
   def determine_component_versions
-    #it would be nice to include hornetq, mod_cluster as well
     @versions["JBossAS"]["version"] = from_parent_pom( "project/properties/version.jbossas" )
-    #@versions["Quartz"]["version"] = from_parent_pom( "project/properties/version.org.quartz-scheduler" )
+    @versions["Quartz"]["version"] = from_polyglot_properties( "version.org.quartz-scheduler" )
     @versions["Clojure"]["version"] = from_parent_pom( "project/properties/version.clojure" )
     @versions['Infinispan']['version'] = org.infinispan.Version.VERSION
     @versions['HornetQ']['version'] = org.hornetq.utils.VersionLoader.version.full_version
@@ -49,7 +52,17 @@ class BuildInfo
     doc = REXML::Document.new( File.read( path ) )
     doc.get_elements(selector).first.text
   end
-  
+
+  def from_polyglot_properties(name)
+    unless @polyglot_props
+      pg_version = from_parent_pom( "project/properties/version.polyglot" )
+      require File.join( m2_repo, "org/projectodd/polyglot-core/#{pg_version}/polyglot-core-#{pg_version}.jar" )
+      @polyglot_props = java.util.Properties.new
+      @polyglot_props.load( org.projectodd.polyglot.core.ProjectInfo.java_class.class_loader.getResourceAsStream( "org/projectodd/polyglot/polyglot.properties" ) )
+      end
+    @polyglot_props.get_property( name )
+  end
+
   def go!()
     determine_immutant_versions
     determine_component_versions
