@@ -19,8 +19,13 @@
 
 package org.immutant.daemons;
 
+import org.jboss.msc.service.Service;
+import org.jboss.msc.service.StartContext;
+import org.jboss.msc.service.StartException;
+import org.jboss.msc.service.StopContext;
 
-public class Daemon implements DaemonMBean {
+
+public class Daemon implements DaemonMBean, Service<Daemon> {
 
     public Daemon(Runnable startFunction, Runnable stopFunction) {
         this.startFunction = startFunction;
@@ -39,6 +44,33 @@ public class Daemon implements DaemonMBean {
         }
     }
 
+    @Override
+    public Daemon getValue() throws IllegalStateException, IllegalArgumentException {
+        return this;
+    }
+    
+    @Override
+    public void start(final StartContext context) throws StartException {
+        context.asynchronous();
+       
+        context.execute(new Runnable() {
+            public void run() {
+                try {
+                    Daemon.this.start();
+                    context.complete();
+                } catch (Exception e) {
+                    context.failed( new StartException( e ) );
+                }
+            }
+        });
+
+    }
+
+    @Override
+    public void stop(StopContext context) {
+        stop();
+    }
+    
     public boolean isStarted() {
         return this.started;
     }

@@ -25,5 +25,5 @@
    will start on only one node in a cluster"
   [name start & {:keys [stop singleton]}]
   (if-let [daemonizer (lookup/fetch "daemonizer")]
-    (.deploy daemonizer name #(future (start)) stop (boolean singleton))))
+    (.createDaemon daemonizer name #(future (start)) stop (boolean singleton))))
   

@@ -33,17 +33,19 @@ public class Daemonizer extends AtRuntimeInstaller<Daemonizer> {
         super( unit );
     }
 
-    public void deploy(final String daemonName, Runnable start, Runnable stop, boolean singleton) {
+    public Daemon createDaemon(final String daemonName, Runnable start, Runnable stop, boolean singleton) {
 
         Daemon daemon = new Daemon(start, stop);
-        DaemonService daemonService = new DaemonService( daemon );
         ServiceName serviceName = DaemonServices.daemon( getUnit(), daemonName );
-        deploy( serviceName, daemonService, singleton );
+        
+        deploy( serviceName, daemon, singleton );
 
         installMBean( serviceName,
                 new MBeanRegistrationService<DaemonMBean>( mbeanName( "immutant.daemons", serviceName ), 
-                        new ImmediateValue<DaemonMBean>( daemon ) ) ); 
+                        new ImmediateValue<DaemonMBean>( daemon ) ) );
+        
+        return daemon;
 
     }
-
+    
 }
