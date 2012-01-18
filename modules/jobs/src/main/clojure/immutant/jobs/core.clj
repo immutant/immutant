@@ -24,27 +24,26 @@
            [org.immutant.jobs.as JobsServices]
            [org.projectodd.polyglot.jobs BaseScheduledJob]))
 
-(def current-jobs (atom {}))
-
-(defn job-schedulizer []
+(defn job-schedulizer  []
   (registry/fetch "job-schedulizer"))
 
-(defn create-scheduler [singleton]
+(defn create-scheduler
+  "Creates a scheduler for the current application.
+A singleton scheduler will participate in a cluster, and will only execute its jobs on one node."
+  [singleton]
   (log/info "Creating job scheduler for"  (app-name) "singleton:" singleton)
   (.createScheduler (job-schedulizer) singleton))
 
-(defn register-scheduler [name scheduler]
-  (registry/put name scheduler)
-  scheduler)
-
-(defn scheduler [singleton]
-  (let [name (str (if singleton "singleton-" "") "job-scheduler")
-        scheduler (registry/fetch name)]
-    (if scheduler
+(defn scheduler
+  "Retrieves the appropriate scheduler, creating it if necessary"
+  [singleton]
+  (let [name (str (if singleton "singleton-" "") "job-scheduler")]
+    (if-let [scheduler (registry/fetch name)]
       scheduler
-      (register-scheduler name (create-scheduler singleton)))))
+      (registry/put name (create-scheduler singleton)))))
 
 (defn wait-for-scheduler
+  "Waits for the scheduler to start before invoking f"
   ([scheduler f]
      (wait-for-scheduler scheduler f 30))
   ([scheduler f attempts]
@@ -57,7 +56,9 @@
                                (Thread/sleep 1000)
                                (recur scheduler f (dec attempts))))))
 
-(defn create-job [f name spec singleton]
+(defn create-job
+  "Instantiates and starts a job"
+  [f name spec singleton]
   (let [scheduler (scheduler singleton)]
     (doto
         (proxy [BaseScheduledJob ScheduledJobMBean]
@@ -71,7 +72,9 @@
             (.getScheduler scheduler)))
       .start)))
 
-(defn stop-job [job]
+(defn stop-job
+  "Stops (unschedules) a job, removing it from the scheduler."
+  [job]
   (if-not (.isShutdown (.getScheduler job))
     (.stop job)))
 

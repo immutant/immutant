@@ -20,13 +20,20 @@
         immutant.jobs.core)
   (:require [clojure.tools.logging :as log]))
 
-(defn unschedule [name]
+(def ^{:private true} current-jobs (atom {}))
+
+(defn unschedule
+  "Removes the named job from the scheduler"
+  [name]
   (when-let [job (@current-jobs name)]
     (log/info "Unscheduling job" name)
     (stop-job job)
     (swap! current-jobs dissoc name)))
 
-(defn schedule [name spec f & options]
+(defn schedule
+  "Schedules a job to execute based on the spec.
+Calling this function with the same name as a previously scheduled job will replace that job."
+  [name spec f & options]
   (unschedule name)
   (log/info "Scheduling job" name "at" spec)
   (swap! current-jobs assoc name

@@ -34,7 +34,8 @@
              (.getValue value))))))
   
 (defn put [k v]
-  (swap! registry assoc k v))
+  (swap! registry assoc k v)
+  v)
 
 (defn fetch
   ([name]
