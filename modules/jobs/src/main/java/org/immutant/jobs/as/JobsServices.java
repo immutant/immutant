@@ -30,10 +30,6 @@ public class JobsServices {
     public static final ServiceName IMMUTANT = ServiceName.of( "immutant" );
     public static final ServiceName JOBS = IMMUTANT.append( "jobs" );
 
-    public static ServiceName scheduledJob(DeploymentUnit unit, String jobName) {
-        return unit.getServiceName().append( "scheduled_job" ).append( jobName );
-    }
-    
     public static ServiceName scheduler(DeploymentUnit unit, boolean singleton) {
         ServiceName name = unit.getServiceName().append( "job_scheduler" );
         if (singleton) {

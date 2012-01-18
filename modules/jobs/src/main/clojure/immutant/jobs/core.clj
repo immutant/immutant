@@ -16,17 +16,22 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.jobs.core
-  (:use immutant.core)
+  (:use immutant.core
+        immutant.mbean)
   (:require [immutant.registry :as registry]
             [clojure.tools.logging :as log])
   (:import [org.immutant.jobs ClojureJob ScheduledJobMBean]
+           [org.immutant.jobs.as JobsServices]
            [org.projectodd.polyglot.jobs BaseScheduledJob]))
 
 (def current-jobs (atom {}))
 
+(defn job-schedulizer []
+  (registry/fetch "job-schedulizer"))
+
 (defn create-scheduler [singleton]
   (log/info "Creating job scheduler for"  (app-name) "singleton:" singleton)
-  (.createScheduler (registry/fetch "job-schedulizer") singleton))
+  (.createScheduler (job-schedulizer) singleton))
 
 (defn register-scheduler [name scheduler]
   (registry/put name scheduler)
@@ -55,16 +60,29 @@
 (defn create-job [f name spec singleton]
   (let [scheduler (scheduler singleton)]
     (doto
-     (proxy [BaseScheduledJob ScheduledJobMBean]
-         [ClojureJob (app-name) name "" spec singleton]
-       (start []
-         (wait-for-scheduler
-          scheduler
-          #(.addJob scheduler name (ClojureJob. f)))
-         (proxy-super start))
-       (getScheduler []
-         (.getScheduler scheduler)))
-     .start)))
+        (proxy [BaseScheduledJob ScheduledJobMBean]
+            [ClojureJob (app-name) name "" spec singleton]
+          (start []
+            (wait-for-scheduler
+             scheduler
+             #(.addJob scheduler name (ClojureJob. f)))
+            (proxy-super start))
+          (getScheduler []
+            (.getScheduler scheduler)))
+      .start)))
 
 (defn stop-job [job]
-  (.stop job))
+  (if-not (.isShutdown (.getScheduler job))
+    (.stop job)))
+
+;; we don't currently register an mbean for each job, since we can't
+;; yet easily unregister the mbean
+(defn register-job-mbean [name job]
+  (register-mbean
+   "immutant.jobs"
+   (.append JobsServices/JOBS
+            (doto (make-array String 2)
+              (aset 0 (app-name))
+              (aset 1 name)))
+   job
+   (job-schedulizer)))

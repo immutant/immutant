@@ -15,30 +15,17 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.registry
-  (:import (org.jboss.msc.service ServiceName)))
+(ns immutant.mbean
+  (:use immutant.core)
+  (:require [immutant.registry :as registry])
+  (:import [org.jboss.msc.service ServiceController$Mode]))
 
-(def ^{:private true} registry (atom {}))
-(def ^{:private true} msc-registry nil)
+(defn register-mbean [group-name service-name mbean installer]
+  (.installMBean installer service-name group-name mbean))
 
-(defn set-msc-registry [v]
-  (def msc-registry v))
+;; This may not yet work
+(defn deregister-mbean [mbean-name]
+  (if-let [mbean-service (registry/fetch mbean-name true)]
+    (.setMode mbean-service ServiceController$Mode/REMOVE)))
 
-(defn ^{:private true} get-from-msc [name get-container?]
-  (if msc-registry
-    (let [key (if (string? name) (ServiceName/parse name) name)
-          value (.getService msc-registry key)]
-      (and value
-           (if get-container?
-             value
-             (.getValue value))))))
-  
-(defn put [k v]
-  (swap! registry assoc k v))
-
-(defn fetch
-  ([name]
-     (fetch name false))
-  ([name get-container?]
-      (or (get @registry name) (get-from-msc name get-container?))))
 

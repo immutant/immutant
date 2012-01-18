@@ -20,10 +20,8 @@
 package org.immutant.daemons;
 
 import org.immutant.daemons.as.DaemonServices;
-import org.jboss.as.jmx.MBeanRegistrationService;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceName;
-import org.jboss.msc.value.ImmediateValue;
 import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
 
 
@@ -40,10 +38,8 @@ public class Daemonizer extends AtRuntimeInstaller<Daemonizer> {
         
         deploy( serviceName, daemon, singleton );
 
-        installMBean( serviceName,
-                new MBeanRegistrationService<DaemonMBean>( mbeanName( "immutant.daemons", serviceName ), 
-                        new ImmediateValue<DaemonMBean>( daemon ) ) );
-        
+        installMBean( serviceName, "immutant.daemons", daemon );
+
         return daemon;
 
     }
