@@ -16,5 +16,62 @@
 
 * Introduction
 
-  Encapsulating the Quartz library, Immutant supports the scheduling
-  of asynchronous tasks using a cron-like syntax.
+  Jobs in Immutant are simply functions that execute on a possibly-recurring 
+  schedule. Jobs fire asynchronously, outside of the thread where they are 
+  defined. Jobs fire in the same runtime as the rest of the application, so 
+  have access to any shared state.
+
+  Jobs are built on top of the [[http://quartz-scheduler.org][Quartz]] library, and support scheduling via
+  a cron-like specification. 
+
+* Scheduling Jobs
+
+  Scheduling a job is as simple as calling the =schedule= function from the
+  =immutant.jobs= namespace:
+
+  #+begin_src clojure
+    (require '[immutant.jobs :as jobs])
+    
+    (jobs/schedule "my-job-name" "*/5 * * * * ?" :singleton true
+                   #(println "I was called!"))
+  #+end_src
+
+  The =schedule= function requires three arguments, and also accepts options:
+
+  * =name= - the name of the job. If the given name is the same as the name of 
+    previously scheduled job in the application's runtime, the prior job will be 
+    unscheduled and the new job will be scheduled in its place. 
+  * =spec= - the cron-style specification string. See [[#jobs-cron-syntax][Cron Syntax]].
+  * =f= - the zero argument function that will be invoked each time the job fires.
+  * =options= - options are specified as alternating key & value literals. Valid options are:
+
+    | Option     | Default | Description                                                                                                                              |
+    |------------+---------+------------------------------------------------------------------------------------------------------------------------------------------|
+    | :singleton | /false/ | Marks the job as a *singleton* in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node. |
+
+** Cron Syntax
+   :PROPERTIES:
+   :CUSTOM_ID: jobs-cron-syntax
+   :END:
+
+  The cron attribute should contain a typical crontab-like entry. It is composed of 7 fields (6 are required).
+
+  | Seconds | Minutes | Hours | Day of Month | Month           | Day of Week    | Year                 |
+  |---------+---------+-------+--------------+-----------------+----------------+----------------------|
+  |    0-59 |    0-59 |  0-23 | 1-31         | 1-12 or JAN-DEC | 1-7 or SUN-SAT | 1970-2099 (optional) |
+
+  For several fields, you may denote subdivision by using the forward-slash (/) character. To execute a job 
+  every 5 minutes, */5 in the minutes field would specify this condition.
+
+  Spans may be indicated using the dash (-) character. To execute a job Monday through Friday, MON-FRI 
+  should be used in the day-of-week field.
+
+  Multiple values may be separated using the comma (,) character. The specification of 1,15 in the 
+  day-of-month field would result in the job firing on the 1st and 15th of each month.
+
+  Either day-of-month or day-of-week must be specified using the ? character, since specifying
+  both is contradictory.
+
+  See the [[http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06][Quartz cron specification]] for additional details.
+
+  
