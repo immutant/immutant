@@ -9,7 +9,7 @@
           ("org"
            :base-directory ,(expand-file-name "src/org/" dir)
            :base-extension "org"
-           :publishing-directory ,(expand-file-name "target/" dir)
+           :publishing-directory ,(expand-file-name "target/html/" dir)
            :recursive t
            :publishing-function org-publish-org-to-html
            :headline-levels 2 
@@ -22,7 +22,7 @@
           ("static"
            :base-directory ,(expand-file-name "src/org/" dir)
            :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-           :publishing-directory ,(expand-file-name "target/" dir)
+           :publishing-directory ,(expand-file-name "target/html/" dir)
            :recursive t
            :publishing-function org-publish-attachment
            )
