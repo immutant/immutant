@@ -17,11 +17,11 @@
 * Introduction
 ** HornetQ
 
-   Immutant encapsulates the JBoss [[http://www.jboss.org/hornetq/][HornetQ message broker]].
-   It is automatically available to you, with no additional
-   configuration required to start the messaging service. HornetQ
-   supports clustered messaging, which provides load-balancing,
-   failover, and other advanced features.
+   Immutant encapsulates the JBoss [[http://www.jboss.org/hornetq/][HornetQ message broker]].  It is
+   automatically available to you, with no additional configuration
+   required to start the messaging service. HornetQ supports clustered
+   messaging, which provides auto-discovery, load-balancing, and
+   failover, among other things.
 
    The term "messaging" encompasses a large area of functionality.
    Messaging solutions are used to achieve loosely-coupled,
@@ -35,36 +35,130 @@
   exchanged. A message may be sent to a destination by one actor,
   and received from the destination by another.
 
-  There are two main types of destinations: *queues*
-  (point-to-point) and *topics* (publish-subscribe). All
-  destinations allow multiple actors to send messages. The type of
-  destination determines how the message is routed. A queue delivers
-  the message to a single recipient (possibly one of many
-  candidates). And a topic delivers the message to all interested
-  recipients.
+  There are two main types of destinations: *queues* (point-to-point)
+  and *topics* (publish-subscribe). All destinations allow multiple
+  actors to send messages. The type of destination determines how the
+  message is routed. A queue delivers the message to a single
+  recipient (possibly one of many candidates). And a topic delivers
+  the message to all interested recipients. In both cases, the message
+  producers have no direct knowledge of the message consumers.
 
 ** Deployment
 
-   Queues and topics (collectively known as destinations) may be
-   deployed with your application.
+   Use the =start= function to define a messaging destination. A
+   simple naming convention designates the destination as either a
+   queue or a topic: if its name begins with =/queue=, it's a queue;
+   if it begins with =/topic=, it's a topic.
+
+   #+begin_src clojure
+     (require '[immutant.messaging :as msg])
+
+     (msg/start "/queue/work")   ; to start a queue
+     (msg/start "/topic/news")   ; to start a topic
+   #+end_src
+
+   You can invoke =start= from anywhere in your application, but
+   typically it's done in the =immutant.clj= initialization file, as
+   described in [an earlier tutorial][deploying].
+
+   While =start= has a complement, =stop=, you needn't call it
+   directly. It will be invoked when your application is
+   undeployed. And it's important to note that =start= is idempotent:
+   if an endpoint has already been started, likely by a cooperating
+   application, the call is effectively a no-op. Similarly, a call to
+   =stop= will silently fail if the endpoint is in use by any other
+   application.
 
 * Messages
 
-  The unit of communication within a messaging system is a message.
-  A message may either be simply a blob of octets, or it might have
-  some higher-order, application-defined semantics. All messages
-  include a set of headers, similar to email.
+  The unit of communication within a messaging system is a message.  A
+  message may either be simply a blob of octets, or it might have some
+  higher-order, application-defined semantics. All messages include a
+  set of headers, similar to email.
 
 ** Publishing
 
    Any component or client code that creates messages and gives them
    to the message broker for delivery is considered a
    /producer/. Generally speaking, the producer does not know the
-   details of the destination.
+   details of the destination or any of its /consumers/.
+
+   In Immutant, there is only one way to send a message, whether to a
+   queue or a topic: via the =publish= function. It accepts two
+   required parameters: the name of the destination and the message
+   content, which can be just about anything.
+
+   A number of optional key-value parameters may be passed as well:
+
+   | Key           | Description                      | Default    |
+   |---------------+----------------------------------+------------|
+   |               | <32>                             | <c>        |
+   | =:encoding=   | Either =:clojure=, =:json= or =:text= | =:clojure= |
+   | =:priority=   | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively | 4          |
+   | =:ttl=        | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed | 0          |
+   | =:properties= | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages | {}         |
+
+*** Some Examples
+
+    #+begin_src clojure
+      ;; A simple string
+      (msg/publish "/queue/work" "simple string")
+      ;; Notify everyone something interesting just happened
+      (msg/publish "/topic/news" {:event "VISIT" :url "/sales-inquiry"})
+      ;; Move this message to the front of the line
+      (msg/publish "/queue/work" some-message :priority :high :ttl 1000)
+      ;; Make messages as complex as necessary
+      (msg/publish "/queue/work" {:a "b" :c [1 2 3 {:foo 42}]})
+      ;; Make messages consumable by a Ruby app
+      (msg/publish "/queue/work" {:a "b" :c [1 2 3 {:foo 42}]} :encoding :json)
+    #+end_src
 
 ** Receiving
 
    Any component that waits for messages to be delivered to it by
    the message broker is consider a /consumer/. Typically, a
    consumer is unaware of the producer or any other consumers.
+
+   Immutant features three functions for consuming messages.
+   - =receive= Blocks the caller until a message arrives and returns
+     the decoded message
+   - =message-seq= Creates a lazy sequence of messages
+   - =listen= Register a handler function that will receive the
+     decoded message when it arrives
+
+   Both =receive= and =message-seq= expect the destination name as the
+   first parameter, and optionally, the following key/value pairs:
+
+   | Key         | Description                      | Default |
+   |-------------+----------------------------------+---------|
+   |             | <32>                             | <c>     |
+   | =:timeout=  | An expiration in milliseconds, after which nil is returned; a value of 0 means wait forever | 10000   |
+   | =:selector= | A JMS expression used to filter messages according to the values of arbitrary =:properties= |         |
+
+   The =listen= method takes two parameters: the destination name and
+   a function accepting one parameter, to which will be passed the
+   decoded message. The following key/value options are also
+   available:
+
+   | Key            | Description                      | Default |
+   |----------------+----------------------------------+---------|
+   |                | <32>                             | <c>     |
+   | =:concurrency= | The maximum number of listening threads that can simultaneouly call the function | 1       |
+   | =:selector=    | Same as =receive=                |         |
+
+*** Some Examples
+
+    #+begin_src clojure
+      ;; Wait on a task
+      (let [task (msg/receive "/queue/work")]
+        (perform task))
+      
+      ;; Case-sensitive work queues?
+      (msg/listen "/queue/lower" #(msg/publish "/queue/upper" (.toUpperCase %)))
+      
+      ;; Contrived laziness
+      (let [messages (message-seq queue)]
+        (doseq [i (range 4)] (publish queue i))
+        (= (range 4) (take 4 messages)))
+    #+end_src
 
