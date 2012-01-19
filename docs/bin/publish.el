@@ -1,9 +1,15 @@
 ;; emacs --batch --load bin/publish.el --visit src/org/index.org --funcall org-publish-current-project
 
-(require 'org-publish)
-
 (let ((dir (if (buffer-file-name) (expand-file-name "../" (file-name-directory (buffer-file-name))) default-directory)))
-  (setq org-publish-use-timestamps-flag nil
+  (setq load-path (cons (expand-file-name "org-mode/lisp" dir) load-path))
+  (setq load-path (cons (expand-file-name "org-mode/contrib/lisp" dir) load-path))
+  
+  (require 'org-publish)
+  
+  (print (org-version))
+  
+    (setq org-publish-use-timestamps-flag nil
+          org-export-html-style-include-default nil
         org-publish-project-alist
         `(
           ("org"
