@@ -90,12 +90,13 @@
 
    A number of optional key-value parameters may be passed as well:
 
-   | Option        | Default    | Description                                                                                                           |
-   |---------------+------------+-----------------------------------------------------------------------------------------------------------------------|
-   | =:encoding=   | =:clojure= | One of =:clojure=, =:json= or =:text=                                                                                 |
+   | Option        | Default    | Description                         |
+   |---------------+------------+-------------------------------------|
+   |               | <c>        | <35>                                |
+   | =:encoding=   | =:clojure= | One of =:clojure=, =:json= or =:text= |
    | =:priority=   | 4          | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively |
    | =:ttl=        | 0          | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed |
-   | =:properties= | {}         | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages       |
+   | =:properties= | {}         | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages |
 
    The =:json= encoding is useful when the message consumers aren't
    written in Clojure. For example, [[http://torquebox.org][TorqueBox]] Ruby processors will
@@ -136,9 +137,10 @@
    Both =receive= and =message-seq= expect the destination name as the
    first parameter, and optionally, the following key/value pairs:
 
-   | Option      | Default | Description                                                                                 |
-   |-------------+---------+---------------------------------------------------------------------------------------------|
-   | =:timeout=  |   10000 | An expiration in milliseconds, after which nil is returned; a value of 0 means wait forever |
+   | Option      | Default | Description                         |
+   |-------------+---------+-------------------------------------|
+   |             | <c>     | <35>                                |
+   | =:timeout=  | 10000   | An expiration in milliseconds, after which nil is returned; a value of 0 means wait forever |
    | =:selector= |         | A JMS expression used to filter messages according to the values of arbitrary =:properties= |
 
    The =listen= method takes two parameters: the destination name and
@@ -146,10 +148,11 @@
    decoded message. The following key/value options are also
    available:
 
-   | Option         | Default | Description                                                                      |
-   |----------------+---------+----------------------------------------------------------------------------------|
-   | =:concurrency= |       1 | The maximum number of listening threads that can simultaneouly call the function |
-   | =:selector=    |         | Same as =receive=                                                                |
+   | Option         | Default | Description                         |
+   |----------------+---------+-------------------------------------|
+   |                | <c>     | <35>                                |
+   | =:concurrency= | 1       | The maximum number of listening threads that can simultaneouly call the function |
+   | =:selector=    |         | Same as =receive=                   |
 
 *** Some Examples
 
