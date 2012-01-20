@@ -1,0 +1,20 @@
+/* .org-builtin */
+.org-comment,
+.org-comment-delimiter {
+    color:#3F7F5F;
+}
+ 
+/* .org-constant */
+/* .org-doc */
+/* .org-doc-string */
+/* .org-function-name */
+/* .org-keyword */
+/* .org-preprocessor */
+/* .org-reference */
+/* .org-regexp-grouping-backslash */
+/* .org-regexp-grouping-construct */
+/* .org-string */
+/* .org-type */
+/* .org-variable-name */
+/* .org-warning-1 */
+
