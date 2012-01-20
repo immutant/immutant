@@ -1,6 +1,6 @@
-;; emacs --batch --load bin/publish.el --visit src/org/index.org --eval='(setq immutant-version "the version")' --funcall org-publish-current-project
+;; emacs --batch --load bin/publish.el --visit src/org/index.org --funcall org-publish-current-project
 
-(defvar immutant-version "")
+(defvar immutant-version "${project.version}")
 
 (defun create-postamble ()
   (concat "<div class=\"version\">" immutant-version "</div>"))

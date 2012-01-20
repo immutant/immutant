@@ -18,7 +18,33 @@
   </properties>
 
   <build> 
+
     <plugins> 
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>interpolate-vars</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/bin</outputDirectory>
+              <resources>          
+                <resource>
+                  <directory>bin</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>**/*.el</include>
+                  </includes>
+                </resource>
+              </resources>              
+            </configuration>            
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -32,7 +58,7 @@
             </goals>
             <configuration>
               <executable>${emacs}</executable>
-              <commandlineArgs>--batch --load bin/publish.el --visit src/org/index.org --eval "(setq immutant-version \"${project.version}\")" --funcall org-publish-current-project</commandlineArgs>
+              <commandlineArgs>--batch --load target/bin/publish.el --visit src/org/index.org --funcall org-publish-current-project</commandlineArgs>
             </configuration>
           </execution>
         </executions>
