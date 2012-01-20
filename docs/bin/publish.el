@@ -31,7 +31,7 @@
            :author-info nil
            :email-info nil
            :creator-info nil
-           :html-preamble "<p id=\"title\"><a href=\"http://www.jboss.org\" class=\"site_href\"><strong>JBoss.org</strong></a><a href=\"http://docs.jboss.org/\" class=\"doc_href\"><strong>Community Documentation</strong></a></p>"
+           :html-preamble "<p id=\"title\"><span class=\"site\"><strong>JBoss.org</strong></span><span class=\"doc\"><strong>Community Documentation</strong></span></p>"
            :html-postamble create-postamble
            :style "<link rel='stylesheet' type='text/css' href='css/stylesheet.css' />"
            )
