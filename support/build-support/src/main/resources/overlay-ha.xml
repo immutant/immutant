@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<server xmlns='urn:jboss:domain:1.1'>
+    <profile>
+        <subsystem xmlns='urn:jboss:domain:messaging:1.1'>
+            <hornetq-server>
+                <jms-connection-factories/>
+                <clustered>
+                    true
+                </clustered>
+                <cluster-user>
+                    admin
+                </cluster-user>
+                <cluster-password>
+                    password
+                </cluster-password>
+                <broadcast-groups>
+                    <broadcast-group name='default-broadcast-group'>
+                        <group-address>
+                            231.7.7.7
+                        </group-address>
+                        <group-port>
+                            9876
+                        </group-port>
+                        <broadcast-period>
+                            100
+                        </broadcast-period>
+                        <connector-ref>
+                            netty
+                        </connector-ref>
+                    </broadcast-group>
+                </broadcast-groups>
+                <discovery-groups>
+                    <discovery-group name='default-discovery-group'>
+                        <group-address>
+                            231.7.7.7
+                        </group-address>
+                        <group-port>
+                            9876
+                        </group-port>
+                        <refresh-timeout>
+                            20000
+                        </refresh-timeout>
+                    </discovery-group>
+                </discovery-groups>
+                <cluster-connections>
+                    <cluster-connection name='default-cluster-connection'>
+                        <address>
+                            jms
+                        </address>
+                        <connector-ref>
+                            netty
+                        </connector-ref>
+                        <retry-interval>
+                            500
+                        </retry-interval>
+                        <forward-when-no-consumers>
+                            true
+                        </forward-when-no-consumers>
+                        <discovery-group-ref discovery-group-name='default-discovery-group'/>
+                    </cluster-connection>
+                </cluster-connections>
+                <jmx-management-enabled>
+                    true
+                </jmx-management-enabled>
+            </hornetq-server>
+        </subsystem>
+    </profile>
+    <interfaces/>
+    <socket-binding-group name='standard-sockets' default-interface='public' port-offset='${jboss.socket.binding.port-offset:0}'>
+        <outbound-socket-binding name='mail-smtp'/>
+        <socket-binding name='default-broadcast-group' port='0' multicast-address='231.7.7.7' multicast-port='9876'/>
+    </socket-binding-group>
+</server>

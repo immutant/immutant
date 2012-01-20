@@ -40,6 +40,12 @@
       <scope>compile</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>overlay</artifactId>
+      <version>1.0.2</version>
+    </dependency>
+
   </dependencies>
 
   <build>

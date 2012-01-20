@@ -104,12 +104,6 @@
       (finally
        (FileUtils/deleteQuietly artifact-dir)))))
 
-(defn backup-current-config [file]
-  (let [to-file (io/file (.getParentFile file)
-                         (str (first (str/split (.getName file) #"\.")) "-original.xml"))]
-    (when-not (.exists to-file)
-      (io/copy file to-file))))
-
 (defn increase-deployment-timeout [loc]
   (zip/edit loc #(assoc-in % [:attrs :deployment-timeout] "1200")))
 
@@ -182,6 +176,8 @@
              (looking-at? :deployment-scanner loc) (increase-deployment-timeout loc)
              (looking-at? :native-interface loc) (disable-security loc)
              (looking-at? :http-interface loc) (disable-security loc)
+             (looking-at? :max-size-bytes loc) (zip/edit loc assoc :content ["20971520"])
+             (looking-at? :address-full-policy loc) (zip/edit loc assoc :content ["PAGE"])
              :else loc)))))
   
 (defn transform-config [file]
@@ -189,7 +185,6 @@
         out-file (io/file (.getParentFile in-file) (str "immutant/" (.getName in-file)))]
     (println "transforming" file)
     (io/make-parents out-file)
-    (backup-current-config in-file)
     (io/copy (with-out-str
                (lazy-xml/emit
                 (walk-the-doc (prepare-zip in-file))
