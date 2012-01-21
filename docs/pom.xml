@@ -17,9 +17,9 @@
     <emacs>emacs</emacs>
   </properties>
 
-  <build> 
+  <build>
 
-    <plugins> 
+    <plugins>
 
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
@@ -32,7 +32,7 @@
             </goals>
             <configuration>
               <outputDirectory>${basedir}/target/bin</outputDirectory>
-              <resources>          
+              <resources>
                 <resource>
                   <directory>bin</directory>
                   <filtering>true</filtering>
@@ -40,8 +40,8 @@
                     <include>**/*.el</include>
                   </includes>
                 </resource>
-              </resources>              
-            </configuration>            
+              </resources>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -69,18 +69,6 @@
         <artifactId>jruby-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>install-nokogiri</id>
-            <phase>install</phase>
-            <goals>
-              <goal>jruby</goal>
-            </goals>
-            <configuration>
-              <args>-S gem install nokogiri --no-ri --no-rdoc</args>
-              <gemHome>./target/rubygems</gemHome>
-              <gemPath>./target/rubygems</gemPath>
-            </configuration>
-          </execution>
-          <execution>
             <id>post-process-docs</id>
             <phase>install</phase>
             <goals>
@@ -93,6 +81,40 @@
         </executions>
       </plugin>
     </plugins>
-  </build> 
+  </build>
 
+  <profiles>
+    <profile>
+      <id>nokogiri-not-installed</id>
+      <activation>
+        <file>
+          <missing>target/rubygems/gems/nokogiri-1.5.0-java</missing>
+        </file>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>de.saumya.mojo</groupId>
+              <artifactId>jruby-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>install-nokogiri</id>
+                  <phase>install</phase>
+                  <goals>
+                    <goal>jruby</goal>
+                  </goals>
+                  <configuration>
+                    <args>-S gem install nokogiri --no-ri --no-rdoc --version 1.5.0</args>
+                    <gemHome>./target/rubygems</gemHome>
+                    <gemPath>./target/rubygems</gemPath>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
 </project>
