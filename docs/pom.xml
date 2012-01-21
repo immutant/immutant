@@ -25,7 +25,7 @@
         <artifactId>maven-resources-plugin</artifactId>
         <executions>
           <execution>
-            <id>interpolate-vars</id>
+            <id>interpolate-vars-in-bin</id>
             <phase>validate</phase>
             <goals>
               <goal>copy-resources</goal>
@@ -64,6 +64,34 @@
         </executions>
       </plugin>
 
+      <plugin>
+        <groupId>de.saumya.mojo</groupId>
+        <artifactId>jruby-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>install-nokogiri</id>
+            <phase>install</phase>
+            <goals>
+              <goal>jruby</goal>
+            </goals>
+            <configuration>
+              <args>-S gem install nokogiri --no-ri --no-rdoc</args>
+              <gemHome>./target/rubygems</gemHome>
+              <gemPath>./target/rubygems</gemPath>
+            </configuration>
+          </execution>
+          <execution>
+            <id>post-process-docs</id>
+            <phase>install</phase>
+            <goals>
+              <goal>jruby</goal>
+            </goals>
+            <configuration>
+              <file>bin/post-process.rb</file>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build> 
 
