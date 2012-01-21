@@ -182,7 +182,7 @@
   
 (defn transform-config [file]
   (let [in-file (io/file jboss-dir file)
-        out-file (io/file (.getParentFile in-file) (str "immutant/" (.getName in-file)))]
+        out-file in-file]
     (println "transforming" file)
     (io/make-parents out-file)
     (io/copy (with-out-str

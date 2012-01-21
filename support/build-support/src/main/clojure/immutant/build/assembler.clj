@@ -43,6 +43,16 @@
     (doseq [mod polyglot-modules]
       (install-polyglot-module mod))))
 
+(defn backup-configs []
+  (doseq [cfg (map (partial io/file jboss-dir)
+                   ["standalone/configuration/standalone-full.xml"
+                    "standalone/configuration/standalone-ha.xml"
+                    "standalone/configuration/standalone.xml"
+                    "domain/configuration/domain.xml"])]
+    (let [backup (io/file "target" (.getName cfg))]
+      (if-not (.exists backup)
+        (io/copy cfg backup)))))
+
 (defn transform-configs []
   (doseq [cfg ["standalone/configuration/standalone-full.xml"
                "standalone/configuration/standalone-ha.xml"
@@ -57,10 +67,7 @@
            file))
 
 (defn create-standalone-xml []
-  (let [backup (io/file jboss-dir "standalone/configuration/standalone-original.xml")]
-    (when-not (.exists backup)
-      (io/copy (io/file jboss-dir "standalone/configuration/standalone.xml") backup)))
-  (io/copy (io/file jboss-dir "standalone/configuration/immutant/standalone-full.xml")
+  (io/copy (io/file jboss-dir "standalone/configuration/standalone-full.xml")
            (io/file jboss-dir "standalone/configuration/standalone.xml")))
 
 (defn assemble [assembly-dir]
@@ -72,8 +79,9 @@
   (lay-down-jboss)
   (install-modules)
   (install-polyglot-modules)
+  (backup-configs)
   (transform-configs)
-  (overlay (io/file jboss-dir "standalone/configuration/immutant/standalone-ha.xml") "overlay-ha.xml")
+  (overlay (io/file jboss-dir "standalone/configuration/standalone-ha.xml") "overlay-ha.xml")
   (create-standalone-xml))
 
 (defn -main [assembly-path]
