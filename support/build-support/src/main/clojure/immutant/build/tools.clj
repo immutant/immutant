@@ -28,9 +28,6 @@
   (:require [org.satta.glob :as glob])
   (:use [clojure.pprint :only [pprint]]))
 
-;; short-circuit the future pool so we don't have to wait 60s for it to exit
-(.setKeepAliveTime clojure.lang.Agent/soloExecutor 100 java.util.concurrent.TimeUnit/MILLISECONDS)
-
 (defn unzip [zip-file dest-dir]
   (let [result (shell/sh "unzip" "-q" "-d" (str dest-dir) zip-file)]
     (if (not= (:exit result) 0)

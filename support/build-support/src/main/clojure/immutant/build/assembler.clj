@@ -86,4 +86,5 @@
 
 (defn -main [assembly-path]
   (println "Assembling Immutant...")
-  (assemble (io/file assembly-path)))
+  (assemble (io/file assembly-path))
+  (shutdown-agents))
