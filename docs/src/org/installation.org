@@ -1,4 +1,4 @@
-#+TITLE:     Immutant Web
+#+TITLE:     Installing Immutant
 #+LANGUAGE:  en
 #+OPTIONS:   H:3 num:t toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
 #+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
@@ -7,4 +7,4 @@
 
 * Introduction
 
-  Any Clojure [[https://github.com/mmcgrana/ring][Ring]] web application may be deployed on Immutant.
+

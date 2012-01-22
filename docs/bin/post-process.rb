@@ -25,7 +25,7 @@ class PostProcessor
       end
     end
 
-    toc = Nokogiri::HTML::DocumentFragment.parse( %Q{<ul id="index-toc">#{@index_toc}</ul>} )    
+    toc = Nokogiri::HTML::DocumentFragment.parse( %Q{<ul>#{@index_toc}</ul>} )    
     with_doc( 'index.html' ) do |doc|
       toc.parent = doc.at_css( '#index-toc' )
       insert_prev_next_links( doc, 0 )
@@ -104,7 +104,7 @@ class PostProcessor
   
 end
 
-PAGES = %w{ web jobs messaging daemons }
+PAGES = %w{ what-is installation jboss web jobs messaging daemons }
 TARGET_DIR = File.join( File.expand_path( File.dirname( __FILE__ ) ), "..", "target" )
 
 PostProcessor.new( PAGES,
