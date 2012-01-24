@@ -15,20 +15,17 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.web.util
+(ns immutant.web.ring
   (:require [ring.util.servlet :as servlet])
-  (:require [clojure.string :as str])
-  (:require [immutant.utilities :as util])
-  (:import (javax.servlet.http HttpServletRequest
-                               HttpServletResponse)))
+  (:use [immutant.web.core :only [filters]]))
 
-(defn handler [app]
-  (fn [^HttpServletRequest request
-       ^HttpServletResponse response]
-    (.setCharacterEncoding response "UTF-8")
-    (if-let [response-map (app (servlet/build-request-map request))]
+(def ^{:dynamic true} current-servlet-request nil)
+
+(defn handle-request [filter-name request response]
+  (.setCharacterEncoding response "UTF-8")
+  (if-let [handler (get-in @filters [filter-name :handler])]
+    (if-let [response-map (binding [current-servlet-request request]
+                            (handler (servlet/build-request-map request)))]
       (servlet/update-servlet-response response response-map)
-      (throw (NullPointerException. "Handler returned nil.")))))
-
-(defn handle-request [handler-function request response]
-  ((handler (load-string handler-function)) request response))
+      (throw (NullPointerException. "Handler returned nil.")))
+    (throw (IllegalArgumentException. (str "No handler function found for " filter-name)))))

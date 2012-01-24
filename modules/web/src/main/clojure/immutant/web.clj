@@ -29,23 +29,18 @@
   (let [name (filter-name subcontext-path)
         filter-def (doto (FilterDef.)
                      (.setFilterName name)
-                     (.setFilterClass (.getName RingFilter))
-                     (.addInitParameter RingFilter/CLOJURE_FUNCTION
-                                        (with-out-str
-                                          (binding [*print-dup* true]
-                                            (pr handler)))))
+                     (.setFilterClass (.getName RingFilter)))
 
         filter-map (doto (FilterMap.)
                      (.addURLPattern (normalize-subcontext-path subcontext-path))
                      (.setFilterName name))]
-
+    (swap! filters
+           assoc
+           name {:filter filter-def :map filter-map :handler handler})
+    
     (doto (reg/fetch "web-context")
       (.addFilterDef filter-def)
-      (.addFilterMap filter-map))
-
-     (dosync (alter filters
-                      assoc
-                      name {:filter filter-def :map filter-map}))))
+      (.addFilterMap filter-map))))
 
 (defn stop 
   "Tears down the web endpoint at subcontext-path beneath the context-path of the app"

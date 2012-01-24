@@ -18,7 +18,7 @@
 (ns immutant.web.core
   (:require [immutant.registry :as reg]))
 
-(def filters (ref {}))
+(def filters (atom {}))
 
 (defn filter-name [path]
   (str "immutant.ring." (reg/fetch "app-name") "." path))

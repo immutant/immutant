@@ -35,19 +35,19 @@ import org.jboss.logging.Logger;
 import org.projectodd.polyglot.web.servlet.HttpServletResponseCapture;
 
 public class RingFilter implements Filter {
-    public static final String CLOJURE_FUNCTION = "clojure.function";
     public static final String CLOJURE_RUNTIME = "clojure.runtime";
     
     public void init(FilterConfig filterConfig) throws ServletException {
         this.runtime = (ClojureRuntime)filterConfig.getServletContext().getAttribute( CLOJURE_RUNTIME );
-        this.function = filterConfig.getInitParameter( CLOJURE_FUNCTION );
+        this.handler_name = filterConfig.getFilterName();
     }
 
     public void destroy() {
     }
 
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        if (request instanceof HttpServletRequest && response instanceof HttpServletResponse) {
+        if (request instanceof HttpServletRequest && 
+                response instanceof HttpServletResponse) {
             doFilter( (HttpServletRequest) request, (HttpServletResponse) response, chain );
         }
     }
@@ -81,7 +81,7 @@ public class RingFilter implements Filter {
 
     protected void doRing(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         try { 
-            this.runtime.invoke( "immutant.web.util/handle-request", this.function, request, response );
+            this.runtime.invoke( "immutant.web.ring/handle-request", this.handler_name, request, response );
         } catch (Exception e) {
             log.error( "Error invoking Ring filter", e );
             throw new ServletException( e );
@@ -89,7 +89,7 @@ public class RingFilter implements Filter {
     }
 
     private ClojureRuntime runtime;
-    private String function;
+    private String handler_name;
     
     private static final Logger log = Logger.getLogger( RingFilter.class );
 
