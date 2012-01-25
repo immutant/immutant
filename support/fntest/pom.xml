@@ -26,7 +26,7 @@
     <dependency>
       <groupId>clj-http</groupId>
       <artifactId>clj-http</artifactId>
-      <version>0.2.1</version>
+      <version>0.2.7</version>
     </dependency>
   </dependencies>
 
