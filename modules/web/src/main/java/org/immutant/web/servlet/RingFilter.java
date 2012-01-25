@@ -39,7 +39,7 @@ public class RingFilter implements Filter {
     
     public void init(FilterConfig filterConfig) throws ServletException {
         this.runtime = (ClojureRuntime)filterConfig.getServletContext().getAttribute( CLOJURE_RUNTIME );
-        this.handler_name = filterConfig.getFilterName();
+        this.handlerName = filterConfig.getFilterName();
     }
 
     public void destroy() {
@@ -81,7 +81,7 @@ public class RingFilter implements Filter {
 
     protected void doRing(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         try { 
-            this.runtime.invoke( "immutant.web.ring/handle-request", this.handler_name, request, response );
+            this.runtime.invoke( "immutant.web.ring/handle-request", this.handlerName, request, response );
         } catch (Exception e) {
             log.error( "Error invoking Ring filter", e );
             throw new ServletException( e );
@@ -89,7 +89,7 @@ public class RingFilter implements Filter {
     }
 
     private ClojureRuntime runtime;
-    private String handler_name;
+    private String handlerName;
     
     private static final Logger log = Logger.getLogger( RingFilter.class );
 
