@@ -26,15 +26,11 @@
 
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
+        <resource-root path="ring-core.jar"/>
         <resource-root path="ring-servlet.jar"/>
+        <resource-root path="commons-codec.jar"/>
         <resource-root path="polyglot-web.jar"/>
     </resources>
-
-    <!-- <exports> -->
-    <!--   <include-set> -->
-    <!--     <path name="org/torquebox/clojure/web/servlet"/> -->
-    <!--   </include-set> -->
-    <!-- </exports> -->
 
     <dependencies>
         <module name="javax.api"/>
