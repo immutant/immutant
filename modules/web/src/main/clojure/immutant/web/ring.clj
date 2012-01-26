@@ -17,15 +17,26 @@
 
 (ns immutant.web.ring
   (:require [ring.util.servlet :as servlet])
-  (:use [immutant.web.core :only [filters]]))
+  (:use [immutant.web.core :only [get-servlet-filter]]))
 
 (def ^{:dynamic true} current-servlet-request nil)
 
+(defn remove-ring-session-cookie [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (if-let [session (.getSession current-servlet-request)]
+        (update-in response [:headers "Set-Cookie"]
+                   #(filter (fn [cookie] (not (.contains cookie (.getId session)))) %))
+        response))))
+
 (defn handle-request [filter-name request response]
   (.setCharacterEncoding response "UTF-8")
-  (if-let [handler (get-in @filters [filter-name :handler])]
-    (if-let [response-map (binding [current-servlet-request request]
-                            (handler (servlet/build-request-map request)))]
-      (servlet/update-servlet-response response response-map)
-      (throw (NullPointerException. "Handler returned nil.")))
-    (throw (IllegalArgumentException. (str "No handler function found for " filter-name)))))
+  (let [{:keys [handler response-filters]} (get-servlet-filter filter-name)]
+    (if handler
+      (if-let [response-map (binding [current-servlet-request request]
+                              ((remove-ring-session-cookie handler)
+                               (servlet/build-request-map request)))]
+        (servlet/update-servlet-response response response-map)
+        (throw (NullPointerException. "Handler returned nil.")))
+      (throw (IllegalArgumentException. (str "No handler function found for " filter-name))))))
+

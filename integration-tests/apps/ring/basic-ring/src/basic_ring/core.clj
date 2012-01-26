@@ -40,21 +40,3 @@
                (web/stop "/stopper")
                (handler r))))
 
-(defn query-map [query-string]
-  (when-not (empty? query-string)
-    (apply hash-map
-           (clojure.string/split query-string #"(&|=)"))))
-
-(defn init-web-sessions []
-  (init)
-  (web/start "/sessions"
-             (rsession/wrap-session
-              (fn [request]
-                (let [session (merge (:session request) (query-map (:query-string request)))]
-                  (println "SESSION:" session)
-                  {:status 200
-                   :headers {"Content-Type" "text/html"}
-                   :session session
-                   :body (with-out-str (pr session))}))
-               {:store (isession/servlet-store)}
-              )))

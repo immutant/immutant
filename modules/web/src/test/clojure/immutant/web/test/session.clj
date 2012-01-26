@@ -56,7 +56,7 @@
 
 (deftest read-session-should-return-a-map
   (.setAttribute mock-session
-                 session-key
+                 ":immutant.web.session/session-data"
                  {"ham" "biscuit",
                   "biscuit" :gravy})
   (let [values (read-session (servlet-store) nil)]

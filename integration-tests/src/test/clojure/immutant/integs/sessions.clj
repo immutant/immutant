@@ -20,29 +20,47 @@
   (:use clojure.test)
   (:require [clj-http.client :as client]))
 
-(use-fixtures :each (with-deployment *file*
-                      {
-                       :root "apps/ring/basic-ring/"
-                       :init "basic-ring.core/init-web-sessions"
-                       :context-path "/basic-ring"
-                       }))
 
 (def cookies (atom {}))
 
-(defn get-with-cookies
-  ([]
-     (get-with-cookies ""))
-  ([query-string]
-     (when-let [result (client/get
-                        (str "http://localhost:8080/basic-ring/sessions?" query-string)
-                        {:cookies @cookies})]
-       ;; (println "RESULT:" result)
-       (if (contains? result :cookies)
-         (reset! cookies (:cookies result)))
-       (read-string (:body result)))))
+(use-fixtures :once (with-deployment *file*
+                      {
+                       :root "apps/ring/sessions/"
+                       :init "sessions.core/init-all"
+                       :context-path "/sessions"
+                       }))
 
-(deftest basic-session-test
-  (is (= {"ham" "biscuit"}                    (get-with-cookies "ham=biscuit")))
-  (is (= {"ham" "biscuit"}                    (get-with-cookies)))
-  (is (= {"ham" "biscuit", "biscuit" "gravy"} (get-with-cookies "biscuit=gravy")))
-  (is (= {"ham" "biscuit", "biscuit" "gravy"} (get-with-cookies))))
+(use-fixtures :each (fn [f]
+                      (reset! cookies {})
+                      (f)))
+
+(defn get-with-cookies [sub-path query-string]
+  (when-let [result (client/get
+                     (str "http://localhost:8080/sessions/" sub-path "?" query-string)
+                     {:cookies @cookies})]
+    ;;(println "RESULT:" result)
+    (if (get-in result [:cookies "JSESSIONID"])
+      (reset! cookies (:cookies result)))
+    (read-string (:body result))))
+
+(deftest basic-immutant-session-test
+  (are [expected query-string] (= expected (get-with-cookies "immutant" query-string))
+       {"ham" "biscuit"}                    "ham=biscuit"
+       {"ham" "biscuit"}                    ""
+       {"ham" "biscuit", "biscuit" "gravy"} "biscuit=gravy"
+       {"ham" "biscuit", "biscuit" "gravy"} ""))
+
+(deftest immutant-session-should-only-have-a-jsessionid-cookie
+  (get-with-cookies "immutant" "ham=biscuit")
+  (is (= #{"JSESSIONID" "a-cookie"} (set (keys @cookies)))))
+
+(deftest basic-ring-session-test
+  (are [expected query-string] (= expected (get-with-cookies "ring" query-string))
+       {"ham" "biscuit"}                    "ham=biscuit"
+       {"ham" "biscuit"}                    ""
+       {"ham" "biscuit", "biscuit" "gravy"} "biscuit=gravy"
+       {"ham" "biscuit", "biscuit" "gravy"} ""))
+
+(deftest ring-session-should-have-a-ring-session-cookie
+  (get-with-cookies "ring" "ham=biscuit")
+  (is (= #{"ring-session" "a-cookie" "JSESSIONID"} (set (keys @cookies)))))

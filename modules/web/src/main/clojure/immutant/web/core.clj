@@ -18,7 +18,20 @@
 (ns immutant.web.core
   (:require [immutant.registry :as reg]))
 
-(def filters (atom {}))
+(def ^{:private true} servlet-filters (atom {}))
+
+(defn get-servlet-filter [name]
+  (@servlet-filters name))
+
+(defn add-servlet-filter! [name filter-def filter-map handler]
+  (swap! servlet-filters
+         assoc
+         name {:filter-def filter-def :filter-map filter-map :handler handler}))
+
+(defn remove-servlet-filter! [name]
+  (when-let [filter (@servlet-filters name)]
+    (swap! servlet-filters dissoc name)
+    filter))
 
 (defn filter-name [path]
   (str "immutant.ring." (reg/fetch "app-name") "." path))
@@ -28,9 +41,9 @@
   [path]
   (loop [p path]
     (condp re-matches p
-      #"^(/[^*]+)*/\*$" p                 ;; /foo/* || /*
-      #"^(|[^/].*)" (recur (str "/" p))   ;; prefix with /
-      #".*?[^/]$" (recur (str p "/"))     ;; add final /
-      #"^(/[^*]+)*/$" (recur (str p "*")) ;; postfix with *
+      #"^(/[^*]+)*/\*$" p                     ;; /foo/* || /*
+      #"^(|[^/].*)"     (recur (str "/" p))   ;; prefix with /
+      #".*?[^/]$"       (recur (str p "/"))   ;; add final /
+      #"^(/[^*]+)*/$"   (recur (str p "*"))   ;; postfix with *
       (throw (IllegalArgumentException.
               (str "The context path \"" path "\" is invalid. It should be \"/\", \"/foo\", \"/foo/\", \"foo/\", or \"foo\""))))))

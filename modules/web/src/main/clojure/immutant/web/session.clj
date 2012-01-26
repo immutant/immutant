@@ -20,14 +20,17 @@
         [immutant.web.ring :only [current-servlet-request]])
   (:require [ring.middleware.session :as ring-session]))
 
-(def session-key "immutant-session")
+(def ^{:private true} session-key ":immutant.web.session/session-data")
 
-(defn servlet-session []
+(defn servlet-session
+  "Returns the servlet session for the current request."
+  []
   (and current-servlet-request
        (.getSession current-servlet-request true)))
 
-(deftype ServletStore []
-  SessionStore
+(deftype
+    ^{:doc "A ring SessionStore implementation that uses the session provided by the servlet container."}
+    ServletStore [] SessionStore
   (read-session [_ _]
     (let [session (servlet-session)]
       (if-let [data (and session 
@@ -35,6 +38,8 @@
         data
         {})))
   (write-session [_ _ data]
+    ;; TODO: it may be useful to store data as entries directly in the session. TorqueBox does
+    ;; this to share the session data with java servlet components.
     (when-let [session (servlet-session)]
       (.setAttribute session session-key data)
       (.getId session)))
@@ -43,10 +48,9 @@
       (.removeAttribute session session-key)
       (.invalidate session))))
 
-(defn servlet-store []
+(defn servlet-store
+  "Instantiates and returns a ServletStore"
+  []
   (ServletStore.))
 
-(defn wrap-session [handler]
-  (ring-session/wrap-session handler {:store (servlet-store)
-                                      :cookie-name nil}))
 

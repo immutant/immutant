@@ -16,10 +16,10 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.web
-  (:require [immutant.registry :as reg])
-  (:require [clojure.tools.logging :as log])
-  (:import (org.apache.catalina.deploy FilterDef FilterMap))
-  (:import (org.immutant.web.servlet RingFilter))
+  (:require [immutant.registry :as reg]
+            [clojure.tools.logging :as log])
+  (:import (org.apache.catalina.deploy FilterDef FilterMap)
+           (org.immutant.web.servlet RingFilter))
   (:use immutant.web.core))
 
 (defn start
@@ -30,14 +30,10 @@
         filter-def (doto (FilterDef.)
                      (.setFilterName name)
                      (.setFilterClass (.getName RingFilter)))
-
         filter-map (doto (FilterMap.)
                      (.addURLPattern (normalize-subcontext-path subcontext-path))
                      (.setFilterName name))]
-    (swap! filters
-           assoc
-           name {:filter filter-def :map filter-map :handler handler})
-    
+    (add-servlet-filter! name filter-def filter-map handler)
     (doto (reg/fetch "web-context")
       (.addFilterDef filter-def)
       (.addFilterMap filter-map))))
@@ -45,7 +41,7 @@
 (defn stop 
   "Tears down the web endpoint at subcontext-path beneath the context-path of the app"
   [subcontext-path]
-  (if-let [{filter-def :filter filter-map :map} (@filters (filter-name subcontext-path))]
+  (if-let [{:keys [filter-def filter-map]} (remove-servlet-filter! (filter-name subcontext-path))]
     (do
       (log/info "Stopping web service at sub-context path:" subcontext-path)
       (doto (reg/fetch "web-context")
