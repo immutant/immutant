@@ -58,7 +58,7 @@
 (defn start-command []
   (let [java-home (System/getProperty "java.home")
         jboss-home (.getCanonicalFile (io/file home))]
-  (str java-home "/bin/java -Xms64m -Xmx1024m -XX:MaxPermSize=512m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSClassUnloadingEnabled -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000 -Dorg.jboss.boot.log.file=" jboss-home "/standalone/log/boot.log -Dlogging.configuration=file:" jboss-home "/standalone/configuration/logging.properties -jar " jboss-home "/jboss-modules.jar -mp " jboss-home "/modules -logmodule org.jboss.logmanager -jaxpmodule javax.xml.jaxp-provider org.jboss.as.standalone -Djboss.home.dir=" jboss-home)))
+  (str java-home "/bin/java -Xms64m -Xmx1024m -XX:MaxPermSize=512m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSClassUnloadingEnabled -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000 -Dorg.jboss.boot.log.file=" jboss-home "/standalone/log/boot.log -Dlogging.configuration=file:" jboss-home "/standalone/configuration/logging.properties -jar " jboss-home "/jboss-modules.jar -mp " jboss-home "/modules -jaxpmodule javax.xml.jaxp-provider org.jboss.as.standalone -Djboss.home.dir=" jboss-home)))
 
 (defn start
   "Start up a JBoss or toss exception if one is already running"

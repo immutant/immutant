@@ -225,12 +225,12 @@
   </dependencyManagement>
 
   <properties>
-    <version.polyglot>1.3.0-SNAPSHOT</version.polyglot>
+    <version.polyglot>1.5.0-SNAPSHOT</version.polyglot>
     <version.junit>4.7</version.junit>
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>
     <version.hamcrest>1.1</version.hamcrest>
-    <version.jbossas>7.x.incremental.260</version.jbossas>
+    <version.jbossas>7.x.incremental.268</version.jbossas>
     <version.clojure>1.3.0</version.clojure>
     <version.clojure-contrib>1.2.0</version.clojure-contrib>
     <version.clojure.tools.logging>0.2.3</version.clojure.tools.logging>

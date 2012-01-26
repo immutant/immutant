@@ -32,7 +32,7 @@ class BuildInfo
     @versions["JBossAS"]["version"] = from_parent_pom( "project/properties/version.jbossas" )
     @versions["Quartz"]["version"] = from_polyglot_properties( "version.org.quartz-scheduler" )
     @versions["Clojure"]["version"] = from_parent_pom( "project/properties/version.clojure" )
-    @versions['Infinispan']['version'] = org.infinispan.Version.VERSION
+    @versions['Infinispan']['version'] = org.infinispan.Version::VERSION
     @versions['HornetQ']['version'] = org.hornetq.utils.VersionLoader.version.full_version
   end
 
