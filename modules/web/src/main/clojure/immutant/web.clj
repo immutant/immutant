@@ -49,5 +49,14 @@
         (.removeFilterDef filter-def)))
     (log/warn "Attempted to stop web service at sub-context path:" subcontext-path ", but none found")))
 
-
-
+(defmacro src-dir
+  "Find the absolute path to a parent directory, 'src' by default.
+   Useful for ring.middleware.reload-modified/wrap-reload-modified"
+  [& [dir]]
+  (let [target (or dir "src")]
+    `(loop [f# (.getParentFile (java.io.File. *file*))]
+       (if f#
+         (let [d# (java.io.File. f# ~target)]
+           (if (and (.exists d#) (.isDirectory d#))
+             (str d#)
+             (recur (.getParentFile f#)))))))) 
