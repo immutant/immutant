@@ -38,7 +38,9 @@
     (if handler
       (if-let [response-map (binding [current-servlet-request request]
                               ((remove-ring-session-cookie handler)
-                               (servlet/build-request-map request)))]
+                               (assoc (servlet/build-request-map request)
+                                 :path-info (.getPathInfo request)
+                                 :context (.getContextPath request))))]
         (servlet/update-servlet-response response response-map)
         (throw (NullPointerException. "Handler returned nil.")))
       (throw (IllegalArgumentException. (str "No handler function found for " filter-name))))))
