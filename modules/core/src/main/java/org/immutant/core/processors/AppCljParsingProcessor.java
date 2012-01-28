@@ -103,6 +103,9 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
         List<VirtualFile> matches = new ArrayList<VirtualFile>();
 
         ResourceRoot resourceRoot = unit.getAttachment( Attachments.DEPLOYMENT_ROOT );
+        if (resourceRoot == null) {
+            return null;
+        }
         VirtualFile root = resourceRoot.getRoot();
         
         if (this.knobFilter.accepts( root )) {
