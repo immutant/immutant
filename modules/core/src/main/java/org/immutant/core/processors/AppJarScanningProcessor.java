@@ -141,6 +141,7 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
         {
             // FIXME: we really should pull this dynamically from lein's project.clj
             add( "src" );
+            add( "resources" );
             add( "classes" );
         }
     };
