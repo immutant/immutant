@@ -17,20 +17,8 @@
 
 (ns immutant.web.ring
   (:require [ring.util.servlet :as servlet])
-  (:use [immutant.web.core :only [get-servlet-filter]]))
-
-(def ^{:dynamic true} current-servlet-request nil)
-
-(defn remove-ring-session-cookie [handler]
-  (fn [request]
-    (let [response (handler request)]
-      ;(println "RESP" response)
-      (if-let [session (.getSession current-servlet-request)]
-        (let [session-id (.replace (.getId session) " " "%2B")]
-          ;(println "SESID" session-id)
-          (update-in response [:headers "Set-Cookie"]
-                     #(filter (fn [cookie] (not (.contains cookie session-id))) %)))
-        response))))
+  (:use [immutant.web.core :only [get-servlet-filter current-servlet-request]]
+        [immutant.web.session.handler :only [remove-ring-session-cookie]]))
 
 (defn handle-request [filter-name request response]
   (.setCharacterEncoding response "UTF-8")

@@ -17,7 +17,7 @@
 
 (ns immutant.web.session
   (:use ring.middleware.session.store
-        [immutant.web.ring :only [current-servlet-request]])
+        [immutant.web.core :only [current-servlet-request]])
   (:require [ring.middleware.session :as ring-session]))
 
 (def ^{:private true} session-key ":immutant.web.session/session-data")
@@ -52,5 +52,7 @@
   "Instantiates and returns a ServletStore"
   []
   (ServletStore.))
+
+
 
 

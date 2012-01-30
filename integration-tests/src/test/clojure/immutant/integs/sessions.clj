@@ -51,10 +51,8 @@
        {"ham" "biscuit", "biscuit" "gravy"} ""))
 
 (deftest immutant-session-should-only-have-a-jsessionid-cookie
-  (println "PENDING until I fix handling session ids with spaces")
-  ;; (get-with-cookies "immutant" "ham=biscuit")
-  ;; (is (= #{"JSESSIONID" "a-cookie"} (set (keys @cookies))))
-  )
+   (get-with-cookies "immutant" "ham=biscuit")
+   (is (= #{"JSESSIONID" "a-cookie"} (set (keys @cookies)))))
 
 (deftest basic-ring-session-test
   (are [expected query-string] (= expected (get-with-cookies "ring" query-string))

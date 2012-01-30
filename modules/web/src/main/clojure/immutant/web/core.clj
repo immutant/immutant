@@ -18,6 +18,8 @@
 (ns immutant.web.core
   (:require [immutant.registry :as reg]))
 
+(def ^{:dynamic true} current-servlet-request nil)
+
 (def ^{:private true} servlet-filters (atom {}))
 
 (defn get-servlet-filter [name]
