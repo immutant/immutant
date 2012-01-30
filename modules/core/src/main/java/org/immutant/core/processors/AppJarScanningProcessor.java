@@ -112,7 +112,7 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
     }
     
     public List<VirtualFile> getJarFiles(VirtualFile dir) throws IOException {
-        return dir.getChildrenRecursively( JAR_FILTER );
+        return dir.getChildrenRecursively( new NonDevJarFilter( dir ) );
     }
     
     private static Closeable mount(VirtualFile moduleFile, boolean explode) throws IOException {
@@ -147,8 +147,22 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
     };
    
     
-    public static final VirtualFileFilter JAR_FILTER = new SuffixMatchFilter( ".jar", VisitorAttributes.DEFAULT );
-    
     private static final Logger log = Logger.getLogger( "org.immutant.core" );
 
+    class NonDevJarFilter extends SuffixMatchFilter {
+        NonDevJarFilter(VirtualFile rootDir) {
+            super( ".jar", VisitorAttributes.DEFAULT );
+            this.rootDir = rootDir;
+        }
+        
+
+        @Override
+        public boolean accepts(VirtualFile file) {
+            return super.accepts( file ) && 
+                    !file.getPathNameRelativeTo( this.rootDir ).startsWith( "dev/" );
+        }
+        
+        private VirtualFile rootDir;
+    }
+    
 }
