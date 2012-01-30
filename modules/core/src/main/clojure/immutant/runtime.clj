@@ -33,7 +33,6 @@
   [init-fn]
   (let [config-file (io/file (app-root) "immutant.clj")
         config-exists (.exists config-file)]
-    (println config-exists config-file)
     (if init-fn
       (do
         (if config-exists
