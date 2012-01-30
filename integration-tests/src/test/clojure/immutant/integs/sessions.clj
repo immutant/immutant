@@ -38,7 +38,7 @@
   (when-let [result (client/get
                      (str "http://localhost:8080/sessions/" sub-path "?" query-string)
                      {:cookies @cookies})]
-    (println "RESULT:" result)
+    ;; (println "RESULT:" result)
     (if (get-in result [:cookies "JSESSIONID"])
       (reset! cookies (:cookies result)))
     (read-string (:body result))))
