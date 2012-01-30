@@ -22,6 +22,8 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as string]))
 
+(def ^{:dynamic true} *current-clojure-version* nil)
+
 (def clojure-versions
   (set (string/split (System/getProperty "integ.clojure.versions") #",")))
 
@@ -64,7 +66,8 @@
     (try
       (set-version version)
       (println "\n>>>> Running integs with clojure" version)
-      (apply run-tests namespaces)
+      (binding [*current-clojure-version* version]
+        (apply run-tests namespaces))
       (println "\n<<<< Finished integs with clojure" version "\n")
       (finally (remove-clojure-jars)))))
 

@@ -9,7 +9,8 @@
 (println "basic-ring.core LOADED")
 
 (defn handler [request]
-  (let [body (str "Hello from Immutant! This is basic-ring <p>a-value:" @a-value "</p>")]
+  (let [body (str "Hello from Immutant! This is basic-ring <p>a-value:" @a-value
+                  "</p><p>version:" (clojure-version) "</p>")]
     (reset! a-value "not-default")
     {:status 200
      :headers {"Content-Type" "text/html"}
