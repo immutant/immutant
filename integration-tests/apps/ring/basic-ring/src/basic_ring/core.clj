@@ -2,7 +2,8 @@
   (:require [immutant.messaging :as msg]
             [immutant.web :as web]
             [immutant.web.session :as isession]
-            [ring.middleware.session :as rsession]))
+            [ring.middleware.session :as rsession]
+            [clojure.java.io :as io]))
 
 (def a-value (atom "default"))
 
@@ -19,6 +20,12 @@
 (defn another-handler [request]
   (reset! a-value "another-handler")
   (handler request))
+
+(defn resource-handler [request]
+  (let [res (io/as-file (io/resource "a-resource"))]
+    {:status 200
+     :headers {"Content-Type" "text/html"}
+     :body (slurp res)}))
 
 (defn init []
   (println "INIT CALLED"))
@@ -40,4 +47,8 @@
              (fn [r]
                (web/stop "/stopper")
                (handler r))))
+
+(defn init-resources []
+  (init)
+  (web/start "/" resource-handler))
 

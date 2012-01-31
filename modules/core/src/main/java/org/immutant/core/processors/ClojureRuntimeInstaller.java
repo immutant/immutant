@@ -21,6 +21,7 @@ package org.immutant.core.processors;
 
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.ClojureRuntime;
+import org.immutant.core.VFSStrippingClassLoader;
 import org.immutant.core.as.CoreServices;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
@@ -56,7 +57,7 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
             // this won't happen in production, but helps testing    
             loader = this.getClass().getClassLoader(); 
         }
-        ClojureRuntime runtime = new ClojureRuntime( loader );
+        ClojureRuntime runtime = new ClojureRuntime( new VFSStrippingClassLoader( loader ) );
         runtime.invoke( "immutant.registry/set-msc-registry", deploymentUnit.getServiceRegistry() );
         
         deploymentUnit.putAttachment( ClojureRuntime.ATTACHMENT_KEY, runtime );
