@@ -25,4 +25,5 @@
 
 (deftest jar-scanning-should-ignore-dev
   (let [accepted (.getJarFiles (AppJarScanningProcessor.) (VFS/getChild (.toURI (io/resource "lib"))))]
-    (is (= ["acceptable.jar" "acceptable-as-well.jar"] (map #(.getName %) accepted)))))
+    (is (= #{"acceptable.jar" "acceptable-as-well.jar"}
+           (set (map #(.getName %) accepted))))))
