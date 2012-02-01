@@ -57,6 +57,7 @@
   (let [jar-name (str "clojure-" version ".jar")]
     (if-let [jar (io/resource jar-name)]
       (doseq [lib-dir app-lib-dirs]
+        (.mkdir lib-dir)
         (io/copy (io/file jar) (io/file lib-dir jar-name))))))
 
 (defn for-each-version
