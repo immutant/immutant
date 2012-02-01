@@ -41,8 +41,9 @@
   (println "DONE"))
 
 (defn print-err [& message]
-  (comment (binding [*out* *err*]
-             (apply println message))))
+  (comment)
+  (binding [*out* *err*]
+    (apply println message)))
 
 (defn xml-zip [path]
   (zip/xml-zip (xml/parse path)))
@@ -149,6 +150,13 @@
 (defn disable-security [loc]
     (zip/edit loc #(update-in % [:attrs] dissoc :security-realm)))
 
+(defn add-logger-levels [loc]
+  (zip/append-child (zip/right
+                     (zip/insert-right loc
+                                       {:tag :logger
+                                        :attrs {:category "org.jboss.as.dependency.private"}}))
+                    {:tag :level :attrs {:name "ERROR"}}))
+
 (defn looking-at? [tag loc]
   (= tag (:tag (zip/node loc))))
 
@@ -167,6 +175,7 @@
             (cond
              (looking-at? :extensions loc) (add-extensions loc)
              (looking-at? :profile loc) (add-subsystems loc)
+             (looking-at? :periodic-rotating-file-handler loc) (add-logger-levels loc)
              (looking-at? :virtual-server loc) (set-welcome-root loc)
              (looking-at? :system-properties loc) (unquote-cookie-path loc)
              (looking-at? :jms-destinations loc) (zip/remove loc)
@@ -175,6 +184,7 @@
              (looking-at? :http-interface loc) (disable-security loc)
              (looking-at? :max-size-bytes loc) (zip/edit loc assoc :content ["20971520"])
              (looking-at? :address-full-policy loc) (zip/edit loc assoc :content ["PAGE"])
+
              :else loc)))))
   
 (defn transform-config [file]
