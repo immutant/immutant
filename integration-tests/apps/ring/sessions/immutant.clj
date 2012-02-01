@@ -1,5 +1,4 @@
-(ns basic-ring.init
-  (:require [immutant.web :as web])
-  (:use basic-ring.core))
+(ns sessions.init
+  (:use sessions.core))
 
-(web/start "/" another-handler)
+(init-immutant-session)
