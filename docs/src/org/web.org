@@ -8,3 +8,14 @@
 * Introduction
 
   Any Clojure [[https://github.com/mmcgrana/ring][Ring]] web application may be deployed on Immutant.
+
+* Context Path
+  Default context is the deployment name.
+** The global context path
+** Sub-Context paths
+
+* Endpoints
+
+* Sessions
+
+* pwd
