@@ -15,24 +15,13 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.bundled-clojure-version
-  (:use fntest.core
-        clojure.test)
-  (:require [clj-http.client :as client]))
+(ns immutant.bootstrap
+  "Functions used in app bootstrapping."
+  (:require [clojure.java.io :as io]
+            [clojure.walk :as walk]))
 
-(use-fixtures :each (with-deployment *file*
-                      {
-                       :root "apps/ring/basic-ring/"
-                       :init "basic-ring.core/init-web"
-                       :context-path "/basic-ring"
-                       }))
-
-(deftest verify-clojure-version
-  (let [result (client/get "http://localhost:8080/basic-ring")
-        expected-version (if (= immutant.integs/*current-clojure-version* "default")
-                           "1.3.0"
-                           immutant.integs/*current-clojure-version*)]
-    (println result)
-    (is (.contains (result :body) (str "version:" expected-version)))))
-
+(defn read-descriptor
+  "Reads a deployment descriptor and returns the resulting hash."
+  [file]
+  (walk/stringify-keys (load-file (.getAbsolutePath file))))
 

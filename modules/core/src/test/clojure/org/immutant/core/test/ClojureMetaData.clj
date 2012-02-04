@@ -36,7 +36,7 @@
 (deftest getHash "it should return the proper value as a Hash"
   (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse hashy-descriptor))
         value (.getHash cmd "ham")]
-    (is (= {:biscuit "gravy"} value))))
+    (is (= {"biscuit" "gravy"} value))))
 
 (deftest getInitFunction "it should return the proper value"
   (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse simple-descriptor))]

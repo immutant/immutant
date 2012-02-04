@@ -32,7 +32,7 @@
         func-name "a.namespace/init"]
     (doto unit
       (.putAttachment ClojureRuntime/ATTACHMENT_KEY
-                      (proxy [ClojureRuntime] [(.getClassLoader (class ClojureRuntime))]
+                      (proxy [ClojureRuntime] [(.getClassLoader (class ClojureRuntime)) "app-name"]
                         (invoke [initialize-fn args]
                           (reset! a-value [initialize-fn (first args)]))))
       (.putAttachment ClojureMetaData/ATTACHMENT_KEY (ClojureMetaData. "foo" {"init" func-name})))

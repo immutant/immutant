@@ -39,8 +39,9 @@ import org.jboss.msc.service.StopContext;
 public class ClojureRuntime implements Service<ClojureRuntime> {
     public static final AttachmentKey<ClojureRuntime> ATTACHMENT_KEY = AttachmentKey.create( ClojureRuntime.class );
     
-    public ClojureRuntime(ClassLoader classLoader) {
+    public ClojureRuntime(ClassLoader classLoader, String name) {
         this.classLoader = classLoader;
+        this.name = name;
     }
    
     @Override
@@ -50,7 +51,7 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
 
     @Override
     public synchronized void stop(StopContext context) {
-        log.info( "Shutting down Clojure runtime" );
+        log.info( "Shutting down Clojure runtime for " + this.name );
         invoke( "clojure.core/shutdown-agents" );
     }
     
@@ -64,6 +65,7 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     }
     
     public Object invoke(String namespacedFunction, Object... args) {
+        System.out.println("TC: " + this.name + " : RT " + getRuntime().hashCode() + " : " + getRuntime().getClassLoader() );
         load( CLOJURE_UTIL_NAME ); //TODO: see the performance impact of loading every call. Maybe cache these in production?
         Object func = var( CLOJURE_UTIL_NS, "require-and-invoke" );
         
@@ -139,6 +141,7 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     
     private ClassLoader classLoader;
     private Class runtime;
+    private String name;
     
     protected static final String RUNTIME_CLASS = "clojure.lang.RT";   
     protected static final String CLOJURE_UTIL_NAME = "immutant/runtime";

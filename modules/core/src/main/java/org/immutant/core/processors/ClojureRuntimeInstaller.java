@@ -57,7 +57,7 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
             // this won't happen in production, but helps testing    
             loader = this.getClass().getClassLoader(); 
         }
-        ClojureRuntime runtime = new ClojureRuntime( new VFSStrippingClassLoader( loader ) );
+        ClojureRuntime runtime = new ClojureRuntime( new VFSStrippingClassLoader( loader ), deploymentUnit.getName() );
         runtime.invoke( "immutant.registry/set-msc-registry", deploymentUnit.getServiceRegistry() );
         
         deploymentUnit.putAttachment( ClojureRuntime.ATTACHMENT_KEY, runtime );

@@ -20,17 +20,12 @@
 package org.immutant.core;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.projectodd.polyglot.core.app.ApplicationMetaData;
-
-import clojure.lang.Compiler;
-import clojure.lang.Keyword;
-import clojure.lang.Var;
 
 public class ClojureMetaData extends ApplicationMetaData {
 
@@ -68,20 +63,7 @@ public class ClojureMetaData extends ApplicationMetaData {
     }
     
     public static Map<String, ?> parse(File file) throws Exception {
-        ClassLoader originalCl = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader( Var.class.getClassLoader() );
-            Map<String, Object> config = new HashMap<String, Object>();
-            Map<Keyword, Object> cljConfig = (Map<Keyword, Object>)Compiler.loadFile( file.getAbsolutePath() ); 
-            for( Keyword each : cljConfig.keySet()) {
-                config.put( each.getName(), cljConfig.get( each ) );
-            }
-            
-            return config; 
-        } finally {
-            Thread.currentThread().setContextClassLoader( originalCl );
-        }
-        
+        return ApplicationBootstrapUtils.parseDescriptor( file );
     }
 
     private Map<String, ?> config;
