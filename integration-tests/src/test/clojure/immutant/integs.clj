@@ -1,26 +1,29 @@
 ;; Copyright 2008-2012 Red Hat, Inc, and individual contributors.
-;; 
+;;
 ;; This is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU Lesser General Public License as
 ;; published by the Free Software Foundation; either version 2.1 of
 ;; the License, or (at your option) any later version.
-;; 
+;;
 ;; This software is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ;; Lesser General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU Lesser General Public
 ;; License along with this software; if not, write to the Free
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs
-  (:use [clojure.test])
-  (:use [fntest.core])
-  (:use [clojure.tools.namespace :only (find-namespaces-in-dir)])
-  (:require [clojure.java.io :as io]
-            [clojure.string :as string]))
+  (:use [clojure.test]
+        [fntest.core]
+        [clojure.tools.namespace :only (find-namespaces-in-dir)])
+  (:require [clojure.java.io             :as io]
+            [clojure.string              :as string]
+            [clojure.walk                :as walk]
+            [cemerick.pomegranate.aether :as aether]
+            [fleet                       :as fleet]))
 
 (def ^{:dynamic true} *current-clojure-version* nil)
 
@@ -31,13 +34,10 @@
   ([dir]
      (find-app-dirs [] dir))
   ([app-dirs dir]
-      (if (.exists (io/file dir "project.clj"))
-        (conj app-dirs dir)
-        (reduce find-app-dirs app-dirs (.listFiles dir)))))
-
-(def app-lib-dirs
-  (map #(io/file % "lib")
-       (find-app-dirs (io/file (System/getProperty "user.dir") "apps"))))
+     (if (or (.exists (io/file dir "src"))
+             (.exists (io/file dir "immutant.clj")))
+       (conj app-dirs dir)
+       (reduce find-app-dirs app-dirs (.listFiles dir)))))
 
 (def jar-filter
   (proxy [java.io.FilenameFilter] []
@@ -47,18 +47,35 @@
 (defn remove-clojure-jars
   "removes clojure jars from the apps' lib dirs"
   []
-  (doseq [lib-dir app-lib-dirs]
+  (doseq [lib-dir (map #(io/file % "lib")
+                       (find-app-dirs (io/file (System/getProperty "user.dir") "apps")))]
     (doseq [jar (.listFiles lib-dir jar-filter)]
       (io/delete-file jar))))
+
+(defn update-project-clj [clojure-dep app-dir]
+  (let [project-template (io/file app-dir "project.clj.fleet")]
+    (if (.exists project-template)
+      (io/copy 
+       (str ((fleet/fleet [dep] (slurp project-template))
+             clojure-dep))
+       (io/file app-dir "project.clj")))))
 
 (defn set-version
   "adds the proper version of the clojure jar to each app"
   [version]
-  (let [jar-name (str "clojure-" version ".jar")]
-    (if-let [jar (io/resource jar-name)]
-      (doseq [lib-dir app-lib-dirs]
-        (.mkdir lib-dir)
-        (io/copy (io/file jar) (io/file lib-dir jar-name))))))
+  (let [app-dirs (find-app-dirs (io/file (System/getProperty "user.dir") "apps"))
+        coord ['org.clojure/clojure version]]
+    (if (= "default" version)
+      (doall
+       (map (partial update-project-clj "") app-dirs))
+      (if-let [clojure-jar (first (aether/dependency-files (aether/resolve-dependencies :coordinates [coord])))]
+        (doseq [app-dir app-dirs]
+          (if (.exists (io/file app-dir "project.clj.fleet"))
+            (update-project-clj (pr-str coord) app-dir)
+            (let [lib-dir (io/file app-dir "lib")]
+              (.mkdir lib-dir)
+              (io/copy clojure-jar (io/file lib-dir (.getName clojure-jar))))))
+        (throw (Exception. (str "Failed to resolve clojure " version)))))))
 
 (defn for-each-version
   "Runs the integ apps under each clojure version"
@@ -94,4 +111,3 @@
           (with-jboss #(for-each-version namespaces))))
       (shutdown-agents)
       (System/exit (if (empty? (filter #{:fail :error} @results)) 0 -1)))))
-

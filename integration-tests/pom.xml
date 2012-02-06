@@ -68,7 +68,12 @@
       <artifactId>netty</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>fleet</groupId>
+      <artifactId>fleet</artifactId>
+      <version>0.9.5</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
