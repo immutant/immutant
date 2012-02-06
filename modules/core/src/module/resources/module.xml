@@ -72,6 +72,7 @@
         <module name="org.jboss.vfs"/>
         <module name="org.jboss.metadata"/>
         <module name="sun.jdk"/>
+        <module name="org.apache.commons.io"/>
     </dependencies>
 </module>
 

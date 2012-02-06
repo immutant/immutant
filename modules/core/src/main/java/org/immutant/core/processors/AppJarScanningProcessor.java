@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.immutant.core.ApplicationBootstrapUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
@@ -67,7 +68,7 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
                 if (each.getName().matches( "^clojure(-\\d.\\d.\\d)?\\.jar$" )) {
                     clojureProvided = true;
                 }
-                mount( each, unit, !each.getAbsolutePath().startsWith( root.getPhysicalFile().getAbsolutePath() ) );
+                mount( each, unit );
             }
 
             if (!clojureProvided) {
@@ -78,7 +79,7 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
 
                 // borrow the shipped clojure.jar
                 String jarPath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/clojure.jar";
-                mount( new File( jarPath ), unit, true );
+                mount( new File( jarPath ), unit );
             }
 
             for(String each : DIR_ROOTS) {
@@ -93,20 +94,27 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
 
     }
 
-    private static void mount(File file, DeploymentUnit unit, boolean mountAsTmp) throws IOException {
-        VirtualFile vFile = VFS.getChild( file.toURI() );
-        VirtualFile mountPath = mountAsTmp ? VFS.getChild( File.createTempFile( unit.getName(), file.getName() ).toURI() ) : 
-            vFile; 
-        final Closeable closable = VFS.mountZip( vFile, mountPath, TempFileProviderService.provider() );
-        final MountHandle mountHandle = new MountHandle( closable );
-        final ResourceRoot childResource = new ResourceRoot( mountPath, mountHandle );
+    private void mount(File file, DeploymentUnit unit) throws IOException {
+        VirtualFile mountPath = VFS.getChild( File.createTempFile( file.getName(), ".jar", tmpMountDir( unit ) ).toURI() );
+        final ResourceRoot childResource = new ResourceRoot( mountPath, 
+                new MountHandle( VFS.mountZip( file, mountPath, TempFileProviderService.provider() ) ) );
         ModuleRootMarker.mark(childResource);
         unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
     }
 
+    private File tmpMountDir(DeploymentUnit unit) throws IOException {
+        File dir = new File( unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY ).getRoot(), ".tmp_jar_mounts" );
+        dir.mkdir();
+        return dir;
+    }
+    
     @Override
     public void undeploy(DeploymentUnit context) {
-
+        try {
+            FileUtils.deleteDirectory( tmpMountDir( context ) );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @SuppressWarnings("serial")
