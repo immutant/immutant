@@ -44,9 +44,9 @@ import org.jboss.vfs.VirtualFileFilter;
  * FIXME: This doesn't handle archives
  * 
  */
-public class AppCljParsingProcessor implements DeploymentUnitProcessor {
+public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProcessor {
     
-    public AppCljParsingProcessor() {
+    public DeploymentDescriptorParsingProcessor() {
     }
 
     @Override
@@ -62,7 +62,7 @@ public class AppCljParsingProcessor implements DeploymentUnitProcessor {
             }
             
             ClojureMetaData appMetaData = new ClojureMetaData( deploymentName, 
-                    ClojureMetaData.parse(  cljFile.getPhysicalFile() ) );
+                    ClojureMetaData.parse( cljFile.getPhysicalFile() ) );
             
             appMetaData.attachTo( deploymentUnit );
                         

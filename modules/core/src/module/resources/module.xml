@@ -30,6 +30,21 @@
         <resource-root path="polyglot-core.jar"/>
         <resource-root path="polyglot-core-extensions.jar"/>
         <resource-root path="tools.logging.jar"/>
+        <resource-root path="leiningen-core.jar"/>
+        <resource-root path="pomegranate.jar"/>
+        <resource-root path="maven-aether-provider.jar"/>
+        <resource-root path="aether-impl.jar"/>
+        <resource-root path="aether-spi.jar"/>
+        <resource-root path="aether-util.jar"/>
+        <resource-root path="aether-api.jar"/>
+        <resource-root path="aether-connector-file.jar"/>
+        <resource-root path="aether-connector-wagon.jar"/>
+        <resource-root path="wagon-http-lightweight.jar"/>
+        <resource-root path="wagon-provider-api.jar"/>
+        <resource-root path="maven-model.jar"/>
+        <resource-root path="maven-model-builder.jar"/>
+        <resource-root path="plexus-utils.jar"/>
+        <resource-root path="plexus-interpolation.jar"/>
     </resources>
 
     <exports>
@@ -56,6 +71,7 @@
         <module name="org.jboss.logging"/>
         <module name="org.jboss.vfs"/>
         <module name="org.jboss.metadata"/>
+        <module name="sun.jdk"/>
     </dependencies>
 </module>
 

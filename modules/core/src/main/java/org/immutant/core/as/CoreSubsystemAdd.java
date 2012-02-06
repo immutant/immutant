@@ -31,14 +31,15 @@ import javax.management.MBeanServer;
 
 import org.immutant.core.Immutant;
 import org.immutant.core.ImmutantMBean;
-import org.immutant.core.processors.AppCljParsingProcessor;
-import org.immutant.core.processors.AppJarScanningProcessor;
 import org.immutant.core.processors.AppNameRegistrar;
 import org.immutant.core.processors.AppRootRegistrar;
 import org.immutant.core.processors.ApplicationInitializer;
+import org.immutant.core.processors.AppJarScanningProcessor;
 import org.immutant.core.processors.CljRootMountProcessor;
 import org.immutant.core.processors.ClojureRuntimeInstaller;
 import org.immutant.core.processors.CloserInstaller;
+import org.immutant.core.processors.DeploymentDescriptorParsingProcessor;
+import org.immutant.core.processors.ProjectCljParsingProcessor;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -84,7 +85,8 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 0, new CljRootMountProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 20, new AppCljParsingProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 20, new DeploymentDescriptorParsingProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 25, new ProjectCljParsingProcessor() );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 100, new AppJarScanningProcessor() );
         
         processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new CoreDependenciesProcessor() );

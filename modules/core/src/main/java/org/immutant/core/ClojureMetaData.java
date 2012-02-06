@@ -62,9 +62,18 @@ public class ClojureMetaData extends ApplicationMetaData {
         return (List) this.config.get( key );
     }
     
+    public Object getLeinProject() {
+        return leinProject;
+    }
+
+    public void setLeinProject(Object leinProject) {
+        this.leinProject = leinProject;
+    }
+
     public static Map<String, ?> parse(File file) throws Exception {
         return ApplicationBootstrapUtils.parseDescriptor( file );
     }
 
     private Map<String, ?> config;
+    private Object leinProject;
 }

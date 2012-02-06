@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.immutant.core.ApplicationBootstrapUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
 import org.immutant.core.as.CoreServices;
@@ -40,8 +41,6 @@ import org.jboss.as.server.deployment.module.TempFileProviderService;
 import org.jboss.logging.Logger;
 import org.jboss.vfs.VFS;
 import org.jboss.vfs.VirtualFile;
-import org.jboss.vfs.VisitorAttributes;
-import org.jboss.vfs.util.SuffixMatchFilter;
 import org.projectodd.polyglot.core.as.KnobDeploymentMarker;
 
 public class AppJarScanningProcessor implements DeploymentUnitProcessor {
@@ -55,85 +54,61 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
                 !KnobDeploymentMarker.isMarked( unit )) {
             return;
         }
-        
+
         ResourceRoot resourceRoot = unit.getAttachment( Attachments.DEPLOYMENT_ROOT );
         VirtualFile root = resourceRoot.getRoot();
 
         try {
+            List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root.getPhysicalFile() );
 
             boolean clojureProvided = false;
-            
-            for (String scanRoot : SCAN_ROOTS) {
-                for (VirtualFile child : getJarFiles( root.getChild( scanRoot ) )) {
-                    final Closeable closable = child.isFile() ? mount( child, false ) : null;
-                    if (child.getName().matches( "^clojure(-\\d.\\d.\\d)?\\.jar$" )) {
-                        clojureProvided = true;
-                    }
-                    final MountHandle mountHandle = new MountHandle( closable );
-                    final ResourceRoot childResource = new ResourceRoot( child, mountHandle );
-                    ModuleRootMarker.mark(childResource);
-                    unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
+
+            for (File each : dependencyJars) {
+                if (each.getName().matches( "^clojure(-\\d.\\d.\\d)?\\.jar$" )) {
+                    clojureProvided = true;
                 }
+                mount( each, unit, !each.getAbsolutePath().startsWith( root.getPhysicalFile().getAbsolutePath() ) );
             }
 
             if (!clojureProvided) {
                 Immutant immutant = (Immutant)phaseContext.getServiceRegistry().getService( CoreServices.IMMUTANT ).getValue();
-                
+
                 log.warn( "No clojure.jar found within " + metaData.getApplicationName() + 
                         ", Using built-in clojure.jar (v" + immutant.getClojureVersion() + ")" );
 
-                // FIXME this is ugly as fuck, and needs to be cleaned up
-
                 // borrow the shipped clojure.jar
                 String jarPath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/clojure.jar";
-                VirtualFile jar = VFS.getChild( jarPath );
-                
-                // mount it at a tmp location so it can be mounted more than once
-                VirtualFile mountPath = VFS.getChild( File.createTempFile( metaData.getApplicationName(), "clojure.jar" ).getAbsolutePath() );
-                final MountHandle mountHandle = new MountHandle( mount( jar, mountPath, false ) );
-                final ResourceRoot childResource = new ResourceRoot( mountPath, mountHandle );
-                ModuleRootMarker.mark(childResource);
-                unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
+                mount( new File( jarPath ), unit, true );
             }
-                            
+
             for(String each : DIR_ROOTS) {
                 final ResourceRoot childResource = new ResourceRoot( root.getChild( each ), null );
                 ModuleRootMarker.mark(childResource);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
             }
-            
-        } catch (IOException e) {
-            log.error( "Error processing jars", e );
+
+        } catch (Exception e) {
+            throw new DeploymentUnitProcessingException( e );
         }
 
-        
     }
-    
-    public List<VirtualFile> getJarFiles(VirtualFile dir) throws IOException {
-        return dir.getChildrenRecursively( new NonDevJarFilter( dir ) );
+
+    private static void mount(File file, DeploymentUnit unit, boolean mountAsTmp) throws IOException {
+        VirtualFile vFile = VFS.getChild( file.toURI() );
+        VirtualFile mountPath = mountAsTmp ? VFS.getChild( File.createTempFile( unit.getName(), file.getName() ).toURI() ) : 
+            vFile; 
+        final Closeable closable = VFS.mountZip( vFile, mountPath, TempFileProviderService.provider() );
+        final MountHandle mountHandle = new MountHandle( closable );
+        final ResourceRoot childResource = new ResourceRoot( mountPath, mountHandle );
+        ModuleRootMarker.mark(childResource);
+        unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
     }
-    
-    private static Closeable mount(VirtualFile moduleFile, boolean explode) throws IOException {
-        return mount( moduleFile, moduleFile, explode );
-    }
-    
-    private static Closeable mount(VirtualFile moduleFile, VirtualFile mountPoint, boolean explode) throws IOException {
-        return explode ? VFS.mountZipExpanded( moduleFile, mountPoint, TempFileProviderService.provider() )
-                       : VFS.mountZip( moduleFile, mountPoint, TempFileProviderService.provider() );
-    }
-    
+
     @Override
     public void undeploy(DeploymentUnit context) {
-        
+
     }
-    
-    @SuppressWarnings("serial")
-    private static final List<String> SCAN_ROOTS = new ArrayList<String>() {
-        {
-            add( "lib" );
-        }
-    };
-    
+
     @SuppressWarnings("serial")
     private static final List<String> DIR_ROOTS = new ArrayList<String>() {
         {
@@ -143,24 +118,8 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
             add( "classes" );
         }
     };
-   
-    
+
+
     private static final Logger log = Logger.getLogger( "org.immutant.core" );
 
-    class NonDevJarFilter extends SuffixMatchFilter {
-        NonDevJarFilter(VirtualFile rootDir) {
-            super( ".jar", VisitorAttributes.DEFAULT );
-            this.rootDir = rootDir;
-        }
-        
-
-        @Override
-        public boolean accepts(VirtualFile file) {
-            return super.accepts( file ) && 
-                    !file.getPathNameRelativeTo( this.rootDir ).startsWith( "dev/" );
-        }
-        
-        private VirtualFile rootDir;
-    }
-    
 }

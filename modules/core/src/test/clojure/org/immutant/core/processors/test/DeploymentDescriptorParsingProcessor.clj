@@ -15,16 +15,16 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns org.immutant.core.processors.test.AppCljParsingProcessor
+(ns org.immutant.core.processors.test.DeploymentDescriptorParsingProcessor
   (:use clojure.test)
   (:use immutant.test.helpers)
   (:use immutant.test.as.helpers)
-  (:import [org.immutant.core.processors AppCljParsingProcessor])
+  (:import [org.immutant.core.processors DeploymentDescriptorParsingProcessor])
   (:import [org.immutant.core ClojureMetaData])
   (:require [clojure.java.io :as io]))
 
 (use-fixtures :each
-              (harness-with [(AppCljParsingProcessor.)]))
+              (harness-with [(DeploymentDescriptorParsingProcessor.)]))
 
 (deftest it-should-raise-with-no-root-specified
   (is (thrown? RuntimeException

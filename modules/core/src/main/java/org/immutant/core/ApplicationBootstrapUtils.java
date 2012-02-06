@@ -20,20 +20,65 @@
 package org.immutant.core;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import clojure.lang.RT;
 import clojure.lang.Var;
 
+/** 
+ * Utils for bootstrapping a clojure application. Any Vars invoked here will 
+ * be in the global runtime, and not in the application runtime.
+ * It's *extremely* easy to break runtime isolation when using these methods. 
+ * I'd avoid calling any of them after Phase.STRUCTURE, as that will void your 
+ * warranty.
+ */
 public class ApplicationBootstrapUtils {
+    
+    /**
+     * Parses the given deployment descriptor and returns the resulting Map with all of the keys stringified.
+     * See bootstrap.clj.
+     */
+    @SuppressWarnings("rawtypes")
+    public static Map parseDescriptor(final File file) throws Exception {
+        return (Map) inCL( new Callable() {
+            public Object call() throws Exception {
+                return bootstrapVar( "read-descriptor" ).invoke( file ); 
+            }
+        } );
+    }
 
-    public static Map<String, Object> parseDescriptor(File file) throws Exception {
+    @SuppressWarnings("rawtypes")
+    public static Object readLeinProject(final File applicationRoot) throws Exception {
+        return inCL( new Callable() {
+            public Object call() throws Exception {
+                return bootstrapVar( "read-project" ).invoke( applicationRoot ); 
+            }
+        } );
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static List<File> getDependencies(final File applicationRoot) throws Exception {
+        return (List<File>) inCL( new Callable() {
+            public Object call() throws Exception {
+                return bootstrapVar( "get-dependencies" ).invoke( applicationRoot ); 
+            }
+        } );
+    }
+    
+    private static Var bootstrapVar(String varName) throws Exception {
+        RT.load( "immutant/bootstrap" );
+        return RT.var( "immutant.bootstrap", varName );
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static Object inCL(Callable body) throws Exception {
         ClassLoader originalCl = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader( Var.class.getClassLoader() );
-            RT.load( "immutant/bootstrap" );
-            Var reader = RT.var( "immutant.bootstrap", "read-descriptor" );
-            return (Map<String, Object>) reader.invoke( file );
+            return body.call();
         } finally {
             Thread.currentThread().setContextClassLoader( originalCl );
         }
