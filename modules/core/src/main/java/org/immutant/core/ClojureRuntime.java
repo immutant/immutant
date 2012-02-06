@@ -65,7 +65,6 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     }
     
     public Object invoke(String namespacedFunction, Object... args) {
-        System.out.println("TC: " + this.name + " : RT " + getRuntime().hashCode() + " : " + getRuntime().getClassLoader() );
         load( CLOJURE_UTIL_NAME ); //TODO: see the performance impact of loading every call. Maybe cache these in production?
         Object func = var( CLOJURE_UTIL_NS, "require-and-invoke" );
         
