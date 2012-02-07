@@ -19,31 +19,24 @@
 
 package org.immutant.core.processors;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.immutant.core.ClojureMetaData;
+import org.immutant.core.Immutant;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
-import org.jboss.as.server.deployment.module.MountHandle;
 import org.jboss.as.server.deployment.module.ResourceRoot;
-import org.jboss.as.server.deployment.module.TempFileProviderService;
 import org.jboss.logging.Logger;
 import org.jboss.vfs.VFS;
 import org.jboss.vfs.VirtualFile;
 import org.jboss.vfs.VirtualFileFilter;
 
-/**
- * Handle mounting .clj files and marking them as a DEPLOYMENT_ROOT
- * FIXME: This doesn't handle archives
- * 
- */
 public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProcessor {
     
     public DeploymentDescriptorParsingProcessor() {
@@ -60,13 +53,13 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
         String deploymentName = deploymentUnit.getName();
 
         try {
-            VirtualFile cljFile = getFile( deploymentUnit );
-            if (cljFile == null) {
+            VirtualFile descriptor = getFile( deploymentUnit );
+            if (descriptor == null) {
                 return;
             }
             
             ClojureMetaData appMetaData = new ClojureMetaData( deploymentName, 
-                    ClojureMetaData.parse( cljFile.getPhysicalFile() ) );
+                    ClojureMetaData.parse( descriptor.getPhysicalFile() ) );
             
             appMetaData.attachTo( deploymentUnit );
                         
@@ -109,17 +102,12 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
         matches = root.getChildren( this.knobFilter );
 
         if (matches.size() > 1) {
-            throw new DeploymentUnitProcessingException( "Multiple application clj files found in " + root );
+            throw new DeploymentUnitProcessingException( "Multiple Immutant descriptors found in " + root );
         }
 
         VirtualFile file = null;
         if (matches.size() == 1) {
             file = matches.get( 0 );
-//            if (file.getName().endsWith( "-rails.yml" )) {
-//                logDeprecation( unit, "Usage of -rails.yml is deprecated, please rename to -knob.yml: " + file );
-//            } else if (file.getName().endsWith( "-rack.yml" )) {
-//                logDeprecation( unit, "Usage of -rack.yml is deprecated, please rename to -knob.yml: " + file );
-//            }
         }
 
         return file;
@@ -127,7 +115,7 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
     
     private VirtualFileFilter knobFilter = (new VirtualFileFilter() {
             public boolean accepts(VirtualFile file) {
-                return file.getName().endsWith( ".clj" );
+                return file.getName().endsWith( Immutant.DESCRIPTOR_SUFFIX );
             }
         });
 

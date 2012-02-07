@@ -93,8 +93,8 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
         JBossWebMetaData jbossWebMetaData = getJBossWebMetaData( phaseContext, warMetaData );          
                 
         String deploymentName = unit.getName();
-        if (deploymentName.endsWith( ".clj" )) { 
-            deploymentName = deploymentName.substring( 0, deploymentName.length() - 4 );
+        if (deploymentName.endsWith( Immutant.DESCRIPTOR_SUFFIX )) { 
+            deploymentName = deploymentName.substring( 0, deploymentName.length() - Immutant.DESCRIPTOR_SUFFIX.length() );
         } else if (deploymentName.endsWith( Immutant.ARCHIVE_SUFFIX )) {
             deploymentName = deploymentName.substring( 0, deploymentName.length() - Immutant.ARCHIVE_SUFFIX.length() );
         }

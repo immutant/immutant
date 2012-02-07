@@ -22,6 +22,7 @@ package org.immutant.core.processors;
 import java.io.Closeable;
 import java.io.IOException;
 
+import org.immutant.core.Immutant;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -35,14 +36,14 @@ import org.jboss.vfs.VFSUtils;
 import org.jboss.vfs.VirtualFile;
 
 /**
- * Handle mounting .clj files and marking them as a DEPLOYMENT_ROOT
+ * Handle mounting Immutant descriptors and marking them as a DEPLOYMENT_ROOT
  * 
  */
-public class CljRootMountProcessor implements DeploymentUnitProcessor {
+public class DeploymentDescriptorRootMountProcessor implements DeploymentUnitProcessor {
     
     private Closeable knobCloseable;
 
-    public CljRootMountProcessor() {
+    public DeploymentDescriptorRootMountProcessor() {
     }
 
     @Override
@@ -50,7 +51,7 @@ public class CljRootMountProcessor implements DeploymentUnitProcessor {
         DeploymentUnit deploymentUnit = phaseContext.getDeploymentUnit();
 
         if (deploymentUnit.getAttachment( Attachments.DEPLOYMENT_ROOT ) != null ||
-                !deploymentUnit.getName().endsWith( ".clj" )) { 
+                !deploymentUnit.getName().endsWith( Immutant.DESCRIPTOR_SUFFIX )) { 
             return;
         }
 
