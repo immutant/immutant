@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.immutant.core.Immutant;
 import org.immutant.web.ring.RingMetaData;
 import org.jboss.as.clustering.jgroups.subsystem.ChannelFactoryService;
 import org.jboss.as.ee.structure.DeploymentType;
@@ -92,8 +93,10 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
         JBossWebMetaData jbossWebMetaData = getJBossWebMetaData( phaseContext, warMetaData );          
                 
         String deploymentName = unit.getName();
-        if (deploymentName.endsWith( ".clj" )) {
+        if (deploymentName.endsWith( ".clj" )) { 
             deploymentName = deploymentName.substring( 0, deploymentName.length() - 4 );
+        } else if (deploymentName.endsWith( Immutant.ARCHIVE_SUFFIX )) {
+            deploymentName = deploymentName.substring( 0, deploymentName.length() - Immutant.ARCHIVE_SUFFIX.length() );
         }
         jbossWebMetaData.setModuleName( deploymentName );
         

@@ -60,10 +60,10 @@ public class ApplicationBootstrapUtils {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static List<File> getDependencies(final File applicationRoot) throws Exception {
+    public static List<File> getDependencies(final File applicationRoot, final boolean libOnly) throws Exception {
         return (List<File>) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "get-dependencies" ).invoke( applicationRoot ); 
+                return bootstrapVar( "get-dependencies" ).invoke( applicationRoot, libOnly ); 
             }
         } );
     }

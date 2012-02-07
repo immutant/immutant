@@ -31,10 +31,11 @@ import javax.management.MBeanServer;
 
 import org.immutant.core.Immutant;
 import org.immutant.core.ImmutantMBean;
+import org.immutant.core.processors.AppJarScanningProcessor;
 import org.immutant.core.processors.AppNameRegistrar;
 import org.immutant.core.processors.AppRootRegistrar;
 import org.immutant.core.processors.ApplicationInitializer;
-import org.immutant.core.processors.AppJarScanningProcessor;
+import org.immutant.core.processors.ArchiveRecognizer;
 import org.immutant.core.processors.CljRootMountProcessor;
 import org.immutant.core.processors.ClojureRuntimeInstaller;
 import org.immutant.core.processors.CloserInstaller;
@@ -55,6 +56,7 @@ import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceBuilder.DependencyType;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
+import org.projectodd.polyglot.core.processors.ApplicationExploder;
 import org.projectodd.polyglot.core.processors.ArchiveStructureProcessor;
 
 class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
@@ -86,10 +88,12 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 0, new CljRootMountProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 0, new ArchiveStructureProcessor( ".ima" ) );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 20, new DeploymentDescriptorParsingProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 25, new ProjectCljParsingProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 100, new AppJarScanningProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 0, new ArchiveStructureProcessor( Immutant.ARCHIVE_SUFFIX ) );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 10, new ArchiveRecognizer() );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 20, new DeploymentDescriptorParsingProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 30, new ApplicationExploder() );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 50, new ProjectCljParsingProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 100, new AppJarScanningProcessor() );
         
         processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new CoreDependenciesProcessor() );
         

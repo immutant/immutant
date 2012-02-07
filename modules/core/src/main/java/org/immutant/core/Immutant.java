@@ -35,7 +35,9 @@ import org.projectodd.polyglot.core.ProjectInfo;
  * @author Toby Crawley
  */
 public class Immutant extends ProjectInfo implements ImmutantMBean, Service<Immutant> {
-
+    
+     public static final String ARCHIVE_SUFFIX = ".ima";
+    
     /**
      * Construct.
      * 

@@ -52,9 +52,13 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         DeploymentUnit deploymentUnit = phaseContext.getDeploymentUnit();
+        
+        if (deploymentUnit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
+            return;
+        }
 
         String deploymentName = deploymentUnit.getName();
-        
+
         try {
             VirtualFile cljFile = getFile( deploymentUnit );
             if (cljFile == null) {
@@ -67,7 +71,6 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
             appMetaData.attachTo( deploymentUnit );
                         
             File root = appMetaData.getRoot();
-            ResourceRoot appRoot;
             
             if (root == null) {
                 throw new DeploymentUnitProcessingException( "No application root specified." );
@@ -77,17 +80,8 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
                 throw new DeploymentUnitProcessingException( "Application root does not exist: " + root.getAbsolutePath() );
             }
 
-            VirtualFile vfsRoot = VFS.getChild( root.toURI() );
-            
-            if (root.exists() && !root.isDirectory()) {
-                // Expand the referenced root if it's not a directory (ie .knob archive)
-                final Closeable closable = VFS.mountZipExpanded( vfsRoot, vfsRoot, TempFileProviderService.provider() );
-                final MountHandle mountHandle = new MountHandle( closable );
-                appRoot = new ResourceRoot( vfsRoot, mountHandle );
-            } else {
-                appRoot = new ResourceRoot( vfsRoot, null );
-            }
-            deploymentUnit.putAttachment( Attachments.DEPLOYMENT_ROOT, appRoot );
+            deploymentUnit.putAttachment( Attachments.DEPLOYMENT_ROOT, 
+                                          new ResourceRoot( VFS.getChild( root.toURI() ), null ) );
 
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );

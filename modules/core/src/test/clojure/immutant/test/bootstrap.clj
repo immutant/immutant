@@ -41,7 +41,7 @@
       (is-not (some #{(io/file (io/resource "fake-app-root/lib/dev/invalid.jar"))}
                     jar-set))))
 
-  (let [deps (get-dependencies app-root)]
+  (let [deps (get-dependencies app-root false)]
     (deftest get-dependencies-should-return-deps-from-project-clj
       (is (some #{(first (aether/dependency-files
                           (aether/resolve-dependencies
@@ -60,4 +60,13 @@
                                (aether/dependency-files
                                 (aether/resolve-dependencies
                                  :coordinates [['org.clojure/tools.logging "0.2.3"]]))))}
-                    deps)))))
+                    deps))))
+  
+  (deftest get-dependencies-with-bundled-only-should-only-return-jars-from-lib
+    (is (= #{(io/file (io/resource "fake-app-root/lib/some.jar"))
+             (io/file (io/resource "fake-app-root/lib/some-other.jar"))
+             (io/file (io/resource "fake-app-root/lib/tools.logging-0.2.3.jar"))}
+           (set (get-dependencies app-root true))))))
+
+
+

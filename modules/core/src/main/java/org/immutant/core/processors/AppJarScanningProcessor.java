@@ -56,11 +56,10 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
             return;
         }
 
-        ResourceRoot resourceRoot = unit.getAttachment( Attachments.DEPLOYMENT_ROOT );
-        VirtualFile root = resourceRoot.getRoot();
+        File root = metaData.getRoot();
 
         try {
-            List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root.getPhysicalFile() );
+            List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, metaData.isArchive() );
 
             boolean clojureProvided = false;
 
@@ -82,8 +81,9 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
                 mount( new File( jarPath ), unit );
             }
 
+            VirtualFile virtualRoot = VFS.getChild( root.toURI() );
             for(String each : DIR_ROOTS) {
-                final ResourceRoot childResource = new ResourceRoot( root.getChild( each ), null );
+                final ResourceRoot childResource = new ResourceRoot( virtualRoot.getChild( each ), null );
                 ModuleRootMarker.mark(childResource);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
             }

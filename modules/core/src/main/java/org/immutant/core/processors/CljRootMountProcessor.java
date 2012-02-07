@@ -49,11 +49,8 @@ public class CljRootMountProcessor implements DeploymentUnitProcessor {
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         DeploymentUnit deploymentUnit = phaseContext.getDeploymentUnit();
 
-        if (deploymentUnit.getAttachment( Attachments.DEPLOYMENT_ROOT ) != null) {
-            return;
-        }
-
-        if (!deploymentUnit.getName().endsWith( ".clj" )) {
+        if (deploymentUnit.getAttachment( Attachments.DEPLOYMENT_ROOT ) != null ||
+                !deploymentUnit.getName().endsWith( ".clj" )) { 
             return;
         }
 

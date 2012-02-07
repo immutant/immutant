@@ -42,10 +42,7 @@ public class RingMetaData extends WebApplicationMetaData {
         unit.putAttachment( ATTACHMENT_KEY, this );
     }
     
-    public void setContextPath(String contextPath) {
-        if (contextPath != null) this.contextPath = contextPath;
-    }
-
+    @Override       
     public String getContextPath() {
         if (this.contextPath == null) {
             this.contextPath = this.appMetaData.getString( "context-path" );

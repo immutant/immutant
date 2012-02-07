@@ -46,11 +46,11 @@
                             (accept [_ file-name]
                               (.endsWith file-name ".jar")))))))
 
-;; TODO: add support for a file:// repo that is used with a archived app
-(defn get-dependencies [app-root]
+(defn get-dependencies [app-root bundled-only]
   (let [bundled (bundled-jars app-root)
         bundled-jar-names (map #(.getName %) bundled)]
     (concat
      bundled
-     (filter #(not (some #{(.getName %)} bundled-jar-names))
-             (resolve-dependencies (read-project app-root))))))
+     (when-not bundled-only
+       (filter #(not (some #{(.getName %)} bundled-jar-names))
+               (resolve-dependencies (read-project app-root)))))))
