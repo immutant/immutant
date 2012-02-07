@@ -96,6 +96,7 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
 
     private void mount(File file, DeploymentUnit unit) throws IOException {
         VirtualFile mountPath = VFS.getChild( File.createTempFile( file.getName(), ".jar", tmpMountDir( unit ) ).toURI() );
+        log.info( unit.getName() + ": mounting " + file );
         final ResourceRoot childResource = new ResourceRoot( mountPath, 
                 new MountHandle( VFS.mountZip( file, mountPath, TempFileProviderService.provider() ) ) );
         ModuleRootMarker.mark(childResource);
