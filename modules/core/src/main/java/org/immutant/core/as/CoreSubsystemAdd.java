@@ -55,6 +55,7 @@ import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceBuilder.DependencyType;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
+import org.projectodd.polyglot.core.processors.ArchiveStructureProcessor;
 
 class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
     
@@ -85,6 +86,7 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 0, new CljRootMountProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 0, new ArchiveStructureProcessor( ".ima" ) );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 20, new DeploymentDescriptorParsingProcessor() );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 25, new ProjectCljParsingProcessor() );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 100, new AppJarScanningProcessor() );

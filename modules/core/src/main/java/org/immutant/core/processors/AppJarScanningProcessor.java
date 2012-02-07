@@ -42,7 +42,7 @@ import org.jboss.as.server.deployment.module.TempFileProviderService;
 import org.jboss.logging.Logger;
 import org.jboss.vfs.VFS;
 import org.jboss.vfs.VirtualFile;
-import org.projectodd.polyglot.core.as.KnobDeploymentMarker;
+import org.projectodd.polyglot.core.as.ArchivedDeploymentMarker;
 
 public class AppJarScanningProcessor implements DeploymentUnitProcessor {
 
@@ -52,7 +52,7 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
 
         ClojureMetaData metaData = unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
         if (metaData == null && 
-                !KnobDeploymentMarker.isMarked( unit )) {
+                !ArchivedDeploymentMarker.isMarked( unit )) {
             return;
         }
 
