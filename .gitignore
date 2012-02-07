@@ -20,3 +20,5 @@ release.properties
 TAGS
 .repository
 .DS_Store
+/integration-tests/apps/ring/basic-ring/project.clj
+/integration-tests/apps/ring/sessions/project.clj

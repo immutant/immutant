@@ -1,4 +1,3 @@
 lib/
 .tmp_jar_mounts
 .lein-deps-sum
-project.clj
