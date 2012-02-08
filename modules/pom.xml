@@ -19,6 +19,7 @@
     <module>jobs</module>
     <module>messaging</module>
     <module>web</module>
+    <module>cache</module>
   </modules>
 
   <dependencies>
