@@ -17,15 +17,15 @@
 
 (ns immutant.build.tools
   (:import [org.apache.commons.io FileUtils])
-  (:require [clojure.java.io :as io])
-  (:require [clojure.java.shell :as shell])
-  (:require [clojure.string :as str])
-  (:require [clojure.zip :as zip])
-  (:require [clojure.contrib.zip-filter :as zf])
-  (:require [clojure.contrib.zip-filter.xml :as zfx])
-  (:require [clojure.xml :as xml])
-  (:require [clojure.contrib.lazy-xml :as lazy-xml])
-  (:require [org.satta.glob :as glob])
+  (:require [clojure.java.io                :as io]
+            [clojure.java.shell             :as shell]
+            [clojure.string                 :as str]
+            [clojure.zip                    :as zip]
+            [clojure.contrib.zip-filter     :as zf]
+            [clojure.contrib.zip-filter.xml :as zfx]
+            [clojure.xml                    :as xml]
+            [clojure.contrib.lazy-xml       :as lazy-xml]
+            [org.satta.glob :as glob])
   (:use [clojure.pprint :only [pprint]]))
 
 (defn unzip [zip-file dest-dir]
@@ -157,6 +157,9 @@
                                         :attrs {:category "org.jboss.as.dependency.private"}}))
                     {:tag :level :attrs {:name "ERROR"}}))
 
+(defn disable-hq-security [loc]
+  (zip/append-child loc {:tag :security-enabled :content ["false"]}))
+
 (defn looking-at? [tag loc]
   (= tag (:tag (zip/node loc))))
 
@@ -184,7 +187,7 @@
              (looking-at? :http-interface loc) (disable-security loc)
              (looking-at? :max-size-bytes loc) (zip/edit loc assoc :content ["20971520"])
              (looking-at? :address-full-policy loc) (zip/edit loc assoc :content ["PAGE"])
-
+             (looking-at? :hornetq-server loc) (disable-hq-security loc)
              :else loc)))))
   
 (defn transform-config [file]
