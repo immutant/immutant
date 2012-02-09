@@ -75,7 +75,7 @@
 
   See the [[http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06][Quartz cron specification]] for additional details.
 
-** Unscheduling Jobs
+* Unscheduling Jobs
   
   Jobs can be unscheduled via the =unschedule= function:
 
