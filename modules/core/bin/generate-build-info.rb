@@ -56,7 +56,6 @@ class BuildInfo
   def from_polyglot_properties(name)
     unless @polyglot_props
       pg_version = from_parent_pom( "project/properties/version.polyglot" )
-      puts ENV.inspect
       require File.join( m2_repo, "org/projectodd/polyglot-core/#{pg_version}/polyglot-core-#{pg_version}.jar" )
       @polyglot_props = java.util.Properties.new
       @polyglot_props.load( org.projectodd.polyglot.core.ProjectInfo.java_class.class_loader.getResourceAsStream( "org/projectodd/polyglot/polyglot.properties" ) )
