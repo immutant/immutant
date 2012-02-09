@@ -7,9 +7,9 @@
 
 * Introduction
 
-  Jobs in Immutant are simply functions that execute on a possibly-recurring 
-  schedule. Jobs fire asynchronously, outside of the thread where they are 
-  defined. Jobs fire in the same runtime as the rest of the application, so 
+  Jobs in Immutant are simply functions that execute on a recurring 
+  schedule. They fire asynchronously, outside of the thread where they are 
+  defined, and fire in the same runtime as the rest of the application, so 
   have access to any shared state.
 
   Jobs are built on top of the [[http://quartz-scheduler.org][Quartz]] library, and support scheduling via
@@ -23,8 +23,9 @@
   #+begin_src clojure
     (require '[immutant.jobs :as jobs])
     
-    (jobs/schedule "my-job-name" "*/5 * * * * ?" :singleton true
-                   #(println "I was called!"))
+    (jobs/schedule "my-job-name" "*/5 * * * * ?" 
+                   #(println "I was called!")
+                   :singleton true)
   #+end_src
 
   The =schedule= function requires three arguments, and also accepts options:
@@ -40,12 +41,21 @@
     |------------+---------+------------------------------------------------------------------------------------------------------------------------------------------|
     | :singleton | /false/ | Marks the job as a *singleton* in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node. |
 
+  Job scheduling is dynamic, and can occur anywhere in your application code. 
+  Jobs that share the lifecycle of your application are idiomatically placed in =immutant.clj=
+  {{immutant.clj needs its own section}}.
+
+  You can safely call =schedule= multiple times with the same job name - the named job will 
+  rescheduled.
+
 ** Cron Syntax
    :PROPERTIES:
    :CUSTOM_ID: jobs-cron-syntax
    :END:
 
-  The cron attribute should contain a typical crontab-like entry. It is composed of 7 fields (6 are required).
+  The spec attribute should contain a crontab-like entry. This is similar to cron specifications
+  used by Vixie cron, anacron and friends, but includes an additional field for specifying seconds.
+  It is composed of 7 fields (6 are required):
 
   | Seconds | Minutes | Hours | Day of Month | Month           | Day of Week    | Year                 |
   |---------+---------+-------+--------------+-----------------+----------------+----------------------|
@@ -65,4 +75,23 @@
 
   See the [[http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06][Quartz cron specification]] for additional details.
 
+** Unscheduling Jobs
   
+  Jobs can be unscheduled via the =unschedule= function:
+
+  #+begin_src clojure
+    (require '[immutant.jobs :as jobs])
+    
+    (jobs/unschedule "my-job-name")
+  #+end_src
+
+  The =unschedule= function requires one argument:
+
+  * =name= - the name of a previously scheduled job.
+
+  If the given name resolves to an existing job, that job will be unscheduled and the call will
+  return =true=, otherwise =nil= is returned.
+
+  Jobs are automatically unscheduled when your application is undeployed.
+
+

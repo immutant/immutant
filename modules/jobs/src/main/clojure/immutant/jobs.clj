@@ -28,7 +28,8 @@
   (when-let [job (@current-jobs name)]
     (log/info "Unscheduling job" name)
     (stop-job job)
-    (swap! current-jobs dissoc name)))
+    (swap! current-jobs dissoc name)
+    true))
 
 (defn schedule
   "Schedules a job to execute based on the spec.
@@ -38,4 +39,5 @@ Calling this function with the same name as a previously scheduled job will repl
   (log/info "Scheduling job" name "at" spec)
   (swap! current-jobs assoc name
          (create-job f name spec (boolean (:singleton (apply hash-map options)))))
-  (at-exit (partial unschedule name)))
+  (at-exit (partial unschedule name))
+  nil)
