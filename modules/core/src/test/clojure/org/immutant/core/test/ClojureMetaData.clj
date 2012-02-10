@@ -22,25 +22,33 @@
             [immutant.bootstrap :as bootstrap]))
 
 (let [descriptor (ClojureMetaData/parse (io/file (io/resource "simple-descriptor.clj")))
-      cmd (ClojureMetaData. "app-name" descriptor)]
+      md (ClojureMetaData. "app-name" descriptor)]
   (deftest parse "it should parse the descriptor and return a map"
     (is (= "my.namespace/init" (.get descriptor "init"))))
 
   (deftest getString "it should return the proper value as a String"
-    (let [value (.getString cmd "init")]
+    (let [value (.getString md "init")]
       (is (= "my.namespace/init" value))
       (is (instance? String value))))
 
   (deftest getInitFunction "it should return the proper value"
-    (is (= "my.namespace/init" (.getInitFunction cmd))))
+    (is (= "my.namespace/init" (.getInitFunction md))))
 
   (deftest it-should-allow-access-to-any-metadata-value
-    (is (= "biscuit" (.getString cmd "ham")))))
+    (is (= "biscuit" (.getString md "ham"))))
+
+  (let [merged-md (doto (ClojureMetaData. "app-name" descriptor)
+                     (.setLeinProject (bootstrap/read-and-stringify-project (io/file (io/resource "project-root")))))]
+    (deftest the-immutant-map-from-project-clj-should-be-included
+      (is (= "gravy" (.getString merged-md "biscuit"))))
+
+    (deftest the-immutant-map-from-project-clj-should-take-a-backseat-to-existing-config
+      (is (= "biscuit" (.getString merged-md "ham"))))))
 
 (deftest getHash "it should return the proper value as a Hash"
-  (let [cmd (ClojureMetaData. "app-name"
+  (let [md (ClojureMetaData. "app-name"
                               (ClojureMetaData/parse (io/file (io/resource "hashy-descriptor.clj"))))
-        value (.getHash cmd "ham")]
+        value (.getHash md "ham")]
     (is (= {"biscuit" "gravy"} value))))
 
 

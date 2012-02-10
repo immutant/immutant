@@ -20,10 +20,10 @@
 package org.immutant.core;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -33,7 +33,7 @@ public class ClojureMetaData extends ApplicationMetaData {
 
     public static final AttachmentKey<ClojureMetaData> ATTACHMENT_KEY = AttachmentKey.create( ClojureMetaData.class );
 
-    public ClojureMetaData(String applicationName, Map<String, ?> config) {
+    public ClojureMetaData(String applicationName, Map<String, Object> config) {
         super( applicationName ); 
         this.config = config;
         String root = getString( "root" );
@@ -47,35 +47,56 @@ public class ClojureMetaData extends ApplicationMetaData {
         super.attachTo( unit );
         unit.putAttachment( ATTACHMENT_KEY, this );
     }
-    
+
     public String getInitFunction() {
         return getString( "init" );
     }
-    
+
     public String getString(String key) {
         return (String)this.config.get( key );
     }
-    
+
     @SuppressWarnings("unchecked")
     public Map<String, ?> getHash(String key) {
         return (Map<String, Object>)this.config.get( key );
     }
-    
+
     @SuppressWarnings("rawtypes")
     public List getList(String key) {
         return (List) this.config.get( key );
     }
-    
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void setLeinProject(Map leinProject) {
         this.leinProject = leinProject;
+        if (leinProject != null) {
+            merge( (Map<String, Object>) leinProject.get( "immutant" ) );
+        }
+    }
+
+    /** 
+     * Merges additional configuration with the existing config, allowing
+     * the existing config to take precedence. We have to make a new config
+     * since the one we have is a PersistentHashMap, which denies put().
+     */
+    protected void merge(Map<String, Object> additionalConfig) {
+        if (additionalConfig != null) {
+            Map<String, Object> config = new HashMap<String, Object>( this.config );
+
+            for (Entry<String, Object> each : additionalConfig.entrySet()) {
+                if (config.get( each.getKey() ) == null) {
+                    config.put( each.getKey(), each.getValue() );
+                }
+            }
+            this.config = config;
+        }
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, ?> parse(File file) throws Exception {
+    public static Map<String, Object> parse(File file) throws Exception {
         return ApplicationBootstrapUtils.parseDescriptor( file );
     }
 
-    private Map<String, ?> config;
-    private Map<String, ?> leinProject;
+    private Map<String, Object> config;
+    private Map<String, Object> leinProject;
 }
