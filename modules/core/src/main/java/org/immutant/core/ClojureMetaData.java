@@ -20,6 +20,8 @@
 package org.immutant.core;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -49,31 +51,31 @@ public class ClojureMetaData extends ApplicationMetaData {
     public String getInitFunction() {
         return getString( "init" );
     }
-
+    
     public String getString(String key) {
         return (String)this.config.get( key );
     }
- 
+    
+    @SuppressWarnings("unchecked")
     public Map<String, ?> getHash(String key) {
         return (Map<String, Object>)this.config.get( key );
     }
     
+    @SuppressWarnings("rawtypes")
     public List getList(String key) {
         return (List) this.config.get( key );
     }
     
-    public Object getLeinProject() {
-        return leinProject;
-    }
-
-    public void setLeinProject(Object leinProject) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void setLeinProject(Map leinProject) {
         this.leinProject = leinProject;
     }
 
+    @SuppressWarnings("unchecked")
     public static Map<String, ?> parse(File file) throws Exception {
         return ApplicationBootstrapUtils.parseDescriptor( file );
     }
 
     private Map<String, ?> config;
-    private Object leinProject;
+    private Map<String, ?> leinProject;
 }

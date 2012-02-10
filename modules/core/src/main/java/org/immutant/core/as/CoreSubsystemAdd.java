@@ -31,7 +31,7 @@ import javax.management.MBeanServer;
 
 import org.immutant.core.Immutant;
 import org.immutant.core.ImmutantMBean;
-import org.immutant.core.processors.AppJarScanningProcessor;
+import org.immutant.core.processors.AppDependenciesProcessor;
 import org.immutant.core.processors.AppNameRegistrar;
 import org.immutant.core.processors.AppRootRegistrar;
 import org.immutant.core.processors.ApplicationInitializer;
@@ -93,7 +93,7 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 20, new DeploymentDescriptorParsingProcessor() );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 30, new ApplicationExploder() );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 50, new ProjectCljParsingProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 100, new AppJarScanningProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 100, new AppDependenciesProcessor() );
         
         processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new CoreDependenciesProcessor() );
         

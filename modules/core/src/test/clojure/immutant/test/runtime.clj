@@ -44,17 +44,17 @@
   (is (= "gravy" @a-value)))
 
 (deftest initialize-without-an-init-fn-should-load-config
-  (registry/put "app-root" (io/file (io/resource "fake-app-root")))
+  (registry/put "app-root" (io/file (io/resource "project-root")))
   (initialize nil)
   (is (= "immutant.clj" @a-value)))
 
 (deftest initialize-with-an-init-fn-should-not-load-config
-  (registry/put "app-root" (io/file (io/resource "fake-app-root")))
+  (registry/put "app-root" (io/file (io/resource "project-root")))
   (initialize "immutant.test.runtime/do-nothing")
   (is-not (= "immutant.clj" @a-value)))
 
 (deftest initialize-with-an-init-fn-should-call-the-init-fn
-  (registry/put "app-root" (io/file (io/resource "fake-app-root")))
+  (registry/put "app-root" (io/file (io/resource "project-root")))
   (initialize "immutant.test.runtime/update-a-value")
   (is (= "biscuit" @a-value)))
 

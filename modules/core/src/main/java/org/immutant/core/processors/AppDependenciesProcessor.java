@@ -19,10 +19,8 @@
 
 package org.immutant.core.processors;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -44,7 +42,7 @@ import org.jboss.vfs.VFS;
 import org.jboss.vfs.VirtualFile;
 import org.projectodd.polyglot.core.as.ArchivedDeploymentMarker;
 
-public class AppJarScanningProcessor implements DeploymentUnitProcessor {
+public class AppDependenciesProcessor implements DeploymentUnitProcessor {
 
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
@@ -81,9 +79,8 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
                 mount( new File( jarPath ), unit );
             }
 
-            VirtualFile virtualRoot = VFS.getChild( root.toURI() );
-            for(String each : DIR_ROOTS) {
-                final ResourceRoot childResource = new ResourceRoot( virtualRoot.getChild( each ), null );
+            for(String each : ApplicationBootstrapUtils.resourceDirs( root )) {
+                final ResourceRoot childResource = new ResourceRoot( VFS.getChild( each ), null );
                 ModuleRootMarker.mark(childResource);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
             }
@@ -96,7 +93,7 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
 
     private void mount(File file, DeploymentUnit unit) throws IOException {
         VirtualFile mountPath = VFS.getChild( File.createTempFile( file.getName(), ".jar", tmpMountDir( unit ) ).toURI() );
-        log.info( unit.getName() + ": mounting " + file );
+        log.debug( unit.getName() + ": mounting " + file );
         final ResourceRoot childResource = new ResourceRoot( mountPath, 
                 new MountHandle( VFS.mountZip( file, mountPath, TempFileProviderService.provider() ) ) );
         ModuleRootMarker.mark(childResource);
@@ -117,17 +114,6 @@ public class AppJarScanningProcessor implements DeploymentUnitProcessor {
             e.printStackTrace();
         }
     }
-
-    @SuppressWarnings("serial")
-    private static final List<String> DIR_ROOTS = new ArrayList<String>() {
-        {
-            // FIXME: we really should pull this dynamically from lein's project.clj
-            add( "src" );
-            add( "resources" );
-            add( "classes" );
-        }
-    };
-
 
     private static final Logger log = Logger.getLogger( "org.immutant.core" );
 

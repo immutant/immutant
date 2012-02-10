@@ -18,31 +18,30 @@
 (ns org.immutant.core.test.ClojureMetaData
   (:use clojure.test)
   (:import [org.immutant.core ClojureMetaData])
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io    :as io]
+            [immutant.bootstrap :as bootstrap]))
 
-(def simple-descriptor (io/file (io/resource "simple-descriptor.clj")))
-(def hashy-descriptor (io/file (io/resource "hashy-descriptor.clj")))
+(let [descriptor (ClojureMetaData/parse (io/file (io/resource "simple-descriptor.clj")))
+      cmd (ClojureMetaData. "app-name" descriptor)]
+  (deftest parse "it should parse the descriptor and return a map"
+    (is (= "my.namespace/init" (.get descriptor "init"))))
 
-(deftest parse "it should parse the descriptor and return a map"
-  (let [result (ClojureMetaData/parse simple-descriptor)]
-    (is (= "my.namespace/init" (.get result "init")))))
+  (deftest getString "it should return the proper value as a String"
+    (let [value (.getString cmd "init")]
+      (is (= "my.namespace/init" value))
+      (is (instance? String value))))
 
-(deftest getString "it should return the proper value as a String"
-  (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse simple-descriptor))
-        value (.getString cmd "init")]
-    (is (= "my.namespace/init" value))
-    (is (instance? String value))))
+  (deftest getInitFunction "it should return the proper value"
+    (is (= "my.namespace/init" (.getInitFunction cmd))))
+
+  (deftest it-should-allow-access-to-any-metadata-value
+    (is (= "biscuit" (.getString cmd "ham")))))
 
 (deftest getHash "it should return the proper value as a Hash"
-  (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse hashy-descriptor))
+  (let [cmd (ClojureMetaData. "app-name"
+                              (ClojureMetaData/parse (io/file (io/resource "hashy-descriptor.clj"))))
         value (.getHash cmd "ham")]
     (is (= {"biscuit" "gravy"} value))))
 
-(deftest getInitFunction "it should return the proper value"
-  (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse simple-descriptor))]
-    (is (= "my.namespace/init" (.getInitFunction cmd)))))
 
-(deftest it-should-allow-access-to-any-metadata-value
-  (let [cmd (ClojureMetaData. "app-name" (ClojureMetaData/parse simple-descriptor))]
-    (is (= "biscuit" (.getString cmd "ham")))))
 

@@ -20,7 +20,6 @@
 package org.immutant.core;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -51,14 +50,23 @@ public class ApplicationBootstrapUtils {
     }
 
     @SuppressWarnings("rawtypes")
-    public static Object readLeinProject(final File applicationRoot) throws Exception {
-        return inCL( new Callable() {
+    public static Map readLeinProject(final File applicationRoot) throws Exception {
+        return (Map) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "read-project" ).invoke( applicationRoot ); 
+                return bootstrapVar( "read-and-stringify-project" ).invoke( applicationRoot ); 
             }
         } );
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static List<String> resourceDirs(final File applicationRoot) throws Exception {
+        return (List<String>) inCL( new Callable() {
+            public Object call() throws Exception {
+                return bootstrapVar( "resource-paths" ).invoke( applicationRoot ); 
+            }
+        } );
+    }
+    
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static List<File> getDependencies(final File applicationRoot, final boolean libOnly) throws Exception {
         return (List<File>) inCL( new Callable() {

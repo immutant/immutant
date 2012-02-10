@@ -22,23 +22,34 @@
   (:require [clojure.java.io             :as io]
             [cemerick.pomegranate.aether :as aether]))
 
-(let [app-root (io/file (io/resource "fake-app-root"))]
+(let [app-root (io/file (io/resource "project-root"))]
   (deftest read-project-should-work
     (is (= :biscuit (:ham (read-project app-root)))))
 
+  (deftest read-and-stringify-project-should-work
+    (is (= :biscuit ((read-and-stringify-project app-root) "ham"))))
+
+  (deftest resource-paths-should-work
+    (is (= (set (map #(.getAbsolutePath (io/file app-root %))
+                     ["resources" "native" "src"]))
+           (set (resource-paths app-root)))))
+
+  (deftest lib-dir-should-work
+    (is (= (io/file app-root "lib") (lib-dir app-root))))
+  
   (let [jar-set (bundled-jars (io/file app-root))]
     (deftest bundled-jars-should-find-the-expected-jars
       (is (some (set (map #(io/file (io/resource %))
-                          ["fake-app-root/lib/some.jar"
-                           "fake-app-root/lib/some-other.jar"]))
+                          ["project-root/lib/some.jar"
+                           "project-root/lib/some-other.jar"]))
                 jar-set)))
 
     (deftest bundled-jars-should-find-not-find-non-jars
-      (is-not (some #{(io/file (io/resource "fake-app-root/lib/some.txt"))}
+      (is-not (some #{(io/file (io/resource "project-root/lib/some.txt"))}
                     jar-set)))
 
     (deftest bundled-jars-should-find-not-find-dev-jars
-      (is-not (some #{(io/file (io/resource "fake-app-root/lib/dev/invalid.jar"))}
+      (is-not (some #{(io/file (io/resource "project-root/lib/dev/invalid.jar"))}
                     jar-set))))
 
   (let [deps (get-dependencies app-root false)]
@@ -49,11 +60,11 @@
                 deps)))
 
     (deftest get-dependencies-should-return-deps-from-lib
-      (is (some #{(io/file (io/resource "fake-app-root/lib/some.jar"))}
+      (is (some #{(io/file (io/resource "project-root/lib/some.jar"))}
                 deps)))
 
     (deftest get-dependencies-should-exclude-lib-deps-from-resolved-deps
-      (is (some #{(io/file (io/resource "fake-app-root/lib/tools.logging-0.2.3.jar"))}
+      (is (some #{(io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar"))}
                 deps))
       (is-not (some #{(first
                        (filter #(= "tools.logging-0.2.3.jar" (.getName %))
@@ -63,10 +74,51 @@
                     deps))))
   
   (deftest get-dependencies-with-bundled-only-should-only-return-jars-from-lib
-    (is (= #{(io/file (io/resource "fake-app-root/lib/some.jar"))
-             (io/file (io/resource "fake-app-root/lib/some-other.jar"))
-             (io/file (io/resource "fake-app-root/lib/tools.logging-0.2.3.jar"))}
+    (is (= #{(io/file (io/resource "project-root/lib/some.jar"))
+             (io/file (io/resource "project-root/lib/some-other.jar"))
+             (io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar"))}
            (set (get-dependencies app-root true))))))
 
 
 
+
+(let [app-root (io/file (io/resource "non-project-root"))]
+  (deftest read-project-should-return-nil
+    (is (nil? (read-project app-root))))
+
+  (deftest read-and-stringify-project-return-nil
+    (is (nil? (read-and-stringify-project app-root))))
+
+  (deftest resource-paths-should-work
+    (is (= (set (map #(.getAbsolutePath (io/file app-root %))
+                     ["resources" "native" "src"]))
+           (set (resource-paths app-root)))))
+
+  (deftest lib-dir-should-work
+    (is (= (io/file app-root "lib") (lib-dir app-root))))
+  
+  (let [jar-set (bundled-jars (io/file app-root))]
+    (deftest bundled-jars-should-find-the-expected-jars
+      (is (some (set (map #(io/file (io/resource %))
+                          ["non-project-root/lib/some.jar"
+                           "non-project-root/lib/some-other.jar"]))
+                jar-set)))
+
+    (deftest bundled-jars-should-find-not-find-non-jars
+      (is-not (some #{(io/file (io/resource "non-project-root/lib/some.txt"))}
+                    jar-set)))
+
+    (deftest bundled-jars-should-find-not-find-dev-jars
+      (is-not (some #{(io/file (io/resource "non-project-root/lib/dev/invalid.jar"))}
+                    jar-set))))
+
+  (let [deps (get-dependencies app-root false)]
+    (deftest get-dependencies-should-return-deps-from-lib
+      (is (some #{(io/file (io/resource "non-project-root/lib/some.jar"))}
+                deps))))
+  
+  (deftest get-dependencies-with-bundled-only-should-only-return-jars-from-lib
+    (is (= #{(io/file (io/resource "non-project-root/lib/some.jar"))
+             (io/file (io/resource "non-project-root/lib/some-other.jar"))
+             (io/file (io/resource "non-project-root/lib/tools.logging-0.2.3.jar"))}
+           (set (get-dependencies app-root true))))))
