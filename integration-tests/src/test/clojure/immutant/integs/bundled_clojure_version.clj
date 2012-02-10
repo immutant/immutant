@@ -32,7 +32,6 @@
         expected-version (if (= immutant.integs/*current-clojure-version* "default")
                            "1.3.0"
                            immutant.integs/*current-clojure-version*)]
-    (println result)
     (is (.contains (result :body) (str "version:" expected-version)))))
 
 
