@@ -74,10 +74,19 @@
   []
   (api :operation "shutdown"))
 
+(defn deployment-name
+  "Determine the name for the deployment."
+  [name]
+  (if (.endsWith name ".ima")
+    name
+    (if (re-seq #".+\.clj$" name)
+      name
+      (str name ".clj"))))
+
 (defn descriptor
   "Return a File object representing the deployment descriptor"
   [name & [content]]
-  (let [fname (if (re-seq #".+\.clj$" name) name (str name ".clj"))
+  (let [fname (deployment-name name)
         file (io/file descriptor-root fname)]
     (when content
       (io/make-parents file)
@@ -99,6 +108,5 @@
 (defn undeploy
   "Undeploy the app named name"
   [name]
-  (let [fname (.getName (descriptor name))]
-    (api :operation "remove" :address ["deployment" fname])))
+  (api :operation "remove" :address ["deployment" (deployment-name name)]))
 
