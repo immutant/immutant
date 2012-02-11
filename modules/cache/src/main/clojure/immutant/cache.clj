@@ -27,10 +27,10 @@
   CacheProtocol
   (lookup [_ key]
     (.get cache key))
-  (lookup [_ key not-found]
-    (if (.containsKey cache key)
-      (.get cache key)
-      not-found))
+  ;; (lookup [_ key not-found]
+  ;;   (if (.containsKey cache key)
+  ;;     (.get cache key)
+  ;;     not-found))
   (has? [_ key]
     (.containsKey cache key))
   (hit [this key] this)
