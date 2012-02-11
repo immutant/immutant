@@ -17,7 +17,7 @@
     <assembly.dir>${project.basedir}/../build/assembly/target/stage/immutant</assembly.dir>
     <integ.dist.dir>target/integ-dist</integ.dist.dir>
     <integ.clojure.versions>default</integ.clojure.versions>
-    <ns>nil</ns>
+    <ns></ns>
   </properties>
 
   <dependencies>
