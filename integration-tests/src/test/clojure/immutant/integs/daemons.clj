@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.daemon
+(ns immutant.integs.daemons
   (:use [fntest.core])
   (:use clojure.test)
   (:require [clj-http.client :as client]))
@@ -26,7 +26,7 @@
                        }))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/daemon")]
+  (let [result (client/get "http://localhost:8080/daemons")]
     ;; (println "RESPONSE" result)
     (is (> (read-string (:body result)) 0))))
 

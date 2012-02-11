@@ -19,11 +19,11 @@
   (:require [immutant.registry :as lookup]))
 
 (defn start 
-  "Start a service asynchronously, creating an MBean named by name.
-   Optionally, a stop function may be passed to be called at
-   undeployment/shutdown, and if :singleton is truthy, the service
-   will start on only one node in a cluster"
-  [name start & {:keys [stop singleton]}]
+  "Start a service asynchronously, creating an MBean named by name,
+   invoking the stop function automatically at undeployment/shutdown.
+   If :singleton is truthy, the service will start on only one node
+   in a cluster"
+  [name start stop & {singleton :singleton}]
   (if-let [daemonizer (lookup/fetch "daemonizer")]
     (.createDaemon daemonizer name #(future (start)) stop (boolean singleton))))
   
