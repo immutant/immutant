@@ -16,7 +16,43 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.cache
-  (:import (org.infinispan.manager DefaultCacheManager)))
+  (:use [clojure.core.cache :only (defcache)])
+  (:require [clojure.core.cache])
+  (:import [clojure.core.cache CacheProtocol]
+           [org.infinispan.manager DefaultCacheManager]))
 
-(def local (.getCache (DefaultCacheManager.)))
+(def local-manager (DefaultCacheManager.))
 
+(defcache InfinispanCache [cache]
+  CacheProtocol
+  (lookup [_ key]
+    (.get cache key))
+  (lookup [_ key not-found]
+    (if (.containsKey cache key)
+      (.get cache key)
+      not-found))
+  (has? [_ key]
+    (.containsKey cache key))
+  (hit [this key] this)
+  (miss [this key value]
+    (.put cache key value)
+    this)
+  (evict [this key]
+    (and key (.remove cache key))
+    this)
+  (seed [this base]
+    (and base (.putAll cache base))
+    this)
+
+  Object
+  (toString [_] (str cache)))
+
+(defn local-cache
+  ([] (InfinispanCache. (.getCache local-manager)))
+  ([name] (InfinispanCache. (.getCache local-manager name)))
+  ([name base] (clojure.core.cache/seed (local-cache name) base)))
+
+(defn cache
+  "The entry point to determine whether clustered, remote, or local.
+   Only local supported currently."
+  [& args] (apply local-cache args))
