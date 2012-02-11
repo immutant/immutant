@@ -15,27 +15,16 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns fntest.core
-  (:require [fntest.jboss :as jboss]))
+(ns immutant.integs.basic-archive
+  (:use fntest.core
+        clojure.test)
+  (:require [clj-http.client :as client]
+            [clojure.java.io :as io]))
 
-(defn with-jboss
-  "A test fixture for starting/stopping JBoss"
-  [f]
-  (try
-    (println "Starting JBoss")
-    (jboss/start)
-    (f)
-    (finally
-     (println "Stopping JBoss")
-     (jboss/stop))))
+(use-fixtures :once (with-deployment "basic-ring.ima"
+                      (io/file (System/getProperty "user.dir") "apps/ring/basic-ring.ima")))
 
-(defn with-deployment
-  "Returns a test fixture for deploying/undeploying an app to a running JBoss"
-  [name descriptor-or-file]
-  (fn [f]
-    (try
-      (when (jboss/wait-for-ready? 20) (jboss/deploy name descriptor-or-file))
-      (f)
-      (finally
-       (jboss/undeploy name)))))
+(deftest simple "it should work"
+  (let [result (client/get "http://localhost:8080/basic-ring")]
+    (is (.startsWith (result :body) "Hello from Immutant!"))))
 

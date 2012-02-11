@@ -87,7 +87,7 @@
 (defn deploy
   "Create an app deployment descriptor from the content and deploy it"
   [name content]
-  (let [file (descriptor name content)
+  (let [file (if (= java.io.File (class content)) content (descriptor name content))
         fname (.getName file)
         url (str (.toURL file))
         add (api :operation "add" :address ["deployment" fname] :content [{:url url}])]
