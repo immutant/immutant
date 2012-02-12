@@ -74,24 +74,22 @@
   []
   (api :operation "shutdown"))
 
-(defn deployment-name
-  "Determine the name for the deployment."
-  [name]
-  (if (.endsWith name ".ima")
-    name
-    (if (re-seq #".+\.clj$" name)
-      name
-      (str name ".clj"))))
-
 (defn descriptor
   "Return a File object representing the deployment descriptor"
   [name & [content]]
-  (let [fname (deployment-name name)
+  (let [fname (if (re-seq #".+\.clj$" name) name (str name ".clj"))
         file (io/file descriptor-root fname)]
     (when content
       (io/make-parents file)
       (spit file (into content {:root (str (.getCanonicalFile (io/file (:root content))))})))
     file))
+
+(defn deployment-name
+  "Determine the name for the deployment."
+  [name]
+  (if (.endsWith name ".ima")
+    name
+    (.getName (descriptor name))))
 
 (defn deploy
   "Create an app deployment descriptor from the content and deploy it"
