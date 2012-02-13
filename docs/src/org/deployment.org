@@ -1,4 +1,4 @@
-#+TITLE:     What is Immutant?
+#+TITLE:     Deploying Clojure Applications
 #+LANGUAGE:  en
 #+OPTIONS:   H:3 num:t toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
 #+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
@@ -6,5 +6,7 @@
 #+EXPORT_EXCLUDE_TAGS: noexport
 
 * Introduction
-
+* Descriptor-based Deployment
+* Archive-based Deployment
+* lein-immutant
 

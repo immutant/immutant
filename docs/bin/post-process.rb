@@ -2,6 +2,9 @@ require 'rubygems'
 require 'nokogiri'
 require 'fileutils'
 
+PAGES = %w{ what-is installation jboss deployment initialization web jobs messaging daemons }
+TARGET_DIR = File.join( File.expand_path( File.dirname( __FILE__ ) ), "..", "target" )
+
 class PostProcessor
 
   def initialize(pages, src_dir, output_dir)
@@ -103,9 +106,6 @@ class PostProcessor
   end
   
 end
-
-PAGES = %w{ what-is installation jboss web jobs messaging daemons }
-TARGET_DIR = File.join( File.expand_path( File.dirname( __FILE__ ) ), "..", "target" )
 
 PostProcessor.new( PAGES,
                    File.join( TARGET_DIR, "tmp" ),
