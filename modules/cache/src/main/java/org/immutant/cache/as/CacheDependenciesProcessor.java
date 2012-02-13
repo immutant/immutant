@@ -34,6 +34,7 @@ import org.jboss.modules.ModuleLoader;
 public class CacheDependenciesProcessor implements DeploymentUnitProcessor {
     
     private static ModuleIdentifier IMMUTANT_CACHE_ID = ModuleIdentifier.create("org.immutant.cache");
+    private static ModuleIdentifier INFINISPAN_ID = ModuleIdentifier.create("org.infinispan");
 
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
@@ -44,6 +45,7 @@ public class CacheDependenciesProcessor implements DeploymentUnitProcessor {
 
         if (unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
             addDependency( moduleSpecification, moduleLoader, IMMUTANT_CACHE_ID );
+            addDependency( moduleSpecification, moduleLoader, INFINISPAN_ID );
         }
     }
 
