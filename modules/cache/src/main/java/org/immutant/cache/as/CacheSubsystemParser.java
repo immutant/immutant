@@ -17,7 +17,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.jobs.as;
+package org.immutant.cache.as;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBSYSTEM;
 import static org.jboss.as.controller.parsing.ParseUtils.requireNoAttributes;
@@ -37,15 +37,15 @@ import org.jboss.staxmapper.XMLElementWriter;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 import org.jboss.staxmapper.XMLExtendedStreamWriter;
 
-public class JobsSubsystemParser implements XMLStreamConstants, XMLElementReader<List<ModelNode>>, XMLElementWriter<SubsystemMarshallingContext> {
+public class CacheSubsystemParser implements XMLStreamConstants, XMLElementReader<List<ModelNode>>, XMLElementWriter<SubsystemMarshallingContext> {
 
-    private static final JobsSubsystemParser INSTANCE = new JobsSubsystemParser();
+    private static final CacheSubsystemParser INSTANCE = new CacheSubsystemParser();
 
-    public static JobsSubsystemParser getInstance() {
+    public static CacheSubsystemParser getInstance() {
         return INSTANCE;
     }
 
-    private JobsSubsystemParser() {
+    private CacheSubsystemParser() {
     }
 
     @Override
@@ -57,10 +57,10 @@ public class JobsSubsystemParser implements XMLStreamConstants, XMLElementReader
         // Activate the services subsystem
 
         final ModelNode address = new ModelNode();
-        address.add(SUBSYSTEM, JobsExtension.SUBSYSTEM_NAME);
+        address.add(SUBSYSTEM, CacheExtension.SUBSYSTEM_NAME);
         address.protect();
 
-        list.add(JobsSubsystemAdd.createOperation(address));
+        list.add(CacheSubsystemAdd.createOperation(address));
 
         // Tell the core that we've got injectable-handlers to add.
 
@@ -79,6 +79,6 @@ public class JobsSubsystemParser implements XMLStreamConstants, XMLElementReader
 
 
     @SuppressWarnings("unused")
-    private static final Logger log = Logger.getLogger( "org.immutant.jobs.as" );
+    private static final Logger log = Logger.getLogger( "org.immutant.cache.as" );
 
 }

@@ -15,15 +15,47 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.projectodd</groupId>
+      <artifactId>polyglot-core</artifactId>
+      <version>${version.polyglot}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectodd</groupId>
+      <artifactId>polyglot-core-extensions</artifactId>
+      <version>${version.polyglot}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-core</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.as</groupId>
+      <artifactId>jboss-as-jmx</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-as-test-support</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-	  <groupId>org.clojure</groupId>
-	  <artifactId>core.cache</artifactId>
-	  <version>0.5.0</version>
-	</dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>core.cache</artifactId>
+      <version>0.5.0</version>
+    </dependency>
     <dependency>
       <groupId>org.infinispan</groupId>
       <artifactId>infinispan-core</artifactId>
@@ -42,7 +74,7 @@
   </dependencies>
 
   <build>
-    <plugins> 
+    <plugins>
 
       <plugin>
         <groupId>com.theoryinpractise</groupId>
@@ -56,24 +88,24 @@
             </goals>
           </execution>
           <execution>
-          <id>test</id>
-          <phase>test</phase>
-          <goals>
-            <goal>test</goal>
-          </goals>
+            <id>test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
 
-      <!-- <plugin> -->
-      <!--   <artifactId>maven-assembly-plugin</artifactId> -->
-      <!--   <executions> -->
-      <!--     <execution> -->
-      <!--       <id>assemble-module</id> -->
-      <!--       <phase>package</phase> -->
-      <!--     </execution> -->
-      <!--   </executions> -->
-      <!-- </plugin> -->
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>assemble-module</id>
+            <phase>package</phase>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
