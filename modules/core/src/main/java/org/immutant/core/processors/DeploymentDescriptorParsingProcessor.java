@@ -31,7 +31,9 @@ import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
+import org.jboss.as.server.deployment.module.MountHandle;
 import org.jboss.as.server.deployment.module.ResourceRoot;
+import org.jboss.as.server.deployment.module.TempFileProviderService;
 import org.jboss.logging.Logger;
 import org.jboss.vfs.VFS;
 import org.jboss.vfs.VirtualFile;
@@ -69,12 +71,20 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
                 throw new DeploymentUnitProcessingException( "No application root specified." );
             }
             
-            if ( ! root.exists() ) {
+            if (!root.exists()) {
                 throw new DeploymentUnitProcessingException( "Application root does not exist: " + root.getAbsolutePath() );
             }
 
-            deploymentUnit.putAttachment( Attachments.DEPLOYMENT_ROOT, 
-                                          new ResourceRoot( VFS.getChild( root.toURI() ), null ) );
+
+            VirtualFile virtualRoot = VFS.getChild( root.toURI() );
+            MountHandle mountHandle = null;
+
+            if (!root.isDirectory()) {
+                // Expand the referenced root if it's not a directory (ie .ima archive)
+                mountHandle = new MountHandle( VFS.mountZipExpanded( virtualRoot, virtualRoot, TempFileProviderService.provider() ) );
+            }
+            
+            deploymentUnit.putAttachment( Attachments.DEPLOYMENT_ROOT, new ResourceRoot( virtualRoot, mountHandle ) );
 
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
