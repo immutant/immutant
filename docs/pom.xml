@@ -69,6 +69,16 @@
         <artifactId>jruby-maven-plugin</artifactId>
         <executions>
           <execution>
+            <id>download-elisp-dependencies</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>jruby</goal>
+            </goals>
+            <configuration>
+              <file>bin/prep-elisp.rb</file>
+            </configuration>
+          </execution>
+          <execution>
             <id>post-process-docs</id>
             <phase>install</phase>
             <goals>

@@ -4,9 +4,9 @@
                (expand-file-name "../" (file-name-directory (buffer-file-name)))
              default-directory))
       (nav "<ul class=\"docnav\"><li class=\"previous\"><a accesskey=\"p\" href=\"\"><strong>Prev</strong></a></li><li class=\"home\"><a accesskey=\"h\" href=\"index.html\"><strong>Table Of Contents</strong></a></li><li class=\"next\"><a accesskey=\"n\" href=\"\"><strong>Next</strong></a></li></ul>"))
-  (setq load-path (cons (expand-file-name "elisp/" dir) load-path)
-        load-path (cons (expand-file-name "elisp/org-mode/lisp" dir) load-path)
-        load-path (cons (expand-file-name "elisp/org-mode/contrib/lisp" dir) load-path))
+  (setq load-path (cons (expand-file-name "target/elisp/" dir) load-path)
+        load-path (cons (expand-file-name "target/elisp/org-mode/lisp" dir) load-path)
+        load-path (cons (expand-file-name "target/elisp/org-mode/contrib/lisp" dir) load-path))
 
   (require 'clojure-mode)
   (require 'org-publish)
