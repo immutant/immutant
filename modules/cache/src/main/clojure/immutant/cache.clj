@@ -63,11 +63,11 @@
   (toString [_] (str cache)))
 
 (defn cache-mode
-  [kw {:keys [sync]}]
+  [kw sync]
   (cond
+   (= :invalidated kw) (if sync Configuration$CacheMode/INVALIDATION_SYNC Configuration$CacheMode/INVALIDATION_ASYNC)
    (= :distributed kw) (if sync Configuration$CacheMode/DIST_SYNC Configuration$CacheMode/DIST_ASYNC)
    (= :replicated kw) (if sync Configuration$CacheMode/REPL_SYNC Configuration$CacheMode/REPL_ASYNC)
-   (= :invalidated kw) (if sync Configuration$CacheMode/INVALIDATION_SYNC Configuration$CacheMode/INVALIDATION_ASYNC)
    (= :local kw) Configuration$CacheMode/LOCAL
    :default (throw (IllegalArgumentException. "Must be one of :distributed, :replicated, :invalidated, or :local"))))
 
@@ -94,19 +94,24 @@
     (doto (.getCache clustered-manager name)
       (.start))))
 
+(defn clustered-cache
+  [name & {:keys [mode base sync] :or {mode :invalidated}}]
+  (let [result (InfinispanCache. (if (.isRunning clustered-manager name)
+                                   (reconfigure name (cache-mode mode sync))
+                                   (configure name (cache-mode mode sync))))]
+    (clojure.core.cache/seed result base)))
+
 (defn local-cache
   ([] (InfinispanCache. (.getCache local-manager)))
   ([name] (InfinispanCache. (.getCache local-manager name)))
   ([name base] (clojure.core.cache/seed (local-cache name) base)))
 
-(defn clustered-cache
-  [name mode & {:as options}]
-  (InfinispanCache. (if (.isRunning clustered-manager name)
-                      (reconfigure name (cache-mode mode options))
-                      (configure name (cache-mode mode options)))))
-
 (defn cache
-  "The entry point to determine whether clustered, remote, or local.
-   Only local supported currently."
-  [& args] (apply local-cache args))
-
+  "The entry point to determine whether clustered or local"
+  ([name] (cache name nil {}))
+  ([name v] (if (keyword? v) (cache name v {}) (cache name nil v)))
+  ([name mode seed]
+     (if clustered-manager
+       (clustered-cache name :mode (or mode :invalidated) :base seed)
+       (local-cache name seed))))
+     
