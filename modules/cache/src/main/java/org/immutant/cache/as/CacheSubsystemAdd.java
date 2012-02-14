@@ -25,6 +25,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 
 import java.util.List;
 
+import org.immutant.cache.as.processors.PossiblyLeakingClusterAwareCacheManagerDependencyInator;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -60,7 +61,7 @@ public class CacheSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
         processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new CacheDependenciesProcessor() );
 
-        //processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 200, new JobSchedulizerInstaller() );
+        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 200, new PossiblyLeakingClusterAwareCacheManagerDependencyInator() );
     }
 
     static ModelNode createOperation(ModelNode address) {

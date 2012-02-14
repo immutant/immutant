@@ -18,7 +18,34 @@
  */
 package org.immutant.cache.as.processors;
 
+import org.immutant.core.ClojureMetaData;
+import org.jboss.as.server.deployment.DeploymentPhaseContext;
+import org.jboss.as.server.deployment.DeploymentUnit;
+import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
+import org.jboss.as.server.deployment.DeploymentUnitProcessor;
+import org.jboss.msc.service.ServiceName;
+import org.projectodd.polyglot.core.util.ClusterUtil;
 
-public class PossiblyLeakingClusterAwareCacheManagerDependencyInator {
+
+public class PossiblyLeakingClusterAwareCacheManagerDependencyInator implements DeploymentUnitProcessor {
+
+    @Override
+    public void deploy(DeploymentPhaseContext context) throws DeploymentUnitProcessingException {
+        DeploymentUnit unit = context.getDeploymentUnit();
+        
+        if (!unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
+            return;
+        }
+        
+        if (ClusterUtil.isClustered( context )) {
+            context.getServiceTarget().addDependency( ServiceName.JBOSS.append("infinispan", "web") );
+        }
+    }
+
+    @Override
+    public void undeploy(DeploymentUnit arg0) {
+        // TODO Auto-generated method stub
+        
+    }
    
 }
