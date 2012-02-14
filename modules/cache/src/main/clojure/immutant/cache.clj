@@ -91,9 +91,8 @@
     (.setClassLoader config (.getContextClassLoader (Thread/currentThread)))
     (.setCacheMode config mode)
     (.defineConfiguration clustered-manager name config)
-    (let [cache (.getCache clustered-manager name)]
-      (.start cache)
-      cache)))
+    (doto (.getCache clustered-manager name)
+      (.start))))
 
 (defn local-cache
   ([] (InfinispanCache. (.getCache local-manager)))
