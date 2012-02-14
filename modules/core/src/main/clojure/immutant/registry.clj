@@ -19,7 +19,7 @@
   (:import (org.jboss.msc.service ServiceName)))
 
 (def ^{:private true} registry (atom {}))
-(def ^{:private true} msc-registry nil)
+(def msc-registry nil)
 
 (defn set-msc-registry [v]
   (def msc-registry v))

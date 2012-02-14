@@ -21,11 +21,22 @@
             [immutant.registry :as lookup])
   (:import [clojure.core.cache CacheProtocol]
            [org.jboss.msc.service ServiceName]
+           [org.projectodd.polyglot.core.util ClusterUtil]
            [org.infinispan.config Configuration$CacheMode]
            [org.infinispan.manager DefaultCacheManager]))
 
 (def local-manager (DefaultCacheManager.))
-(def clustered-manager (lookup/fetch (.append ServiceName/JBOSS (into-array ["infinispan" "web"]))))
+
+(defn wait-for-clustered-manager []
+  (if (and lookup/msc-registry (ClusterUtil/isClustered lookup/msc-registry))
+    (loop [attempts 30]
+      (let [svc (.append ServiceName/JBOSS (into-array ["infinispan" "web"]))]
+        (or (lookup/fetch svc)
+            (when (> attempts 0)
+              (Thread/sleep 1000)
+              (recur (dec attempts))))))))
+
+(def clustered-manager (wait-for-clustered-manager))
 
 (defcache InfinispanCache [cache]
   CacheProtocol
@@ -66,7 +77,7 @@
         config (.getConfiguration cache)
         current (.getCacheMode config)]
     (when-not (= mode current)
-      (println "Reconfiguring cache" name "from" current "to" mode)
+      (println "Reconfiguring cache" name "from" (str current) "to" (str mode))
       (.stop cache)
       (.setCacheMode config mode)
       (.defineConfiguration clustered-manager name config)
@@ -75,13 +86,14 @@
 
 (defn configure
   [name mode]
-  (println "Configuring cache" name "as" mode)
+  (println "Configuring cache" (str name) "as" (str mode))
   (let [config (.clone (.getDefaultConfiguration clustered-manager))]
-    (println "JC: wtf")
     (.setClassLoader config (.getContextClassLoader (Thread/currentThread)))
     (.setCacheMode config mode)
     (.defineConfiguration clustered-manager name config)
-    (.getCache clustered-manager)))
+    (let [cache (.getCache clustered-manager name)]
+      (.start cache)
+      cache)))
 
 (defn local-cache
   ([] (InfinispanCache. (.getCache local-manager)))
