@@ -9,13 +9,16 @@
 
 (println "basic-ring.core LOADED")
 
+(defn response [body]
+  {:status 200
+     :headers {"Content-Type" "text/html"}
+   :body body})
 (defn handler [request]
+  (prn request)
   (let [body (str "Hello from Immutant! This is basic-ring <p>a-value:" @a-value
                   "</p><p>version:" (clojure-version) "</p>")]
     (reset! a-value "not-default")
-    {:status 200
-     :headers {"Content-Type" "text/html"}
-     :body body}))
+    (response body)))
 
 (defn another-handler [request]
   (reset! a-value "another-handler")
@@ -23,9 +26,11 @@
 
 (defn resource-handler [request]
   (let [res (io/as-file (io/resource "a-resource"))]
-    {:status 200
-     :headers {"Content-Type" "text/html"}
-     :body (slurp res)}))
+    (response (slurp res))))
+
+(defn request-echo-handler [request]
+  (println request)
+  (response (prn-str (assoc request :body "<body>")))) ;; body is a inputstream, chuck it for now
 
 (defn init []
   (println "INIT CALLED"))
@@ -52,3 +57,7 @@
   (init)
   (web/start "/" resource-handler))
 
+(defn init-request-echo []
+  (init)
+  (web/start "/" request-echo-handler)
+  (web/start "/foo/bar" request-echo-handler))

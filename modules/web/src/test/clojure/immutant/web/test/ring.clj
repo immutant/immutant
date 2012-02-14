@@ -15,20 +15,18 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.basic
-  (:use fntest.core
-        clojure.test)
-  (:require [clj-http.client :as client]))
+(ns immutant.web.test.ring
+  (:use immutant.web.ring
+        clojure.test
+        immutant.test.helpers))
 
-(use-fixtures :once (with-deployment *file*
-                      {
-                       :root "apps/ring/basic-ring/"
-                       :init "basic-ring.core/init-web"
-                       :context-path "/basic-ring"
-                       }))
-
-(deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    ;(println "RESPONSE" result)
-    (is (.startsWith (result :body) "Hello from Immutant!"))))
+(deftest shuffle-sub-context-should-work
+  (are [context-and-path-info input] (= context-and-path-info
+                                    (apply shuffle-sub-context input))
+       {:context "/" :path-info "/"}     ["/*" "/" "/"]
+       {:context "/" :path-info "/ham"}  ["/*" "/" "/ham"]
+       {:context  "/foo" :path-info "/"} ["/*" "/foo" "/"]
+       {:context  "/bar" :path-info "/"} ["/bar/*" "/" "/bar"]
+       {:context  "/foo/bar" :path-info "/"} ["/bar/*" "/foo" "/bar"]
+       {:context  "/foo/bar" :path-info "/baz"} ["/bar/*" "/foo" "/bar/baz"]))
 

@@ -16,19 +16,34 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.web.ring
-  (:require [ring.util.servlet :as servlet])
-  (:use [immutant.web.core :only [get-servlet-filter current-servlet-request]]
-        [immutant.web.session.handler :only [remove-ring-session-cookie]]))
+  (:use [immutant.web.core            :only [get-servlet-filter current-servlet-request]]
+        [immutant.web.session.handler :only [remove-ring-session-cookie]])
+  (:require [clojure.string    :as string]
+            [ring.util.servlet :as servlet]))
 
-(defn handle-request [filter-name request response]
+(defn- ensure-slash [s]
+  (if (.startsWith s "/")
+    s
+    (str "/" s)))
+
+(defn shuffle-sub-context [sub-context context path-info]
+  (let [prefix (string/replace sub-context #"/\*$" "")]
+    {:context (ensure-slash
+               (str (if (and (not (empty? prefix))
+                             (= "/" context)) "" context) prefix))
+     :path-info (ensure-slash
+                 (string/replace path-info (re-pattern (str "^" prefix)) ""))}))
+
+(defn handle-request [filter-name sub-context request response]
   (.setCharacterEncoding response "UTF-8")
   (let [{:keys [handler response-filters]} (get-servlet-filter filter-name)]
     (if handler
       (if-let [response-map (binding [current-servlet-request request]
                               ((remove-ring-session-cookie handler)
-                               (assoc (servlet/build-request-map request)
-                                 :path-info (.getPathInfo request)
-                                 :context (.getContextPath request))))]
+                               (merge (servlet/build-request-map request)
+                                      (shuffle-sub-context sub-context
+                                                           (.getContextPath request)
+                                                           (.getPathInfo request)))))]
         (servlet/update-servlet-response response response-map)
         (throw (NullPointerException. "Handler returned nil.")))
       (throw (IllegalArgumentException. (str "No handler function found for " filter-name))))))

@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.basic
+(ns immutant.integs.paths-in-request
   (:use fntest.core
         clojure.test)
   (:require [clj-http.client :as client]))
@@ -23,12 +23,25 @@
 (use-fixtures :once (with-deployment *file*
                       {
                        :root "apps/ring/basic-ring/"
-                       :init "basic-ring.core/init-web"
+                       :init "basic-ring.core/init-request-echo"
                        :context-path "/basic-ring"
                        }))
 
-(deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    ;(println "RESPONSE" result)
-    (is (.startsWith (result :body) "Hello from Immutant!"))))
+(deftest paths-with-no-subcontext
+  (let [result (client/get "http://localhost:8080/basic-ring")
+        request (read-string (:body result))]
+    (is (= "/basic-ring" (:context request)))
+    (is (= "/" (:path-info request)))))
+
+(deftest paths-with-a-subcontext
+  (let [result (client/get "http://localhost:8080/basic-ring/foo/bar")
+        request (read-string (:body result))]
+    (is (= "/basic-ring/foo/bar" (:context request)))
+    (is (= "/" (:path-info request)))))
+
+(deftest paths-with-a-subcontext-and-additional-path
+  (let [result (client/get "http://localhost:8080/basic-ring/foo/bar/baz")
+        request (read-string (:body result))]
+    (is (= "/basic-ring/foo/bar" (:context request)))
+    (is (= "/baz" (:path-info request)))))
 

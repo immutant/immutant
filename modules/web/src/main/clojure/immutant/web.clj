@@ -16,10 +16,10 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.web
-  (:require [immutant.registry :as reg]
+  (:require [immutant.registry     :as reg]
             [clojure.tools.logging :as log])
-  (:import (org.apache.catalina.deploy FilterDef FilterMap)
-           (org.immutant.web.servlet RingFilter))
+  (:import (org.apache.catalina.deploy  FilterDef FilterMap)
+           (org.immutant.web.servlet    RingFilter))
   (:use immutant.web.core))
 
 (defn start
@@ -27,11 +27,13 @@
   [subcontext-path handler]
   (log/info "Starting web service at sub-context path:" subcontext-path)
   (let [name (filter-name subcontext-path)
+        subcontext-path (normalize-subcontext-path subcontext-path)
         filter-def (doto (FilterDef.)
                      (.setFilterName name)
-                     (.setFilterClass (.getName RingFilter)))
+                     (.setFilterClass (.getName RingFilter))
+                     (.addInitParameter "sub-context" subcontext-path))
         filter-map (doto (FilterMap.)
-                     (.addURLPattern (normalize-subcontext-path subcontext-path))
+                     (.addURLPattern subcontext-path)
                      (.setFilterName name))]
     (add-servlet-filter! name filter-def filter-map handler)
     (doto (reg/fetch "web-context")
