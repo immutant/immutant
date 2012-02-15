@@ -20,23 +20,11 @@
   (:require [clojure.core.cache]
             [immutant.registry :as lookup])
   (:import [clojure.core.cache CacheProtocol]
-           [org.jboss.msc.service ServiceName]
-           [org.projectodd.polyglot.core.util ClusterUtil]
            [org.infinispan.config Configuration$CacheMode]
            [org.infinispan.manager DefaultCacheManager]))
 
 (def local-manager (DefaultCacheManager.))
-
-(defn wait-for-clustered-manager []
-  (if (and lookup/msc-registry (ClusterUtil/isClustered lookup/msc-registry))
-    (loop [attempts 30]
-      (let [svc (.append ServiceName/JBOSS (into-array ["infinispan" "web"]))]
-        (or (lookup/fetch svc)
-            (when (> attempts 0)
-              (Thread/sleep 1000)
-              (recur (dec attempts))))))))
-
-(def clustered-manager (wait-for-clustered-manager))
+(def clustered-manager (lookup/fetch "jboss.infinispan.web"))
 
 (defcache InfinispanCache [cache]
   CacheProtocol
@@ -108,8 +96,8 @@
 
 (defn cache
   "The entry point to determine whether clustered or local"
-  ([name] (cache name nil {}))
-  ([name v] (if (keyword? v) (cache name v {}) (cache name nil v)))
+  ([name] (cache name nil nil))
+  ([name v] (if (keyword? v) (cache name v nil) (cache name nil v)))
   ([name mode seed]
      (if clustered-manager
        (clustered-cache name :mode (or mode :invalidated) :base seed)
