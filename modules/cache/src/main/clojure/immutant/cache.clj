@@ -16,15 +16,10 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.cache
-  (:use [clojure.core.cache :only (defcache)])
-  (:require [clojure.core.cache]
-            [immutant.registry :as lookup])
-  (:import [clojure.core.cache CacheProtocol]
-           [org.infinispan.config Configuration$CacheMode]
-           [org.infinispan.manager DefaultCacheManager]))
-
-(def local-manager (DefaultCacheManager.))
-(def clustered-manager (lookup/fetch "jboss.infinispan.web"))
+  (:use [immutant.cache.core]
+        [clojure.core.cache :only (defcache)])
+  (:require [clojure.core.cache])
+  (:import [clojure.core.cache CacheProtocol]))
 
 (defcache InfinispanCache [cache]
   CacheProtocol
@@ -50,56 +45,10 @@
   Object
   (toString [_] (str cache)))
 
-(defn cache-mode
-  [kw sync]
-  (cond
-   (= :invalidated kw) (if sync Configuration$CacheMode/INVALIDATION_SYNC Configuration$CacheMode/INVALIDATION_ASYNC)
-   (= :distributed kw) (if sync Configuration$CacheMode/DIST_SYNC Configuration$CacheMode/DIST_ASYNC)
-   (= :replicated kw) (if sync Configuration$CacheMode/REPL_SYNC Configuration$CacheMode/REPL_ASYNC)
-   (= :local kw) Configuration$CacheMode/LOCAL
-   :default (throw (IllegalArgumentException. "Must be one of :distributed, :replicated, :invalidated, or :local"))))
-
-(defn reconfigure
-  [name mode]
-  (let [cache (.getCache clustered-manager name)
-        config (.getConfiguration cache)
-        current (.getCacheMode config)]
-    (when-not (= mode current)
-      (println "Reconfiguring cache" name "from" (str current) "to" (str mode))
-      (.stop cache)
-      (.setCacheMode config mode)
-      (.defineConfiguration clustered-manager name config)
-      (.start cache))
-    cache))
-
-(defn configure
-  [name mode]
-  (println "Configuring cache" (str name) "as" (str mode))
-  (let [config (.clone (.getDefaultConfiguration clustered-manager))]
-    (.setClassLoader config (.getContextClassLoader (Thread/currentThread)))
-    (.setCacheMode config mode)
-    (.defineConfiguration clustered-manager name config)
-    (doto (.getCache clustered-manager name)
-      (.start))))
-
-(defn clustered-cache
-  [name & {:keys [mode base sync] :or {mode :invalidated}}]
-  (let [result (InfinispanCache. (if (.isRunning clustered-manager name)
-                                   (reconfigure name (cache-mode mode sync))
-                                   (configure name (cache-mode mode sync))))]
-    (clojure.core.cache/seed result base)))
-
-(defn local-cache
-  ([] (InfinispanCache. (.getCache local-manager)))
-  ([name] (InfinispanCache. (.getCache local-manager name)))
-  ([name base] (clojure.core.cache/seed (local-cache name) base)))
-
 (defn cache
   "The entry point to determine whether clustered or local"
   ([name] (cache name nil nil))
   ([name v] (if (keyword? v) (cache name v nil) (cache name nil v)))
-  ([name mode seed]
-     (if clustered-manager
-       (clustered-cache name :mode (or mode :invalidated) :base seed)
-       (local-cache name seed))))
+  ([name mode base]
+     (clojure.core.cache/seed (InfinispanCache. (best-cache name mode)) base)))
      
