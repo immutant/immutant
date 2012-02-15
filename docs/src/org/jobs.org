@@ -21,8 +21,9 @@
   =immutant.jobs= namespace:
 
   #+begin_src clojure
-    (require '[immutant.jobs :as jobs])
-    
+    (ns my.ns
+      (:require [immutant.jobs :as jobs]))
+      
     (jobs/schedule "my-job-name" "*/5 * * * * ?" 
                    #(println "I was called!")
                    :singleton true)

@@ -9,55 +9,146 @@
 
   Immutant allows applications to respond to web requests via [[https://github.com/mmcgrana/ring][Ring]] handlers.
   Each application can dynamically register any number of handlers, each with
-  a unique context path.
+  a unique context path. This allows you to have multiple Ring webapps
+  that share the same deployment lifecycle.
 
   Immutant provides a session implementation that provides automatic data
   sharing across nodes in a cluster.
 
+  In this chapter, the term /application/ refers to the full deployment itself,
+  and /webapp/ refers to a particular web application based around a single 
+  Ring handler as its entry point. For most applications, the two will be the
+  same thing.
+
 * Context Path
 
-  The *context path* is the prefix on the path portion of a url that is one method
-  used to identify the application that should receive the request when more than
-  on application is being served by the same 'container'. If you are running only
-  one application in a container (which is the typical strategy when deploying
-  Clojure web application via [[http://jetty.codehaus.org/jetty/][Jetty]]), the context path is the /root/ context - =/=.
+  The *context path* is a prefix on the path portion of a url that is used as
+  a mechanism to route requests to the proper webapp when more than
+  one webapp is being served by the same 'container'. If you are running only
+  one webapp in a container (which is the typical strategy when deploying
+  Clojure webapp via [[http://jetty.codehaus.org/jetty/][Jetty]]), the context path is the /root/ context - =/=.
 
-  A properly constructed web handler needs no knowledge of the context path it is
-  mounted under - the container is responsible for routing requests to the application
-  and providing the application specific fragment of the url's path to it. This
-  allows the application to be moved between contexts (or mounted at multiple
-  contexts at once) without any modification to the application code itself.
+  A properly constructed webapp needs no knowledge of the context path it is
+  mounted under - the container is responsible for routing requests to the webapp
+  and providing the webapp specific fragment of the url's path to it. This
+  allows the webapp to be moved between contexts (or mounted at multiple
+  contexts at once) without any modification to the webapp code itself.
 
-** Per-Application Top-Level Context Path
+** The Top-Level Context Path
 
    Every application deployed has a context path assigned on its behalf. Since
    handlers can be registered dynamically from anywhere during the lifecycle of
-   the application, we reserve a context path for every application, whether it
-   provides web handlers or not.
+   the application, we reserve a context path for every application, whether that
+   application registers web handlers or not.
 
    If no context path is provided, a default context path based on the name of
    the deployment is used. For example: an application deployed using a
    descriptor named =some-app.clj= will be given the context path
    =/some-app=. An application deployed using an archive named
    =some-other-app.ima= will be given the context path =/some-other-app=.
+   See [[./deployment.html][Deployment]] for the details of deploying Clojure applications.
 
    You can override the default context path via the =:context-path= key in
    either in the deployment descriptor or the application's =project.clj=.
    See [[./initialization.html][Initialization]] for the details on setting configuration values,
-   and [[./deployment.html][Deployment]] for the details of deploying Clojure applications.
 
    This context path is considered the *top-level* context path - you have the
-   option to bind a handler to a *sub-context* path that is nested underneath
-   the top-level path. The top-level path is stripped from the url's path before
-   the request is processed. {{ exposed in the request, talk about other request
-   keys here as well }}
+   option to bind a handler to a *sub-context* path that will be nested within
+   the top-level path. The full context is stripped from the url's path before
+   the request is processed, and the context and remaining path info are made
+   available as part of the request map via the =:context= and =:path-info= 
+   keys, respectively.
 
-** Sub-Context Paths
+** The Sub-Context Path
+
+   When you register a handler with Immutant, you can optionally provide a
+   sub-context path for which the handler will be responsible. This sub-context
+   path is appended to the top-level context path for purposes of routing
+   requests to the handler, and allows you to have multiple webapps within
+   a single application.
+
+* Registering Handlers
+
+  To register a Ring handler, you simply call the =immutant.web/start=, which
+  takes one or two arguments:
+
+  - =sub-context-path= - the sub-context path within the application's context
+    path where the handler should be attached. Optional - if omitted,
+    "/" is assumed. Only one handler can be attached to any given 
+    sub-context path - providing an already attached sub-context will
+    replace the previously registered handler.
+  - =handler= - the Ring handler to invoke when requests come in on the
+    sub context path.
+
+  Let's take a look at =start= in use. For the following example, assume
+  the application has a top-level context path of =/my-app=:
+
+  #+begin_src clojure
+    (ns my.ns
+      (:require [immutant.web :as web]))
+
+    ;; handle requests at the root sub-context (/).
+    ;; this handler will receive any request that the app
+    ;; receives at /my-app/* *except* for anything captured by another
+    :: sub-context.
+    (web/start my-root-handler)
+
+    ;; handle requests at the /somewhere context.
+    ;; this handler will receive any request that the app
+    ;; receives at /my-app/somewhere/*.
+    (web/start "/somewhere" my-other-handler)
+  #+end_src
+
+  You can deregister a registered handler at any time. Immutant will deregister
+  any remaining handlers for you when your application is undeployed.
+
+* Deregistering Handlers
+
+  You can deregister a Ring handler via the =immutant.web/stop= function,
+  which takes zero or one arguments:
+
+  - =sub-context-path= - the sub-context path within the application's context
+    path where the handler was attached. Optional - if omitted, "/" is assumed.
+
+  An example of using =stop=:
+
+  #+begin_src clojure
+    (ns my.ns
+      (:require [immutant.web :as web]))
     
-   {{ more to come }}
-
-* Endpoints
-
+    ;; deregisters the handler attached to the root sub-context (/)
+    (web/stop)
+    
+    ;; deregisters the handler attached to the /somewhere sub-context
+    (web/stop "/somewhere")
+  #+end_src
+  
 * Sessions
 
-* pwd
+  Immutant provides a session store that can be used with the
+  [[https://github.com/mmcgrana/ring/blob/master/ring-core/src/ring/middleware/session.clj][Ring session middleware]] (and any other middleware that uses =ring.middleware.sesion=,
+  like [[https://github.com/brentonashworth/sandbar][Sandbar]]). The Immutant session store uses session provided by
+  the underlying JBoss AS7 servlet container, which automatically replicates
+  session data across a cluster. You create the store by calling 
+  =immutant.web.session/servlet-store=, and use it by passing it as the =:store=
+  option to =ring.middleware.session/wrap-session=:
+
+  #+begin_src clojure
+    (ns my.ns
+      (:require [ring.middleware.session :as ring-session]
+                [immutant.web :as web]
+                [immutant.web.session :as immutant-session]))
+    
+    (web/start
+     (ring-session/wrap-session
+      my-handler
+      {:store (immutant-session/servlet-store)}))
+  #+end_src
+
+  *Note:* since this store is managed by the servlet container, the session cookie
+  (=jsessionid= by default) is itself managed at the servlet level. Any options
+  other than =:root= passed to =ring.middleware.session/wrap-session= (=:cookie-attrs=,
+  =:cookie-name=, or =:root=) will therefore be ignored.
+
+* src-dir
+  {{awaiting docs from the Jimbotron}}
