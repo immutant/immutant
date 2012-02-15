@@ -16,7 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging.codecs
-  (:require [clojure.data.json :as json]))
+  (:require [immutant.codecs :as core]))
 
 (def encoding-header-name "__ContentEncoding__")
 
@@ -27,7 +27,6 @@
 (defn ^{:private true} get-encoding [^javax.jms.Message msg]
   (keyword (.getStringProperty msg encoding-header-name)))
 
-
 ;; Encode
 
 (defmulti encode (fn [_ _ {encoding :encoding}] (or encoding :clojure)))
@@ -35,15 +34,13 @@
 (defmethod encode :clojure [session message options]
   "Stringify a clojure data structure"
   (set-encoding
-   (.createTextMessage session (with-out-str
-                                 (binding [*print-dup* true]
-                                   (pr message))))
+   (.createTextMessage session (core/encode message))
    :clojure))
 
 (defmethod encode :json [session message options]
   "Stringify a json data structure"
   (set-encoding
-   (.createTextMessage session (json/json-str message))
+   (.createTextMessage session (core/encode message :json))
    :json))
 
 (defmethod encode :text [session message options]
@@ -58,11 +55,11 @@
 
 (defmethod decode :clojure [message]
   "Turn a string into a clojure data structure"
-  (load-string (.getText message)))
+  (core/decode (.getText message)))
 
 (defmethod decode :json [message]
   "Turn a string into a json data structure"
-  (json/read-json (.getText message)))
+  (core/decode (.getText message) :json))
 
 (defmethod decode :text [message]
   "Treats the message payload as a raw string. No decoding is done."
@@ -70,23 +67,3 @@
 
 (defmethod decode :default [message]
   (throw (RuntimeException. (str "Received unknown message encoding: " (get-encoding message)))))
-
-
-;; Fallback to Java serialization for undefined print-dup methods
-
-(defn serialize [object]
-  (with-open [baos (java.io.ByteArrayOutputStream.)
-              oos (java.io.ObjectOutputStream. baos)]
-    (.writeObject oos object)
-    (.toString baos "ISO-8859-1")))
-
-(defn deserialize [s]
-  (with-open [bais (java.io.ByteArrayInputStream. (.getBytes s "ISO-8859-1"))
-              ois (java.io.ObjectInputStream. bais)]
-    (.readObject ois)))
-
-(defmethod print-dup :default [o w]
-  (.println System/out (str "WARN: using Java serialization for " (.getName (class o))))
-  (.write w "#=(immutant.messaging.codecs/deserialize ")
-  (print-dup (serialize o) w)
-  (.write w ")"))
