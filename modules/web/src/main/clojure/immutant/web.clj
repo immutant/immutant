@@ -23,33 +23,39 @@
   (:use immutant.web.core))
 
 (defn start
-  "Creates a web endpoint at subcontext-path beneath the context-path of the app, handled by handler"
-  [subcontext-path handler]
-  (log/info "Starting web service at sub-context path:" subcontext-path)
-  (let [name (filter-name subcontext-path)
-        subcontext-path (normalize-subcontext-path subcontext-path)
-        filter-def (doto (FilterDef.)
-                     (.setFilterName name)
-                     (.setFilterClass (.getName RingFilter))
-                     (.addInitParameter "sub-context" subcontext-path))
-        filter-map (doto (FilterMap.)
-                     (.addURLPattern subcontext-path)
-                     (.setFilterName name))]
-    (add-servlet-filter! name filter-def filter-map handler)
-    (doto (reg/fetch "web-context")
-      (.addFilterDef filter-def)
-      (.addFilterMap filter-map))))
+  "Registers a Ring handler that will be called when requests are received on the given sub-context-path.
+If no sub-context-path is given, \"/\" is assumed."
+  ([handler]
+     (start "/" handler))
+  ([sub-context-path handler]
+      (log/info "Registering ring handler at sub-context path:" sub-context-path)
+      (let [name (filter-name sub-context-path)
+            sub-context-path (normalize-subcontext-path sub-context-path)
+            filter-def (doto (FilterDef.)
+                         (.setFilterName name)
+                         (.setFilterClass (.getName RingFilter))
+                         (.addInitParameter "sub-context" sub-context-path))
+            filter-map (doto (FilterMap.)
+                         (.addURLPattern sub-context-path)
+                         (.setFilterName name))]
+        (add-servlet-filter! name filter-def filter-map handler)
+        (doto (reg/fetch "web-context")
+          (.addFilterDef filter-def)
+          (.addFilterMap filter-map)))))
 
-(defn stop 
-  "Tears down the web endpoint at subcontext-path beneath the context-path of the app"
-  [subcontext-path]
-  (if-let [{:keys [filter-def filter-map]} (remove-servlet-filter! (filter-name subcontext-path))]
-    (do
-      (log/info "Stopping web service at sub-context path:" subcontext-path)
-      (doto (reg/fetch "web-context")
-        (.removeFilterMap filter-map)
-        (.removeFilterDef filter-def)))
-    (log/warn "Attempted to stop web service at sub-context path:" subcontext-path ", but none found")))
+(defn stop
+  "Deregisters the Ring handler attached to the given sub-context-path. If no sub-context-path is given,
+\"/\" is assumed."
+  ([]
+     (stop "/"))
+  ([sub-context-path]
+     (if-let [{:keys [filter-def filter-map]} (remove-servlet-filter! (filter-name sub-context-path))]
+       (do
+         (log/info "Deregistering ring handler at sub-context path:" sub-context-path)
+         (doto (reg/fetch "web-context")
+           (.removeFilterMap filter-map)
+           (.removeFilterDef filter-def)))
+       (log/warn "Attempted to deregister ring handler at sub-context path:" sub-context-path ", but none found"))))
 
 (defmacro src-dir
   "Find the absolute path to a parent directory, 'src' by default.

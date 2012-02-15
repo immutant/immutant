@@ -29,7 +29,6 @@
     (response (slurp res))))
 
 (defn request-echo-handler [request]
-  (println request)
   (response (prn-str (assoc request :body "<body>")))) ;; body is a inputstream, chuck it for now
 
 (defn init []
@@ -38,7 +37,7 @@
 
 (defn init-web []
   (init)
-  (web/start "/" handler))
+  (web/start handler))
 
 (defn init-messaging []
   (init)
@@ -55,9 +54,9 @@
 
 (defn init-resources []
   (init)
-  (web/start "/" resource-handler))
+  (web/start resource-handler))
 
 (defn init-request-echo []
   (init)
-  (web/start "/" request-echo-handler)
+  (web/start request-echo-handler)
   (web/start "/foo/bar" request-echo-handler))
