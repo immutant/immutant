@@ -90,7 +90,7 @@
     ;; handle requests at the root sub-context (/).
     ;; this handler will receive any request that the app
     ;; receives at /my-app/* *except* for anything captured by another
-    :: sub-context.
+    ;; sub-context.
     (web/start my-root-handler)
 
     ;; handle requests at the /somewhere context.
