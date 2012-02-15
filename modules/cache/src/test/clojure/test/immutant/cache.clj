@@ -51,36 +51,43 @@
            nil (:b (-> c (dissoc :a) (dissoc :b)))
            0   (count (-> c (dissoc :a) (dissoc :b))))))
   (testing "gets and cascading gets"
-    (let [c (cache "gets" {:a 1, :b 2, :c {:d 3, :e 4}, :g false})]
+    (let [c (cache "gets" {:a 1, :b 2, :c {:d 3, :e 4}, :f nil, :g false, nil {:h 5}})]
       (are [actual expect] (= expect actual)
            (get c :a) 1
            (get c :e) nil
            (get c :e 0) 0
            (get c :b 0) 2
+           (get c :f 0) nil
            (get-in c [:c :e]) 4
            (get-in c '(:c :e)) 4
            (get-in c [:c :x]) nil
+           (get-in c [:f]) nil
            (get-in c [:g]) false
            (get-in c [:h]) nil
            (get-in c []) c
+           (get-in c nil) c
            (get-in c [:c :e] 0) 4
            (get-in c '(:c :e) 0) 4
            (get-in c [:c :x] 0) 0
            (get-in c [:b] 0) 2
+           (get-in c [:f] 0) nil
            (get-in c [:g] 0) false
            (get-in c [:h] 0) 0
            (get-in c [:x :y] {:y 1}) {:y 1}
-           (get-in c [] 0) c)))
+           (get-in c [] 0) c
+           (get-in c nil 0) c)))
   (testing "that finding works for cache"
     (let [c (cache "finding" {:a 1 :b 2})]
       (are [expect actual] (= expect actual)
            (find c :a) [:a 1]
            (find c :b) [:b 2]
-           (find c :c) nil)))
+           (find c :c) nil
+           (find c nil) nil)))
   (testing "that contains? works for cache"
     (let [c (cache "contains" {:a 1 :b 2})]
       (are [expect actual] (= expect actual)
            (contains? c :a) true
            (contains? c :b) true
-           (contains? c :c) false))))
+           (contains? c :c) false
+           (contains? c nil) false))))
 

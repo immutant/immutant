@@ -17,6 +17,7 @@
 
 (ns immutant.cache
   (:use [immutant.cache.core]
+        [immutant.codecs]
         [clojure.core.cache :only (defcache)])
   (:require [clojure.core.cache])
   (:import [clojure.core.cache CacheProtocol]))
@@ -24,22 +25,22 @@
 (defcache InfinispanCache [cache]
   CacheProtocol
   (lookup [_ key]
-    (.get cache key))
+    (decode (.get cache (encode key))))
   ;; (lookup [_ key not-found]
   ;;   (if (.containsKey cache key)
   ;;     (.get cache key)
   ;;     not-found))
   (has? [_ key]
-    (.containsKey cache key))
+    (.containsKey cache (encode key)))
   (hit [this key] this)
   (miss [this key value]
-    (.put cache key value)
+    (.put cache (encode key) (encode value))
     this)
   (evict [this key]
-    (and key (.remove cache key))
+    (and key (.remove cache (encode key)))
     this)
   (seed [this base]
-    (and base (.putAll cache base))
+    (and base (.putAll cache (into {} (for [[k v] base] [(encode k) (encode v)]))))
     this)
 
   Object
