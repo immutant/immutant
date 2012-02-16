@@ -16,8 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.build.assembler
-  (:require [clojure.java.io :as io]
-            [overlay.xml :as overlay])
+  (:require [clojure.java.io :as io])
   (:use [immutant.build.tools])
   (:gen-class))
 
@@ -60,13 +59,6 @@
                "domain/configuration/domain.xml"]]
     (transform-config cfg)))
 
-(defn overlay [file resource]
-  (io/copy (overlay/stringify
-            (overlay/overlay
-             (overlay/zip-string (slurp (io/resource resource)))
-             :onto (overlay/zip-file file)))
-           file))
-
 (defn create-standalone-xml []
   (io/copy (io/file jboss-dir "standalone/configuration/standalone-full.xml")
            (io/file jboss-dir "standalone/configuration/standalone.xml")))
@@ -86,7 +78,6 @@
   (install-polyglot-modules)
   (backup-configs)
   (transform-configs)
-  (overlay (io/file jboss-dir "standalone/configuration/standalone-ha.xml") "overlay-ha.xml")
   (create-standalone-xml)
   (create-standalone-ha-xml))
 
