@@ -93,52 +93,6 @@
       </modules>
     </profile>
 
-<!--
-    <profile>
-      <id>dist</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <modules>
-        <module>docs</module>
-      </modules>
-    </profile>
-
-
-        <profile>
-        <id>site-1.8-only</id>
-        <activation>
-        <property>
-        <name>ruby.compat.version</name>
-        <value>1.8</value>
-        </property>
-        </activation>
-
-<build>
-<plugins>
-<plugin>
-<artifactId>maven-javadoc-plugin</artifactId>
-<executions>
-<execution>
-<id>dist-javadocs</id>
-<goals>
-<goal>javadoc</goal>
-</goals>
-<phase>site</phase>
-<configuration>
-<inherit>false</inherit>
-<aggregate>true</aggregate>
-<stylesheetfile>${project.basedir}/support/javadoc-support/stylesheet/stylesheet.css</stylesheetfile>
-<javadocDirectory>${project.basedir}/support/javadoc-support/resources/</javadocDirectory>
-<docfilessubdirs>true</docfilessubdirs>
-</configuration>
-</execution>
-</executions>
-</plugin>
-</plugins>
-</build>
-</profile>
-    -->
   </profiles>
 
   <dependencyManagement>
@@ -230,7 +184,7 @@
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>
     <version.hamcrest>1.1</version.hamcrest>
-    <version.jbossas>7.x.incremental.282</version.jbossas>
+    <version.jbossas>7.1.0.Final</version.jbossas>
     <version.clojure>1.3.0</version.clojure>
     <version.clojure-contrib>1.2.0</version.clojure-contrib>
     <version.clojure.tools.logging>0.2.3</version.clojure.tools.logging>
@@ -542,39 +496,6 @@
           </executions>
         </plugin>
 
-        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-        <!-- <plugin> -->
-        <!--   <groupId>org.eclipse.m2e</groupId> -->
-        <!--   <artifactId>lifecycle-mapping</artifactId> -->
-        <!--   <version>1.0.0</version> -->
-        <!--   <configuration> -->
-        <!--     <lifecycleMappingMetadata> -->
-        <!--       <pluginExecutions> -->
-        <!--         <pluginExecution> -->
-        <!--           <pluginExecutionFilter> -->
-        <!--           </pluginExecutionFilter> -->
-        <!--           <action> -->
-        <!--             <ignore></ignore> -->
-        <!--           </action> -->
-        <!--         </pluginExecution> -->
-        <!--         <pluginExecution> -->
-        <!--           <pluginExecutionFilter> -->
-        <!--             <groupId>org.jboss.maven.plugins</groupId> -->
-        <!--             <artifactId>maven-jdocbook-plugin</artifactId> -->
-        <!--             <versionRange>[2.3.3,)</versionRange> -->
-        <!--             <goals> -->
-        <!--               <goal>generate</goal> -->
-        <!--               <goal>resources</goal> -->
-        <!--             </goals> -->
-        <!--           </pluginExecutionFilter> -->
-        <!--           <action> -->
-        <!--             <ignore></ignore> -->
-        <!--           </action> -->
-        <!--         </pluginExecution> -->
-        <!--       </pluginExecutions> -->
-        <!--     </lifecycleMappingMetadata> -->
-        <!--   </configuration> -->
-        <!-- </plugin> -->
       </plugins>
     </pluginManagement>
   </build>

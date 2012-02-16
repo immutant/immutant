@@ -47,6 +47,7 @@
   (doseq [cfg (map (partial io/file jboss-dir)
                    ["standalone/configuration/standalone-full.xml"
                     "standalone/configuration/standalone-ha.xml"
+                    "standalone/configuration/standalone-full-ha.xml"
                     "standalone/configuration/standalone.xml"
                     "domain/configuration/domain.xml"])]
     (let [backup (io/file "target" (.getName cfg))]
@@ -55,7 +56,7 @@
 
 (defn transform-configs []
   (doseq [cfg ["standalone/configuration/standalone-full.xml"
-               "standalone/configuration/standalone-ha.xml"
+               "standalone/configuration/standalone-full-ha.xml"
                "domain/configuration/domain.xml"]]
     (transform-config cfg)))
 
@@ -70,6 +71,10 @@
   (io/copy (io/file jboss-dir "standalone/configuration/standalone-full.xml")
            (io/file jboss-dir "standalone/configuration/standalone.xml")))
 
+(defn create-standalone-ha-xml []
+  (io/copy (io/file jboss-dir "standalone/configuration/standalone-full-ha.xml")
+           (io/file jboss-dir "standalone/configuration/standalone-ha.xml")))
+
 (defn assemble [assembly-dir]
   (init assembly-dir)
   (prepare)
@@ -82,7 +87,8 @@
   (backup-configs)
   (transform-configs)
   (overlay (io/file jboss-dir "standalone/configuration/standalone-ha.xml") "overlay-ha.xml")
-  (create-standalone-xml))
+  (create-standalone-xml)
+  (create-standalone-ha-xml))
 
 (defn -main [assembly-path]
   (println "Assembling Immutant...")
