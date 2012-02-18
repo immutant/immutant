@@ -76,3 +76,13 @@
            (println "WARN: Invalid mode," mode ", falling back to local"))
          (local-cache name)))))
 
+(defn lifespan-params [{:keys [ttl idle units] :or {ttl -1 idle -1 units :seconds}}]
+  (let [u (.toUpperCase (name units))
+        tu (java.util.concurrent.TimeUnit/valueOf u)]
+    (list ttl tu idle tu)))
+
+(defmacro expire [form]
+  `(apply (fn [e# eu# i# iu#]
+            (~@(drop-last form) e# eu# i# iu#))
+          (lifespan-params ~(last form))))
+

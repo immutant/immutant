@@ -91,3 +91,19 @@
            (contains? c :c) false
            (contains? c nil) false))))
 
+(deftest test-put-ttl
+  (let [c (cache "puts")]
+    (put c :a 1 {:ttl 500 :units :milliseconds})
+    (is (= 1 (get c :a)))
+    (Thread/sleep 501)
+    (is (nil? (get c :a)))))
+
+(deftest test-put-idle
+  (let [c (cache "idle")]
+    (put c :a 1 {:idle 500 :units :milliseconds})
+    (Thread/sleep 300)
+    (is (= 1 (get c :a)))
+    (Thread/sleep 300)
+    (is (= 1 (get c :a)))
+    (Thread/sleep 501)
+    (is (nil? (get c :a)))))

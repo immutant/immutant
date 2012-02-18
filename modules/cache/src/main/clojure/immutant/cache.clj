@@ -20,12 +20,21 @@
         [immutant.codecs]
         [clojure.core.cache :only (defcache)])
   (:require [clojure.core.cache])
-  (:import [clojure.core.cache CacheProtocol]))
+  (:import [clojure.core.cache CacheProtocol]
+           [java.util.concurrent TimeUnit]))
+
+(defprotocol Mutable
+  (put [cache key value] [cache key value options])
+  (put-if-absent [cache key value] [cache key value options])
+  (put-all [cache map] [cache map options])
+  (clear [cache]))
 
 (defcache InfinispanCache [cache]
+
   CacheProtocol
   (lookup [_ key]
     (decode (.get cache (encode key))))
+  ;; Added in version 0.6.0, as yet unreleased
   ;; (lookup [_ key not-found]
   ;;   (if (.containsKey cache key)
   ;;     (.get cache key)
@@ -34,14 +43,26 @@
     (.containsKey cache (encode key)))
   (hit [this key] this)
   (miss [this key value]
-    (.put cache (encode key) (encode value))
+    (put this key value)
     this)
   (evict [this key]
     (and key (.remove cache (encode key)))
     this)
   (seed [this base]
-    (and base (.putAll cache (into {} (for [[k v] base] [(encode k) (encode v)]))))
+    (and base (put-all this base))
     this)
+
+  Mutable
+  (put [this k v] (put this k v {}))
+  (put [_ k v opts]
+    (expire (.put cache (encode k) (encode v) opts)))
+  (put-if-absent [this k v] (put-if-absent this k v {}))
+  (put-if-absent [_ k v opts]
+    (expire (.putIfAbsent cache (encode k) (encode v) opts)))
+  (put-all [this m] (put-all this m {}))
+  (put-all [_ m opts]
+    (expire (.putAll cache (into {} (for [[k v] m] [(encode k) (encode v)])) opts)))
+  (clear [_] (.clear cache))
 
   Object
   (toString [_] (str cache)))
