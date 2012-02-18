@@ -91,8 +91,15 @@
            (contains? c :c) false
            (contains? c nil) false))))
 
+(deftest test-put
+  (let [c (cache "puts")
+        v {:foo [1 2 3] "p" "q"}]
+    (is (nil? (put c :a v)))
+    (is (= v (get c :a)))
+    (is (= v (put c :a "next")))))
+
 (deftest test-put-ttl
-  (let [c (cache "puts")]
+  (let [c (cache "ttl")]
     (put c :a 1 {:ttl 500 :units :milliseconds})
     (is (= 1 (get c :a)))
     (Thread/sleep 501)
@@ -107,3 +114,54 @@
     (is (= 1 (get c :a)))
     (Thread/sleep 501)
     (is (nil? (get c :a)))))
+
+(deftest test-put-if-absent-ttl
+  (let [c (cache "absent")]
+    (is (nil? (:a c)))
+    (is (nil? (put-if-absent c :a 1 {:ttl 300 :units :milliseconds})))
+    (is (= 1 (:a c)))
+    (is (= 1 (put-if-absent c :a 2)))
+    (is (= 1 (:a c)))
+    (Thread/sleep 350)
+    (is (nil? (:a c)))))
+
+(deftest test-put-all-ttl
+  (let [c (cache "all")]
+    (is (= 0 (count c)))
+    (put-all c {:a 1 :b 2} {:ttl 300 :units :milliseconds})
+    (is (= 1 (:a c)))
+    (is (= 2 (:b c)))
+    (Thread/sleep 400)
+    (is (nil? (:a c)))
+    (is (nil? (:b c)))))
+
+(deftest test-put-if-present
+  (let [c (cache "present" {:a 1})]
+    (is (nil? (put-if-present c :b 2)))
+    (is (nil? (:b c)))
+    (is (= 1 (put-if-present c :a 2)))
+    (is (= 2 (:a c)))))
+
+(deftest test-put-if-replace
+  (let [c (cache "replace" {:a 1})]
+    (is (false? (put-if-replace c :a 2 3)))
+    (is (= 1 (:a c)))
+    (is (true? (put-if-replace c :a 1 2)))
+    (is (= 2 (:a c)))))
+
+(deftest test-delete
+  (let [c (cache "delete" {:a 1 :b 2})]
+    (is (false? (delete c :a 2)))
+    (is (= 2 (count c)))
+    (is (true? (delete c :a 1)))
+    (is (= 1 (count c)))
+    (is (nil? (delete c :missing)))
+    (is (= 2 (delete c :b)))
+    (is (empty? c))))
+
+(deftest test-clear
+  (let [c (cache "clear" {:a 1 :b 2})]
+    (is (= 2 (count c)))
+    (clear c)
+    (is (= 0 (count c)))))
+

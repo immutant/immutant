@@ -65,9 +65,9 @@
   ([] (.getCache local-manager))
   ([name] (.getCache local-manager name)))
 
-(defn best-cache
-  "Returns the raw Infinispan cache, either clustered or local"
-  ([name] (best-cache name nil))
+(defn raw-cache
+  "Returns the raw Infinispan cache, clustered if possible, otherwise local"
+  ([name] (raw-cache name nil))
   ([name mode]
      (if clustered-manager
        (clustered-cache name :mode (or mode :invalidated))

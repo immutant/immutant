@@ -25,8 +25,11 @@
 
 (defprotocol Mutable
   (put [cache key value] [cache key value options])
-  (put-if-absent [cache key value] [cache key value options])
   (put-all [cache map] [cache map options])
+  (put-if-absent [cache key value] [cache key value options])
+  (put-if-present [cache key value] [cache key value options])
+  (put-if-replace [cache key old new] [cache key old new options])
+  (delete [cache key] [cache key value])
   (clear [cache]))
 
 (defcache InfinispanCache [cache]
@@ -46,7 +49,7 @@
     (put this key value)
     this)
   (evict [this key]
-    (and key (.remove cache (encode key)))
+    (and key (delete this key))
     this)
   (seed [this base]
     (and base (put-all this base))
@@ -55,13 +58,21 @@
   Mutable
   (put [this k v] (put this k v {}))
   (put [_ k v opts]
-    (expire (.put cache (encode k) (encode v) opts)))
-  (put-if-absent [this k v] (put-if-absent this k v {}))
-  (put-if-absent [_ k v opts]
-    (expire (.putIfAbsent cache (encode k) (encode v) opts)))
+    (decode (expire (.put cache (encode k) (encode v) opts))))
   (put-all [this m] (put-all this m {}))
   (put-all [_ m opts]
     (expire (.putAll cache (into {} (for [[k v] m] [(encode k) (encode v)])) opts)))
+  (put-if-absent [this k v] (put-if-absent this k v {}))
+  (put-if-absent [_ k v opts]
+    (decode (expire (.putIfAbsent cache (encode k) (encode v) opts))))
+  (put-if-present [this k v] (put-if-present this k v {}))
+  (put-if-present [_ k v opts]
+    (decode (expire (.replace cache (encode k) (encode v) opts))))
+  (put-if-replace [this k old v] (put-if-replace this k old v {}))
+  (put-if-replace [_ k old v opts]
+    (expire (.replace cache (encode k) (encode old) (encode v) opts)))
+  (delete [_ key] (decode (.remove cache (encode key))))
+  (delete [_ key value] (.remove cache (encode key) (encode value)))
   (clear [_] (.clear cache))
 
   Object
@@ -72,5 +83,5 @@
   ([name] (cache name nil nil))
   ([name v] (if (keyword? v) (cache name v nil) (cache name nil v)))
   ([name mode base]
-     (clojure.core.cache/seed (InfinispanCache. (best-cache name mode)) base)))
+     (clojure.core.cache/seed (InfinispanCache. (raw-cache name mode)) base)))
      
