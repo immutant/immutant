@@ -1,0 +1,109 @@
+#+TITLE:     Immutant Caching
+#+LANGUAGE:  en
+#+OPTIONS:   H:3 num:t toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+
+* Introduction
+
+  Immutant provides built-in support for local and distributed caches
+  that implement [[https://github.com/clojure/core.cache][core.cache/CacheProtocol]], and may therefore be used
+  as standard [[https://github.com/clojure/core.memoize][memoization]] stores. It is also possible to use them as
+  enhanced [[http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ConcurrentMap.html][ConcurrentMap]] implementations.
+
+** Infinispan
+
+   Immutant encapsulates the JBoss [[http://www.infinispan.org][Infinispan data grid]], enabling
+   simple construction of transactional, high-performance key/value
+   stores that can be either run locally or efficiently replicated
+   across a cluster.
+
+   Infinispan offers a number of clustering modes that determine what happens when an entry is written to the cache.
+
+* Caching Modes
+
+  Infinispan supports three clustered modes and one non-clustered.
+
+** Local
+
+   This is the default mode when Immutant runs non-clustered,
+   essentially an enhanced, in-memory [[http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ConcurrentMap.html][ConcurrentMap]] implementation,
+   featuring write-through/write-behind persistence, eviction,
+   expiration, JTA/XA support, MVCC-based concurency, and JMX
+   manageability.
+
+** Invalidated
+
+   This is the default mode when Immutant runs clustered. No data is
+   actually shared among the cluster nodes in this mode. Instead,
+   notifications are sent to all nodes when data changes, causing
+   them to evict their stale copies of the updated entry.
+
+** Replicated
+
+   In this mode, entries added to any cache instance will be copied
+   to all other cache instances in the cluster, and can then be
+   retrieved locally from any instance. This mode is probably
+   impractical for clusters of any significant size. Infinispan
+   recommends 10 as a reasonable upper bound on the number of
+   replicated nodes.
+
+** Distributed
+
+   This mode enables Infinispan clusters to achieve "linear
+   scalability". Cache entries are copied to a fixed number of
+   cluster nodes (2, by default) regardless of the cluster
+   size. Distribution uses a consistent hashing algorithm to
+   determine which nodes will store a given entry.
+
+* The API
+
+  Caches are defined using the =immutant.cache/cache= function. Its
+  only required argument is a name. 
+
+  Additionally, one of the following keywords may be passed to
+  indicate the desired caching mode: =:local=, =:invalidated=,
+  =:replicated=, or =:distributed=. If omitted, the default mode is
+  =:invalidated= when clustered. When not clustered, the mode will
+  *always* be =:local=, as the others are meaningless unless
+  clustered.
+
+  The cache can also be seeded from a passed map as well.
+
+  Some examples are in order.
+
+  #+begin_src clojure
+    (ns example.test
+      (:use [immutant.cache]))
+    
+    ;; Obtain a cache named "jimi" in :invalidated mode
+    (def c1 (cache "jimi"))
+    
+    ;; A cache named "toby" in :distributed mode
+    (def c2 (cache "toby" :distributed))
+    
+    ;; Initialize a cache with a seed
+    (def c3 (cache "bob" :replicated {:a 1 :b 2}))
+    
+    ;; If seed is second parameter, mode is :invalidated/:local
+    (def c4 (cache "ben" {:a 1 :b 2}))
+  #+end_src
+
+  The returned cache object implements two useful protocols:
+  =core.cache/CacheProtocol= and =immutant.cache/Mutable=. The former,
+  coupled with =core.cache/defcache= macro, provides implementations
+  of many of Clojure's core interfaces and allows an Immutant cache to
+  be plugged into the =core.memoize= API. The latter exposes some of
+  Infinispan's handy cache manipulation features. In particular:
+
+  #+begin_src clojure
+    (defprotocol Mutable
+      (put [cache key value] [cache key value options])
+      (put-all [cache map] [cache map options])
+      (put-if-absent [cache key value] [cache key value options])
+      (put-if-present [cache key value] [cache key value options])
+      (put-if-replace [cache key old new] [cache key old new options])
+      (delete [cache key] [cache key value])
+      (clear [cache]))
+  #+end_src
