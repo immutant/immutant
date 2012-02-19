@@ -19,7 +19,8 @@
    stores that can be either run locally or efficiently replicated
    across a cluster.
 
-   Infinispan offers a number of clustering modes that determine what happens when an entry is written to the cache.
+   Infinispan offers a number of clustering modes that determine what 
+   happens when an entry is written to the cache.
 
 * Caching Modes
 
