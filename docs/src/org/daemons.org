@@ -7,4 +7,60 @@
 
 * Introduction
 
-  Daemons are long-running services sharing the lifecycle of your application.
+  Daemons are long-running services sharing the lifecycle of your
+  application.
+
+* Starting a Daemon
+
+  You can start a daemon at any point in your application, but it's
+  typically done in the bootstrap file, =immutant.clj=.
+
+  Daemons are defined via =immutant.daemons/start=, which requires
+  three parameters:
+
+  - =name= - a name for referencing as a JMX MBean
+  - =start= - a start function to be invoked asynchronously
+  - =stop= - a stop function that will be automatically invoked when
+    your app is undeployed, providing a hook to cleanly teardown
+    resources used by the daemon
+
+  In addition, the following options are supported:
+
+    | Option     | Default | Description                                                                                                |
+    |------------+---------+------------------------------------------------------------------------------------------------------------|
+    | :singleton | /false/ | Singleton daemons will only execute on one node in a cluster. If false, the daemon will run on every node. |
+
+  The =:singleton= option only applies when deployed to a
+  cluster. Immutant provides automatic failover for singleton daemons:
+  should it crash, the daemon will be automatically started on another
+  node chosen at random, resulting in a robust, highly-available
+  service.
+
+* Example
+
+  The following contrived example shows a simple mechanism for
+  controlling a daemon via a shared atom:
+
+  #+begin_src clojure
+    (ns example.init
+      (:require [immutant.daemons :as daemon])
+      
+    ;; Controls the state of our daemon
+    (def done (atom false))
+    
+    ;; Our daemon's start function
+    (defn start []
+      (reset! done false)
+      (loop [i 0]
+        (Thread/sleep 1000)
+        (when-not @done
+          (do-something)
+          (recur (inc i)))))
+    
+    ;; Our daemon's stop function
+    (defn stop []
+      (reset! done true))
+    
+    ;; Register the daemon
+    (daemon/start "mydaemon" start stop :singleton true)
+  #+end_src

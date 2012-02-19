@@ -5,6 +5,22 @@
 #+EXPORT_SELECT_TAGS: export
 #+EXPORT_EXCLUDE_TAGS: noexport
 
-* Introduction
+* Installation
 
-
+  To install Immutant, first install [[https://github.com/technomancy/leiningen][Leiningen]]. Managing Immutant is
+  most easily done through the [[https://github.com/immutant/lein-immutant][lein-immutant]] plugin:
+  
+  #+begin_src sh
+   $ lein plugin install lein-immutant VERSION
+  #+end_src
+  
+  The plugin provides a number of subcommands, one of which is
+  =install=. So installing Immutant is as easy as this:
+  
+  #+begin_src sh
+   $ lein immutant install [VERSION]
+  #+end_src
+  
+  Without a VERSION specified, the LATEST successful incremental build
+  will be installed beneath =~/.lein/immutant/current=. To obtain fixes
+  released in subsequent incremental builds, simply run =install= again.
