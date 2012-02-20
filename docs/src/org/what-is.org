@@ -11,7 +11,7 @@
   It repackages AS7 with additional modules that support Clojure applications, 
   similar to what the [[http://torquebox.org][TorqueBox]] project does for Ruby applications.
   
-  Immutant reduces the *incidental complexity* 
+  Immutant reduces the *incidental complexity* (originally [[http://en.wikipedia.org/wiki/No_Silver_Bullet][accidental]])
   inherent in non-trivial applications by providing integrated
   solutions for web, messaging, scheduling, caching, clustering, and
   more. This frees the developer from having to build a unique stack
