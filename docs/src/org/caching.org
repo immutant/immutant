@@ -78,16 +78,16 @@
     (ns example.test
       (:use [immutant.cache]))
     
-    ;; Obtain a cache named "jimi" in :invalidated mode
+    ;; Obtain a cache in :invalidated mode if clustered, :local otherwise
     (def c1 (cache "jimi"))
     
-    ;; A cache named "toby" in :distributed mode
+    ;; A cache in :distributed mode if clustered, :local otherwise
     (def c2 (cache "jeff" :distributed))
     
     ;; Initialize a cache with a seed
     (def c3 (cache "billy" :replicated {:a 1 :b 2}))
     
-    ;; If seed is second parameter, mode is :invalidated/:local
+    ;; If seed is second parameter, mode defaults to :invalidated/:local
     (def c4 (cache "jerry" {:a 1 :b 2}))
   #+end_src
 
@@ -96,8 +96,7 @@
   coupled with the =core.cache/defcache= macro, provides
   implementations of many of Clojure's core interfaces and allows an
   Immutant cache to be plugged into the =core.memoize= API. The latter
-  exposes some of Infinispan's handy cache manipulation features. In
-  particular:
+  exposes some of Infinispan's handy cache manipulation features.
 
   #+begin_src clojure
     (defprotocol Mutable
