@@ -24,13 +24,34 @@
            [java.util.concurrent TimeUnit]))
 
 (defprotocol Mutable
-  (put [cache key value] [cache key value options])
-  (put-all [cache map] [cache map options])
-  (put-if-absent [cache key value] [cache key value options])
-  (put-if-present [cache key value] [cache key value options])
-  (put-if-replace [cache key old new] [cache key old new options])
-  (delete [cache key] [cache key value])
-  (clear [cache]))
+  "Functions for manipulating a shared, distributed cache.
+
+   Every function optionally accepts a map with the following
+   lifespan-oriented keys:
+
+     :ttl - time-to-live, the max time the entry will live before expiry [-1]
+     :idle - the time after which an entry will expire if not accessed [-1]
+     :units - the units for the values of :ttl and :idle [:seconds]
+
+   Negative values imply no expiration.
+   Possible values for :units -- :days, :hours, :minutes, :seconds,
+                                 :milliseconds, :microseconds :nanoseconds
+
+   The conditional functions, e.g. put-if-*, are all atomic."
+  (put [cache key value] [cache key value options]
+    "Put an entry in the cache")
+  (put-all [cache map] [cache map options]
+    "Put all the entries in cache")
+  (put-if-absent [cache key value] [cache key value options]
+    "Put it in only if key is not already there")
+  (put-if-present [cache key value] [cache key value options]
+    "Put it in only if key is already there")
+  (put-if-replace [cache key old new] [cache key old new options]
+    "Put it in only if key is there and current matches old")
+  (delete [cache key] [cache key value]
+    "Delete the entry; value must match current if passed")
+  (clear [cache]
+    "Remove all entries from cache"))
 
 (defcache InfinispanCache [cache]
 
