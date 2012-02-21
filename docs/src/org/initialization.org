@@ -1,4 +1,4 @@
-#+TITLE:     Application Initialization
+#+TITLE:     Application Initialization & Configuration
 #+LANGUAGE:  en
 #+OPTIONS:   H:3 num:t toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
 #+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
@@ -6,9 +6,75 @@
 #+EXPORT_EXCLUDE_TAGS: noexport
 
 * Introduction
-* Deployment Descriptor
-* project.clj
-* immutant.clj
-* Dependency Resolution
+  
+  The initialization and configuration of applications deployed to 
+  Immutant can potentially involve multiple files:
+
+  - the deployment descriptor (if used)
+  - the Leiningen =project.clj= (if present at the application root)
+  - an =immutant.clj= file (if present at the application root)
+
+  Each of these files have the opportunity to contribute to the configuration
+  or initialization of the application.
+
+* The Initialization Process
+
+  When an Immutant detects a Clojure deployment (either a [[./deployment.html#deployment-descriptor][deployment descriptor]]
+  or an [[./deployment.html#deployment-archive][Immutant archive]]), it begins the application initialization process:
+
+  1. If the deployment is a descriptor file, this file is loaded in a global
+     Clojure runtime to parse the map from the file. The =:root= entry from
+     that map is then used to determine the actual root of the application,
+     and can refer to the application directory or the path to an Immutant
+     archive. Any additional configuration information from the descriptor
+     is stored for later merging with data from other configuration sources.
+
+  2. If the deployment is an archive, or the =:root= from the descriptor
+     points to an archive, the archive is expanded on disk to a temporary
+     directory. 
+
+  3. Once the application root has been determined, Immutant looks for a
+     [[http://leiningen.org/][Leiningen]] =project.clj= in the root. If present, the project file
+     is loaded and if an =:immutant= key is preset in the resulting
+     =project=, it is merged with the configuration data from the
+     descriptor. If the deployment was not an archive file, Leiningen is
+     used to resolve the dependencies present in the =project= via 
+     Maven. 
+
+  4. If a =lib/= directory is present in the application root, any jars
+     within it are merged with the dependencies calculated in the previous
+     step. Each of these jars are added to the isolated classpath for the
+     application, along with source and resource directories within the
+     application root (see [[#initialization-dependencies][Dependencies & Resources]] for more information). 
+
+  5. At this point, Immutant has all it needs to create a Clojure runtime 
+     for the application. Runtimes in Immutant are isolated from each other,
+     and can each load their own versions of Clojure or any other jar.
+
+  6. If an initialization function was specified in either the descriptor
+     or the =:immutant= hash in the project (via the =:init= key), it is
+     loaded and invoked within the application's runtime (see {{init fn}} 
+     for more details). If no init function was specified, Immutant looks 
+     in the application root for a file named =immutant.clj= and loads
+     that file. See [[#initialization-immutant-clj][immutant.clj]] for more information on using this 
+     initialization method. At this point, the application is considered
+     initialized.
+
+* Configuration Options
+** :root
+** init fn
+
+* Configuration Files
+** project.clj
+** immutant.clj
+  :PROPERTIES:
+  :CUSTOM_ID: initialization-immutant-clj
+  :END:
+* Dependencies & Resources
+  :PROPERTIES:
+  :CUSTOM_ID: initialization-dependencies
+  :END:
+* Classloader isolation
+* the registry and useful values within
 
 

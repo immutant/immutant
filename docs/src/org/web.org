@@ -93,7 +93,7 @@
     ;; sub-context.
     (web/start my-root-handler)
 
-    ;; handle requests at the /somewhere context.
+    ;; handle requests at the /somewhere sub-context.
     ;; this handler will receive any request that the app
     ;; receives at /my-app/somewhere/*.
     (web/start "/somewhere" my-other-handler)
@@ -152,3 +152,6 @@
 
 * src-dir
   {{awaiting docs from the Jimbotron}}
+
+* Available on 8080
+  {{more here}}

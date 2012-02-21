@@ -7,6 +7,12 @@
 
 * Introduction
 * Descriptor-based Deployment
+  :PROPERTIES:
+  :CUSTOM_ID: deployment-descriptor
+  :END:
 * Archive-based Deployment
+  :PROPERTIES:
+  :CUSTOM_ID: deployment-archive
+  :END:
 * lein-immutant
 
