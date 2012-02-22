@@ -17,6 +17,20 @@
     <emacs>emacs</emacs>
   </properties>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.tcrawley</groupId>
+      <artifactId>autodoc</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!-- autodoc needs ant-launcher, but doesn't pull it in -->
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant-launcher</artifactId>
+      <version>1.8.2</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
   <build>
 
     <plugins>
@@ -90,10 +104,52 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>clojure-maven-plugin</artifactId>
+        <version>${version.clojure-maven-plugin}</version>
+        <configuration>
+          <temporaryOutputDirectory>false</temporaryOutputDirectory>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
   <profiles>
+
+    <profile>
+      <id>autodocs-present</id>
+      <activation>
+        <file>
+          <exists>../modules/core/target/autodoc/raw-index.clj</exists>
+        </file>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>com.theoryinpractise</groupId>
+              <artifactId>clojure-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>generate-autodoc</id>
+                  <phase>install</phase>
+                  <goals>
+                    <goal>run</goal>
+                  </goals>
+                  <configuration>
+                    <mainClass>immutant.docs.autodoc</mainClass>
+                    <args>..</args>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+         </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+
     <profile>
       <id>nokogiri-not-installed</id>
       <activation>
