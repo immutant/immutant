@@ -112,44 +112,24 @@
         <configuration>
           <temporaryOutputDirectory>false</temporaryOutputDirectory>
         </configuration>
+        <executions>
+          <execution>
+            <id>generate-autodoc</id>
+            <phase>install</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <mainClass>immutant.docs.autodoc</mainClass>
+              <args>..</args>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
 
   <profiles>
-
-    <profile>
-      <id>autodocs-present</id>
-      <activation>
-        <file>
-          <exists>../modules/core/target/autodoc/raw-index.clj</exists>
-        </file>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>com.theoryinpractise</groupId>
-              <artifactId>clojure-maven-plugin</artifactId>
-              <executions>
-                <execution>
-                  <id>generate-autodoc</id>
-                  <phase>install</phase>
-                  <goals>
-                    <goal>run</goal>
-                  </goals>
-                  <configuration>
-                    <mainClass>immutant.docs.autodoc</mainClass>
-                    <args>..</args>
-                  </configuration>
-                </execution>
-              </executions>
-            </plugin>
-         </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-
     <profile>
       <id>nokogiri-not-installed</id>
       <activation>

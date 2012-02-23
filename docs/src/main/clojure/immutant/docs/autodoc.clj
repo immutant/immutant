@@ -37,6 +37,7 @@
    :output-path "target/html/apidoc"})
 
 (defn -main [root-path]
+  (println "Generating autodocs...")
   (params/merge-params params)
   (admain/make-doc-dir)
   (static/copy-statics)
