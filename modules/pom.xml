@@ -78,6 +78,10 @@
           <artifactId>maven-model</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>org.apache.maven.wagon</groupId>
+          <artifactId>wagon-provider-api</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.codehaus.plexus</groupId>
           <artifactId>plexus-interpolation</artifactId>
         </exclusion>
