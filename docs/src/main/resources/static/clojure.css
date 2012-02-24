@@ -52,7 +52,9 @@ img {border: 0;}
 .brackets { color: #006; }
 .curlybrackets { color: #906; }
 
-.wiki .var-entry h2 { font-size: 1.1em; }
+.wiki .var-entry h2,
+.wiki .namespace-entry h2 { font-size: 1.1em; }
+
 .namespace-header {
     background-color: #eee; 
     padding: 3px !important; 
@@ -63,8 +65,11 @@ img {border: 0;}
     margin-top: 30px; 
 }
 
-.var-entry {
-  border-top: 1px solid #ccc;
+.namespace-entry, .var-entry {
   margin-top: 10px;
 } 
+
+.var-entry {
+  border-top: 1px solid #ccc;
+}
 
