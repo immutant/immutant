@@ -57,3 +57,6 @@
        (decode nil :clojure)
        (decode nil :json)
        (decode nil :text)))
+
+(deftest decode-list
+  (is (= '(1 2 3) (decode "(1 2 3)"))))
