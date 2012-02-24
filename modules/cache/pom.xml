@@ -57,6 +57,11 @@
       <version>0.5.0</version>
     </dependency>
     <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>core.memoize</artifactId>
+      <version>0.5.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.infinispan</groupId>
       <artifactId>infinispan-core</artifactId>
       <scope>provided</scope>

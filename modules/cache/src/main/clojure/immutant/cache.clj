@@ -17,11 +17,10 @@
 
 (ns immutant.cache
   (:use [immutant.cache.core]
-        [immutant.codecs]
-        [clojure.core.cache :only (defcache)])
-  (:require [clojure.core.cache])
-  (:import [clojure.core.cache CacheProtocol]
-           [java.util.concurrent TimeUnit]))
+        [immutant.codecs])
+  (:require [clojure.core.cache :as cc]
+            [clojure.core.memoize :as cm])
+  (:import [clojure.core.memoize PluggableMemoization]))
 
 (defprotocol Mutable
   "Functions for manipulating a shared, distributed cache.
@@ -53,16 +52,11 @@
   (clear [cache]
     "Remove all entries from cache"))
 
-(defcache InfinispanCache [cache]
+(deftype InfinispanCache [cache]
 
-  CacheProtocol
+  cc/CacheProtocol
   (lookup [_ key]
     (decode (.get cache (encode key))))
-  ;; Added in version 0.6.0, as yet unreleased
-  ;; (lookup [_ key not-found]
-  ;;   (if (.containsKey cache key)
-  ;;     (.get cache key)
-  ;;     not-found))
   (has? [_ key]
     (.containsKey cache (encode key)))
   (hit [this key] this)
@@ -96,13 +90,101 @@
   (delete [_ key value] (.remove cache (encode key) (encode value)))
   (clear [_] (.clear cache))
 
+  ;; The reason we can't use defcache. The cached entries must be
+  ;; decoded, but I can't figure out how to extend the result of
+  ;; defcache in order to do so.
+  clojure.lang.Seqable
+  (seq [_]
+    (and (seq cache)
+         (for [[k v] (seq cache)]
+           (clojure.lang.MapEntry. (decode k) (decode v)))))
+
+  ;; The remaining methods are copied verbatim from defcache :(
+  
+  clojure.lang.ILookup
+  (valAt [this key]
+    (cc/lookup this key))
+  (valAt [this key not-found]
+    (if (cc/has? this key)
+      (cc/lookup this key)
+      not-found))
+
+  clojure.lang.IPersistentMap
+  (assoc [this k v]
+    (cc/miss this k v))
+  (without [this k]
+    (cc/evict this k))
+
+  clojure.lang.Associative
+  (containsKey [this k]
+    (cc/has? this k))
+  (entryAt [this k]
+    (when (cc/has? this k)
+      (clojure.lang.MapEntry. k (cc/lookup this k))))
+
+  clojure.lang.Counted
+  (count [this]
+    (clojure.core/count cache))
+
+  clojure.lang.IPersistentCollection
+  (cons [_ elem]
+    (clojure.core/cons cache elem))
+  (empty [this]
+    (cc/seed this (empty cache)))
+  (equiv [_ other]
+    (.equiv cache other))
+
+  java.lang.Iterable
+  (iterator [this] (.iterator cache))
+
   Object
   (toString [_] (str cache)))
+
+;; Workaround the non-serializable Delay objects cached by
+;; core.memoize
+(deftype DelayedCache [cache delayed]
+  cc/CacheProtocol
+  ;; We assume value is a delay, which we can't serialize and don't
+  ;; want to force yet
+  (miss [this key value]
+    (swap! delayed assoc key (delay (cc/miss cache key @value) @value))
+    this)
+  (lookup [_ key]
+    (let [value (get @delayed key)]
+      (when value
+        (deref value)
+        (swap! delayed dissoc key))
+      ;; Callers expect to deref the returned value
+      (reify
+        clojure.lang.IDeref
+        (deref [this] (cc/lookup cache key)))))
+  (seed [this base] (doseq [[k v] base] (cc/miss this k v)) this)
+  (has? [_ key] (cc/has? cache key))
+  (hit [this key] (cc/hit cache key) this)
+  (evict [this key] (cc/evict cache key) this)
+
+  clojure.lang.Seqable
+  (seq [this]
+    (and (seq cache)
+         (for [[k v] (seq cache)]
+           (clojure.lang.MapEntry. k (cc/lookup this k))))))
 
 (defn cache
   "The entry point to determine whether clustered or local"
   ([name] (cache name nil nil))
   ([name v] (if (keyword? v) (cache name v nil) (cache name nil v)))
   ([name mode base]
-     (clojure.core.cache/seed (InfinispanCache. (raw-cache name mode)) base)))
-     
+     (cc/seed (InfinispanCache. (raw-cache name mode)) base)))
+
+(defn memo
+  "Wrap a function in an infinispan-backed memoization cache"
+  ([f name] (memo f name nil nil))
+  ([f name v] (if (keyword? v) (memo f name v nil) (memo f name nil v)))
+  ([f name mode seed]
+     (cm/build-memoizer
+      #(PluggableMemoization. %1 (DelayedCache. (cache %2 %3 %4) (atom {})))
+      f
+      name
+      mode
+      seed)))
+
