@@ -38,7 +38,7 @@
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <executions>
-          <execution>
+           <execution>
             <id>interpolate-vars-in-bin</id>
             <phase>validate</phase>
             <goals>
@@ -52,6 +52,25 @@
                   <filtering>true</filtering>
                   <includes>
                     <include>**/*.el</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>interpolate-vars-in-resources</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/resources</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/resources</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>**/**</include>
                   </includes>
                 </resource>
               </resources>

@@ -32,7 +32,7 @@
   {:root (.getAbsolutePath (io/file ".."))
    :load-classpath [#""] 
    :output-path "target/html/apidoc"
-   :param-dir "src/main/resources"
+   :param-dir "target/resources"
    :web-src-dir "https://github.com/immutant/immutant/blob/"
    :name "Immutant Clojure API"
    :description ""
