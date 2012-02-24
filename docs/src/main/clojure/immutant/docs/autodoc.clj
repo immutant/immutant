@@ -29,12 +29,14 @@
                    (file-seq modules-dir)))))
 
 (def params
-  {:name "Immutant"
-   :root (.getAbsolutePath (io/file ".."))
+  {:root (.getAbsolutePath (io/file ".."))
    :load-classpath [#""] 
+   :output-path "target/html/apidoc"
+   :param-dir "src/main/resources"
    :web-src-dir "https://github.com/immutant/immutant/blob/"
-   :descrition "fill me in"
-   :output-path "target/html/apidoc"})
+   :name "Immutant Clojure API"
+   :description ""
+   :copyright "Copyright 2011-2012 Red Hat, Inc."})
 
 (defn -main [root-path]
   (println "Generating autodocs...")
