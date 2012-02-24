@@ -44,7 +44,7 @@
 
 (defmethod decode :clojure [data & _]
   "Turn a string into a clojure data structure"
-  (and data (load-string data)))
+  (and data (read-string data)))
 
 (defmethod decode :json [data _]
   "Turn a string into a json data structure"
