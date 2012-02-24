@@ -67,7 +67,7 @@ class Publisher
   def publish_all()
     dav_mkdir_p( build_base_url )
     publish_distribution()
-    #publish_documentation()
+    publish_documentation()
     publish_artifact_list()
     copy_to_latest()
   end
@@ -77,19 +77,7 @@ class Publisher
   end
 
   def html_docs_path()
-    File.dirname(__FILE__) + '/../../../docs/en-US/target/docbook/publish/en-US/xhtml/'
-  end
-
-  def pdf_doc_path()
-    File.dirname(__FILE__) + '/../../../docs/en-US/target/docbook/publish/en-US/pdf/immutant-docs-en_US.pdf'
-  end
-
-  def epub_path()
-    Dir[ ( ENV['M2_REPO'] || ( ENV['HOME'] + '/.m2/repository' ) ) + '/org/immutant/immutant-docs-en_US/*/immutant-docs-en_US-*.epub' ].first
-  end
-
-  def javadocs_path()
-    File.dirname(__FILE__) + '/../../../target/site/apidocs'
+    File.dirname(__FILE__) + '/../../../docs/target/html/'
   end
 
   def dist_path()
@@ -109,14 +97,6 @@ class Publisher
   end
 
   def publish_documentation()
-    if File.exist?(javadocs_path)
-      dav_mkdir_p( build_base_url + '/javadocs' )
-      dav_put_r( build_base_url + '/javadocs', javadocs_path )
-    end
-    dav_mkdir_p( build_base_url + '/yardocs' )
-    dav_put_r( build_base_url + '/yardocs', yardocs_path )
-    dav_put( build_base_url + '/immutant-docs.epub', epub_path )
-    dav_put( build_base_url + '/immutant-docs.pdf', pdf_doc_path )
     dav_mkdir_p( build_base_url + '/html-docs' )
     dav_put_r( build_base_url + '/html-docs', html_docs_path )
   end
