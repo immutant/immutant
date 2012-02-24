@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.bootstrap
+(ns immutant.runtime.bootstrap
   "Functions used in app bootstrapping."
   (:require [clojure.java.io          :as io]
             [clojure.walk             :as walk]

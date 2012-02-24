@@ -16,15 +16,25 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.utilities
+  "Various utility functions."
   (:require [immutant.registry :as lookup])
   (:require [clojure.string :as str]))
 
-(defn require-and-intern [namespaced-fn]
-  (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
-    (require namespace)
-    (intern namespace function)))
+(defn app-root
+  "Returns a file pointing to the root dir of the application"
+  []
+  (lookup/fetch "app-root"))
 
-(defn at-exit [f]
+(defn app-name
+  "Returns the internal name for the app as Immutant sees it"
+  []
+  (lookup/fetch "app-name"))
+
+
+(defn at-exit
+  "Registers a function to be called when the application is undeployed.
+Used internally to shutdown various services, but can be used by application code as well."
+  [f]
   (if-let [closer (lookup/fetch "housekeeper")]
     (.atExit closer f)
     (println "WARN: Unable to register at-exit handler with housekeeper")))

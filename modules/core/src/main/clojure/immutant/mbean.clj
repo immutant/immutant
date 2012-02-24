@@ -16,7 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.mbean
-  (:use immutant.core)
+  (:use immutant.utilities)
   (:require [immutant.registry :as registry])
   (:import [org.jboss.msc.service ServiceController$Mode]))
 

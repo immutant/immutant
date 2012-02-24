@@ -77,8 +77,8 @@ public class ApplicationBootstrapUtils {
     }
     
     private static Var bootstrapVar(String varName) throws Exception {
-        RT.load( "immutant/bootstrap" );
-        return RT.var( "immutant.bootstrap", varName );
+        RT.load( "immutant/runtime/bootstrap" );
+        return RT.var( "immutant.runtime.bootstrap", varName );
     }
 
     @SuppressWarnings("rawtypes")
