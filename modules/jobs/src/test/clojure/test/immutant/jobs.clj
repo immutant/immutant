@@ -17,7 +17,7 @@
 
 (ns test.immutant.jobs
   (:use immutant.jobs
-        immutant.jobs.core
+        immutant.jobs.internal
         immutant.utilities
         immutant.test.helpers
         clojure.test

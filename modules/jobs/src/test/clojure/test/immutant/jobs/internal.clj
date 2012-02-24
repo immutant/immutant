@@ -15,9 +15,9 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns test.immutant.jobs.core
+(ns test.immutant.jobs.internal
   (:require [immutant.registry :as registry])
-  (:use immutant.jobs.core
+  (:use immutant.jobs.internal
         immutant.test.helpers
         clojure.test
         midje.sweet))

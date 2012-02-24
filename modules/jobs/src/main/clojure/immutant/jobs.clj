@@ -17,7 +17,7 @@
 
 (ns immutant.jobs
   (:use immutant.utilities
-        immutant.jobs.core)
+        immutant.jobs.internal)
   (:require [clojure.tools.logging :as log]))
 
 (def ^{:private true} current-jobs (atom {}))

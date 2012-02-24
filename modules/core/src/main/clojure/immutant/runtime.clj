@@ -16,25 +16,26 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.runtime
-  "This namespace is solely for the use of ClojureRuntime. You
-   should never require it in clojure code."
+  "This namespace is solely for the use of ClojureRuntime.java and the application
+bootstrapping process. Applications shouldn't use anything here."
   (:use [immutant.utilities :only [app-root app-name]])
   (:require [clojure.string        :as str]
             [clojure.java.io       :as io]
             [clojure.tools.logging :as log]))
 
-(defn require-and-intern [namespaced-fn]
+(defn ^{:internal true} require-and-intern [namespaced-fn]
   (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
     (require namespace)
     (intern namespace function)))
 
-(defn require-and-invoke 
+(defn ^{:internal true} require-and-invoke 
   "Takes a string of the form \"namespace/fn\", requires the namespace, then invokes fn"
   [namespaced-fn & [args]]
   (apply (require-and-intern namespaced-fn) args))
 
-(defn initialize 
-  "Attempts to initialize the app by calling an init-fn (if given) or, lacking that, tries to load an immutant.clj from the app-root"
+(defn ^{:internal true} initialize 
+  "Attempts to initialize the app by calling an init-fn (if given) or, lacking that,
+tries to load an immutant.clj from the app-root"
   [init-fn]
   (let [config-file (io/file (app-root) "immutant.clj")
         config-exists (.exists config-file)]

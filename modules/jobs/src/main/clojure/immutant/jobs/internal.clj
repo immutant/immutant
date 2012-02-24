@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.jobs.core
+(ns immutant.jobs.internal
   (:use immutant.utilities
         immutant.mbean)
   (:require [immutant.registry :as registry]
@@ -24,17 +24,17 @@
            [org.immutant.jobs.as JobsServices]
            [org.projectodd.polyglot.jobs BaseScheduledJob]))
 
-(defn job-schedulizer  []
+(defn ^{:private true} job-schedulizer  []
   (registry/fetch "job-schedulizer"))
 
-(defn create-scheduler
+(defn ^{:internal true} create-scheduler
   "Creates a scheduler for the current application.
 A singleton scheduler will participate in a cluster, and will only execute its jobs on one node."
   [singleton]
   (log/info "Creating job scheduler for"  (app-name) "singleton:" singleton)
   (.createScheduler (job-schedulizer) singleton))
 
-(defn scheduler
+(defn ^{:internal true} scheduler
   "Retrieves the appropriate scheduler, creating it if necessary"
   [singleton]
   (let [name (str (if singleton "singleton-" "") "job-scheduler")]
@@ -42,7 +42,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
       scheduler
       (registry/put name (create-scheduler singleton)))))
 
-(defn wait-for-scheduler
+(defn ^{:private true} wait-for-scheduler
   "Waits for the scheduler to start before invoking f"
   ([scheduler f]
      (wait-for-scheduler scheduler f 30))
@@ -56,7 +56,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
                                (Thread/sleep 1000)
                                (recur scheduler f (dec attempts))))))
 
-(defn create-job
+(defn ^{:internal true} create-job
   "Instantiates and starts a job"
   [f name spec singleton]
   (let [scheduler (scheduler singleton)]
@@ -72,7 +72,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
             (.getScheduler scheduler)))
       .start)))
 
-(defn stop-job
+(defn ^{:internal true} stop-job
   "Stops (unschedules) a job, removing it from the scheduler."
   [job]
   (if-not (.isShutdown (.getScheduler job))
