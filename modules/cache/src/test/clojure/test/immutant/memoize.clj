@@ -17,7 +17,8 @@
 
 (ns test.immutant.memoize
   (:use [immutant.cache]
-        [clojure.test]))
+        [clojure.test])
+  (:require [clojure.core.memoize :as cm]))
 
 (defmacro timeit [& body]
   `(let [t# (System/nanoTime)] ~@body (/ (- (System/nanoTime) t#) 1000000000.0)))
@@ -28,3 +29,8 @@
     (is (> (timeit (m)) 1))
     (is (< (timeit (m)) 1))
     (is (= (m) "boo"))))
+
+(deftest prepopulation
+  (let [plus (memo + "wrong" {[3 5] 9})]
+    (plus 3 5)
+    (is (= 9 (plus 3 5)))))

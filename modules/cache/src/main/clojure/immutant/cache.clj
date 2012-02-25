@@ -141,27 +141,28 @@
   (toString [_] (str cache)))
 
 ;; Workaround the non-serializable Delay objects cached by
-;; core.memoize
+;; core.memoize and force every key to be a vector so that decoded
+;; comparisons work correctly
 (deftype DelayedCache [cache delayed]
   cc/CacheProtocol
   ;; We assume value is a delay, which we can't serialize and don't
   ;; want to force yet
   (miss [this key value]
-    (swap! delayed assoc key (delay (cc/miss cache key @value) @value))
+    (swap! delayed assoc (vec key) (delay (cc/miss cache (vec key) @value) @value))
     this)
   (lookup [_ key]
-    (let [value (get @delayed key)]
+    (let [value (get @delayed (vec key))]
       (when value
         (deref value)
-        (swap! delayed dissoc key))
+        (swap! delayed dissoc (vec key)))
       ;; Callers expect to deref the returned value
       (reify
         clojure.lang.IDeref
-        (deref [this] (cc/lookup cache key)))))
+        (deref [this] (cc/lookup cache (vec key))))))
   (seed [this base] (doseq [[k v] base] (cc/miss this k v)) this)
-  (has? [_ key] (cc/has? cache key))
-  (hit [this key] (cc/hit cache key) this)
-  (evict [this key] (cc/evict cache key) this)
+  (has? [_ key] (cc/has? cache (vec key)))
+  (hit [this key] (cc/hit cache (vec key)) this)
+  (evict [this key] (cc/evict cache (vec key)) this)
 
   clojure.lang.Seqable
   (seq [this]
