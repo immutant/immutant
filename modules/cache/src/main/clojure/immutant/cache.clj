@@ -160,7 +160,7 @@
         clojure.lang.IDeref
         (deref [this] (cc/lookup cache (vec key))))))
   (seed [this base] (doseq [[k v] base] (cc/miss this k v)) this)
-  (has? [_ key] (cc/has? cache (vec key)))
+  (has? [_ key] (or (contains? @delayed (vec key)) (cc/has? cache (vec key))))
   (hit [this key] (cc/hit cache (vec key)) this)
   (evict [this key] (cc/evict cache (vec key)) this)
 
