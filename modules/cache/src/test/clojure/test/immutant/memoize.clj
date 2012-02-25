@@ -32,5 +32,13 @@
 
 (deftest prepopulation
   (let [plus (memo + "wrong" {[3 5] 9})]
-    (plus 3 5)
     (is (= 9 (plus 3 5)))))
+
+(deftest only-first-pays-total-cost
+  (let [f (fn [x] (Thread/sleep 1000) x)
+        m (memo f "first")
+        f1 (future (timeit (m 42)))]
+    (Thread/sleep 500)
+    (is (< (timeit (m 42)) 1))
+    (is (> @f1 1))))
+  
