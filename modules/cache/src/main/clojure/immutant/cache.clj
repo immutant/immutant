@@ -173,14 +173,27 @@
            (clojure.lang.MapEntry. k (cc/lookup this k))))))
 
 (defn cache
-  "The entry point to determine whether clustered or local"
+  "Returns an implementation of Mutable and
+   core.cache/CacheProtocol. A cache name is the only required
+   argument. When two arguments are passed, the second may be either a
+   symbol indicating replication mode or a seed, i.e. either the
+   second or the third of the 3-argument signature.
+
+   Replication mode should be one of:
+     :local, :invalidated, :distributed, or :replicated
+
+   Although the entries in the passed base hash map will be added to
+   the cache, entries already in the cache will NOT be deleted"
   ([name] (cache name nil nil))
   ([name v] (if (keyword? v) (cache name v nil) (cache name nil v)))
   ([name mode base]
      (cc/seed (InfinispanCache. (raw-cache name mode)) base)))
 
 (defn memo
-  "Wrap a function in an infinispan-backed memoization cache"
+  "Memoize a function by associating its arguments with return values
+   stored in a possibly-clustered Infinispan-backed cache. Other than
+   the function to be memoized, arguments are the same as for the
+   cache function."
   ([f name] (memo f name nil nil))
   ([f name v] (if (keyword? v) (memo f name v nil) (memo f name nil v)))
   ([f name mode seed]
