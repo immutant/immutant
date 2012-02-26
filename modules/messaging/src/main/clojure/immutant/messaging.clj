@@ -16,6 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging
+  "Easily publish and receive messages containing any type of nested
+   data structure to dynamically-created topics and queues. Message
+   distribution is automatically load-balanced when clustered."
   (:use [immutant.utilities :only (at-exit)])
   (:use [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]))

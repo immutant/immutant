@@ -16,6 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.cache
+  "Infinispan-backed implementations of core.cache and core.memoize
+   protocols supporting multiple replication options and more."
   (:use [immutant.cache.core]
         [immutant.codecs])
   (:require [clojure.core.cache :as cc]

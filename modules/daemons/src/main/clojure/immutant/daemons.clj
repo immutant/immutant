@@ -16,6 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.daemons
+  "Asynchronous services that share the lifecycle of your application"
   (:require [immutant.registry :as lookup]))
 
 (defn start 

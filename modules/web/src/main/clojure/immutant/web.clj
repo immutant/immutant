@@ -16,6 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.web
+  "Associate one or more Ring handlers with your application, mounted
+   at unique context paths"
   (:require [immutant.registry     :as reg]
             [clojure.tools.logging :as log])
   (:import (org.apache.catalina.deploy  FilterDef FilterMap)

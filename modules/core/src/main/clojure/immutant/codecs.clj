@@ -16,8 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.codecs
+  "Common codecs used when [de]serializing data structures."
   (:require [clojure.data.json :as json]))
-
 
 ;; Encode
 

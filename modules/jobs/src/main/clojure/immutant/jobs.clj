@@ -16,6 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.jobs
+  "Associate recurring jobs with an application using cron-like specifications"
   (:use immutant.utilities
         immutant.jobs.internal)
   (:require [clojure.tools.logging :as log]))
