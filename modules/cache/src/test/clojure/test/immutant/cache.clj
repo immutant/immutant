@@ -165,3 +165,8 @@
     (is (= 0 (count (empty c))))
     (is (= 0 (count c)))))
 
+(deftest test-conj
+  (is (= 1 (:a (conj (cache "conj") [:a 1])))))
+
+(deftest test-conj
+  (is (= 1 (:a (merge (cache "merge") {:a 1})))))

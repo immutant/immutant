@@ -121,7 +121,9 @@
   
   clojure.lang.IPersistentCollection
   (cons [this elem]
-    (.put cache (encode (first elem)) (encode (second elem)))
+    (if (map? elem)
+      (.put-all this elem)
+      (.put this (first elem) (second elem)))
     this)
   (empty [this]
     (.clear cache)
