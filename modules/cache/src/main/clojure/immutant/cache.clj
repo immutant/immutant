@@ -50,26 +50,22 @@
   (put-if-replace [cache key old new] [cache key old new options]
     "Put it in only if key is there and current matches old")
   (delete [cache key] [cache key value]
-    "Delete the entry; value must match current if passed")
-  (clear [cache]
-    "Remove all entries from cache"))
+    "Delete the entry; value must match current if passed"))
 
 (deftype InfinispanCache [cache]
 
   cc/CacheProtocol
-  (lookup [_ key]
-    (decode (.get cache (encode key))))
-  (has? [_ key]
-    (.containsKey cache (encode key)))
+  (lookup [this key]
+    (.valAt this key))
+  (has? [this key]
+    (.containsKey this key))
   (hit [this key] this)
   (miss [this key value]
-    (put this key value)
-    this)
+    (assoc this key value))
   (evict [this key]
-    (and key (delete this key))
-    this)
+    (.without this key))
   (seed [this base]
-    (and base (put-all this base))
+    (put-all this base)
     this)
 
   Mutable
@@ -78,7 +74,7 @@
     (decode (expire (.put cache (encode k) (encode v) opts))))
   (put-all [this m] (put-all this m {}))
   (put-all [_ m opts]
-    (expire (.putAll cache (into {} (for [[k v] m] [(encode k) (encode v)])) opts)))
+    (and m (expire (.putAll cache (into {} (for [[k v] m] [(encode k) (encode v)])) opts))))
   (put-if-absent [this k v] (put-if-absent this k v {}))
   (put-if-absent [_ k v opts]
     (decode (expire (.putIfAbsent cache (encode k) (encode v) opts))))
@@ -88,53 +84,50 @@
   (put-if-replace [this k old v] (put-if-replace this k old v {}))
   (put-if-replace [_ k old v opts]
     (expire (.replace cache (encode k) (encode old) (encode v) opts)))
-  (delete [_ key] (decode (.remove cache (encode key))))
+  (delete [_ key] (and key (decode (.remove cache (encode key)))))
   (delete [_ key value] (.remove cache (encode key) (encode value)))
-  (clear [_] (.clear cache))
 
-  ;; The reason we can't use defcache. The cached entries must be
-  ;; decoded, but I can't figure out how to extend the result of
-  ;; defcache in order to do so.
   clojure.lang.Seqable
   (seq [_]
     (and (seq cache)
          (for [[k v] (seq cache)]
            (clojure.lang.MapEntry. (decode k) (decode v)))))
 
-  ;; The remaining methods are copied verbatim from defcache :(
-  
   clojure.lang.ILookup
   (valAt [this key]
-    (cc/lookup this key))
+    (decode (.get cache (encode key))))
   (valAt [this key not-found]
-    (if (cc/has? this key)
-      (cc/lookup this key)
+    (if (.containsKey this key)
+      (.valAt this key)
       not-found))
-
+  
   clojure.lang.IPersistentMap
   (assoc [this k v]
-    (cc/miss this k v))
+    (.cons this [k v]))
   (without [this k]
-    (cc/evict this k))
+    (and k (.remove cache (encode k)))
+    this)
 
   clojure.lang.Associative
   (containsKey [this k]
-    (cc/has? this k))
+    (.containsKey cache (encode k)))
   (entryAt [this k]
-    (when (cc/has? this k)
-      (clojure.lang.MapEntry. k (cc/lookup this k))))
+    (when (.containsKey this k)
+      (clojure.lang.MapEntry. k (.valAt this k))))
 
   clojure.lang.Counted
-  (count [this]
+  (count [_]
     (clojure.core/count cache))
-
+  
   clojure.lang.IPersistentCollection
-  (cons [_ elem]
-    (clojure.core/cons cache elem))
+  (cons [this elem]
+    (.put cache (encode (first elem)) (encode (second elem)))
+    this)
   (empty [this]
-    (cc/seed this (empty cache)))
+    (.clear cache)
+    this)
   (equiv [_ other]
-    (.equiv cache other))
+    (.equals cache other))
 
   java.lang.Iterable
   (iterator [this] (.iterator cache))

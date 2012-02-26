@@ -159,9 +159,9 @@
     (is (= 2 (delete c :b)))
     (is (empty? c))))
 
-(deftest test-clear
+(deftest test-empty
   (let [c (cache "clear" {:a 1 :b 2})]
     (is (= 2 (count c)))
-    (clear c)
+    (is (= 0 (count (empty c))))
     (is (= 0 (count c)))))
 
