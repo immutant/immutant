@@ -32,20 +32,23 @@
         <resource-root path="tools.logging.jar"/>
         <resource-root path="leiningen-core.jar"/>
         <resource-root path="pomegranate.jar"/>
-        <resource-root path="maven-aether-provider.jar"/>
         <resource-root path="aether-impl.jar"/>
         <resource-root path="aether-spi.jar"/>
         <resource-root path="aether-util.jar"/>
         <resource-root path="aether-api.jar"/>
         <resource-root path="aether-connector-file.jar"/>
         <resource-root path="aether-connector-wagon.jar"/>
-        <resource-root path="wagon-http-lightweight.jar"/>
-        <resource-root path="wagon-provider-api.jar"/>
+        <resource-root path="commons-httpclient.jar"/>
+        <resource-root path="ordered.jar"/>
+        <resource-root path="maven-aether-provider.jar"/>
         <resource-root path="maven-model.jar"/>
         <resource-root path="maven-model-builder.jar"/>
         <resource-root path="maven-repository-metadata.jar"/>
         <resource-root path="plexus-utils.jar"/>
         <resource-root path="plexus-interpolation.jar"/>
+        <resource-root path="wagon-provider-api.jar"/>
+        <resource-root path="wagon-http.jar"/>
+        <resource-root path="wagon-http-shared.jar"/>
     </resources>
 
     <exports>
