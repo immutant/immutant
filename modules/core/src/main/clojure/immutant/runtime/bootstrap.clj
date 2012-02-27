@@ -87,11 +87,9 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
 (defn ^{:internal true} resource-paths
   "Resolves the resource paths (in the AS7 usage of the term) for an application."
   [app-root]
-  (let [foo (if-let [project (read-project app-root)]
-              (resource-paths-from-project project)
-              (resource-paths-for-projectless-app app-root))]
-    (println foo)
-    foo))
+  (if-let [project (read-project app-root)]
+    (resource-paths-from-project project)
+    (resource-paths-for-projectless-app app-root)))
 
 (defn ^{:internal true} bundled-jars
   "Returns a vector of any jars that are bundled in the application's lib-dir."
