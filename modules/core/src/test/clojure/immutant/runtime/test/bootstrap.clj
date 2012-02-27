@@ -22,12 +22,21 @@
   (:require [clojure.java.io             :as io]
             [cemerick.pomegranate.aether :as aether]))
 
-(let [app-root (io/file (io/resource "project-root"))]
+(let [app-root (io/file (io/resource "project-root"))
+      another-app-root (io/file (io/resource "another-project-root"))]
   (deftest read-project-should-work
     (is (= :biscuit (:ham (read-project app-root)))))
 
   (deftest read-and-stringify-project-should-work
     (is (= :biscuit ((read-and-stringify-project app-root) "ham"))))
+
+  (deftest read-and-stringify-project-should-stringify-an-init-fn
+    (is (= "some.namespace/init" (get-in (read-and-stringify-project app-root)
+                                         ["immutant" "init"]))))
+
+  (deftest read-and-stringify-project-should-pass-through-a-string-init-fn
+    (is (= "some.namespace/string" (get-in (read-and-stringify-project another-app-root)
+                                           ["immutant" "init"]))))
 
   (deftest resource-paths-should-work
     (is (= (set (map #(.getAbsolutePath (io/file app-root %))
@@ -78,8 +87,6 @@
              (io/file (io/resource "project-root/lib/some-other.jar"))
              (io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar"))}
            (set (get-dependencies app-root true))))))
-
-
 
 
 (let [app-root (io/file (io/resource "non-project-root"))]

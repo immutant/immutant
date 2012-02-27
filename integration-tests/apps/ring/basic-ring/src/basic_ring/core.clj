@@ -14,7 +14,6 @@
      :headers {"Content-Type" "text/html"}
    :body body})
 (defn handler [request]
-  (prn request)
   (let [body (str "Hello from Immutant! This is basic-ring <p>a-value:" @a-value
                   "</p><p>version:" (clojure-version) "</p>")]
     (reset! a-value "not-default")

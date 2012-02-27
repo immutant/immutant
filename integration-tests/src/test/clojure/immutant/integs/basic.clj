@@ -21,11 +21,11 @@
   (:require [clj-http.client :as client]))
 
 (use-fixtures :once (with-deployment *file*
-                      {
-                       :root "target/apps/ring/basic-ring/"
-                       :init "basic-ring.core/init-web"
-                       :context-path "/basic-ring"
-                       }))
+                      '{
+                        :root "target/apps/ring/basic-ring/"
+                        :init basic-ring.core/init-web
+                        :context-path "/basic-ring"
+                        }))
 
 (deftest simple "it should work"
   (let [result (client/get "http://localhost:8080/basic-ring")]

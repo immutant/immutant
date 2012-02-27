@@ -24,11 +24,11 @@
 (def cookies (atom {}))
 
 (use-fixtures :once (with-deployment *file*
-                      {
-                       :root "target/apps/ring/sessions/"
-                       :init "sessions.core/init-all"
-                       :context-path "/sessions"
-                       }))
+                      '{
+                        :root "target/apps/ring/sessions/"
+                        :init sessions.core/init-all
+                        :context-path "/sessions"
+                        }))
 
 (use-fixtures :each (fn [f]
                       (reset! cookies {})
@@ -51,8 +51,8 @@
        {"ham" "biscuit", "biscuit" "gravy"} ""))
 
 (deftest immutant-session-should-only-have-a-jsessionid-cookie
-   (get-with-cookies "immutant" "ham=biscuit")
-   (is (= #{"JSESSIONID" "a-cookie"} (set (keys @cookies)))))
+  (get-with-cookies "immutant" "ham=biscuit")
+  (is (= #{"JSESSIONID" "a-cookie"} (set (keys @cookies)))))
 
 (deftest basic-ring-session-test
   (are [expected query-string] (= expected (get-with-cookies "ring" query-string))

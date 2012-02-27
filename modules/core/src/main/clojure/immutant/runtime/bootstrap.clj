@@ -24,10 +24,24 @@
   (:import [java.io   FilenameFilter]
            [java.util ArrayList]))
 
+(defn ^{:private true} stringify-symbol
+  "Turns a symbol into a namspace/name string."
+  [sym]
+  (if (symbol? sym)
+    (str (namespace sym) "/" (name sym))
+    sym))
+
+(defn ^{:private true} stringify-init-symbol
+  "Turns the :init value into a string so we can use it in another runtime."
+  [depth m]
+  (update-in m (conj depth "init") stringify-symbol))
+
 (defn ^{:internal true} read-descriptor
   "Reads a deployment descriptor and returns the resulting hash."
   [file]
-  (walk/stringify-keys (load-file (.getAbsolutePath file))))
+  (stringify-init-symbol
+   nil
+   (walk/stringify-keys (read-string (slurp (.getAbsolutePath file))))))
 
 ;; TODO: support specifying profiles
 (defn ^{:internal true} read-project
@@ -40,7 +54,8 @@
 (defn ^{:internal true} read-and-stringify-project
   "Reads a leiningen project.clj file in the given root dir and stringifies the keys."
   [app-root]
-  (walk/stringify-keys (read-project app-root)))
+  (when-let [project (walk/stringify-keys (read-project app-root))]
+    (stringify-init-symbol ["immutant"] project)))
 
 (defn ^{:private true} resolve-dependencies
   "Resolves dependencies from the lein project. It currently just delegates to leiningen-core."
