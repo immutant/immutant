@@ -22,7 +22,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/ring/noir-app/"
+                       :root "target/apps/ring/noir-app/"
                        :context-path "/noir-app"
                        }))
 

@@ -22,7 +22,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/jobs/"
+                       :root "target/apps/jobs/"
                        }))
 
 (defn get-values

@@ -22,16 +22,13 @@
 
 (use-fixtures :each (with-deployment *file*
                       {
-                       :root "apps/ring/basic-ring/"
+                       :root "target/apps/ring/basic-ring/"
                        :init "basic-ring.core/init-web"
                        :context-path "/basic-ring"
                        }))
 
 (deftest verify-clojure-version
-  (let [result (client/get "http://localhost:8080/basic-ring")
-        expected-version (if (= immutant.integs/*current-clojure-version* "default")
-                           "1.3.0"
-                           immutant.integs/*current-clojure-version*)]
-    (is (.contains (result :body) (str "version:" expected-version)))))
+  (let [result (client/get "http://localhost:8080/basic-ring")]
+    (is (.contains (result :body) (str "version:" immutant.integs/*current-clojure-version*)))))
 
 

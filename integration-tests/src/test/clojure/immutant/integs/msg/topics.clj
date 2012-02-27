@@ -24,7 +24,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/messaging/topics"
+                       :root "target/apps/messaging/topics"
                        }))
 
 (deftest publish-to-multiple-subscribers

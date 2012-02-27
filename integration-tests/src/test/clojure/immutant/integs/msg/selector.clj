@@ -24,7 +24,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/messaging/selector"
+                       :root "target/apps/messaging/selector"
                        }))
 
 (deftest select-lower-priority

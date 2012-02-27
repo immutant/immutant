@@ -25,7 +25,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/messaging/queues"
+                       :root "target/apps/messaging/queues"
                        }))
 
 (deftest default-priority-should-be-fifo

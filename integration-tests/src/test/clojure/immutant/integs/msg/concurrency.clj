@@ -22,7 +22,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/messaging/concurrency"
+                       :root "target/apps/messaging/concurrency"
                        }))
 
 (deftest concurrent-listeners

@@ -25,7 +25,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/ring/sessions/"
+                       :root "target/apps/ring/sessions/"
                        :init "sessions.core/init-all"
                        :context-path "/sessions"
                        }))

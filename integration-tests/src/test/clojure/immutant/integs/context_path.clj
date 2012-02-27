@@ -25,14 +25,14 @@
 
 (deftest using-the-context-path-from-project-clj
   ((with-deployment "context_path.clj"
-     {:root "apps/ring/context-path/"})
+     {:root "target/apps/ring/context-path/"})
    (fn []
      (let [result (client/get "http://localhost:8080/context-from-project")]
        (is (.startsWith (result :body) "This is context-path"))))))
 
 (deftest overriding-context-path-via-descriptor
   ((with-deployment "context_path.clj"
-     {:root "apps/ring/context-path/"
+     {:root "target/apps/ring/context-path/"
       :context-path "/context-from-descriptor"})
    (fn []
      (let [result (client/get "http://localhost:8080/context-from-descriptor")]

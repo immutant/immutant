@@ -22,7 +22,7 @@
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "apps/daemons/"
+                       :root "target/apps/daemons/"
                        }))
 
 (deftest simple "it should work"

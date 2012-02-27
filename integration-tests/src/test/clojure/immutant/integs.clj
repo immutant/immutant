@@ -22,8 +22,7 @@
   (:require [clojure.java.io             :as io]
             [clojure.string              :as string]
             [clojure.walk                :as walk]
-            [cemerick.pomegranate.aether :as aether]
-            [fleet                       :as fleet]))
+            [cemerick.pomegranate.aether :as aether]))
 
 (def ^{:dynamic true} *current-clojure-version* nil)
 
@@ -53,29 +52,27 @@
       (io/delete-file jar))))
 
 (defn update-project-clj [clojure-dep app-dir]
-  (let [project-template (io/file app-dir "project.clj.fleet")]
-    (if (.exists project-template)
-      (io/copy 
-       (str ((fleet/fleet [dep] (slurp project-template))
-             clojure-dep))
-       (io/file app-dir "project.clj")))))
+  (let [project (io/file app-dir "project.clj")]
+    (io/copy
+     (pr-str
+      (walk/postwalk #(if (and (vector? %) (= 'org.clojure/clojure (first %)))
+                        clojure-dep
+                        %) (read-string (slurp project))))
+     project)))
 
 (defn set-version
   "adds the proper version of the clojure jar to each app"
   [version]
-  (let [app-dirs (find-app-dirs (io/file (System/getProperty "user.dir") "apps"))
+  (let [app-dirs (find-app-dirs (io/file (System/getProperty "user.dir") "target/apps"))
         coord ['org.clojure/clojure version]]
-    (if (= "default" version)
-      (doall
-       (map (partial update-project-clj "") app-dirs))
-      (if-let [clojure-jar (first (aether/dependency-files (aether/resolve-dependencies :coordinates [coord])))]
-        (doseq [app-dir app-dirs]
-          (if (.exists (io/file app-dir "project.clj.fleet"))
-            (update-project-clj (pr-str coord) app-dir)
-            (let [lib-dir (io/file app-dir "lib")]
-              (.mkdir lib-dir)
-              (io/copy clojure-jar (io/file lib-dir (.getName clojure-jar))))))
-        (throw (Exception. (str "Failed to resolve clojure " version)))))))
+    (if-let [clojure-jar (first (aether/dependency-files (aether/resolve-dependencies :coordinates [coord])))]
+      (doseq [app-dir app-dirs]
+        (if (.exists (io/file app-dir "project.clj"))
+          (update-project-clj coord app-dir)
+          (let [lib-dir (io/file app-dir "lib")]
+            (.mkdir lib-dir)
+            (io/copy clojure-jar (io/file lib-dir (.getName clojure-jar))))))
+      (throw (Exception. (str "Failed to resolve clojure " version))))))
 
 (defn for-each-version
   "Runs the integ apps under each clojure version"
@@ -104,13 +101,13 @@
   (println "Testing namespaces:" namespaces)
   (apply require namespaces)
   (when-not *compile-files*
-    (let [results (atom [])]
-      (let [report-orig report]
-        (binding [fntest.jboss/home "./target/integ-dist/jboss"
-                  fntest.jboss/descriptor-root "target/.descriptors"
-                  report (fn [x] (report-orig x)
-                           (swap! results conj (:type x)))]
-          (println "\n>>>> Testing against" clojure-versions "\n")
-          (with-jboss #(for-each-version namespaces))))
+    (let [results (atom [])
+          report-orig report]
+      (binding [fntest.jboss/home "./target/integ-dist/jboss"
+                fntest.jboss/descriptor-root "target/.descriptors"
+                report (fn [x] (report-orig x)
+                         (swap! results conj (:type x)))]
+        (println "\n>>>> Testing against" clojure-versions "\n")
+        (with-jboss #(for-each-version namespaces)))
       (shutdown-agents)
       (System/exit (if (empty? (filter #{:fail :error} @results)) 0 -1)))))

@@ -22,7 +22,7 @@
 
 (use-fixtures :each (with-deployment *file*
                       {
-                       :root "apps/ring/basic-ring/"
+                       :root "target/apps/ring/basic-ring/"
                        :init "basic-ring.core/init-web-start-testing"
                        :context-path "/basic-ring"
                        }))
