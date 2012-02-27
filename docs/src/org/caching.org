@@ -91,12 +91,12 @@
     (def c4 (cache "jerry" {:a 1 :b 2}))
   #+end_src
 
-  The returned cache object implements two useful protocols:
-  =core.cache/CacheProtocol= and =immutant.cache/Mutable=. The former,
-  coupled with the =core.cache/defcache= macro, provides
-  implementations of many of Clojure's core interfaces and allows an
-  Immutant cache to be plugged into the =core.memoize= API. The latter
-  exposes some of Infinispan's handy cache manipulation features.
+  In addition to providing implementations for many of Clojure's core
+  interfaces, the returned cache object implements two useful
+  protocols: =core.cache/CacheProtocol= and
+  =immutant.cache/Mutable=. The former allows an Immutant cache to be
+  plugged into the =core.memoize= API. The latter exposes some of
+  Infinispan's handy cache manipulation features.
 
   #+begin_src clojure
     (defprotocol Mutable
