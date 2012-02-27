@@ -20,15 +20,9 @@
   (:require [clojure.java.io          :as io]
             [clojure.walk             :as walk]
             [leiningen.core.classpath :as classpath]
-            [leiningen.core.project   :as project]
-            [cemerick.pomegranate     :as pomegranate])
+            [leiningen.core.project   :as project])
   (:import [java.io   FilenameFilter]
            [java.util ArrayList]))
-
-(extend-type org.jboss.modules.ModuleClassLoader
-    pomegranate/URLClasspath
-    (can-modify? [this] false)
-    (add-url [this _]))
 
 (defn ^{:internal true} read-descriptor
   "Reads a deployment descriptor and returns the resulting hash."
@@ -51,8 +45,7 @@
 (defn ^{:private true} resolve-dependencies
   "Resolves dependencies from the lein project. It currently just delegates to leiningen-core."
   [project]
-  (when project
-    (classpath/resolve-dependencies :dependencies project)))
+  (classpath/resolve-dependencies project))
 
 (defn ^{:internal true} lib-dir
   "Resolve the library dir for the application."
@@ -64,19 +57,13 @@
   "Resolves the resource paths (in the AS7 usage of the term) for a leiningen application. Handles
 lein1/lein2 differences for project keys that changed from strings to vectors."
   [project]
-  (remove nil?
-          (reduce (fn [acc key]
-                    (let [path (project key)]
-                      (concat acc (if (coll? path)
-                                    path
-                                         (vector path)))))
-                  []
-                  [:resources-path ;; lein1
-                   :resource-paths ;; lein2
-                   :source-path    ;; lein1
-                   :source-paths   ;; lein2
-                   :native-path    ;; lein2
-                   ])))
+  (reduce (fn [acc key]
+            (let [path (project key)]
+              (concat acc (if (coll? path)
+                            path
+                            (vector path)))))
+          []
+          [:resources-path :source-path :native-path]))
 
 (defn ^{:private true} resource-paths-for-projectless-app
   "Resolves the resource paths (in the AS7 usage of the term) for a non-leiningen application."
