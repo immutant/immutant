@@ -32,6 +32,8 @@
         <resource-root path="tools.logging.jar"/>
         <resource-root path="leiningen-core.jar"/>
         <resource-root path="pomegranate.jar"/>
+        <resource-root path="swank-clojure.jar"/>
+        <resource-root path="tools.nrepl.jar"/>
         <resource-root path="maven-aether-provider.jar"/>
         <resource-root path="aether-impl.jar"/>
         <resource-root path="aether-spi.jar"/>

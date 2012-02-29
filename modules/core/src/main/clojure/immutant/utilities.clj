@@ -38,4 +38,22 @@ Used internally to shutdown various services, but can be used by application cod
   (if-let [closer (lookup/fetch "housekeeper")]
     (.atExit closer f)
     (println "WARN: Unable to register at-exit handler with housekeeper")))
-  
+
+(defn ^{:private true} lookup-interface-address
+  "Looks up the ip address from the proper service for the given name."
+  [name]
+  (-> (lookup/fetch (str "jboss.network." name))
+      .getAddress
+      .getHostAddress))
+
+(def ^{:doc "Looks up the ip address for the AS management interface."}
+  management-interface-address
+  (partial lookup-interface-address "management"))
+
+(def ^{:doc "Looks up the ip address for the AS public interface."}
+  public-interface-address
+  (partial lookup-interface-address "public"))
+
+(def ^{:doc "Looks up the ip address for the AS unsecure interface."}
+  unsecure-interface-address
+  (partial lookup-interface-address "unsecure"))

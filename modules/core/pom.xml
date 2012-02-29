@@ -41,6 +41,19 @@
     </dependency>
 
     <dependency>
+      <groupId>org.tcrawley</groupId>
+      <artifactId>swank-clojure</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.tcrawley</groupId>
+      <artifactId>tools.nrepl</artifactId>
+      <version>${version.nrepl}</version>
+      <scope>compile</scope>
+    </dependency>
+    
+    <dependency>
       <groupId>leiningen-core</groupId>
       <artifactId>leiningen-core</artifactId>
       <version>${version.leiningen-core}</version>
