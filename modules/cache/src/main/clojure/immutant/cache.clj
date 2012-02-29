@@ -148,14 +148,13 @@
     (swap! delayed assoc (vec key) (delay (cc/miss cache (vec key) @value) @value))
     this)
   (lookup [_ key]
-    (let [value (get @delayed (vec key))]
-      (when value
-        (deref value)
-        (swap! delayed dissoc (vec key)))
-      ;; Callers expect to deref the returned value
-      (reify
-        clojure.lang.IDeref
-        (deref [this] (cc/lookup cache (vec key))))))
+    (when-let [value (get @delayed (vec key))]
+      (deref value)
+      (swap! delayed dissoc (vec key)))
+    ;; Callers expect to deref the returned value
+    (reify
+      clojure.lang.IDeref
+      (deref [this] (cc/lookup cache (vec key)))))
   (seed [this base] (doseq [[k v] base] (cc/miss this k v)) this)
   (has? [_ key] (or (contains? @delayed (vec key)) (cc/has? cache (vec key))))
   (hit [this key] (cc/hit cache (vec key)) this)
