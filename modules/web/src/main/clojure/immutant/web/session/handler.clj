@@ -26,7 +26,7 @@
     (let [response (handler request)]
       (if-let [session (.getSession current-servlet-request)]
         (update-in response [:headers "Set-Cookie"]
-                   #(filter (fn [cookie]
+                   #(filter (fn [^String cookie]
                               (not (.contains cookie
                                               (codec/url-encode (.getId session))))) %))
         response))))

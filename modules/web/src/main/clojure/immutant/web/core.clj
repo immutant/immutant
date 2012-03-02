@@ -18,7 +18,7 @@
 (ns immutant.web.core
   (:require [immutant.utilities :as util]))
 
-(def ^{:dynamic true} current-servlet-request nil)
+(def ^{:dynamic true} ^javax.servlet.http.HttpServletRequest current-servlet-request nil)
 
 (def ^{:private true} servlet-filters (atom {}))
 

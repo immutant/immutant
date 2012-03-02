@@ -22,7 +22,7 @@
             [leiningen.core.classpath :as classpath]
             [leiningen.core.project   :as project]
             [cemerick.pomegranate     :as pomegranate])
-  (:import [java.io   FilenameFilter]
+  (:import [java.io   File FilenameFilter]
            [java.util ArrayList]))
 
 (extend-type org.jboss.modules.ModuleClassLoader
@@ -44,7 +44,7 @@
 
 (defn ^{:internal true} read-descriptor
   "Reads a deployment descriptor and returns the resulting hash."
-  [file]
+  [^File file]
   (stringify-init-symbol
    nil
    (walk/stringify-keys (read-string (slurp (.getAbsolutePath file))))))
@@ -71,7 +71,7 @@
 
 (defn ^{:internal true} lib-dir
   "Resolve the library dir for the application."
-  [app-root]
+  [^File app-root]
   (io/file (:library-path (read-project app-root)
                           (str (.getAbsolutePath app-root) "/lib"))))
 
@@ -109,10 +109,10 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
 (defn ^{:internal true} bundled-jars
   "Returns a vector of any jars that are bundled in the application's lib-dir."
   [app-root]
-  (let [lib-dir (lib-dir app-root)]
+  (let [^File lib-dir (lib-dir app-root)]
     (if (.isDirectory lib-dir)
       (.listFiles lib-dir (proxy [FilenameFilter] []
-                            (accept [_ file-name]
+                            (accept [_ ^String file-name]
                               (.endsWith file-name ".jar")))))))
 
 (defn ^{:internal true} get-dependencies
@@ -121,9 +121,9 @@ dependencies, with bundled jars taking precendence. If bundled-only is true, dep
 resolved via aether and only bundled jars are returned."
   [app-root bundled-only]
   (let [bundled (bundled-jars app-root)
-        bundled-jar-names (map #(.getName %) bundled)]
+        bundled-jar-names (map (fn [^File f] (.getName f)) bundled)]
     (concat
      bundled
      (when-not bundled-only
-       (filter #(not (some #{(.getName %)} bundled-jar-names))
+       (filter (fn [^File f] (not (some #{(.getName f)} bundled-jar-names)))
                (resolve-dependencies (read-project app-root)))))))

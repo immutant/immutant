@@ -16,10 +16,10 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.registry
-  (:import (org.jboss.msc.service ServiceName)))
+  (:import (org.jboss.msc.service ServiceController ServiceName ServiceRegistry)))
 
 (def ^{:private true} registry (atom {}))
-(def msc-registry nil)
+(def ^ServiceRegistry msc-registry nil)
 
 (defn set-msc-registry [v]
   (def msc-registry v))
@@ -27,7 +27,7 @@
 (defn ^{:private true} get-from-msc [name get-container?]
   (if msc-registry
     (let [key (if (string? name) (ServiceName/parse name) name)
-          value (.getService msc-registry key)]
+          ^ServiceController value (.getService msc-registry key)]
       (and value
            (if get-container?
              value

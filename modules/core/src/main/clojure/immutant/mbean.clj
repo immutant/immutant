@@ -18,19 +18,20 @@
 (ns immutant.mbean
   (:use immutant.utilities)
   (:require [immutant.registry :as registry])
-  (:import [org.jboss.msc.service ServiceController$Mode]))
+  (:import [org.jboss.msc.service ServiceController ServiceController$Mode]
+           org.projectodd.polyglot.core_extensions.AtRuntimeInstaller))
 
 (defn register-mbean
   "Registers an mbean under the given group and service names.
 The installer needs to be an object that extends AtRuntimeInstaller"
-  [group-name service-name mbean installer]
+  [group-name service-name mbean ^AtRuntimeInstaller installer]
   (.installMBean installer service-name group-name mbean))
 
 ;; This may not yet work
 (defn deregister-mbean
   "Unregisters an mbean given the service name."
   [mbean-name]
-  (if-let [mbean-service (registry/fetch mbean-name true)]
+  (if-let [^ServiceController mbean-service (registry/fetch mbean-name true)]
     (.setMode mbean-service ServiceController$Mode/REMOVE)))
 
 

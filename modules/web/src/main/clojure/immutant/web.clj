@@ -20,8 +20,9 @@
    at unique context paths"
   (:require [immutant.registry     :as reg]
             [clojure.tools.logging :as log])
-  (:import (org.apache.catalina.deploy  FilterDef FilterMap)
-           (org.immutant.web.servlet    RingFilter))
+  (:import org.apache.catalina.Context
+           (org.apache.catalina.deploy FilterDef FilterMap)
+           org.immutant.web.servlet.RingFilter)
   (:use immutant.web.core))
 
 (defn start
@@ -41,7 +42,7 @@ If no sub-context-path is given, \"/\" is assumed."
                          (.addURLPattern sub-context-path)
                          (.setFilterName name))]
         (add-servlet-filter! name filter-def filter-map handler)
-        (doto (reg/fetch "web-context")
+        (doto ^Context (reg/fetch "web-context")
           (.addFilterDef filter-def)
           (.addFilterMap filter-map)))))
 
@@ -54,7 +55,7 @@ If no sub-context-path is given, \"/\" is assumed."
      (if-let [{:keys [filter-def filter-map]} (remove-servlet-filter! (filter-name sub-context-path))]
        (do
          (log/info "Deregistering ring handler at sub-context path:" sub-context-path)
-         (doto (reg/fetch "web-context")
+         (doto ^Context (reg/fetch "web-context")
            (.removeFilterMap filter-map)
            (.removeFilterDef filter-def)))
        (log/warn "Attempted to deregister ring handler at sub-context path:" sub-context-path ", but none found"))))

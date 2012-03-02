@@ -18,11 +18,12 @@
 (ns immutant.web.session
   (:use ring.middleware.session.store
         [immutant.web.core :only [current-servlet-request]])
-  (:require [ring.middleware.session :as ring-session]))
+  (:require [ring.middleware.session :as ring-session])
+  (:import javax.servlet.http.HttpSession))
 
 (def ^{:private true} session-key ":immutant.web.session/session-data")
 
-(defn servlet-session
+(defn #^HttpSession servlet-session
   "Returns the servlet session for the current request."
   []
   (and current-servlet-request

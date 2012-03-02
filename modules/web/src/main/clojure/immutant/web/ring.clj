@@ -19,9 +19,10 @@
   (:use [immutant.web.core            :only [get-servlet-filter current-servlet-request]]
         [immutant.web.session.handler :only [remove-ring-session-cookie]])
   (:require [clojure.string    :as string]
-            [ring.util.servlet :as servlet]))
+            [ring.util.servlet :as servlet])
+  (:import (javax.servlet.http HttpServletRequest HttpServletResponse)))
 
-(defn- ensure-slash [s]
+(defn- ensure-slash [^String s]
   (if (.startsWith s "/")
     s
     (str "/" s)))
@@ -34,7 +35,10 @@
      :path-info (ensure-slash
                  (string/replace path-info (re-pattern (str "^" prefix)) ""))}))
 
-(defn handle-request [filter-name sub-context request response]
+(defn handle-request [filter-name
+                      sub-context
+                      ^HttpServletRequest request
+                      ^HttpServletResponse response]
   (.setCharacterEncoding response "UTF-8")
   (let [{:keys [handler response-filters]} (get-servlet-filter filter-name)]
     (if handler

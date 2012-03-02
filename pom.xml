@@ -203,6 +203,8 @@
     <!-- pin to a specific 2.0.0-SNAPSHOT. This points to our snapshot (org.immutant/leiningen-core) -->
     <version.leiningen-core>2.0.0-20120229.132515-1</version.leiningen-core>
     <version.autodoc>0.9.2</version.autodoc>
+
+    <warn-on-reflection>false</warn-on-reflection>
   </properties>
 
   <repositories>
@@ -484,6 +486,7 @@
           <extensions>true</extensions>
           <configuration>
             <temporaryOutputDirectory>true</temporaryOutputDirectory>
+            <warnOnReflection>${warn-on-reflection}</warnOnReflection>
           </configuration>
           <executions>
             <execution>

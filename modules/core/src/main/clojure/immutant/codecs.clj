@@ -66,12 +66,12 @@
     (.writeObject oos object)
     (.toString baos "ISO-8859-1")))
 
-(defn deserialize [s]
+(defn deserialize [^String s]
   (with-open [bais (java.io.ByteArrayInputStream. (.getBytes s "ISO-8859-1"))
               ois (java.io.ObjectInputStream. bais)]
     (.readObject ois)))
 
-(defmethod print-dup :default [o w]
+(defmethod print-dup :default [o ^java.io.Writer w]
   (.println System/out (str "WARN: using Java serialization for " (.getName (class o))))
   (.write w "#=(immutant.codecs/deserialize ")
   (print-dup (serialize o) w)

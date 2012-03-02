@@ -17,8 +17,10 @@
 
 (ns immutant.utilities
   "Various utility functions."
-  (:require [immutant.registry :as lookup])
-  (:require [clojure.string :as str]))
+  (:require [immutant.registry :as lookup]
+            [clojure.string    :as str])
+  (:import org.immutant.core.Closer
+           org.jboss.as.network.NetworkInterfaceBinding))
 
 (defn app-root
   "Returns a file pointing to the root dir of the application"
@@ -35,14 +37,14 @@
   "Registers a function to be called when the application is undeployed.
 Used internally to shutdown various services, but can be used by application code as well."
   [f]
-  (if-let [closer (lookup/fetch "housekeeper")]
+  (if-let [^Closer closer (lookup/fetch "housekeeper")]
     (.atExit closer f)
     (println "WARN: Unable to register at-exit handler with housekeeper")))
 
 (defn ^{:private true} lookup-interface-address
   "Looks up the ip address from the proper service for the given name."
   [name]
-  (-> (lookup/fetch (str "jboss.network." name))
+  (-> ^NetworkInterfaceBinding (lookup/fetch (str "jboss.network." name))
       .getAddress
       .getHostAddress))
 

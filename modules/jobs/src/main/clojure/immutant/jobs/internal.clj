@@ -20,11 +20,11 @@
         immutant.mbean)
   (:require [immutant.registry :as registry]
             [clojure.tools.logging :as log])
-  (:import [org.immutant.jobs ClojureJob ScheduledJobMBean]
+  (:import [org.immutant.jobs ClojureJob JobScheduler JobSchedulizer ScheduledJobMBean]
            [org.immutant.jobs.as JobsServices]
            [org.projectodd.polyglot.jobs BaseScheduledJob]))
 
-(defn ^{:private true} job-schedulizer  []
+(defn ^{:private true} #^JobSchedulizer job-schedulizer  []
   (registry/fetch "job-schedulizer"))
 
 (defn ^{:internal true} create-scheduler
@@ -46,7 +46,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
   "Waits for the scheduler to start before invoking f"
   ([scheduler f]
      (wait-for-scheduler scheduler f 30))
-  ([scheduler f attempts]
+  ([^JobScheduler scheduler f attempts]
      (cond
       (.isStarted scheduler) (f)
       (< attempts 0)         (throw (IllegalStateException.
@@ -59,7 +59,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
 (defn ^{:internal true} create-job
   "Instantiates and starts a job"
   [f name spec singleton]
-  (let [scheduler (scheduler singleton)]
+  (let [^JobScheduler scheduler (scheduler singleton)]
     (doto
         (proxy [BaseScheduledJob ScheduledJobMBean]
             [ClojureJob (app-name) name "" spec singleton]
@@ -74,7 +74,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
 
 (defn ^{:internal true} stop-job
   "Stops (unschedules) a job, removing it from the scheduler."
-  [job]
+  [^BaseScheduledJob job]
   (if-not (.isShutdown (.getScheduler job))
     (.stop job)))
 
