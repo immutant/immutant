@@ -5,15 +5,22 @@
 #+EXPORT_SELECT_TAGS: export
 #+EXPORT_EXCLUDE_TAGS: noexport
 
-* Installation
+* Introduction
+  There are currently two options for installing Immutant: using the 
+  Leiningen plugin and downloading a zip file.
 
-  To install Immutant, first install [[https://github.com/technomancy/leiningen][Leiningen]]. Managing Immutant is
-  most easily done through the [[https://github.com/immutant/lein-immutant][lein-immutant]] plugin:
+* Installation via Leiningen
+
+  To install Immutant via the [[http://leiningen.org/][Leiningen]] plugin, you'll need to
+  first install Leiningen, followed by the [[https://github.com/immutant/lein-immutant/][lein-immutant]] plugin:
   
   #+begin_src sh
    $ lein plugin install lein-immutant VERSION
   #+end_src
-  
+
+  You can determine the current version of the plugin by looking at
+  its [[http://clojars.org/lein-immutant][page on clojars]].
+
   The plugin provides a number of subcommands, one of which is
   =install=. So installing Immutant is as easy as this:
   
@@ -24,3 +31,24 @@
   Without a VERSION specified, the LATEST successful incremental build
   will be installed beneath =~/.lein/immutant/current=. To obtain fixes
   released in subsequent incremental builds, simply run =install= again.
+
+  To obtain a specific version, you can specify an incremental build 
+  number (ex: 123) or a released version (ex: 0.1.0).
+
+  See [[./deployment.html][Deployment]] for more details about the plugin.
+
+* Installation via Zip Download
+
+  You can manually download any of the same builds that you can install 
+  via the plugin. You can download incremental builds from our [[http://immutant.org/builds/][builds page]],
+  and official releases from our {{TODO}} page. 
+  
+  Once you have the zip downloaded, expand it somewhere handy. If you want
+  to use the Leiningen plugin with this build, you'll need to set =$IMMUTANT_HOME=:
+
+  #+begin_src sh
+    $ mkdir immutant-releases
+    $ cd immutant-releases
+    $ unzip path/to/immutant-dist-bin.zip
+    $ export $IMMUTANT_HOME=~/immutant-releases/0.1.0-incremental-123/
+  #+end_src
