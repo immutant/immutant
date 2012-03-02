@@ -35,10 +35,10 @@
 (defn schedule
   "Schedules a job to execute based on the spec.
 Calling this function with the same name as a previously scheduled job will replace that job."
-  [name spec f & options]
+  [name spec f & {singleton :singleton :or {singleton true}}]
   (unschedule name)
   (log/info "Scheduling job" name "at" spec)
   (swap! current-jobs assoc name
-         (create-job f name spec (boolean (:singleton (apply hash-map options)))))
+         (create-job f name spec (boolean singleton)))
   (at-exit (partial unschedule name))
   nil)

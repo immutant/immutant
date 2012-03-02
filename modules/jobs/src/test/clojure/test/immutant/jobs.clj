@@ -29,6 +29,6 @@
   (schedule "name" "spec" fun) => anything
   (provided
     (unschedule "name") => nil
-    (create-job fun "name" "spec" false) => :job
+    (create-job fun "name" "spec" true) => :job
     (at-exit anything) => nil))
 

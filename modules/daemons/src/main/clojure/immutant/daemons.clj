@@ -24,7 +24,7 @@
    invoking the stop function automatically at undeployment/shutdown.
    If :singleton is truthy, the service will start on only one node
    in a cluster"
-  [name start stop & {singleton :singleton}]
+  [name start stop & {singleton :singleton :or {singleton true}}]
   (if-let [daemonizer (lookup/fetch "daemonizer")]
     (.createDaemon daemonizer name #(future (start)) stop (boolean singleton))))
   
