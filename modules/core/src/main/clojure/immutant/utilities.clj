@@ -19,8 +19,7 @@
   "Various utility functions."
   (:require [immutant.registry :as lookup]
             [clojure.string    :as str])
-  (:import org.immutant.core.Closer
-           org.jboss.as.network.NetworkInterfaceBinding))
+  (:import org.immutant.core.Closer))
 
 (defn app-root
   "Returns a file pointing to the root dir of the application"
@@ -44,7 +43,7 @@ Used internally to shutdown various services, but can be used by application cod
 (defn ^{:private true} lookup-interface-address
   "Looks up the ip address from the proper service for the given name."
   [name]
-  (-> ^NetworkInterfaceBinding (lookup/fetch (str "jboss.network." name))
+  (-> (lookup/fetch (str "jboss.network." name))
       .getAddress
       .getHostAddress))
 
