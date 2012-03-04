@@ -45,22 +45,22 @@
 
 (deftest initialize-without-an-init-fn-should-load-config
   (registry/put "app-root" (io/file (io/resource "project-root")))
-  (initialize nil)
+  (initialize nil nil)
   (is (= "immutant.clj" @a-value)))
 
 (deftest initialize-with-an-init-fn-should-not-load-config
   (registry/put "app-root" (io/file (io/resource "project-root")))
-  (initialize "immutant.test.runtime/do-nothing")
+  (initialize "immutant.test.runtime/do-nothing" nil)
   (is-not (= "immutant.clj" @a-value)))
 
 (deftest initialize-with-an-init-fn-should-call-the-init-fn
   (registry/put "app-root" (io/file (io/resource "project-root")))
-  (initialize "immutant.test.runtime/update-a-value")
+  (initialize "immutant.test.runtime/update-a-value" nil)
   (is (= "biscuit" @a-value)))
 
 (deftest initialize-with-no-init-fn-and-no-config-should-do-nothing
   (registry/put "app-root" (io/file (System/getProperty "java.io.tmpdir")))
-  (initialize nil)
+  (initialize nil nil)
   (is (= "ham" @a-value)))
 
 

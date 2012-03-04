@@ -63,6 +63,8 @@
 * Configuration Options
 ** :root
 ** init fn
+** :swank-port
+** :nrepl-port
 
 * Configuration Files
 ** project.clj

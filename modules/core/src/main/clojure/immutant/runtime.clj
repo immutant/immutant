@@ -21,7 +21,8 @@ bootstrapping process. Applications shouldn't use anything here."
   (:use [immutant.utilities :only [app-root app-name]])
   (:require [clojure.string        :as str]
             [clojure.java.io       :as io]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [immutant.repl         :as repl]))
 
 (defn ^{:internal true} require-and-intern [namespaced-fn]
   (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
@@ -36,8 +37,9 @@ bootstrapping process. Applications shouldn't use anything here."
 (defn ^{:internal true} initialize 
   "Attempts to initialize the app by calling an init-fn (if given) or, lacking that,
 tries to load an immutant.clj from the app-root"
-  [init-fn]
-  (let [config-file (io/file (app-root) "immutant.clj")
+  [init-fn config-hash]
+  (let [config (into {} config-hash)
+        config-file (io/file (app-root) "immutant.clj")
         config-exists (.exists config-file)]
     (if init-fn
       (do
@@ -46,5 +48,6 @@ tries to load an immutant.clj from the app-root"
         (require-and-invoke init-fn))
       (if config-exists
         (load-file (.getAbsolutePath config-file))
-        (log/warn "no immutant.clj found in" (app-name) "and you specified no init fn; no app initialization will be performed")))))
+        (log/warn "no immutant.clj found in" (app-name) "and you specified no init fn; no app initialization will be performed")))
+    (repl/init-repl config)))
 

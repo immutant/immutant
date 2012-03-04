@@ -17,11 +17,10 @@
 
 (ns immutant.repl
   "Provides tools for starting swank and nrepl servers."
-  (:require [swank.swank                   :as swank]
-            [clojure.tools.nrepl.server    :as nrepl]
-            [clojure.tools.nrepl.transport :as transport]
-            [immutant.utilities            :as util]
-            [clojure.tools.logging         :as log]))
+  (:require [swank.swank                :as swank]
+            [clojure.tools.nrepl.server :as nrepl]
+            [immutant.utilities         :as util]
+            [clojure.tools.logging      :as log]))
 
 (defn stop-swank
   "Shuts down the running swank server."
@@ -36,7 +35,7 @@ interface defined by the AS. Registers an at-exit handler to shutdown swank on
 undeploy."
   ([interface-address port]
      (log/info "Starting swank for" (util/app-name) "at" (str interface-address ":" port))
-     (swank/start-server :host interface-address :port port :exit-on-quit false)
+     (swank/start-server :host interface-address :port (Integer. port) :exit-on-quit false)
      (util/at-exit stop-swank))
   ([port]
      (start-swank (util/management-interface-address) port)))
@@ -55,8 +54,17 @@ shutdown nrepl on undeploy, and returns a server that can be passed to
 stop-nrepl to shut it down manually."
   ([interface-address port]
      (log/info "Starting nrepl for" (util/app-name) "at" (str interface-address ":" port))
-     (when-let [server (nrepl/start-server :port port :host interface-address)]
+     (when-let [server (nrepl/start-server :port (Integer. port) :host interface-address)]
        (util/at-exit (partial stop-nrepl server))
        server))
   ([port]
      (start-nrepl (util/management-interface-address) port)))
+
+(defn ^{:internal true} init-repl
+  "Looks for nrepl-port and swank-port values in the given config, and starts
+the appropriate servers."
+  [config]
+  (when-let [port (config "nrepl-port")]
+    (start-nrepl port))
+  (when-let [port (config "swank-port")]
+    (start-swank port)))

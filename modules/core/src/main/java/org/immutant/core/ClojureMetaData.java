@@ -92,6 +92,10 @@ public class ClojureMetaData extends ApplicationMetaData {
         }
     }
 
+    public Map<String, Object> getConfig() {
+        return config;
+    }
+
     @SuppressWarnings("unchecked")
     public static Map<String, Object> parse(File file) throws Exception {
         return ApplicationBootstrapUtils.parseDescriptor( file );

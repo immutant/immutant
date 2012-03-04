@@ -40,7 +40,7 @@ public class ApplicationInitializer implements DeploymentUnitProcessor {
         
         ClojureRuntime runtime = unit.getAttachment( ClojureRuntime.ATTACHMENT_KEY );
         
-        runtime.invoke( "immutant.runtime/initialize", metaData.getInitFunction() );
+        runtime.invoke( "immutant.runtime/initialize", metaData.getInitFunction(), metaData.getConfig() );
         
     }
 

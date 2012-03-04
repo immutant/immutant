@@ -33,6 +33,7 @@
         <resource-root path="leiningen-core.jar"/>
         <resource-root path="pomegranate.jar"/>
         <resource-root path="swank-clojure.jar"/>
+        <resource-root path="clj-stacktrace.jar"/>
         <resource-root path="tools.nrepl.jar"/>
         <resource-root path="aether-impl.jar"/>
         <resource-root path="aether-spi.jar"/>
