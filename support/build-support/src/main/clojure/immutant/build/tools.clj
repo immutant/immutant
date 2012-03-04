@@ -25,7 +25,7 @@
             [clojure.contrib.zip-filter.xml :as zfx]
             [clojure.xml                    :as xml]
             [clojure.contrib.lazy-xml       :as lazy-xml]
-            [org.satta.glob :as glob])
+            [org.satta.glob                 :as glob])
   (:use [clojure.pprint :only [pprint]]))
 
 (defn unzip [zip-file dest-dir]
@@ -193,10 +193,13 @@
 (defn transform-config [file]
   (let [in-file (io/file jboss-dir file)
         out-file in-file]
-    (println "transforming" file)
-    (io/make-parents out-file)
-    (io/copy (with-out-str
-               (lazy-xml/emit
-                (walk-the-doc (prepare-zip in-file))
-                :indent 4))
-             out-file)))
+    (if (re-find #"immutant" (slurp in-file))
+      (println file "already transformed, skipping")
+      (do
+        (println "transforming" file)
+        (io/make-parents out-file)
+        (io/copy (with-out-str
+                   (lazy-xml/emit
+                    (walk-the-doc (prepare-zip in-file))
+                    :indent 4))
+                 out-file)))))
