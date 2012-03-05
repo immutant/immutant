@@ -57,7 +57,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         File root = metaData.getRoot();
 
         try {
-            List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, metaData.isArchive() );
+            List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, metaData.resolveDependencies() );
 
             boolean clojureProvided = false;
 

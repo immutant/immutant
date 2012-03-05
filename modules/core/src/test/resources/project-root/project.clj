@@ -4,4 +4,5 @@
   :ham :biscuit
   :immutant {:ham "basket"
              :biscuit "gravy"
-             :init some.namespace/init})
+             :init some.namespace/init
+             :resolve-dependencies false})

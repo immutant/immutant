@@ -117,13 +117,13 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
 
 (defn ^{:internal true} get-dependencies
   "Resolves the dependencies for an application. It concats bundled jars with any aether resolved
-dependencies, with bundled jars taking precendence. If bundled-only is true, dependencies aren't
+dependencies, with bundled jars taking precendence. If resolve-deps is false, dependencies aren't
 resolved via aether and only bundled jars are returned."
-  [app-root bundled-only]
+  [app-root resolve-deps]
   (let [bundled (bundled-jars app-root)
         bundled-jar-names (map (fn [^File f] (.getName f)) bundled)]
     (concat
      bundled
-     (when-not bundled-only
+     (when resolve-deps
        (filter (fn [^File f] (not (some #{(.getName f)} bundled-jar-names)))
                (resolve-dependencies (read-project app-root)))))))

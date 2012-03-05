@@ -61,7 +61,7 @@
       (is-not (some #{(io/file (io/resource "project-root/lib/dev/invalid.jar"))}
                     jar-set))))
 
-  (let [deps (get-dependencies app-root false)]
+  (let [deps (get-dependencies app-root true)]
     (deftest get-dependencies-should-return-deps-from-project-clj
       (is (some #{(first (aether/dependency-files
                           (aether/resolve-dependencies
@@ -82,11 +82,11 @@
                                  :coordinates [['org.clojure/tools.logging "0.2.3"]]))))}
                     deps))))
   
-  (deftest get-dependencies-with-bundled-only-should-only-return-jars-from-lib
+  (deftest get-dependencies-without-resolve-deps-should-only-return-jars-from-lib
     (is (= #{(io/file (io/resource "project-root/lib/some.jar"))
              (io/file (io/resource "project-root/lib/some-other.jar"))
              (io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar"))}
-           (set (get-dependencies app-root true))))))
+           (set (get-dependencies app-root false))))))
 
 
 (let [app-root (io/file (io/resource "non-project-root"))]
@@ -119,13 +119,13 @@
       (is-not (some #{(io/file (io/resource "non-project-root/lib/dev/invalid.jar"))}
                     jar-set))))
 
-  (let [deps (get-dependencies app-root false)]
+  (let [deps (get-dependencies app-root true)]
     (deftest get-dependencies-should-return-deps-from-lib
       (is (some #{(io/file (io/resource "non-project-root/lib/some.jar"))}
                 deps))))
   
-  (deftest get-dependencies-with-bundled-only-should-only-return-jars-from-lib
+  (deftest get-dependencies-without-resolve-deps-should-only-return-jars-from-lib
     (is (= #{(io/file (io/resource "non-project-root/lib/some.jar"))
              (io/file (io/resource "non-project-root/lib/some-other.jar"))
              (io/file (io/resource "non-project-root/lib/tools.logging-0.2.3.jar"))}
-           (set (get-dependencies app-root true))))))
+           (set (get-dependencies app-root false))))))

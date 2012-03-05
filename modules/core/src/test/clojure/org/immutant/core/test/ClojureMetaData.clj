@@ -43,7 +43,17 @@
       (is (= "gravy" (.getString merged-md "biscuit"))))
 
     (deftest the-immutant-map-from-project-clj-should-take-a-backseat-to-existing-config
-      (is (= "biscuit" (.getString merged-md "ham"))))))
+      (is (= "biscuit" (.getString merged-md "ham"))))
+
+    (deftest the-default-resolve-dependencies-for-non-archives-should-be-true
+      (is (= true (.resolveDependencies md))))
+
+    (deftest a-resolve-dependencies-value-in-project-clj-should-win
+      (is (= false (.resolveDependencies merged-md))))
+
+    (deftest the-default-resolve-dependencies-for-archives-should-be-false
+      (.explode md (io/file ""))
+      (is (= false (.resolveDependencies md))))))
 
 (deftest getHash "it should return the proper value as a Hash"
   (let [md (ClojureMetaData. "app-name"
