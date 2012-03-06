@@ -80,10 +80,13 @@
   (doseq [version clojure-versions]
     (try
       (set-version version)
-      (println "\n>>>> Running integs with clojure" version)
+      (println "\n>>>>" (str \[ (.toString (java.util.Date.)) \])
+               "Running integs with clojure" version )
       (binding [*current-clojure-version* version]
         (apply run-tests namespaces))
-      (println "\n<<<< Finished integs with clojure" version "\n")
+      (println "\n<<<<" (str \[ (.toString (java.util.Date.)) \])
+               "Finished integs with clojure"
+               version "\n")
       (finally (remove-clojure-jars)))))
 
 (defn ns-from-property []

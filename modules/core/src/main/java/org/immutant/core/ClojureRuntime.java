@@ -21,6 +21,12 @@ package org.immutant.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.logging.Logger;
@@ -42,17 +48,19 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     public ClojureRuntime(ClassLoader classLoader, String name) {
         this.classLoader = classLoader;
         this.name = name;
+        initializeThreadPool();
     }
    
     @Override
     public void start(StartContext context) throws StartException {
-
     }
 
     @Override
     public synchronized void stop(StopContext context) {
         log.info( "Shutting down Clojure runtime for " + this.name );
         invoke( "clojure.core/shutdown-agents" );
+        this.threadPool.setKeepAliveTime( 1, TimeUnit.MILLISECONDS );
+        this.threadPool.shutdownNow();
     }
     
     @Override 
@@ -71,6 +79,19 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
         return invoke( func, namespacedFunction, args );    
     }
     
+    protected void initializeThreadPool() {
+        this.threadPool = (ThreadPoolExecutor)Executors.newCachedThreadPool(  
+                new ThreadFactory() {   
+                    public Thread newThread(Runnable runnable) {
+                        Thread thread = new Thread(runnable);
+                        thread.setName(ClojureRuntime.this.name + 
+                                " runtime-thread-" + ClojureRuntime.this.threadCounter.getAndIncrement() );
+                        thread.setContextClassLoader( ClojureRuntime.this.classLoader );
+                        return thread;
+                    }
+                });
+    }
+        
     protected Object invoke(Object func, Object... args) {
         return call( func, "invoke", args );
     }
@@ -83,6 +104,7 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
         return callStatic( getRuntime(), "var", namespace, varName );   
     }
     
+    @SuppressWarnings("rawtypes")
     protected Object callStatic(Class klass, String methodName, Object... args) {
         return call( klass, null, methodName, args );
     }
@@ -91,37 +113,50 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
         return call( obj.getClass(), obj, methodName, args );
     }
         
-    protected Object call(Class klass, Object obj, String methodName, Object... args) {
-        ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    protected Object call(final Class klass, final Object obj, final String methodName, final Object... args) {
         if (klass == null) {
             throw new IllegalArgumentException( "You must provide a class" );
         }
         try {
-            Thread.currentThread().setContextClassLoader( this.classLoader );
             ArrayList<Class> paramTypes = new ArrayList<Class>( args.length );
             for(Object each : args) {
                 paramTypes.add( each==null ? Object.class : each.getClass() );
             }
-            Method method;
+            
+            Method meth;
             try {
-                method = klass.getMethod( methodName, paramTypes.toArray( new Class[0] ) );
+                meth = klass.getMethod( methodName, paramTypes.toArray( new Class[0] ) );
             } catch (NoSuchMethodException e) {
                 //try again with generic args
                 paramTypes.clear();
                 for(int i = 0; i < args.length; i++) {
                     paramTypes.add( Object.class );
                 }
-                method = klass.getMethod( methodName, paramTypes.toArray( new Class[0] ) );
+                meth = klass.getMethod( methodName, paramTypes.toArray( new Class[0] ) );
             }
+            
+            final Method method = meth;
+           
+            // execute clojure calls in a thread pool to prevent its ThreadLocals from 
+            // retaining memory on undeploy since the MSC recycles threads
+            return this.threadPool.submit( new Callable() {
+                public Object call() {
+                    try {
+                        return method.invoke( obj, args );
+                    } catch (Exception e) {
+                        throw new RuntimeException( "Failed to invoke " + methodName, e );
+                    }
+                }
+            }).get();
 
-            return method.invoke( obj, args );
         } catch (Exception e) {
             throw new RuntimeException( "Failed to call " + methodName, e );
-        } finally {
-            Thread.currentThread().setContextClassLoader( originalClassLoader );
         }
+
     }
     
+    @SuppressWarnings("rawtypes")
     protected Class loadClass(String className) {
         try {
             return this.classLoader.loadClass( className );
@@ -130,8 +165,10 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
         }
     }
     
+    @SuppressWarnings("rawtypes")
     protected Class getRuntime() {
         if (this.runtime == null) {
+            //initialize();
             this.runtime = loadClass( RUNTIME_CLASS );
         }
         
@@ -139,8 +176,11 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     }
     
     private ClassLoader classLoader;
+    @SuppressWarnings("rawtypes")
     private Class runtime;
     private String name;
+    private ThreadPoolExecutor threadPool;
+    private AtomicLong threadCounter = new AtomicLong( 1 );
     
     protected static final String RUNTIME_CLASS = "clojure.lang.RT";   
     protected static final String CLOJURE_UTIL_NAME = "immutant/runtime";
