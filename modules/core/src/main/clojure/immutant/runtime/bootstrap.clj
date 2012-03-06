@@ -26,9 +26,9 @@
            [java.util ArrayList]))
 
 (extend-type org.jboss.modules.ModuleClassLoader
-    pomegranate/URLClasspath
-    (can-modify? [this] false)
-    (add-url [this _]))
+  pomegranate/URLClasspath
+  (can-modify? [this] false)
+  (add-url [this _]))
 
 (defn ^{:private true} stringify-symbol
   "Turns a symbol into a namspace/name string."
@@ -84,7 +84,7 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
                     (let [path (project key)]
                       (concat acc (if (coll? path)
                                     path
-                                         (vector path)))))
+                                    (vector path)))))
                   []
                   [:resources-path ;; lein1
                    :resource-paths ;; lein2
