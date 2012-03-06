@@ -19,14 +19,11 @@
 
 package org.immutant.core;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.logging.Logger;
@@ -48,7 +45,6 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     public ClojureRuntime(ClassLoader classLoader, String name) {
         this.classLoader = classLoader;
         this.name = name;
-        initializeThreadPool();
     }
    
     @Override
@@ -59,8 +55,6 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     public synchronized void stop(StopContext context) {
         log.info( "Shutting down Clojure runtime for " + this.name );
         invoke( "clojure.core/shutdown-agents" );
-        this.threadPool.setKeepAliveTime( 1, TimeUnit.MILLISECONDS );
-        this.threadPool.shutdownNow();
     }
     
     @Override 
@@ -77,19 +71,6 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
         Object func = var( CLOJURE_UTIL_NS, "require-and-invoke" );
         
         return invoke( func, namespacedFunction, args );    
-    }
-    
-    protected void initializeThreadPool() {
-        this.threadPool = (ThreadPoolExecutor)Executors.newCachedThreadPool(  
-                new ThreadFactory() {   
-                    public Thread newThread(Runnable runnable) {
-                        Thread thread = new Thread(runnable);
-                        thread.setName(ClojureRuntime.this.name + 
-                                " runtime-thread-" + ClojureRuntime.this.threadCounter.getAndIncrement() );
-                        thread.setContextClassLoader( ClojureRuntime.this.classLoader );
-                        return thread;
-                    }
-                });
     }
         
     protected Object invoke(Object func, Object... args) {
@@ -118,42 +99,73 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
         if (klass == null) {
             throw new IllegalArgumentException( "You must provide a class" );
         }
+        
+        ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
         try {
+            Thread.currentThread().setContextClassLoader( this.classLoader );
             ArrayList<Class> paramTypes = new ArrayList<Class>( args.length );
             for(Object each : args) {
                 paramTypes.add( each==null ? Object.class : each.getClass() );
             }
             
-            Method meth;
+            Method method;
             try {
-                meth = klass.getMethod( methodName, paramTypes.toArray( new Class[0] ) );
+                method = klass.getMethod( methodName, paramTypes.toArray( new Class[0] ) );
             } catch (NoSuchMethodException e) {
                 //try again with generic args
                 paramTypes.clear();
                 for(int i = 0; i < args.length; i++) {
                     paramTypes.add( Object.class );
                 }
-                meth = klass.getMethod( methodName, paramTypes.toArray( new Class[0] ) );
+                method = klass.getMethod( methodName, paramTypes.toArray( new Class[0] ) );
             }
             
-            final Method method = meth;
-           
-            // execute clojure calls in a thread pool to prevent its ThreadLocals from 
-            // retaining memory on undeploy since the MSC recycles threads
-            return this.threadPool.submit( new Callable() {
-                public Object call() {
-                    try {
-                        return method.invoke( obj, args );
-                    } catch (Exception e) {
-                        throw new RuntimeException( "Failed to invoke " + methodName, e );
-                    }
-                }
-            }).get();
+            Object retval = method.invoke( obj, args );
 
+            // leaving these thread locals around will cause memory leaks when the application
+            // is undeployed.
+            removeThreadLocal( "clojure.lang.Var", "dvals" );
+            removeThreadLocal( "clojure.lang.Agent", "nested" );
+            removeThreadLocal( "clojure.lang.LockingTransaction", "transaction" );
+            
+            return retval;
+            
         } catch (Exception e) {
             throw new RuntimeException( "Failed to call " + methodName, e );
+        } finally {
+            Thread.currentThread().setContextClassLoader( originalClassloader );
         }
-
+    }
+    
+    @SuppressWarnings("rawtypes")
+    protected void removeThreadLocal(String className, String fieldName) throws Exception {
+        Field field = lookupField( loadClass( className ), fieldName, true );
+        if (field != null) {
+            ThreadLocal tl = (ThreadLocal)field.get( null );
+            if (tl != null) {
+                tl.remove();
+            }
+        }
+    }
+    
+    @SuppressWarnings("rawtypes")
+    protected Field lookupField(Class klass, String fieldName, boolean makeAccessible) throws NoSuchFieldException {
+        Map<String, Field> fields = this.fieldCache.get( klass );
+        if (fields == null) {
+            fields = new HashMap<String, Field>();
+            this.fieldCache.put( klass, fields );
+        }
+        
+        Field field = fields.get( fieldName );
+        if (field == null) {
+            field = klass.getDeclaredField( fieldName );
+            if (makeAccessible) {
+                field.setAccessible( true );
+            }
+            fields.put( fieldName, field );
+        }
+        
+        return field;
     }
     
     @SuppressWarnings("rawtypes")
@@ -179,8 +191,8 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     @SuppressWarnings("rawtypes")
     private Class runtime;
     private String name;
-    private ThreadPoolExecutor threadPool;
-    private AtomicLong threadCounter = new AtomicLong( 1 );
+    @SuppressWarnings("rawtypes")
+    private HashMap<Class, Map<String, Field>> fieldCache = new HashMap<Class, Map<String, Field>>();
     
     protected static final String RUNTIME_CLASS = "clojure.lang.RT";   
     protected static final String CLOJURE_UTIL_NAME = "immutant/runtime";
