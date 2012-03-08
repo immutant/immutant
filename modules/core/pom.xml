@@ -54,7 +54,7 @@
     </dependency>
     
     <dependency>
-      <groupId>org.immutant</groupId>
+      <groupId>leiningen-core</groupId>
       <artifactId>leiningen-core</artifactId>
       <version>${version.leiningen-core}</version>
       <scope>compile</scope>
