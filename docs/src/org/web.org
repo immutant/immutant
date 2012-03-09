@@ -21,6 +21,9 @@
   same thing.
 
 * Context Path
+  :PROPERTIES:
+  :CUSTOM_ID: web-context-path
+  :END:
 
   The *context path* is a prefix on the path portion of a url that is used as
   a mechanism to route requests to the proper webapp when more than
@@ -50,7 +53,7 @@
 
    You can override the default context path via the =:context-path= key in
    either in the deployment descriptor or the application's =project.clj=.
-   See [[./initialization.html][Initialization]] for the details on setting configuration values,
+   See [[./initialization.html][Initialization]] for the details on setting configuration values.
 
    This context path is considered the *top-level* context path - you have the
    option to bind a handler to a *sub-context* path that will be nested within
@@ -69,7 +72,7 @@
 
 * Registering Handlers
 
-  To register a Ring handler, you simply call the =immutant.web/start=, which
+  To register a Ring handler, you simply call the [[./apidoc/immutant.web-api.html#immutant.web/start][immutant.web/start]], which
   takes one or two arguments:
 
   - =sub-context-path= - the sub-context path within the application's context
@@ -104,7 +107,7 @@
 
 * Deregistering Handlers
 
-  You can deregister a Ring handler via the =immutant.web/stop= function,
+  You can deregister a Ring handler via the [[./apidoc/immutant.web-api.html#immutant.web/stop][immutant.web/stop]] function,
   which takes zero or one arguments:
 
   - =sub-context-path= - the sub-context path within the application's context
@@ -130,7 +133,7 @@
   like [[https://github.com/brentonashworth/sandbar][Sandbar]]). The Immutant session store uses session provided by
   the underlying JBoss AS7 servlet container, which automatically replicates
   session data across a cluster. You create the store by calling 
-  =immutant.web.session/servlet-store=, and use it by passing it as the =:store=
+  [[./apidoc/immutant.web.session-api.html#immutant.web.session/servlet-store][immutant.web.session/servlet-store]], and use it by passing it as the =:store=
   option to =ring.middleware.session/wrap-session=:
 
   #+begin_src clojure

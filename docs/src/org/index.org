@@ -10,5 +10,8 @@
 <p class="releaseinfo"></p>
 <hr/>
 <div id="index-toc"></div>
+<ul id="appendices">
+  <li class="toc-chapter-heading"><a href="./apidoc/index.html">Appendix A. API Documentation</a></li>
+</ul>
 #+end_html
 

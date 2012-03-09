@@ -36,10 +36,10 @@
 
 ** Deployment
 
-   Use the =start= function to define a messaging destination. A
-   simple naming convention designates the destination as either a
-   queue or a topic: if its name begins with =/queue=, it's a queue;
-   if it begins with =/topic=, it's a topic.
+   Use  [[./apidoc/immutant.messaging-api.html#immutant.messaging/start][immutant.messaging/start]] function to define a messaging 
+   destination. A simple naming convention designates the destination 
+   as either a queue or a topic: if its name begins with =/queue=, it's 
+   a queue; if it begins with =/topic=, it's a topic.
 
    #+begin_src clojure
      (require '[immutant.messaging :as msg])
@@ -49,11 +49,10 @@
    #+end_src
 
    You can invoke =start= from anywhere in your application, but
-   typically it's done in the =immutant.clj= initialization file, as
-   described in [an earlier tutorial][deploying].
+   typically it's done in the [[./initialization.html#initialization-immutant-clj][immutant.clj]] initialization file.
 
-   While =start= has a complement, =stop=, you needn't call it
-   directly. It will be invoked when your application is
+   While =start= has a complement, [[./apidoc/immutant.messaging-api.html#immutant.messaging/stop][immutant.messaging/stop]], you needn't 
+   call it directly. It will be invoked when your application is
    undeployed. And it's important to note that =start= is idempotent:
    if an endpoint has already been started, likely by a cooperating
    application, the call is effectively a no-op. Similarly, a call to
@@ -75,9 +74,9 @@
    details of the destination or any of its /consumers/.
 
    In Immutant, there is only one way to send a message, whether to a
-   queue or a topic: via the =publish= function. It accepts two
-   required parameters: the name of the destination and the message
-   content, which can be just about anything.
+   queue or a topic: via the  [[./apidoc/immutant.messaging-api.html#immutant.messaging/publish][immutant.messaging/publish]] function. It 
+   accepts two required parameters: the name of the destination and the
+   message content, which can be just about anything.
 
    A number of optional key-value parameters may be passed as well:
 
@@ -119,10 +118,10 @@
    consumer is unaware of the producer or any other consumers.
 
    Immutant features three functions for consuming messages.
-   - =receive= Blocks the caller until a message arrives and returns
+   - [[./apidoc/immutant.messaging-api.html#immutant.messaging/receive][immutant.messaging/receive]] Blocks the caller until a message arrives and returns
      the decoded message
-   - =message-seq= Creates a lazy sequence of messages
-   - =listen= Register a handler function that will receive the
+   - [[./apidoc/immutant.messaging-api.html#immutant.messaging/message-seq][immutant.messaging/message-seq]] Creates a lazy sequence of messages
+   - [[./apidoc/immutant.messaging-api.html#immutant.messaging/listen][immutant.messaging/listen]] Register a handler function that will receive the
      decoded message when it arrives
 
    Both =receive= and =message-seq= expect the destination name as the

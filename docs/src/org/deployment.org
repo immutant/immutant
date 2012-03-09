@@ -6,13 +6,22 @@
 #+EXPORT_EXCLUDE_TAGS: noexport
 
 * Introduction
-* Descriptor-based Deployment
+* lein-immutant
+  refer to installation chapter
+
+* Deployment Descriptor
   :PROPERTIES:
   :CUSTOM_ID: deployment-descriptor
   :END:
+
+* Directory-based Deployment
+  :PROPERTIES:
+  :CUSTOM_ID: deployment-directory
+  :END:
+
 * Archive-based Deployment
   :PROPERTIES:
   :CUSTOM_ID: deployment-archive
   :END:
-* lein-immutant
+
 

@@ -17,8 +17,7 @@
 
 * Scheduling Jobs
 
-  Scheduling a job is as simple as calling the =schedule= function from the
-  =immutant.jobs= namespace:
+  Scheduling a job is as simple as calling [[./apidoc/immutant.jobs-api.html#immutant.jobs/schedule][immutant.jobs/schedule]]:
 
   #+begin_src clojure
     (ns my.ns
@@ -26,7 +25,7 @@
       
     (jobs/schedule "my-job-name" "*/5 * * * * ?" 
                    #(println "I was called!")
-                   :singleton true)
+                   :singleton false)
   #+end_src
 
   The =schedule= function requires three arguments, and also accepts options:
@@ -40,11 +39,10 @@
 
     | Option     | Default | Description                                                                                                                              |
     |------------+---------+------------------------------------------------------------------------------------------------------------------------------------------|
-    | :singleton | /false/ | Marks the job as a *singleton* in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node. |
+    | :singleton | /true/  | Marks the job as a *singleton* in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node. |
 
   Job scheduling is dynamic, and can occur anywhere in your application code. 
-  Jobs that share the lifecycle of your application are idiomatically placed in =immutant.clj=
-  {{immutant.clj needs its own section}}.
+  Jobs that share the lifecycle of your application are idiomatically placed in [[./initialization.html#initialization-immutant-clj][immutant.clj]].
 
   You can safely call =schedule= multiple times with the same job name - the named job will 
   rescheduled.
@@ -78,7 +76,7 @@
 
 * Unscheduling Jobs
   
-  Jobs can be unscheduled via the =unschedule= function:
+  Jobs can be unscheduled via the [[./apidoc/immutant.jobs-api.html#immutant.jobs/unschedule][immutant.jobs/unschedule]] function:
 
   #+begin_src clojure
     (require '[immutant.jobs :as jobs])

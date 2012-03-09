@@ -15,7 +15,7 @@
   You can start a daemon at any point in your application, but it's
   typically done in the bootstrap file, =immutant.clj=.
 
-  Daemons are defined via =immutant.daemons/start=, which requires
+  Daemons are defined via [[./apidoc/immutant.daemons-api.html#immutant.daemons/start][immutant.daemons/start]], which requires
   three parameters:
 
   - =name= - a name for referencing as a JMX MBean
@@ -28,7 +28,7 @@
 
     | Option     | Default | Description                                                                                                |
     |------------+---------+------------------------------------------------------------------------------------------------------------|
-    | :singleton | /false/ | Singleton daemons will only execute on one node in a cluster. If false, the daemon will run on every node. |
+    | :singleton | /true/  | Singleton daemons will only execute on one node in a cluster. If false, the daemon will run on every node. |
 
   The =:singleton= option only applies when deployed to a
   cluster. Immutant provides automatic failover for singleton daemons:
@@ -62,5 +62,5 @@
       (reset! done true))
     
     ;; Register the daemon
-    (daemon/start "mydaemon" start stop :singleton true)
+    (daemon/start "mydaemon" start stop :singleton false)
   #+end_src

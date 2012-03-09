@@ -10,9 +10,9 @@
   The initialization and configuration of applications deployed to 
   Immutant can potentially involve multiple files:
 
-  - the deployment descriptor (if used)
-  - the Leiningen =project.clj= (if present at the application root)
-  - an =immutant.clj= file (if present at the application root)
+  - the [[./deployment.html#deployment-descriptor][deployment descriptor]] (if used)
+  - the Leiningen [[#initialization-project-clj][project.clj]] (if present at the application root)
+  - an [[#initialization-immutant-clj][immutant.clj]] file (if present at the application root)
 
   Each of these files have the opportunity to contribute to the configuration
   or initialization of the application.
@@ -37,9 +37,10 @@
      [[http://leiningen.org/][Leiningen]] =project.clj= in the root. If present, the project file
      is loaded and if an =:immutant= key is preset in the resulting
      =project=, it is merged with the configuration data from the
-     descriptor. If the deployment was not an archive file, Leiningen is
+     descriptor with the configuration from the descriptor taking
+     precedence. If the deployment was not an archive file, Leiningen is
      used to resolve the dependencies present in the =project= via 
-     Maven. 
+     Maven (this behavior can be overridden - see [[#initialization-configuration][:resolve-dependencies]]. 
 
   4. If a =lib/= directory is present in the application root, any jars
      within it are merged with the dependencies calculated in the previous
@@ -47,36 +48,168 @@
      application, along with source and resource directories within the
      application root (see [[#initialization-dependencies][Dependencies & Resources]] for more information). 
 
-  5. At this point, Immutant has all it needs to create a Clojure runtime 
+  5. At this point, Immutant creates a Clojure runtime 
      for the application. Runtimes in Immutant are isolated from each other,
      and can each load their own versions of Clojure or any other jar.
 
   6. If an initialization function was specified in either the descriptor
      or the =:immutant= hash in the project (via the =:init= key), it is
-     loaded and invoked within the application's runtime (see {{init fn}} 
+     loaded and invoked within the application's runtime (see [[#initialization-configuration][:init]] 
      for more details). If no init function was specified, Immutant looks 
      in the application root for a file named =immutant.clj= and loads
      that file. See [[#initialization-immutant-clj][immutant.clj]] for more information on using this 
-     initialization method. At this point, the application is considered
+     initialization method. At this point, the application is fully
      initialized.
 
 * Configuration Options
-** :root
-** init fn
-** :swank-port
-** :nrepl-port
+  :PROPERTIES:
+  :CUSTOM_ID: initialization-configuration
+  :END:
 
-* Configuration Files
+  The following configuration options can appear in the [[./deployment.html#deployment-descriptor][deployment descriptor]] 
+  or (with the exception of =:root=) the =:immutant= hash of =project.clj=.
+  
+  - =:root= - specifies the path to the 'root' of the application. This can 
+    either be the path to the application directory, or the path to an 
+    [[./deployment.html#deployment-archive][Immutant archive]]. =:root= is only valid in a deployment descriptor, and
+    is ignored if specified in =project.clj=.
+
+  - =:resolve-dependencies= - determines if dependencies defined in 
+    =project.clj= will be resolved via [[https://github.com/cemerick/pomegranate][Pomegranate]]. This resolution process
+    downloads and installs any missing dependencies to =$M2_REPO= 
+    (=~/.m2/repository= by default). If not specified, =:resolve-dependencies=
+    defaults to /true/ for dir-based deployments, and /false/ for Immutant
+    archives. See [[#initialization-dependencies][Dependencies & Resources]] for more details on the dependency
+    resolution process.
+
+  - =:swank-port= & =:nrepl-port= - Immutant can provide a per-application repl,
+    either via [[https://github.com/technomancy/swank-clojure][Swank]] or [[https://github.com/clojure/tools.nrepl][nREPL]]. Immutant will automatically start a repl for
+    you if you specify an unused port using either =:swank-port= or =:nrepl-port=.
+    See [[./interactive.html][Interactive Development]] for more details.
+
+  - =:init= - specifies a function to call to initialize your application. This
+    can be used as an alternative to an [[#initialization-immutant-clj][immutant.clj]] file. It can be either a
+    namespace qualified symbol (=my.app/do-something=) or string 
+    (="my.app/do-something"=). 
+
+  - =:context-path= - overrides the default web context path that is generated
+    based on the deployment name. See [[./web.html#web-context-path][Web - Context Paths]] for more details.
+
+* Files Used In Configuration & Initialization
+
+** Deployment Descriptor
+
+   A deployment descriptor is simply a Clojure source file containing a map
+   of configuration options that is placed in Immutant's deployment directory
+   to trigger the deployment of an application. It must contain a =:root= entry
+   (see [[#initialization-configuration][above]]), but any other configuration is optional. Any configuration 
+   specified here overrides configuration from =project.clj=. See the 
+   [[./deployment.html#deployment-descriptor][deployment descriptor]] section for more details.
+
 ** project.clj
+   :PROPERTIES:
+   :CUSTOM_ID: initialization-project-clj
+   :END:
+   
+   =project.clj= is the standard configuration file used by the [[http://leiningen.org/][Leiningen]] build 
+   tool. If a =project.clj= exists at the root of the application, Immutant will
+   parse it and use it to determine dependencies and resource paths, as well as
+   read Immutant specific configuration from the =:immutant= map. Here is a 
+   sample =project.clj= including all of the Immutant options that are usable
+   in that file:
+
+   #+begin_src clojure
+     (defproject my-app "1.2.3"
+                 :dependencies [[org.clojure/clojure "1.3.0"]
+                                [noir "1.2.0"]]
+                 :immutant {:init my-app.core/initialize
+                            :resolve-dependencies true
+                            :context-path "/"
+                            :swank-port 4111
+                            :nrepl-port 4112})
+   #+end_src
+
 ** immutant.clj
   :PROPERTIES:
   :CUSTOM_ID: initialization-immutant-clj
   :END:
+
+   =immutant.clj= provides an alternate initialization mechanism to the [[#initialization-configuration][:init]] 
+   function. If no =:init= function is specified, Immutant will load =immutant.clj= 
+   if present at the application root. Typically, this file is used to start
+   Immutant specific services, like so:
+
+   #+begin_src clojure
+     (ns my-app.init
+       (:require [immutant.daemons   :as daemons]
+                 [immutant.jobs      :as jobs]
+                 [immutant.messaging :as messaging]
+                 [immutant.web       :as web]
+                 [immutant.repl      :as repl]
+                 [noir.server        :as server]
+                 [my-app.core        :as core]))
+     
+     ;; point noir to the right place for views
+     (server/load-views (str (web/src-dir) "/my_app/views"))
+     
+     ;; start a web endpoint
+     (web/start "/" (server/gen-handler {:mode :dev :ns 'my-app}))
+     
+     ;; spin up a repl
+     (repl/start-swank 4321)
+
+     ;; schedule a job
+     (jobs/schedule "my-job" "*/5 * * * * ?" 
+                    my-app.core/process-tps-reports)
+     
+     ;; start a daemon
+     (deamons/start "my-daemon" core/daemon-start core/daemon-stop)
+     
+     ;; create a queue
+     (messaging/start "/queue/foo")
+   #+end_src
+
+   The services started in the above example are documented elsewhere
+   in this manual.
+
+   
 * Dependencies & Resources
   :PROPERTIES:
   :CUSTOM_ID: initialization-dependencies
   :END:
-* Classloader isolation
-* the registry and useful values within
 
+  Immutant generates a unique classpath for each deployed application
+  based upon dependencies and source & resource directories defined in
+  [[#initialization-project-clj][project.clj]]  and any jars found in the =lib/= at the application root. 
 
+  The =lib/= directory can be used to bundle dependencies with your
+  application, and can be useful in the following situations:
+
+  - you want to verify an application through a QA process without any 
+    external dependencies, can resolve dependencies
+  - you don't have the option of resolving dependencies at deploy time
+  - you have dependencies that aren't published to a maven repository
+  - you're project doesn't use Leiningen
+
+  When dependency resolution is enabled for an application, Immutant
+  uses [[https://github.com/cemerick/pomegranate][Pomegranate]] (via [[https://github.com/technomancy/leiningen/tree/master/leiningen-core][leiningen-core]]) to resolve the dependencies
+  against a local [[http://maven.apache.org/guides/introduction/introduction-to-repositories.html][Maven repository]]. If the dependencies aren't available 
+  in the local repository, they are downloaded into it. The local repository
+  is located based on the value of =$M2_REPO=, and defaults to 
+  =~/.m2/repository/=.
+
+  The enablement of dependency resolution depends upon the value of
+  the =:resolve-dependencies= option and the type of deployment.
+
+** Dependency Resolution In Directory Based Deployments
+
+   When deploying an application as a [[./deployment.html#deployment-directory][directory]], dependencies are resolved
+   by default, but resolution can be disabled by setting =:resolve-dependencies=
+   to /false/. 
+
+** Dependency Resolution In Archive Based Deployments
+
+   When deploying an application as an [[./deployment.html#deployment-archive][archive]], dependencies are *not* resolved 
+   by default, but resolution can be enabled by setting =:resolve-dependencies=
+   to /true/. 
+    
