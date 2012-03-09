@@ -9,7 +9,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>immutant-docs</artifactId>
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
   <name>Immutant Documentation</name>
   <description>All documentation for the Immutant application server</description>
 
@@ -40,7 +40,7 @@
         <executions>
            <execution>
             <id>interpolate-vars-in-bin</id>
-            <phase>validate</phase>
+            <phase>process-sources</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
@@ -59,7 +59,7 @@
           </execution>
           <execution>
             <id>interpolate-vars-in-resources</id>
-            <phase>validate</phase>
+            <phase>process-sources</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
@@ -103,7 +103,7 @@
         <executions>
           <execution>
             <id>download-elisp-dependencies</id>
-            <phase>validate</phase>
+            <phase>process-sources</phase>
             <goals>
               <goal>jruby</goal>
             </goals>
@@ -113,7 +113,7 @@
           </execution>
           <execution>
             <id>post-process-docs</id>
-            <phase>install</phase>
+            <phase>compile</phase>
             <goals>
               <goal>jruby</goal>
             </goals>
@@ -134,7 +134,7 @@
         <executions>
           <execution>
             <id>generate-autodoc</id>
-            <phase>install</phase>
+            <phase>compile</phase>
             <goals>
               <goal>run</goal>
             </goals>
@@ -142,6 +142,27 @@
               <mainClass>immutant.docs.autodoc</mainClass>
               <args>..</args>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <classesDirectory>target</classesDirectory>
+          <includes>
+            <include>html/**</include>
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>generate-jar</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
@@ -165,7 +186,7 @@
               <executions>
                 <execution>
                   <id>install-nokogiri</id>
-                  <phase>install</phase>
+                  <phase>process-sources</phase>
                   <goals>
                     <goal>jruby</goal>
                   </goals>
