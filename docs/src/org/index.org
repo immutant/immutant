@@ -1,9 +1,4 @@
 #+TITLE:     Immutant
-#+LANGUAGE:  en
-#+OPTIONS:   H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
-#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
-#+EXPORT_SELECT_TAGS: export
-#+EXPORT_EXCLUDE_TAGS: noexport
 
 #+begin_html
 <h2 class="subtitle">The Clojure Application Platform</h2>

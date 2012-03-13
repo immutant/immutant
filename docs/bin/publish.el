@@ -24,7 +24,7 @@
            :publishing-directory ,(expand-file-name "target/tmp/" dir)
            :recursive t
            :publishing-function org-publish-org-to-html
-           :headline-levels 2
+           :headline-levels 3
            :author-info nil
            :email-info nil
            :creator-info nil
