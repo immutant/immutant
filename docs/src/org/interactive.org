@@ -1,12 +1,183 @@
 #+TITLE:     Interactive Development
-#+LANGUAGE:  en
-#+OPTIONS:   H:3 num:t toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
-#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
-#+EXPORT_SELECT_TAGS: export
-#+EXPORT_EXCLUDE_TAGS: noexport
 
 * Introduction
+
+  Immutant provides two methods for connecting to an application's runtime
+  with a REPL: Swank (for emacs) and nREPL (for any nREPL client).
+
+  Each REPL service runs on a unique port, allowing you to have REPLs into
+  multiple applications within the same Immutant, or mutltiple REPLs within the
+  same application.
+
+  REPL services can be started at application deploy time, or dynamically from
+  application code. REPLs started dynamically can be also be shutdown
+  dynamically. REPLs started at deploy time and any dynamically started REPLs
+  that are not shut down by the application will be shut down when the
+  application is undeployed.
+
+** Binding To An Interface
+   :PROPERTIES:
+   :CUSTOM_ID: interative-binding
+   :END:
+
+   AS7 is setup to use multiple network interfaces, and allows you to specify
+   different interfaces for your server: /public/, /management/, and /unsecure/.
+   By default, these interfaces are all the same - =127.0.0.1=. But you can
+   specify different addresses for each named interface, aiding in the security
+   setup of your management ports.
+
+   By default, the repl services started by Immutant bind to the /management/
+   interface.
+
 * Swank
+
+  Swank is the server protocol for [[http://www.common-lisp.net/project/slime/][SLIME (The Superior Lisp Interactive Mode for Emacs)]],
+  and Clojure Swank & SLIME support are provided by [[https://github.com/technomancy/swank-clojure][swank-clojure]] & [[https://github.com/technomancy/clojure-mode][clojure-mode]],
+  respectively.
+
+** Starting Swank
+
+   You can start a Swank service using one (or both) of two methods: specifying
+   a =:swank-port= option in your configuration, or by calling
+   =immutant.repl/start-swank= from application code. No matter which method
+   you use, there can only be one Swank service running for an application.
+
+*** Starting Swank Via :swank-port
+
+    To have Immutant start a Swank service on your behalf, you can specify
+    an open port for it to bind to using the =:swank-port= configuration
+    option. When using this option, Immutant will automatically
+    [[#interactive-binding][bind to the management interface]].
+
+*** Starting Swank Programatically
+
+    You can also start a Swank service from your own code, which is useful
+    if you need to start it in response to a runtime event or bind to an
+    interface other than the [[#interactive-binding][management interface]]. To do so, simply
+    call [[./apidoc/immutant.repl-api.html#immutant.repl/start-swank][immutant.repl/start-swank]]:
+
+    #+begin_src clojure
+      ;; bind to the given port on the management interface
+      (clojure.repl/start-swank 4242)
+
+      ;; bind to the given port and interface
+      (clojure.repl/start-swank 4242 "127.0.0.1")
+    #+end_src
+
+** Connecting to Swank
+
+   Installing SLIME under emacs to work with Clojure can be a painful and
+   confusing process if done manually. The easiest way to do it is to follow
+   the [[https://github.com/technomancy/swank-clojure][clojure-jack-in instructions]] from =swank-clojure=, and "jack in" to
+   any Leiningen project. This will trigger =clojure-mode= to download and
+   install a version of SLIME that is compatible with =swank-clojure=.
+   Once you have jacked in at least once, you can then connect to the Swank
+   service within your Immutant application via the =slime-connect= emacs
+   function (=M-x slime-connect RET=).
+
+** Shutting Down Swank
+
+   Immutant will automatically shutdown the Swank service for you when your
+   application is undeployed, but if you need to do so before undeploy you
+   can do so using the [[./apidoc/immutant.repl-api.html#immutant.repl/stop-swank][immutant.repl/stop-swank]] function:
+
+   #+begin_src clojure
+      ;; no arg needed since only one Swank server can exist for the application
+      (clojure.repl/stop-swank)
+   #+end_src
+
+
 * nREPL
 
+  [[https://github.com/clojure/tools.nrepl][nREPL]] is a client/server protocol that provides a Clojure across a network.
+  It is relatively new, but has several clients built around it.
 
+** Starting nREPL
+
+   You can start a nREPL service using one (or both) of two methods: specifying
+   an =:nrepl-port= option in your configuration, or by calling
+   =immutant.repl/start-nrepl= from application code.
+
+*** Starting nREPL Via :swank-port
+
+    To have Immutant start a nREPL service on your behalf, you can specify
+    an open port for it to bind to using the =:nrepl-port= configuration
+    option. When using this option, Immutant will automatically
+    [[#interactive-binding][bind to the management interface]].
+
+*** Starting nREPL Programatically
+
+    You can also start a nREPL service from your own code, which is useful
+    if you need to start it in response to a runtime event or bind to an
+    interface other than the [[#interactive-binding][management interface]]. To do so, simply
+    call [[./apidoc/immutant.repl-api.html#immutant.repl/start-nrepl][immutant.repl/start-nrepl]]. nREPL allows you to have multiple
+    services in the same runtime, so you need to save the return value of
+    =start-nrepl= if you want to shut down the nREPL service yourself:
+
+    #+begin_src clojure
+      ;; bind to the given port on the management interface, and
+      ;; save the service handle for later
+      (def nrepl (clojure.repl/start-nrepl 4242))
+
+      ;; bind to the given port and interface
+      (clojure.repl/start-swank 4242 "127.0.0.1")
+    #+end_src
+
+** Connecting to nREPL
+
+   Installing SLIME under emacs to work with Clojure can be a painful and
+   confusing process if done manually. The easiest way to do it is to follow
+   the [[https://github.com/technomancy/swank-clojure][clojure-jack-in instructions]] from =swank-clojure=, and "jack in" to
+   any Leiningen project. This will trigger =clojure-mode= to download and
+   install a version of SLIME that is compatible with =swank-clojure=.
+   Once you have jacked in at least once, you can then connect to the nREPL
+   service within your Immutant application via the =slime-connect= emacs
+   function (=M-x slime-connect RET=).
+
+*** Connecting via reply
+
+    [[https://github.com/trptcolin/reply/][reply]] is an enhanced REPL for Clojure, and supports connecting to an
+    nREPL service. Currently, the simplest way to install =reply= is to
+    clone the git repository and follow the [[https://github.com/trptcolin/reply/#readme][intructions in its README]].
+
+    Once you have =reply= installed, you can connect to your remote nREPL:
+
+    #+begin_src sh
+      # connect to an nREPL bound to port 4242 on localhost
+      $ bin/reply.sh --skip-default-init --nrepl --attach 4242 
+            
+      # connect to an nREPL bound to port 4242 on 10.0.0.10
+      $ bin/reply.sh --skip-default-init --nrepl --attach 10.0.0.10:4242 
+    #+end_src
+
+    Note that we are passing the =--skip-default-init= option above. =reply=
+    attempts to load some libraries that won't exist in the application's
+    runtime within Immutant, and also creates handy =quit= & =exit= functions
+    that map to =System/exit=, which will shutdown the entire application server.
+    Passing the =--skip-default-init= option prevents =reply= from attempting
+    to load those missing libraries and prevents the definition of =quit= and
+    =exit=.
+    
+*** Connecting via vimclojure
+
+    /Coming soon./
+
+*** Connecting via Counterclockwise
+
+    /Coming soon./
+
+** Shutting Down nREPL
+
+   Immutant will automatically shutdown any nREPL services for you when your
+   application is undeployed, but if you need to do so before undeploy you
+   can do so using the [[./apidoc/immutant.repl-api.html#immutant.repl/stop-nrepl][immutant.repl/stop-nrepl]] function. You'll need to
+   pass it the service handle returned by the =start-nrepl= call:
+
+   #+begin_src clojure
+     (clojure.repl/stop-nrepl nrepl)
+   #+end_src
+
+   Since you need the service handle to stop an nREPL service, you can only
+   manually stop nREPL's you start yourself. If you start an nREPL service
+   via the =:nrepl-port= configuration option, your only recourse is to
+   allow Immutant to shut it down for you on undeploy.
