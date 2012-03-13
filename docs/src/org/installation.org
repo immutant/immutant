@@ -29,11 +29,23 @@
   #+end_src
   
   Without a VERSION specified, the LATEST successful incremental build
-  will be installed beneath =~/.lein/immutant/current=. To obtain fixes
+  will be installed. To obtain fixes
   released in subsequent incremental builds, simply run =install= again.
 
   To obtain a specific version, you can specify an incremental build 
   number (ex: 123) or a released version (ex: 0.1.0).
+
+  Releases installed via the plugin are installed by default under
+  =~/.lein/immutant/releases=, and =~/.lein/immutant/current= is 
+  linked to that release. You can specify an alternative parent install
+  directory by passing it as the third argument to =install=:
+
+  #+begin_src sh
+   $ lein immutant install VERSION /path/where/you/want/it  
+  #+end_src
+
+  The plugin will install Immutant there, and link =~/.lein/immutant/current=
+  to that version.
 
   See [[./deployment.html][Deployment]] for more details about the plugin.
 
@@ -50,5 +62,5 @@
     $ mkdir immutant-releases
     $ cd immutant-releases
     $ unzip path/to/immutant-dist-bin.zip
-    $ export $IMMUTANT_HOME=~/immutant-releases/0.1.0-incremental-123/
+    $ export $IMMUTANT_HOME=~/immutant-releases/0.1.0/
   #+end_src
