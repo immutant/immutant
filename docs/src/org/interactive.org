@@ -144,10 +144,10 @@
 
     #+begin_src sh
       # connect to an nREPL bound to port 4242 on localhost
-      $ bin/reply.sh --skip-default-init --nrepl --attach 4242 
+      $ reply --skip-default-init --attach 4242 
             
       # connect to an nREPL bound to port 4242 on 10.0.0.10
-      $ bin/reply.sh --skip-default-init --nrepl --attach 10.0.0.10:4242 
+      $ reply --skip-default-init --attach 10.0.0.10:4242 
     #+end_src
 
     Note that we are passing the =--skip-default-init= option above. =reply=
