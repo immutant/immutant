@@ -88,7 +88,7 @@
 
   The [[https://github.com/immutant/lein-immutant][lein-immutant Leiningen plugin]] provides commands to create and copy a 
   deployment descriptor for your Clojure application to 
-  =$IMMUTANT_HOME/standalone/deployments/=. 
+  =$IMMUTANT_HOME/standalone/deployments/=. See [[./deployment.html][Deployment]] for more details.
 
 * Logging
 

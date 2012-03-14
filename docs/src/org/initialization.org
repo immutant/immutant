@@ -90,6 +90,18 @@
   - =:context-path= - overrides the default web context path that is generated
     based on the deployment name. See [[./web.html#web-context-path][Web - Context Paths]] for more details.
 
+  A sample deployment descriptor:
+
+  #+begin_src clojure
+    ;; :root is the only required option
+    {:root "/the/path/to/my/app"
+     :resolve-dependecies false
+     :swank-port 4242
+     :nrepl-port 4343
+     :init my.app/init
+     :context-path "/" }
+  #+end_src
+
 * Files Used In Configuration & Initialization
 
 ** Deployment Descriptor

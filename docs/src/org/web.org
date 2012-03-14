@@ -149,7 +149,8 @@
   =:cookie-name=, or =:root=) will therefore be ignored.
 
 * src-dir
-  {{awaiting docs from the Jimbotron}}
 
-* Available on 8080
-  {{more here}}
+  Awaiting docs from the Jimbotron, but in the meantime: [[./apidoc/immutant.web-api.html#immutant.web/src-dir][immutant.web/src-dir]]
+
+
+
