@@ -61,7 +61,7 @@ If no sub-context-path is given, \"/\" is assumed."
        (log/warn "Attempted to deregister ring handler at sub-context path:" sub-context-path ", but none found"))))
 
 (defmacro src-dir
-  "Find the absolute path to a parent directory, 'src' by default.
+  "Find the absolute path to a sibling or parent directory, 'src' by default.
    Useful for ring.middleware.reload-modified/wrap-reload-modified"
   [& [dir]]
   (let [target (or dir "src")]

@@ -150,7 +150,36 @@
 
 * src-dir
 
-  Awaiting docs from the Jimbotron, but in the meantime: [[./apidoc/immutant.web-api.html#immutant.web/src-dir][immutant.web/src-dir]]
+  When a web server is embedded within an application, it's fine to
+  make assumptions about relative paths because the current working
+  directory for both the app and the web server is the same. 
 
+  But this is not the case for Immutant, or any app server, because
+  multiple applications may be deployed on it simultaneously. The app
+  server is a single process, with a single current working directory,
+  and an application should not assume that the server's current
+  directory matches its root.
 
+  But certain libraries require actual filesystem paths to directories
+  at runtime, and that's why [[./apidoc/immutant.web-api.html#immutant.web/src-dir][immutant.web/src-dir]] exists: it returns
+  the absolute path to a directory relative to the location of the
+  file in which it's called. That sounds complicated enough for an
+  example, right?
 
+  This won't work on Immutant because "src" is a relative path, and it
+  will resolve relative to the server's working directory, not the
+  app's:
+
+  #+begin_src clojure
+    (use 'ring.middleware.reload-modified)
+    
+    (def app
+      (wrap-reload-modified #'handler ["src"]))
+  #+end_src
+  
+  But this *will* work on Immutant, because it returns an absolute path:
+
+  #+begin_src clojure
+    (def app
+      (wrap-reload-modified #'handler [(web/src-dir)]))
+  #+end_src
