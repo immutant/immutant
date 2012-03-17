@@ -67,18 +67,13 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     }
     
     public Object invoke(String namespacedFunction, Object... args) {
-        load( CLOJURE_UTIL_NAME ); //TODO: see the performance impact of loading every call. Maybe cache these in production?
-        Object func = var( CLOJURE_UTIL_NS, "require-and-invoke" );
+        Object func = var( "immutant.runtime", "require-and-invoke" );
         
         return invoke( func, namespacedFunction, args );    
     }
         
     protected Object invoke(Object func, Object... args) {
         return call( func, "invoke", args );
-    }
-    
-    protected void load(String scriptBase) {
-        callStatic( getRuntime(), "load", scriptBase );
     }
     
     protected Object var(String namespace, String varName) {
@@ -180,8 +175,8 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     @SuppressWarnings("rawtypes")
     protected Class getRuntime() {
         if (this.runtime == null) {
-            //initialize();
-            this.runtime = loadClass( RUNTIME_CLASS );
+            this.runtime = loadClass( "clojure.lang.RT" );
+            callStatic( this.runtime, "load", "immutant/runtime" );
         }
         
         return this.runtime;
@@ -193,10 +188,6 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
     private String name;
     @SuppressWarnings("rawtypes")
     private HashMap<Class, Map<String, Field>> fieldCache = new HashMap<Class, Map<String, Field>>();
-    
-    protected static final String RUNTIME_CLASS = "clojure.lang.RT";   
-    protected static final String CLOJURE_UTIL_NAME = "immutant/runtime";
-    protected static final String CLOJURE_UTIL_NS = "immutant.runtime";
     
     static final Logger log = Logger.getLogger( "org.immutant.core" );
 }
