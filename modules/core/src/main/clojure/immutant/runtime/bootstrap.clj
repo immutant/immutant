@@ -80,18 +80,13 @@
 lein1/lein2 differences for project keys that changed from strings to vectors."
   [project]
   (remove nil?
-          (reduce (fn [acc key]
-                    (let [path (project key)]
-                      (concat acc (if (coll? path)
-                                    path
-                                    (vector path)))))
-                  []
-                  [:resources-path ;; lein1
-                   :resource-paths ;; lein2
-                   :source-path    ;; lein1
-                   :source-paths   ;; lein2
-                   :native-path    ;; lein2
-                   ])))
+          (flatten
+           (map project [:resources-path ;; lein1
+                         :resource-paths ;; lein2
+                         :source-path    ;; lein1
+                         :source-paths   ;; lein2
+                         :native-path    ;; lein2
+                         ]))))
 
 (defn ^{:private true} resource-paths-for-projectless-app
   "Resolves the resource paths (in the AS7 usage of the term) for a non-leiningen application."
