@@ -50,7 +50,9 @@
   (put-if-replace [cache key old new] [cache key old new options]
     "Put it in only if key is there and current matches old")
   (delete [cache key] [cache key value]
-    "Delete the entry; value must match current if passed"))
+    "Delete the entry; value must match current if passed")
+  (delete-all [cache]
+    "Clear all entries from the cache and return it"))
 
 (deftype InfinispanCache [cache]
 
@@ -58,12 +60,14 @@
   (lookup [this key]
     (.valAt this key))
   (has? [this key]
-    (.containsKey this key))
+    (.containsKey cache (encode key)))
   (hit [this key] this)
   (miss [this key value]
-    (assoc this key value))
+    (put this key value)
+    this)
   (evict [this key]
-    (.without this key))
+    (delete this key)
+    this)
   (seed [this base]
     (put-all this base)
     this)
@@ -86,6 +90,7 @@
     (expire (.replace cache (encode k) (encode old) (encode v) opts)))
   (delete [_ key] (and key (decode (.remove cache (encode key)))))
   (delete [_ key value] (.remove cache (encode key) (encode value)))
+  (delete-all [this] (.clear cache) this)
 
   clojure.lang.Seqable
   (seq [_]
@@ -93,49 +98,26 @@
          (for [[k v] (seq cache)]
            (clojure.lang.MapEntry. (decode k) (decode v)))))
 
+  java.util.Map
+  (containsKey [_ key]
+    (.containsKey cache (encode key)))
+  (get [_ key]
+    (decode (.get cache (encode key))))
+  
   clojure.lang.ILookup
   (valAt [this key]
-    (decode (.get cache (encode key))))
+    (.get this key))
   (valAt [this key not-found]
     (if (.containsKey this key)
-      (.valAt this key)
+      (.get this key)
       not-found))
-  
-  clojure.lang.IPersistentMap
-  (assoc [this k v]
-    (.cons this [k v]))
-  (without [this k]
-    (and k (.remove cache (encode k)))
-    this)
-
-  clojure.lang.Associative
-  (containsKey [this k]
-    (.containsKey cache (encode k)))
-  (entryAt [this k]
-    (when (.containsKey this k)
-      (clojure.lang.MapEntry. k (.valAt this k))))
 
   clojure.lang.Counted
   (count [_]
     (clojure.core/count cache))
   
-  clojure.lang.IPersistentCollection
-  (cons [this elem]
-    (if (map? elem)
-      (.put-all this elem)
-      (.put this (first elem) (second elem)))
-    this)
-  (empty [this]
-    (.clear cache)
-    this)
-  (equiv [_ other]
-    (.equals cache other))
-
-  java.lang.Iterable
-  (iterator [this] (.iterator cache))
-
   Object
-  (toString [_] (str cache)))
+  (toString [this] (str (into {} (seq this)))))
 
 ;; Workaround the non-serializable Delay objects cached by
 ;; core.memoize and force every key to be a vector so that decoded

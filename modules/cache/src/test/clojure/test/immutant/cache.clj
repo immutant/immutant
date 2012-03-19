@@ -41,15 +41,15 @@
            2   (.lookup c :b)
            ;; 42  (.lookup c :c 42)
            nil (.lookup c :c))))
-  (testing "assoc and dissoc"
-    (let [c (cache "assoc")]
-      (are [expect actual] (= expect actual)
-           1   (:a (assoc c :a 1))
-           1   (:a (assoc c :b 2))
-           2   (:b (dissoc c :a))
-           nil (:a (dissoc c :a))
-           nil (:b (-> c (dissoc :a) (dissoc :b)))
-           0   (count (-> c (dissoc :a) (dissoc :b))))))
+  ;; (testing "assoc and dissoc"
+  ;;   (let [c (cache "assoc")]
+  ;;     (are [expect actual] (= expect actual)
+  ;;          1   (:a (assoc c :a 1))
+  ;;          1   (:a (assoc c :b 2))
+  ;;          2   (:b (dissoc c :a))
+  ;;          nil (:a (dissoc c :a))
+  ;;          nil (:b (-> c (dissoc :a) (dissoc :b)))
+  ;;          0   (count (-> c (dissoc :a) (dissoc :b))))))
   (testing "gets and cascading gets"
     (let [c (cache "gets" {:a 1, :b 2, :c {:d 3, :e 4}, :f nil, :g false, nil {:h 5}})]
       (are [actual expect] (= expect actual)
@@ -159,14 +159,9 @@
     (is (= 2 (delete c :b)))
     (is (empty? c))))
 
-(deftest test-empty
+(deftest test-delete-all
   (let [c (cache "clear" {:a 1 :b 2})]
     (is (= 2 (count c)))
-    (is (= 0 (count (empty c))))
+    (is (= 0 (count (delete-all c))))
     (is (= 0 (count c)))))
 
-(deftest test-conj
-  (is (= 1 (:a (conj (cache "conj") [:a 1])))))
-
-(deftest test-conj
-  (is (= 1 (:a (merge (cache "merge") {:a 1})))))
