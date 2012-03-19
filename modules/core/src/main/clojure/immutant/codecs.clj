@@ -71,7 +71,7 @@
               ois (java.io.ObjectInputStream. bais)]
     (.readObject ois)))
 
-(defmethod print-dup :default [o ^java.io.Writer w]
+(defmethod clojure.core/print-dup :default [o ^java.io.Writer w]
   (.println System/out (str "WARN: using Java serialization for " (.getName (class o))))
   (.write w "#=(immutant.codecs/deserialize ")
   (print-dup (serialize o) w)
