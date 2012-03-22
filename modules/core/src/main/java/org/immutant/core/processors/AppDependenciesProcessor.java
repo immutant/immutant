@@ -107,11 +107,13 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
     }
     
     @Override
-    public void undeploy(DeploymentUnit context) {
-        try {
-            FileUtils.deleteDirectory( tmpMountDir( context ) );
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void undeploy(DeploymentUnit unit) {
+        if (unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
+            try {
+                FileUtils.deleteDirectory( tmpMountDir( unit ) );
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
