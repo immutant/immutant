@@ -27,13 +27,6 @@
 (use-fixtures :each
               (harness-with [(ClojureRuntimeInstaller.)]))
 
-;; we need to execute anything that will invoke inside the runtime on
-;; a different thread, since the runtime clears threadlocals
-(defmacro on-thread [& body]
-  `(doto
-       (Thread. (fn [] ~@body))
-     (.join)))
-
 (deftest it-should-install-a-runtime-if-metadata-is-present
   (on-thread
    (let [phase-context (.createPhaseContext *harness*)

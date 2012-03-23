@@ -30,15 +30,15 @@
   (let [phase-context (.createPhaseContext *harness*)
         unit (.getDeploymentUnit phase-context)
         func-name "a.namespace/init"]
-    (doto unit
-      (.putAttachment ClojureRuntime/ATTACHMENT_KEY
-                      (proxy [ClojureRuntime] [(.getClassLoader (class ClojureRuntime)) "app-name"]
-                        (invoke [initialize-fn args]
-                          (reset! a-value [initialize-fn (first args)]))))
-      (.putAttachment ClojureMetaData/ATTACHMENT_KEY (ClojureMetaData. "foo" {"init" func-name})))
-    
-    (.deploy *harness* phase-context)
+    (on-thread
+     (doto unit
+       (.putAttachment ClojureRuntime/ATTACHMENT_KEY
+                       (proxy [ClojureRuntime] [(.getClassLoader (.getClass unit)) "app-name"]
+                         (invoke [initialize-fn args]
+                           (reset! a-value [initialize-fn (first args)]))))
+       (.putAttachment ClojureMetaData/ATTACHMENT_KEY (ClojureMetaData. "foo" {"init" func-name})))
+     (.deploy *harness* phase-context)
 
-    (is (= ["immutant.runtime/initialize" func-name] @a-value))))
+     (is (= ["immutant.runtime/initialize" func-name] @a-value)))))
 
 

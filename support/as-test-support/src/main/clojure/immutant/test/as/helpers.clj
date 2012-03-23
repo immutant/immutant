@@ -26,3 +26,10 @@
       (doall (map #(.appendDeployer *harness* %) deployers))
       (test-f)
       (.closeAllContexts *harness*))))
+
+;; we need to execute anything that will invoke inside the runtime on
+;; a different thread, since the runtime clears threadlocals
+(defmacro on-thread [& body]
+  `(doto
+       (Thread. (fn [] ~@body))
+     (.join)))

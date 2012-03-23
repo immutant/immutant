@@ -22,6 +22,8 @@ package org.immutant.core;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,12 +43,20 @@ import org.jboss.msc.service.StopContext;
  */
 public class ClojureRuntime implements Service<ClojureRuntime> {
     public static final AttachmentKey<ClojureRuntime> ATTACHMENT_KEY = AttachmentKey.create( ClojureRuntime.class );
-    
+
     public ClojureRuntime(ClassLoader classLoader, String name) {
         this.classLoader = classLoader;
-        this.name = name;
+        this.name = name; 
+        initialize();
     }
-   
+
+    public Object invoke(String namespacedFunction, Object... args) {
+        return call( this.bridgeFunction, 
+                getBridgeFunctionInvoker( namespacedFunction, args ), 
+                namespacedFunction, 
+                args );
+    }
+
     @Override
     public void start(StartContext context) throws StartException {
     }
@@ -56,53 +66,76 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
         log.info( "Shutting down Clojure runtime for " + this.name );
         invoke( "clojure.core/shutdown-agents" );
     }
-    
+
     @Override 
     public ClojureRuntime getValue() {
         return this;
     }
-    
+
     public ClassLoader getClassLoader() {
         return this.classLoader;
     }
-    
-    public Object invoke(String namespacedFunction, Object... args) {
-        Object func = var( "immutant.runtime", "require-and-invoke" );
-        
-        return invoke( func, namespacedFunction, args );    
+
+    protected void initialize() {
+        this.runtime = loadClass( "clojure.lang.RT" );
+        callStatic( this.runtime, "load", "immutant/runtime" );
+        this.bridgeFunction = var( "immutant.runtime", "require-and-invoke" );
     }
-        
-    protected Object invoke(Object func, Object... args) {
-        return call( func, "invoke", args );
-    }
-    
+
     protected Object var(String namespace, String varName) {
         return callStatic( getRuntime(), "var", namespace, varName );   
     }
-    
+
     @SuppressWarnings("rawtypes")
     protected Object callStatic(Class klass, String methodName, Object... args) {
         return call( klass, null, methodName, args );
     }
-    
+
+    protected Object call(Object obj, Method method, Object... args) {
+        return call( obj.getClass(), obj, method, args );
+    }
+
     protected Object call(Object obj, String methodName, Object... args) {
         return call( obj.getClass(), obj, methodName, args );
     }
-        
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+
+    @SuppressWarnings("rawtypes")
     protected Object call(final Class klass, final Object obj, final String methodName, final Object... args) {
-        if (klass == null) {
-            throw new IllegalArgumentException( "You must provide a class" );
-        }
-        
+        return call( klass, obj, findMethod( klass, methodName, args ), args );
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected Object call(final Class klass, final Object obj, final Method method, final Object... args) {
         ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader( this.classLoader );
+
+            Object retval = method.invoke( obj, args );
+
+            // leaving these thread locals around will cause memory leaks when the application
+            // is undeployed.
+            removeThreadLocal( "clojure.lang.Var", "dvals" );
+            removeThreadLocal( "clojure.lang.Agent", "nested" );
+            removeThreadLocal( "clojure.lang.LockingTransaction", "transaction" );
+
+            return retval;
+
+        } catch (Exception e) {
+            throw new RuntimeException( "Failed to call " + method.getName(), e );
+        } finally {
+            Thread.currentThread().setContextClassLoader( originalClassloader );
+        }
+    }
+
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    protected Method findMethod(final Class klass, String methodName, Object... args) {
+        try {
             ArrayList<Class> paramTypes = new ArrayList<Class>( args.length );
             for(Object each : args) {
                 paramTypes.add( each==null ? Object.class : each.getClass() );
             }
-            
+
             Method method;
             try {
                 method = klass.getMethod( methodName, paramTypes.toArray( new Class[0] ) );
@@ -114,24 +147,14 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
                 }
                 method = klass.getMethod( methodName, paramTypes.toArray( new Class[0] ) );
             }
-            
-            Object retval = method.invoke( obj, args );
 
-            // leaving these thread locals around will cause memory leaks when the application
-            // is undeployed.
-            removeThreadLocal( "clojure.lang.Var", "dvals" );
-            removeThreadLocal( "clojure.lang.Agent", "nested" );
-            removeThreadLocal( "clojure.lang.LockingTransaction", "transaction" );
-            
-            return retval;
-            
-        } catch (Exception e) {
-            throw new RuntimeException( "Failed to call " + methodName, e );
-        } finally {
-            Thread.currentThread().setContextClassLoader( originalClassloader );
+            return method;
+
+        } catch (NoSuchMethodException ex) {
+            throw new RuntimeException( "Failed to find " + methodName, ex );
         }
     }
-    
+
     @SuppressWarnings("rawtypes")
     protected void removeThreadLocal(String className, String fieldName) throws Exception {
         Field field = lookupField( loadClass( className ), fieldName, true );
@@ -142,7 +165,7 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
             }
         }
     }
-    
+
     @SuppressWarnings("rawtypes")
     protected Field lookupField(Class klass, String fieldName, boolean makeAccessible) throws NoSuchFieldException {
         Map<String, Field> fields = this.fieldCache.get( klass );
@@ -150,7 +173,7 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
             fields = new HashMap<String, Field>();
             this.fieldCache.put( klass, fields );
         }
-        
+
         Field field = fields.get( fieldName );
         if (field == null) {
             field = klass.getDeclaredField( fieldName );
@@ -159,10 +182,10 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
             }
             fields.put( fieldName, field );
         }
-        
+
         return field;
     }
-    
+
     @SuppressWarnings("rawtypes")
     protected Class loadClass(String className) {
         try {
@@ -171,23 +194,30 @@ public class ClojureRuntime implements Service<ClojureRuntime> {
             throw new RuntimeException( "Failed to load " + className, e );
         }
     }
-    
+
     @SuppressWarnings("rawtypes")
     protected Class getRuntime() {
-        if (this.runtime == null) {
-            this.runtime = loadClass( "clojure.lang.RT" );
-            callStatic( this.runtime, "load", "immutant/runtime" );
-        }
-        
         return this.runtime;
     }
-    
+
+    protected Method getBridgeFunctionInvoker(Object... args) {
+        Method method = this.bridgeFunctionInvokerCache.get( args.length );
+        if (method == null) {
+            method = findMethod( this.bridgeFunction.getClass(), "invoke", args );
+            this.bridgeFunctionInvokerCache.put( args.length, method );
+        }
+
+        return method;
+    }
+
     private ClassLoader classLoader;
     @SuppressWarnings("rawtypes")
     private Class runtime;
     private String name;
     @SuppressWarnings("rawtypes")
     private HashMap<Class, Map<String, Field>> fieldCache = new HashMap<Class, Map<String, Field>>();
-    
+    private Object bridgeFunction;
+    private HashMap<Integer, Method> bridgeFunctionInvokerCache = new HashMap<Integer, Method>();
+
     static final Logger log = Logger.getLogger( "org.immutant.core" );
 }
