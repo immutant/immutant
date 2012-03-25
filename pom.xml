@@ -212,7 +212,7 @@
       </dependency>
       
       <dependency>
-        <groupId>org.tcrawley</groupId>
+        <groupId>swank-clojure</groupId>
         <artifactId>swank-clojure</artifactId>
         <version>${version.swank-clojure}</version>
       </dependency>
@@ -273,9 +273,9 @@
     <version.clojure.tools.namespace>0.1.1</version.clojure.tools.namespace>
     <version.clojure-maven-plugin>1.3.8</version.clojure-maven-plugin>
     <version.ring-servlet>0.3.11</version.ring-servlet>
+    <version.swank-clojure>1.4.2</version.swank-clojure>
 
-    <!-- we're currently using forks of swank-clojure and nrepl pending upstream patches -->
-    <version.swank-clojure>1.5.0-sd</version.swank-clojure>
+    <!-- we're currently using a fork of nrepl pending upstream patches -->
     <version.nrepl>0.2.0-bi</version.nrepl>
 
     <version.data.json>0.1.1</version.data.json>
@@ -389,7 +389,7 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.tcrawley</groupId>
+      <groupId>swank-clojure</groupId>
       <artifactId>swank-clojure</artifactId>
       <scope>provided</scope>
     </dependency>

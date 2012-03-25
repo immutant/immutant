@@ -41,7 +41,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.tcrawley</groupId>
+      <groupId>swank-clojure</groupId>
       <artifactId>swank-clojure</artifactId>
       <scope>compile</scope>
     </dependency>
