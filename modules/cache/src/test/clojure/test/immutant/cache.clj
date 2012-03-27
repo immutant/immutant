@@ -26,32 +26,23 @@
 (deftest test-local-infinispan-cache
   (testing "counts"
     (is (= 0 (count (cache "0"))))
-    (is (= 1 (count (cache "1" {:a 1})))))
+    (is (= 1 (count (cache "1" :seed {:a 1})))))
   (testing "lookup using keywords"
-    (let [c (cache "keywords" {:a 1 :b 2})]
+    (let [c (cache "keywords" :seed {:a 1 :b 2})]
       (are [expect actual] (= expect actual)
            1   (:a c)
            2   (:b c)
            42  (:X c 42)
            nil (:X c))))
   (testing "lookups using .lookup"
-    (let [c (cache "lookups" {:a 1 :b 2})]
+    (let [c (cache "lookups" :seed {:a 1 :b 2})]
       (are [expect actual] (= expect actual)
            1   (.lookup c :a)
            2   (.lookup c :b)
            ;; 42  (.lookup c :c 42)
            nil (.lookup c :c))))
-  ;; (testing "assoc and dissoc"
-  ;;   (let [c (cache "assoc")]
-  ;;     (are [expect actual] (= expect actual)
-  ;;          1   (:a (assoc c :a 1))
-  ;;          1   (:a (assoc c :b 2))
-  ;;          2   (:b (dissoc c :a))
-  ;;          nil (:a (dissoc c :a))
-  ;;          nil (:b (-> c (dissoc :a) (dissoc :b)))
-  ;;          0   (count (-> c (dissoc :a) (dissoc :b))))))
   (testing "gets and cascading gets"
-    (let [c (cache "gets" {:a 1, :b 2, :c {:d 3, :e 4}, :f nil, :g false, nil {:h 5}})]
+    (let [c (cache "gets" :seed {:a 1, :b 2, :c {:d 3, :e 4}, :f nil, :g false, nil {:h 5}})]
       (are [actual expect] (= expect actual)
            (get c :a) 1
            (get c :e) nil
@@ -77,14 +68,14 @@
            (get-in c [] 0) c
            (get-in c nil 0) c)))
   (testing "that finding works for cache"
-    (let [c (cache "finding" {:a 1 :b 2})]
+    (let [c (cache "finding" :seed {:a 1 :b 2})]
       (are [expect actual] (= expect actual)
            (find c :a) [:a 1]
            (find c :b) [:b 2]
            (find c :c) nil
            (find c nil) nil)))
   (testing "that contains? works for cache"
-    (let [c (cache "contains" {:a 1 :b 2})]
+    (let [c (cache "contains" :seed {:a 1 :b 2})]
       (are [expect actual] (= expect actual)
            (contains? c :a) true
            (contains? c :b) true
@@ -99,8 +90,15 @@
     (is (= v (put c :a "next")))))
 
 (deftest test-put-ttl
-  (let [c (cache "ttl")]
+  (let [c (cache "ttl" :seed {})]
     (put c :a 1 {:ttl 500 :units :milliseconds})
+    (is (= 1 (get c :a)))
+    (Thread/sleep 501)
+    (is (nil? (get c :a)))))
+
+(deftest test-put-default-ttl
+  (let [c (cache "ttl" :seed {} :ttl 500 :units :days)]
+    (put c :a 1 {:units :milliseconds})
     (is (= 1 (get c :a)))
     (Thread/sleep 501)
     (is (nil? (get c :a)))))
@@ -136,21 +134,21 @@
     (is (nil? (:b c)))))
 
 (deftest test-put-if-present
-  (let [c (cache "present" {:a 1})]
+  (let [c (cache "present" :seed {:a 1})]
     (is (nil? (put-if-present c :b 2)))
     (is (nil? (:b c)))
     (is (= 1 (put-if-present c :a 2)))
     (is (= 2 (:a c)))))
 
 (deftest test-put-if-replace
-  (let [c (cache "replace" {:a 1})]
+  (let [c (cache "replace" :seed {:a 1})]
     (is (false? (put-if-replace c :a 2 3)))
     (is (= 1 (:a c)))
     (is (true? (put-if-replace c :a 1 2)))
     (is (= 2 (:a c)))))
 
 (deftest test-delete
-  (let [c (cache "delete" {:a 1 :b 2})]
+  (let [c (cache "delete" :seed {:a 1 :b 2})]
     (is (false? (delete c :a 2)))
     (is (= 2 (count c)))
     (is (true? (delete c :a 1)))
@@ -160,7 +158,7 @@
     (is (empty? c))))
 
 (deftest test-delete-all
-  (let [c (cache "clear" {:a 1 :b 2})]
+  (let [c (cache "clear" :seed {:a 1 :b 2})]
     (is (= 2 (count c)))
     (is (= 0 (count (delete-all c))))
     (is (= 0 (count c)))))

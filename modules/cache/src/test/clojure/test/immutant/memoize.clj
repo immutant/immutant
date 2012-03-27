@@ -31,7 +31,7 @@
     (is (= (m) "boo"))))
 
 (deftest prepopulation
-  (let [plus (memo + "wrong" {[3 5] 9})]
+  (let [plus (memo + "wrong" :seed {[3 5] 9})]
     (is (= 9 (plus 3 5)))))
 
 (deftest only-first-pays-total-cost

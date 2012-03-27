@@ -27,7 +27,7 @@
 (defprotocol Mutable
   "Functions for manipulating a shared, distributed cache.
 
-   Every function optionally accepts a map with the following
+   Every 'put' function optionally accepts a map with the following
    lifespan-oriented keys:
 
      :ttl - time-to-live, the max time the entry will live before expiry [-1]
@@ -54,7 +54,7 @@
   (delete-all [cache]
     "Clear all entries from the cache and return it"))
 
-(deftype InfinispanCache [cache]
+(deftype InfinispanCache [cache options]
 
   cc/CacheProtocol
   (lookup [this key]
@@ -69,25 +69,25 @@
     (delete this key)
     this)
   (seed [this base]
-    (put-all this base)
+    (put-all (delete-all this) base)
     this)
 
   Mutable
   (put [this k v] (put this k v {}))
   (put [_ k v opts]
-    (decode (expire (.put cache (encode k) (encode v) opts))))
+    (decode (expire (.put cache (encode k) (encode v) (merge options opts)))))
   (put-all [this m] (put-all this m {}))
   (put-all [_ m opts]
-    (and m (expire (.putAll cache (into {} (for [[k v] m] [(encode k) (encode v)])) opts))))
+    (and m (expire (.putAll cache (into {} (for [[k v] m] [(encode k) (encode v)])) (merge options opts)))))
   (put-if-absent [this k v] (put-if-absent this k v {}))
   (put-if-absent [_ k v opts]
-    (decode (expire (.putIfAbsent cache (encode k) (encode v) opts))))
+    (decode (expire (.putIfAbsent cache (encode k) (encode v) (merge options opts)))))
   (put-if-present [this k v] (put-if-present this k v {}))
   (put-if-present [_ k v opts]
-    (decode (expire (.replace cache (encode k) (encode v) opts))))
+    (decode (expire (.replace cache (encode k) (encode v) (merge options opts)))))
   (put-if-replace [this k old v] (put-if-replace this k old v {}))
   (put-if-replace [_ k old v opts]
-    (expire (.replace cache (encode k) (encode old) (encode v) opts)))
+    (expire (.replace cache (encode k) (encode old) (encode v) (merge options opts))))
   (delete [_ key] (and key (decode (.remove cache (encode key)))))
   (delete [_ key value] (.remove cache (encode key) (encode value)))
   (delete-all [this] (.clear cache) this)
@@ -149,34 +149,38 @@
            (clojure.lang.MapEntry. k (cc/lookup this k))))))
 
 (defn cache
-  "Returns an implementation of Mutable and
-   core.cache/CacheProtocol. A cache name is the only required
-   argument. When two arguments are passed, the second may be either a
-   symbol indicating replication mode or a seed, i.e. either the
-   second or the third of the 3-argument signature.
+  "Returns an object that implements both Mutable and
+   core.cache/CacheProtocol. A name is the only required argument. The
+   following options are supported:
 
-   Replication mode should be one of:
-     :local, :invalidated, :distributed, or :replicated
+   The following options are supported [default]:
+     :mode   Replication mode [:invalidated or :local]
+               :local, :invalidated, :distributed, or :replicated
+     :seed   A hash of initial entries [nil]
+     :ttl    The max time the entry will live before expiry [-1]
+     :idle   The time after which an entry will expire if not accessed [-1]
+     :units  The units for the values of :ttl and :idle [:seconds]
 
-   Although the entries in the passed base hash map will be added to
-   the cache, entries already in the cache will NOT be deleted"
-  ([name] (cache name nil nil))
-  ([name v] (if (keyword? v) (cache name v nil) (cache name nil v)))
-  ([name mode base]
-     (cc/seed (InfinispanCache. (raw-cache name mode)) base)))
+   The replication mode defaults to :invalidated when clustered. When
+   not clustered, the value of :mode is ignored, and the cache will
+   be :local.
+
+   Seeding the cache will delete any existing entries.
+
+   The lifespan-oriented options (:ttl :idle :units) become the
+   default options for the functions of the Mutable protocol. But any
+   options passed to those functions take precedence over these."
+  [name & {:keys [mode seed] :as options}]
+  (cc/seed (InfinispanCache. (raw-cache name mode) options) seed))
 
 (defn memo
   "Memoize a function by associating its arguments with return values
    stored in a possibly-clustered Infinispan-backed cache. Other than
    the function to be memoized, arguments are the same as for the
    cache function."
-  ([f name] (memo f name nil nil))
-  ([f name v] (if (keyword? v) (memo f name v nil) (memo f name nil v)))
-  ([f name mode seed]
-     (cm/build-memoizer
-      #(PluggableMemoization. %1 (DelayedCache. (cache %2 %3 %4) (atom {})))
-      f
-      name
-      mode
-      seed)))
-
+  [f name & options]
+  (cm/build-memoizer
+   #(PluggableMemoization. %1 (DelayedCache. (apply cache %2 %3) (atom {})))
+   f
+   name
+   options))
