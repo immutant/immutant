@@ -22,6 +22,19 @@
             [immutant.utilities         :as util]
             [clojure.tools.logging      :as log]))
 
+(defn ^{:private true} fix-port [port]
+  (if (= String (class port))
+    (Integer. port)
+    port))
+
+;; We have to bind the repl * vars under 1.2.1, otherwise swank fails to start
+(defmacro with-base-repl-bindings [& body]
+  `(binding [clojure.core/*e nil
+             clojure.core/*1 nil
+             clojure.core/*2 nil
+             clojure.core/*3 nil]
+     ~@body))
+
 (defn stop-swank
   "Shuts down the running swank server."
   []
@@ -35,7 +48,8 @@ interface defined by the AS. Registers an at-exit handler to shutdown swank on
 undeploy."
   ([interface-address port]
      (log/info "Starting swank for" (util/app-name) "at" (str interface-address ":" port))
-     (swank/start-server :host interface-address :port (Integer. port) :exit-on-quit false)
+     (with-base-repl-bindings
+       (swank/start-server :host interface-address :port (fix-port port) :exit-on-quit false))
      (util/at-exit stop-swank))
   ([port]
      (start-swank (util/management-interface-address) port)))
@@ -54,7 +68,7 @@ shutdown nrepl on undeploy, and returns a server that can be passed to
 stop-nrepl to shut it down manually."
   ([interface-address port]
      (log/info "Starting nrepl for" (util/app-name) "at" (str interface-address ":" port))
-     (when-let [server (nrepl/start-server :port (Integer. port) :host interface-address)]
+     (when-let [server (nrepl/start-server :port (fix-port port) :host interface-address)]
        (util/at-exit (partial stop-nrepl server))
        server))
   ([port]
