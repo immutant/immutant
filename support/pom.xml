@@ -23,6 +23,19 @@
   <build> 
     <pluginManagement>
         <plugins>
+        <plugin>
+          <groupId>com.theoryinpractise</groupId>
+          <artifactId>clojure-maven-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>compile</id>
+              <phase>compile</phase>
+              <goals>
+                <goal>compile</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
           <!-- <plugin> -->
           <!--   <groupId>org.eclipse.m2e</groupId> -->
           <!--   <artifactId>lifecycle-mapping</artifactId> -->

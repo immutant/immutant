@@ -592,15 +592,6 @@
             <temporaryOutputDirectory>true</temporaryOutputDirectory>
             <warnOnReflection>${warn-on-reflection}</warnOnReflection>
           </configuration>
-          <executions>
-            <execution>
-              <id>compile</id>
-              <phase>compile</phase>
-              <goals>
-                <goal>compile</goal>
-              </goals>
-            </execution>
-          </executions>
         </plugin>
 
       </plugins>

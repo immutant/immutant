@@ -133,6 +133,13 @@
         </configuration>
         <executions>
           <execution>
+            <id>compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
             <id>generate-autodoc</id>
             <phase>compile</phase>
             <goals>
