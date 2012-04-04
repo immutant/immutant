@@ -27,12 +27,13 @@
     (Integer. port)
     port))
 
-;; We have to bind the repl * vars under 1.2.1, otherwise swank fails to start
+;; We have to bind the repl * vars under 1.2.1, otherwise swank fails to start,
+;; and with-bindings NPE's, so we roll our own
 (defmacro with-base-repl-bindings [& body]
-  `(binding [clojure.core/*e nil
-             clojure.core/*1 nil
-             clojure.core/*2 nil
-             clojure.core/*3 nil]
+  `(binding [*e nil
+             *1 nil
+             *2 nil
+             *3 nil]
      ~@body))
 
 (defn stop-swank
