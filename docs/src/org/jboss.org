@@ -76,12 +76,12 @@
   modes: *auto-deploy* and *manual deploy*.
 
   Auto-deploy mode works like in previous releases of AS, in that a resource will
-  be redeployed every time the its timestamp  changes. The scanner creates a marker 
+  be redeployed every time its timestamp changes. The scanner creates a marker 
   file with a ".deployed" suffix, and if the resource gets deleted the scanner will 
   not trigger an undeployment.
 
   In manual deploy mode the scanner will rely on addition or removal of a marker 
-  files. To more about this deployment method, see the marker files section of
+  files. To learn more about this deployment method, see the marker files section of
   the [[https://docs.jboss.org/author/display/AS7/Admin%2BGuide#AdminGuide-DeploymentCommands][administrator guide]].
 
   [[./images/jboss-deploy.png]]
