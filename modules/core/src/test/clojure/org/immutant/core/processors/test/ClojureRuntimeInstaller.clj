@@ -16,12 +16,13 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns org.immutant.core.processors.test.ClojureRuntimeInstaller
-  (:use clojure.test)
-  (:use immutant.test.as.helpers)
-  (:import [org.jboss.as.server.deployment Attachments])
-  (:import [org.jboss.modules Module])
-  (:import [org.immutant.core.processors ClojureRuntimeInstaller])
-  (:import [org.immutant.core ClojureMetaData ClojureRuntime])
+  (:use clojure.test
+        immutant.test.as.helpers)
+  (:import org.jboss.as.server.deployment.Attachments
+           org.jboss.modules.Module
+           org.immutant.core.processors.ClojureRuntimeInstaller
+           org.immutant.core.ClojureMetaData
+           org.immutant.runtime.ClojureRuntime)
   (:require [clojure.java.io :as io]))
 
 (use-fixtures :each

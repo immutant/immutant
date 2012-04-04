@@ -79,6 +79,10 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
                 mount( new File( jarPath ), unit );
             }
 
+            //mount the runtime jar
+            String runtimePath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/immutant-runtime-impl.jar";
+            mount( new File( runtimePath ), unit );
+            
             for(String each : ApplicationBootstrapUtils.resourceDirs( root )) {
                 final ResourceRoot childResource = new ResourceRoot( VFS.getChild( each ), null );
                 ModuleRootMarker.mark(childResource);

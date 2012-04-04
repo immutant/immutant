@@ -16,38 +16,35 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.runtime
-  "This namespace is solely for the use of ClojureRuntime.java and the application
+  "This namespace is solely for use during the application runtime
 bootstrapping process. Applications shouldn't use anything here."
-  (:use [immutant.utilities :only [app-root app-name]])
-  (:require [clojure.string        :as str]
-            [clojure.java.io       :as io]
+  (:require [clojure.java.io       :as io]
+            [clojure.string        :as str]
             [clojure.tools.logging :as log]
-            [immutant.repl         :as repl]))
-
-(defn ^{:internal true} require-and-intern [namespaced-fn]
-  (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
-    (require namespace)
-    (intern namespace function)))
+            [immutant.repl         :as repl]
+            [immutant.utilities    :as util]))
 
 (defn ^{:internal true} require-and-invoke 
   "Takes a string of the form \"namespace/fn\", requires the namespace, then invokes fn"
   [namespaced-fn & [args]]
-  (apply (require-and-intern namespaced-fn) args))
+  (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
+    (require namespace)
+    (apply (intern namespace function) args)))
 
 (defn ^{:internal true} initialize 
   "Attempts to initialize the app by calling an init-fn (if given) or, lacking that,
 tries to load an immutant.clj from the app-root"
   [init-fn config-hash]
   (let [config (into {} config-hash)
-        config-file (io/file (app-root) "immutant.clj")
+        config-file (io/file (util/app-root) "immutant.clj")
         config-exists (.exists config-file)]
     (if init-fn
       (do
         (if config-exists
-          (log/warn "immutant.clj found in" (app-name) ", but you specified an :init fn; ignoring immutant.clj"))
+          (log/warn "immutant.clj found in" (util/app-name) ", but you specified an :init fn; ignoring immutant.clj"))
         (require-and-invoke init-fn))
       (if config-exists
         (load-file (.getAbsolutePath config-file))
-        (log/warn "no immutant.clj found in" (app-name) "and you specified no init fn; no app initialization will be performed")))
+        (log/warn "no immutant.clj found in" (util/app-name) "and you specified no init fn; no app initialization will be performed")))
     (repl/init-repl config)))
 

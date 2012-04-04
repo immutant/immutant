@@ -41,5 +41,5 @@
   ([name]
      (fetch name false))
   ([name get-container?]
-      (or (get @registry name) (get-from-msc name get-container?))))
+     (or (get @registry name) (get-from-msc name get-container?))))
 

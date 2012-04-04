@@ -19,7 +19,7 @@
 
 package org.immutant.web.ring.processors;
 
-import org.immutant.core.ClojureRuntime;
+import org.immutant.runtime.ClojureRuntime;
 import org.immutant.web.ring.RingMetaData;
 import org.immutant.web.servlet.RingFilter;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;

@@ -20,7 +20,7 @@
 package org.immutant.core.processors;
 
 import org.immutant.core.ClojureMetaData;
-import org.immutant.core.ClojureRuntime;
+import org.immutant.runtime.ClojureRuntime;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;

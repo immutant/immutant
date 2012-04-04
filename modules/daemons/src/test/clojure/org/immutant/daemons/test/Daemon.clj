@@ -16,10 +16,10 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns org.immutant.daemons.test.Daemon
-  (:use clojure.test)
-  (:use immutant.test.helpers)
-  (:import [org.immutant.core ClojureRuntime])
-  (:import [org.immutant.daemons Daemon]))
+  (:use clojure.test
+        immutant.test.helpers)
+  (:import org.immutant.runtime.ClojureRuntime
+           org.immutant.daemons.Daemon))
 
 (def daemon-status (ref "not-started"))
 

@@ -16,10 +16,11 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns org.immutant.core.processors.test.ApplicationInitializer
-  (:use clojure.test)
-  (:use immutant.test.as.helpers)
-  (:import [org.immutant.core.processors ApplicationInitializer])
-  (:import [org.immutant.core ClojureMetaData ClojureRuntime]))
+  (:use clojure.test
+        immutant.test.as.helpers)
+  (:import org.immutant.core.processors.ApplicationInitializer
+           org.immutant.core.ClojureMetaData
+           org.immutant.runtime.ClojureRuntime))
 
 (def a-value (atom "not-called"))
 
@@ -33,9 +34,12 @@
     (on-thread
      (doto unit
        (.putAttachment ClojureRuntime/ATTACHMENT_KEY
-                       (proxy [ClojureRuntime] [(.getClassLoader (.getClass unit)) "app-name"]
-                         (invoke [initialize-fn args]
-                           (reset! a-value [initialize-fn (first args)]))))
+                       (doto
+                           (proxy [ClojureRuntime] []
+                             (invoke [initialize-fn args]
+                               (reset! a-value [initialize-fn (first args)])))
+                         (.setClassLoader (.getClassLoader (.getClass unit)))
+                         (.setName "app-name")))
        (.putAttachment ClojureMetaData/ATTACHMENT_KEY (ClojureMetaData. "foo" {"init" func-name})))
      (.deploy *harness* phase-context)
 

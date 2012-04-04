@@ -29,6 +29,20 @@
     </dependency>
 
     <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-runtime-api</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-runtime-impl</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
       <scope>compile</scope>
