@@ -61,7 +61,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.tcrawley</groupId>
+      <groupId>org.clojure</groupId>
       <artifactId>tools.nrepl</artifactId>
       <version>${version.nrepl}</version>
       <scope>compile</scope>
