@@ -1,9 +1,10 @@
 (ns basic-ring.core
-  (:require [immutant.messaging :as msg]
-            [immutant.web :as web]
-            [immutant.web.session :as isession]
+  (:require [immutant.messaging      :as msg]
+            [immutant.web            :as web]
+            [immutant.web.session    :as isession]
+            [immutant.repl           :as repl]
             [ring.middleware.session :as rsession]
-            [clojure.java.io :as io]))
+            [clojure.java.io         :as io]))
 
 (def a-value (atom "default"))
 
@@ -59,3 +60,7 @@
   (init)
   (web/start request-echo-handler)
   (web/start "/foo/bar" request-echo-handler))
+
+(defn init-nrepl []
+  (init)
+  (repl/start-nrepl 4321))
