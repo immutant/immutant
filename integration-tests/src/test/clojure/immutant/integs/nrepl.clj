@@ -29,7 +29,7 @@
 
 (deftest simple "it should work"
   (with-open [conn (repl/connect :port 4321)]
-    (let [response (repl/message (repl/client conn 10000)
+    (let [response (repl/message (repl/client conn 120000)
                                  {:op :eval :code "(str \"it works!\")"})]
       (println "RESPONSE" response)
       (is (= "it works!" (first (repl/response-values response)))))))
