@@ -30,6 +30,21 @@
           (getStringProperty [k]
             (.get properties k)))))))
 
+(defn bytes-message [content]
+  (let [properties (java.util.HashMap.)]
+    (proxy [javax.jms.BytesMessage] []
+      (getBodyLength []
+        (alength (.getBytes content)))
+      (readBytes [bytes]
+        (let [src (.getBytes content)]
+          (doseq [idx (range (alength src))]
+            (aset bytes idx (aget src idx)))
+          (alength src)))
+      (setStringProperty [k,v]
+        (.put properties k v))
+      (getStringProperty [k]
+        (.get properties k)))))
+
 (defn test-codec [message encoding]
   (is (= message (decode (encode (session-mock) message {:encoding encoding})))))
 
@@ -62,3 +77,21 @@
 (deftest text
   (test-codec "ham biscuit" :text))
 
+(deftest text-as-bytes
+  (let [text "ham biscuit"
+        message (doto (bytes-message text)
+                  (.setStringProperty encoding-header-name "text"))]
+    (is (= text (decode message)))))
+
+(deftest clojure-as-bytes
+  (let [message (doto (bytes-message "\"ham biscuit\"")
+                  (.setStringProperty encoding-header-name "clojure"))]
+    (is (= "ham biscuit" (decode message)))))
+
+(deftest json-as-bytes
+  (let [message (doto (bytes-message "[\"ham biscuit\"]")
+                  (.setStringProperty encoding-header-name "json"))]
+    (is (= ["ham biscuit"] (decode message)))))
+
+(deftest default-to-text-if-no-encoding-given
+  (is (= "ham biscuit" (decode (.createTextMessage (session-mock) "ham biscuit")))))

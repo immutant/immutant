@@ -16,7 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging.codecs
-  (:require [immutant.codecs :as core]))
+  (:require [immutant.codecs :as core])
+  (:import [javax.jms BytesMessage TextMessage]))
 
 (def encoding-header-name "__ContentEncoding__")
 
@@ -26,6 +27,22 @@
 
 (defn ^{:private true} get-encoding [^javax.jms.Message msg]
   (keyword (.getStringProperty msg encoding-header-name)))
+
+(defprotocol AsText
+  "Function for extracting text from a message."
+  (message-text [message]))
+
+(extend-type BytesMessage
+  AsText
+  (message-text [message]
+    (let [bytes (byte-array (.getBodyLength message))]
+      (.readBytes message bytes)
+      (String. bytes))))
+
+(extend-type TextMessage
+  AsText
+  (message-text [message]
+    (.getText message)))
 
 ;; Encode
 
@@ -51,19 +68,19 @@
 
 ;; Decode
 
-(defmulti decode (fn [message] (get-encoding message)))
+(defmulti decode (fn [message] (or (get-encoding message) :text)))
 
 (defmethod decode :clojure [message]
   "Turn a string into a clojure data structure"
-  (core/decode (.getText message)))
+  (core/decode (message-text message)))
 
 (defmethod decode :json [message]
   "Turn a string into a json data structure"
-  (core/decode (.getText message) :json))
+  (core/decode (message-text message) :json))
 
 (defmethod decode :text [message]
   "Treats the message payload as a raw string. No decoding is done."
-  (.getText message))
+  (message-text message))
 
 (defmethod decode :default [message]
   (throw (RuntimeException. (str "Received unknown message encoding: " (get-encoding message)))))
