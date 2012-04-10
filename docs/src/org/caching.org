@@ -11,7 +11,7 @@
 
    Immutant encapsulates the JBoss [[http://www.infinispan.org][Infinispan data grid]], enabling
    simple construction of transactional, high-performance key/value
-   stores that can be either run locally or efficiently replicated
+   stores that can either be run locally or efficiently replicated
    across a cluster.
 
    Infinispan offers a number of clustering modes that determine what 
@@ -54,71 +54,174 @@
    determine which nodes will store a given entry.
 
 * The API
+** Creating
 
-  Caches are defined using the =immutant.cache/cache= function. Its
-  only required argument is a name. 
+   Caches are defined using the =immutant.cache/cache= function. Its
+   only required argument is a name. Creating two caches with the same
+   name means each is backed by the same Infinispan cache.
 
-  Additionally, one of the following keywords may be passed to
-  indicate the desired caching mode: =:local=, =:invalidated=,
-  =:replicated=, or =:distributed=. If omitted, the default mode is
-  =:invalidated= when clustered. When not clustered, the mode will
-  *always* be =:local=, as the others are meaningless unless
-  clustered.
+   Additional options may be passed as in-line keyword arguments. The
+   following are supported:
 
-  The cache can also be seeded from a passed map as well.
+    | Option   | Default    | Description                                                                                                                            |
+    |----------+------------+----------------------------------------------------------------------------------------------------------------------------------------|
+    | =:mode=  | =:local=   | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. Defaults to =:invalidated= if clustered.           |
+    | =:seed=  | nil        | A hash of initial entries to replace the existing ones.                                                                                |
+    | =:ttl=   | -1         | Time-To-Live. The maximum time the entry will live before being expired. A negative value disables time-to-live expiration.            |
+    | =:idle=  | -1         | The time after which an entry will expire if not accessed. A negative value disables idle expiration.                                  |
+    | =:units= | =:seconds= | The units for =:ttl= and =:idle=. One of =:days=, =:hours=, =:minutes=, =:seconds=, =:milliseconds=, =:microseconds= or =:nanoseconds= |
 
-  Some examples are in order.
+   When not clustered, the value of =:mode= is ignored and set to
+   =:local=.
 
-  #+begin_src clojure
-    (ns example.test
-      (:use [immutant.cache]))
-    
-    ;; Obtain a cache in :invalidated mode if clustered, :local otherwise
-    (def c1 (cache "jimi"))
-    
-    ;; A cache in :distributed mode if clustered, :local otherwise
-    (def c2 (cache "jeff" :distributed))
-    
-    ;; Initialize a cache with a seed
-    (def c3 (cache "billy" :replicated {:a 1 :b 2}))
-    
-    ;; If seed is second parameter, mode defaults to :invalidated/:local
-    (def c4 (cache "jerry" {:a 1 :b 2}))
-  #+end_src
+   Seeding a cache will cause existing entries to be deleted, a
+   potentially expensive operation depending on replication mode.
 
-  In addition to providing implementations for many of Clojure's core
-  interfaces, the returned cache object implements two useful
-  protocols: =core.cache/CacheProtocol= and
-  =immutant.cache/Mutable=. The former allows an Immutant cache to be
-  plugged into the =core.memoize= API. The latter exposes some of
-  Infinispan's handy cache manipulation features.
+   Some examples are in order.
 
-  #+begin_src clojure
-    (defprotocol Mutable
-      "Functions for manipulating a shared, distributed cache.
-    
-       Every function optionally accepts a map with the following
-       lifespan-oriented keys:
-    
-         :ttl - time-to-live, the max time the entry will live before expiry [-1]
-         :idle - the time after which an entry will expire if not accessed [-1]
-         :units - the units for the values of :ttl and :idle [:seconds]
-    
-       Negative values imply no expiration.
-       Possible values for :units -- :days, :hours, :minutes, :seconds,
-                                     :milliseconds, :microseconds :nanoseconds
-    
-       The conditional functions, e.g. put-if-*, are all atomic."
-      (put [cache key value] [cache key value options]
-        "Put an entry in the cache")
-      (put-all [cache map] [cache map options]
-        "Put all the entries in cache")
-      (put-if-absent [cache key value] [cache key value options]
-        "Put it in only if key is not already there")
-      (put-if-present [cache key value] [cache key value options]
-        "Put it in only if key is already there")
-      (put-if-replace [cache key old new] [cache key old new options]
-        "Put it in only if key is there and current matches old")
-      (delete [cache key] [cache key value]
-        "Delete the entry; value must match current if passed"))
-  #+end_src
+   #+begin_src clojure
+     (ns example.test
+       (:use [immutant.cache]))
+     
+     ;; Obtain a cache in :invalidated mode if clustered, :local otherwise
+     (def c1 (cache "jimi"))
+     
+     ;; A cache in :distributed mode if clustered, :local otherwise
+     (def c2 (cache "jeff" :mode :distributed))
+     
+     ;; Initialize a replicated cache, if clustered, with a seed
+     (def c3 (cache "billy" :mode :replicated, :seed {:a 1 :b 2}))
+     
+     ;; Expire all entries after 10 minutes and any not accessed after 1 minute
+     (def c4 (cache "jerry" :ttl 10, :idle 1, :units :minutes))
+   #+end_src
+
+** Writing
+
+   Immutant caches are *mutable*. This is sensible in a clustered
+   environment, because the local process benefits from fast reads of
+   data that may have been put there by a remote process. We
+   effectively shift the responsibility of "sane data management",
+   i.e. MVCC, from Clojure to Infinispan.
+
+   Immutant caches implement the =immutant.cache/Mutable= protocol,
+   through which Infinispan's cache manipulation features are exposed.
+
+   Data is inserted into an Immutant cache using one of the =put=
+   functions of the =Mutable= protocol. Each takes an optional hash of
+   lifespan-oriented parameters (=:ttl= =:idle= =:units=) that may be
+   used to override the values specified when the cache was created.
+
+   #+begin_src clojure
+     (def c (cache "foo" :ttl 300))
+     
+     ;;; Put an entry in the cache
+     (put c :a 1)
+     
+     ;;; Override its time-to-live
+     (put c :a 1 {:ttl 1, :units :hours})
+     
+     ;;; Put all the entries in cache
+     (put-all c {:b 2, :c 3})
+     
+     ;;; Put it in only if key is not already there
+     (put-if-absent c :b 6)                  ;=> 2
+     (put-if-absent c :d 4)                  ;=> nil
+     
+     ;;; Put it in only if key is already there
+     (put-if-present c :e 5)                 ;=> nil
+     (put-if-present c :b 6)                 ;=> 2
+     
+     ;;; Put it in only if key is there and current matches old
+     (put-if-replace c :b 2 0)               ;=> false
+     (put-if-replace c :b 6 0)               ;=> true
+     (:b c)                                  ;=> 0
+     
+   #+end_src
+
+   The conditional =put-if-*= functions are atomic and return values
+   as specified by [[http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ConcurrentMap.html][java.util.concurrent.ConcurrentMap]], usually
+   returning the previous value on success.
+
+   To remove entries from the cache, use =delete=.
+
+   #+begin_src clojure
+     (def c (cache "bar" :seed {:a 1 :b 2}))
+     
+     ;;; Deleting a missing key is harmless
+     (delete c :missing)                     ;=> nil
+     
+     ;;; Deleting an existing key returns its value
+     (delete c :b)                           ;=> 2
+     
+     ;;; If value is passed, both must match for delete to succeed
+     (delete c :a 2)                         ;=> false
+     (delete c :a 1)                         ;=> true
+     
+     ;;; Clear all keys, returning the empty cache
+     (delete-all c)                          ;=> c
+   #+end_src
+
+** Reading
+
+   Data is read from an Immutant cache the same way data is read from
+   any standard Clojure map, i.e. using core Clojure functions.
+
+   #+begin_src clojure
+     (def c (cache "baz" :seed {:a 1, :b {:c 3, :d 4}}))
+     
+     ;;; Use get to obtain associated values
+     (get c :a)                              ;=> 1
+     (get c :x)                              ;=> nil
+     (get c :x 42)                           ;=> 42
+     
+     ;;; Symbols look up their value
+     (:a c)                                  ;=> 1
+     (:x c 42)                               ;=> 42
+     
+     ;;; Nested structures work as you would expect
+     (get-in c [:b :c])                      ;=> 3
+     
+     ;;; Use find to return entries
+     (find c :a)                             ;=> [:a 1]
+     
+     ;;; Use contains? to check membership
+     (contains? c :a)                        ;=> true
+     (contains? c :x)                        ;=> false
+   #+end_src
+
+** Memoizing
+
+   Memoization is an optimization technique associating a cache of
+   calculated values with a potentially expensive function, incurring
+   the expense only once, with subsequent calls retrieving the result
+   from the cache. The keys of the cache are the arguments passed to
+   the function.
+
+   Because an Immutant cache implements
+   =clojure.core.cache/CacheProtocol=, it can act as an underlying
+   implementation for =clojure.core.memoize/PluggableMemoization=.
+   Immutant includes a higher-order =memo= function for doing exactly
+   that:
+
+   #+begin_src clojure
+     (require [immutant.cache :as ic])
+     
+     ;;; Other than the function to be memoized, arguments are the same as
+     ;;; for the cache function.
+     (def memoized-fn (ic/memo slow-fn "foo" :mode :distributed, :ttl 600))
+     
+     ;;; Invoking the memoized function fills the cache with the result
+     ;;; from the slow function the first time it is called.
+     (memoized-fn 1 2 3)                     ;=> 42
+     
+     ;;; Subsequent invocations with the same parameters return the result
+     ;;; from the cache, avoiding the overhead of the slow function
+     (memoized-fn 1 2 3)                     ;=> 42
+     
+     ;;; It's possible to manipulate the cache backing the memoized
+     ;;; function by referring to its name
+     (def c (ic/cache "foo"))
+     (get c [1 2 3])                         ;=> 42
+     
+   #+end_src
