@@ -2,10 +2,10 @@
 
 * Introduction
 
-  Immutant provides built-in support for local and distributed caches
-  that implement [[https://github.com/clojure/core.cache][clojure.core.cache/CacheProtocol]], and may therefore
-  be used as standard [[https://github.com/clojure/core.memoize][memoization]] stores. It is also possible to use
-  them as enhanced [[http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ConcurrentMap.html][ConcurrentMap]] implementations.
+  Immutant provides built-in support for local and distributed caching
+  through Infinispan. And because Immutant caches implement
+  [[https://github.com/clojure/core.cache][clojure.core.cache/CacheProtocol]], they may be used as standard
+  [[https://github.com/clojure/core.memoize][memoization]] stores.
 
 ** Infinispan
 
@@ -206,7 +206,7 @@
    that:
 
    #+begin_src clojure
-     (require [immutant.cache :as ic])
+     (require '[immutant.cache :as ic])
      
      ;;; Other than the function to be memoized, arguments are the same as
      ;;; for the cache function.
