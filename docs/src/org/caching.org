@@ -3,9 +3,9 @@
 * Introduction
 
   Immutant provides built-in support for local and distributed caches
-  that implement [[https://github.com/clojure/core.cache][core.cache/CacheProtocol]], and may therefore be used
-  as standard [[https://github.com/clojure/core.memoize][memoization]] stores. It is also possible to use them as
-  enhanced [[http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ConcurrentMap.html][ConcurrentMap]] implementations.
+  that implement [[https://github.com/clojure/core.cache][clojure.core.cache/CacheProtocol]], and may therefore
+  be used as standard [[https://github.com/clojure/core.memoize][memoization]] stores. It is also possible to use
+  them as enhanced [[http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ConcurrentMap.html][ConcurrentMap]] implementations.
 
 ** Infinispan
 
@@ -14,8 +14,8 @@
    stores that can either be run locally or efficiently replicated
    across a cluster.
 
-   Infinispan offers a number of clustering modes that determine what 
-   happens when an entry is written to the cache.
+   Infinispan offers a number of clustering modes that determine how
+   data is replicated when an entry is written to the cache.
 
 * Caching Modes
 
@@ -23,7 +23,7 @@
 
 ** Local
 
-   This is the default mode when Immutant runs non-clustered,
+   This is the only supported mode when Immutant runs non-clustered:
    essentially an enhanced, in-memory [[http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ConcurrentMap.html][ConcurrentMap]] implementation,
    featuring write-through/write-behind persistence, eviction,
    expiration, JTA/XA support, MVCC-based concurency, and JMX
@@ -121,14 +121,14 @@
      ;;; Override its time-to-live
      (put c :a 1 {:ttl 1, :units :hours})
      
-     ;;; Put all the entries in cache
+     ;;; Add all the entries in the map to the cache
      (put-all c {:b 2, :c 3})
      
-     ;;; Put it in only if key is not already there
+     ;;; Put it in only if key is not already present
      (put-if-absent c :b 6)                  ;=> 2
      (put-if-absent c :d 4)                  ;=> nil
      
-     ;;; Put it in only if key is already there
+     ;;; Put it in only if key is already present
      (put-if-present c :e 5)                 ;=> nil
      (put-if-present c :b 6)                 ;=> 2
      
@@ -140,8 +140,9 @@
    #+end_src
 
    The conditional =put-if-*= functions are atomic and return values
-   as specified by [[http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ConcurrentMap.html][java.util.concurrent.ConcurrentMap]], usually
-   returning the previous value on success.
+   as specified by [[http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/ConcurrentMap.html][java.util.concurrent.ConcurrentMap]], so
+   =put-if-absent= returns the previously mapped value on failure, and
+   =put-if-present= returns the previously mapped value on success.
 
    To remove entries from the cache, use =delete=.
 
