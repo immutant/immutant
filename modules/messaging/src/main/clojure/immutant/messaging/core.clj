@@ -110,11 +110,11 @@
         retry #(do (Thread/sleep 1000) (wait-for-destination f (dec attempts)))]
     (try
       (f)
-      (catch RuntimeException e
+      (catch javax.jms.JMSException e            ;; clojure 1.2, 1.4
+        (if (> attempts 0) (retry) (throw e)))
+      (catch RuntimeException e                  ;; clojure 1.3
         (if (and (instance? javax.jms.JMSException (.getCause e)) (> attempts 0))
           (retry)
           (throw e)))
       (catch javax.naming.NameNotFoundException e
-        (if (> attempts 0) (retry) (throw e)))
-      (catch javax.jms.JMSException e
         (if (> attempts 0) (retry) (throw e))))))

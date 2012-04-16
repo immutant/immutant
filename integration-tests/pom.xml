@@ -16,7 +16,7 @@
   <properties>
     <assembly.dir>${project.basedir}/../build/assembly/target/stage/immutant</assembly.dir>
     <integ.dist.dir>target/integ-dist</integ.dist.dir>
-    <integ.clojure.versions>1.3.0</integ.clojure.versions>
+    <integ.clojure.versions>1.4.0</integ.clojure.versions>
     <fntest.debug>false</fntest.debug>
     <ns />
   </properties>

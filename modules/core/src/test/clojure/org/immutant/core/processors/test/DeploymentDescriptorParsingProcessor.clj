@@ -16,22 +16,23 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns org.immutant.core.processors.test.DeploymentDescriptorParsingProcessor
-  (:use clojure.test)
-  (:use immutant.test.helpers)
-  (:use immutant.test.as.helpers)
-  (:import [org.immutant.core.processors DeploymentDescriptorParsingProcessor])
-  (:import [org.immutant.core ClojureMetaData])
+  (:use clojure.test
+        immutant.test.helpers
+        immutant.test.as.helpers)
+  (:import org.immutant.core.processors.DeploymentDescriptorParsingProcessor
+           org.immutant.core.ClojureMetaData
+           org.jboss.as.server.deployment.DeploymentUnitProcessingException)
   (:require [clojure.java.io :as io]))
 
 (use-fixtures :each
               (harness-with [(DeploymentDescriptorParsingProcessor.)]))
 
 (deftest it-should-raise-with-no-root-specified
-  (is (thrown? RuntimeException
+  (is (thrown? DeploymentUnitProcessingException
                (.deployResourceAs *harness* (io/resource "simple-descriptor.clj") "app.clj" ))))
 
 (deftest it-should-raise-with-an-invalid-root-specified
-  (is (thrown? RuntimeException
+  (is (thrown? DeploymentUnitProcessingException
                (.deployResourceAs *harness* (io/resource "invalid-root-descriptor.clj") "app.clj" ))))
 
 (deftest it-should-create-metadata-when-given-a-valid-root
