@@ -40,7 +40,7 @@
 
   (deftest resource-paths-should-work
     (is (= (set (map #(.getAbsolutePath (io/file app-root %))
-                     ["resources" "native" "src"]))
+                     ["resources" "native" "src" "classes"]))
            (set (resource-paths app-root)))))
 
   (deftest lib-dir-should-work
@@ -98,7 +98,7 @@
 
   (deftest resource-paths-should-work
     (is (= (set (map #(.getAbsolutePath (io/file app-root %))
-                     ["resources" "native" "src"]))
+                     ["resources" "native" "src" "classes"]))
            (set (resource-paths app-root)))))
 
   (deftest lib-dir-should-work

@@ -81,7 +81,8 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
   [project]
   (remove nil?
           (flatten
-           (map project [:resources-path ;; lein1
+           (map project [:compile-path   ;; lein1 and 2
+                         :resources-path ;; lein1
                          :resource-paths ;; lein2
                          :source-path    ;; lein1
                          :source-paths   ;; lein2
@@ -92,7 +93,7 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
   "Resolves the resource paths (in the AS7 usage of the term) for a non-leiningen application."
   [app-root]
   (map #(.getAbsolutePath (io/file app-root %))
-       ["src" "resources" "native"]))
+       ["src" "resources" "classes" "native"]))
 
 (defn ^{:internal true} resource-paths
   "Resolves the resource paths (in the AS7 usage of the term) for an application."
