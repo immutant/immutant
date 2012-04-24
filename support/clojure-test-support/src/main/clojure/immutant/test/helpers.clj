@@ -42,6 +42,11 @@
                      :expected '~form, :actual e#})
             e#))))
 
+(defmacro deftest*
+  "Defines a test, even if a test of that name already exists by giving every test a gensymed name."
+  [name & body]
+  `(deftest ~(gensym (str name "-")) ~@body))
+
 (defmacro deftest-pending
   [name & body]
    ;; borrowed from http://techbehindtech.com/2010/06/01/marking-tests-as-pending-in-clojure/                  
@@ -49,7 +54,9 @@
      `(deftest ~name
         (println ~message#))))
 
+
 (defmacro deffact [& args]
   `(deftest ~(gensym 'midje-wrapped-fact-)
      (fact ~@args)))
+
 

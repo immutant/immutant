@@ -87,7 +87,7 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
                          :source-path    ;; lein1
                          :source-paths   ;; lein2
                          :native-path    ;; lein2
-                         ]))))
+                         ])))) 
 
 (defn ^{:private true} resource-paths-for-projectless-app
   "Resolves the resource paths (in the AS7 usage of the term) for a non-leiningen application."
@@ -95,11 +95,19 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
   (map #(.getAbsolutePath (io/file app-root %))
        ["src" "resources" "classes" "native"]))
 
+
+(defn ^{:private true} add-default-lein1-paths
+  "lein1 assumes classes/, 2 assumes target/classes/, so getting it from the project will return the wrong default for lein1 projects."
+  [app-root paths]
+  (conj paths
+        (.getAbsolutePath (io/file app-root "classes"))))
+
 (defn ^{:internal true} resource-paths
   "Resolves the resource paths (in the AS7 usage of the term) for an application."
   [app-root]
   (if-let [project (read-project app-root)]
-    (resource-paths-from-project project)
+    (add-default-lein1-paths app-root
+                             (resource-paths-from-project project))
     (resource-paths-for-projectless-app app-root)))
 
 (defn ^{:internal true} bundled-jars

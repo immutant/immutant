@@ -24,55 +24,55 @@
 
 (let [app-root (io/file (io/resource "project-root"))
       another-app-root (io/file (io/resource "another-project-root"))]
-  (deftest read-project-should-work
+  (deftest* read-project-should-work
     (is (= :biscuit (:ham (read-project app-root)))))
 
-  (deftest read-and-stringify-project-should-work
+  (deftest* read-and-stringify-project-should-work
     (is (= :biscuit ((read-and-stringify-project app-root) "ham"))))
 
-  (deftest read-and-stringify-project-should-stringify-an-init-fn
+  (deftest* read-and-stringify-project-should-stringify-an-init-fn
     (is (= "some.namespace/init" (get-in (read-and-stringify-project app-root)
                                          ["immutant" "init"]))))
 
-  (deftest read-and-stringify-project-should-pass-through-a-string-init-fn
+  (deftest* read-and-stringify-project-should-pass-through-a-string-init-fn
     (is (= "some.namespace/string" (get-in (read-and-stringify-project another-app-root)
                                            ["immutant" "init"]))))
 
-  (deftest resource-paths-should-work
+  (deftest* resource-paths-should-work
     (is (= (set (map #(.getAbsolutePath (io/file app-root %))
-                     ["resources" "native" "src" "classes"]))
+                     ["dev-resources" "resources" "native" "src" "classes" "target/classes"]))
            (set (resource-paths app-root)))))
 
-  (deftest lib-dir-should-work
+  (deftest* lib-dir-should-work
     (is (= (io/file app-root "lib") (lib-dir app-root))))
   
   (let [jar-set (bundled-jars (io/file app-root))]
-    (deftest bundled-jars-should-find-the-expected-jars
+    (deftest* bundled-jars-should-find-the-expected-jars
       (is (some (set (map #(io/file (io/resource %))
                           ["project-root/lib/some.jar"
                            "project-root/lib/some-other.jar"]))
                 jar-set)))
 
-    (deftest bundled-jars-should-find-not-find-non-jars
+    (deftest* bundled-jars-should-find-not-find-non-jars
       (is-not (some #{(io/file (io/resource "project-root/lib/some.txt"))}
                     jar-set)))
 
-    (deftest bundled-jars-should-find-not-find-dev-jars
+    (deftest* bundled-jars-should-find-not-find-dev-jars
       (is-not (some #{(io/file (io/resource "project-root/lib/dev/invalid.jar"))}
                     jar-set))))
 
   (let [deps (get-dependencies app-root true)]
-    (deftest get-dependencies-should-return-deps-from-project-clj
+    (deftest* get-dependencies-should-return-deps-from-project-clj
       (is (some #{(first (aether/dependency-files
                           (aether/resolve-dependencies
                            :coordinates [['org.clojure/clojure "1.3.0"]])))}
                 deps)))
 
-    (deftest get-dependencies-should-return-deps-from-lib
+    (deftest* get-dependencies-should-return-deps-from-lib
       (is (some #{(io/file (io/resource "project-root/lib/some.jar"))}
                 deps)))
 
-    (deftest get-dependencies-should-exclude-lib-deps-from-resolved-deps
+    (deftest* get-dependencies-should-exclude-lib-deps-from-resolved-deps
       (is (some #{(io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar"))}
                 deps))
       (is-not (some #{(first
@@ -82,7 +82,7 @@
                                  :coordinates [['org.clojure/tools.logging "0.2.3"]]))))}
                     deps))))
   
-  (deftest get-dependencies-without-resolve-deps-should-only-return-jars-from-lib
+  (deftest* get-dependencies-without-resolve-deps-should-only-return-jars-from-lib
     (is (= #{(io/file (io/resource "project-root/lib/some.jar"))
              (io/file (io/resource "project-root/lib/some-other.jar"))
              (io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar"))}
@@ -90,41 +90,41 @@
 
 
 (let [app-root (io/file (io/resource "non-project-root"))]
-  (deftest read-project-should-return-nil
+  (deftest* read-project-should-return-nil
     (is (nil? (read-project app-root))))
 
-  (deftest read-and-stringify-project-return-nil
+  (deftest* read-and-stringify-project-return-nil
     (is (nil? (read-and-stringify-project app-root))))
 
-  (deftest resource-paths-should-work
+  (deftest* resource-paths-should-work
     (is (= (set (map #(.getAbsolutePath (io/file app-root %))
                      ["resources" "native" "src" "classes"]))
            (set (resource-paths app-root)))))
 
-  (deftest lib-dir-should-work
+  (deftest* lib-dir-should-work
     (is (= (io/file app-root "lib") (lib-dir app-root))))
   
   (let [jar-set (bundled-jars (io/file app-root))]
-    (deftest bundled-jars-should-find-the-expected-jars
+    (deftest* bundled-jars-should-find-the-expected-jars
       (is (some (set (map #(io/file (io/resource %))
                           ["non-project-root/lib/some.jar"
                            "non-project-root/lib/some-other.jar"]))
                 jar-set)))
 
-    (deftest bundled-jars-should-find-not-find-non-jars
+    (deftest* bundled-jars-should-find-not-find-non-jars
       (is-not (some #{(io/file (io/resource "non-project-root/lib/some.txt"))}
                     jar-set)))
 
-    (deftest bundled-jars-should-find-not-find-dev-jars
+    (deftest* bundled-jars-should-find-not-find-dev-jars
       (is-not (some #{(io/file (io/resource "non-project-root/lib/dev/invalid.jar"))}
                     jar-set))))
 
   (let [deps (get-dependencies app-root true)]
-    (deftest get-dependencies-should-return-deps-from-lib
+    (deftest* get-dependencies-should-return-deps-from-lib
       (is (some #{(io/file (io/resource "non-project-root/lib/some.jar"))}
                 deps))))
   
-  (deftest get-dependencies-without-resolve-deps-should-only-return-jars-from-lib
+  (deftest* get-dependencies-without-resolve-deps-should-only-return-jars-from-lib
     (is (= #{(io/file (io/resource "non-project-root/lib/some.jar"))
              (io/file (io/resource "non-project-root/lib/some-other.jar"))
              (io/file (io/resource "non-project-root/lib/tools.logging-0.2.3.jar"))}
