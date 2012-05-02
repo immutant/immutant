@@ -124,16 +124,7 @@
     #+end_src
 
 ** Connecting to nREPL
-
-   Installing SLIME under emacs to work with Clojure can be a painful and
-   confusing process if done manually. The easiest way to do it is to follow
-   the [[https://github.com/technomancy/swank-clojure][clojure-jack-in instructions]] from =swank-clojure=, and "jack in" to
-   any Leiningen project. This will trigger =clojure-mode= to download and
-   install a version of SLIME that is compatible with =swank-clojure=.
-   Once you have jacked in at least once, you can then connect to the nREPL
-   service within your Immutant application via the =slime-connect= emacs
-   function (=M-x slime-connect RET=).
-
+   
 *** Connecting via reply
 
     [[https://github.com/trptcolin/reply/][reply]] is an enhanced REPL for Clojure, and supports connecting to an
