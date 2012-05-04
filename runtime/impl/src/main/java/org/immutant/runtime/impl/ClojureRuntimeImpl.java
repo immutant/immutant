@@ -20,9 +20,7 @@ package org.immutant.runtime.impl;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.immutant.runtime.ClojureRuntime;
 import org.jboss.logging.Logger;
@@ -72,16 +70,7 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
         if (var == null) {
             try {
                 String[] parts = namespacedFunction.split( "/" );
-
-                if (!loadedNamespaces.contains( parts[0] )) {
-                    if (this.requireFunction == null) {
-                        this.requireFunction = RT.var( "clojure.core", "require" );
-                    }
-
-                    this.requireFunction.invoke( Symbol.create( parts[0] ) );
-                    loadedNamespaces.add( parts[0] );
-                }
-
+                RT.var( "clojure.core", "require" ).invoke( Symbol.create( parts[0] ) );
                 var = RT.var( parts[0], parts[1] );
                 this.varCache.put( namespacedFunction, var );
             } catch (Exception e) {
@@ -123,8 +112,6 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
         return field;
     }
 
-    private Var requireFunction;
-    private Set<String> loadedNamespaces = new HashSet<String>(); 
     private Map<String, Var> varCache = new HashMap<String, Var>();
     @SuppressWarnings("rawtypes")
     private HashMap<Class, Map<String, Field>> fieldCache = new HashMap<Class, Map<String, Field>>();
