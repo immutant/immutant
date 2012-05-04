@@ -66,24 +66,30 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
             Thread.currentThread().setContextClassLoader( originalClassloader );
         }
     }
-    
+
     protected Var var(String namespacedFunction) {
-        try {
-        String[] parts = namespacedFunction.split( "/" );
-        
-        if (!loadedNamespaces.contains( parts[0] )) {
-            if (this.requireFunction == null) {
-                this.requireFunction = RT.var( "clojure.core", "require" );
+        Var var = this.varCache.get( namespacedFunction );
+        if (var == null) {
+            try {
+                String[] parts = namespacedFunction.split( "/" );
+
+                if (!loadedNamespaces.contains( parts[0] )) {
+                    if (this.requireFunction == null) {
+                        this.requireFunction = RT.var( "clojure.core", "require" );
+                    }
+
+                    this.requireFunction.invoke( Symbol.create( parts[0] ) );
+                    loadedNamespaces.add( parts[0] );
+                }
+
+                var = RT.var( parts[0], parts[1] );
+                this.varCache.put( namespacedFunction, var );
+            } catch (Exception e) {
+                throw new RuntimeException( "Failed to load Var " + namespacedFunction, e );
             }
-            
-            this.requireFunction.invoke( Symbol.create( parts[0] ) );
-            loadedNamespaces.add( parts[0] );
         }
-        
-        return RT.var( parts[0], parts[1] );
-        } catch (Exception e) {
-            throw new RuntimeException( "Failed to load Var " + namespacedFunction, e );
-        }
+
+        return var;
     }
 
     @SuppressWarnings("rawtypes")
@@ -116,9 +122,10 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
 
         return field;
     }
-    
+
     private Var requireFunction;
     private Set<String> loadedNamespaces = new HashSet<String>(); 
+    private Map<String, Var> varCache = new HashMap<String, Var>();
     @SuppressWarnings("rawtypes")
     private HashMap<Class, Map<String, Field>> fieldCache = new HashMap<Class, Map<String, Field>>();
 
