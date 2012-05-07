@@ -4,7 +4,8 @@
             [immutant.web.session    :as isession]
             [immutant.repl           :as repl]
             [ring.middleware.session :as rsession]
-            [clojure.java.io         :as io]))
+            [clojure.java.io         :as io])
+  (:import SomeClass))
 
 (def a-value (atom "default"))
 
