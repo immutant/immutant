@@ -31,6 +31,9 @@
 (defn request-echo-handler [request]
   (response (prn-str (assoc request :body "<body>")))) ;; body is a inputstream, chuck it for now
 
+(defn java-class-handler [request]
+  (response (SomeClass/hello)))
+
 (defn init []
   (println "INIT CALLED"))
 
@@ -64,3 +67,7 @@
 (defn init-nrepl []
   (init)
   (repl/start-nrepl 4321))
+
+(defn init-java-class []
+  (init)
+  (web/start java-class-handler))
