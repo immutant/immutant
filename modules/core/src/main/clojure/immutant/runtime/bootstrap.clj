@@ -111,13 +111,14 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
     (resource-paths-for-projectless-app app-root)))
 
 (defn ^{:internal true} bundled-jars
-  "Returns a vector of any jars that are bundled in the application's lib-dir."
+  "Returns a set of any jars that are bundled in the application's lib-dir."
   [app-root]
   (let [^File lib-dir (lib-dir app-root)]
-    (if (.isDirectory lib-dir)
-      (.listFiles lib-dir (proxy [FilenameFilter] []
-                            (accept [_ ^String file-name]
-                              (.endsWith file-name ".jar")))))))
+    (set
+     (if (.isDirectory lib-dir)
+       (.listFiles lib-dir (proxy [FilenameFilter] []
+                             (accept [_ ^String file-name]
+                               (.endsWith file-name ".jar"))))))))
 
 (defn ^{:internal true} get-dependencies
   "Resolves the dependencies for an application. It concats bundled jars with any aether resolved
