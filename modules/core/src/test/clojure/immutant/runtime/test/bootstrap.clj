@@ -19,11 +19,14 @@
   (:use immutant.runtime.bootstrap
         clojure.test
         midje.sweet
-        immutant.test.helpers)
+        immutant.test.helpers
+        [midje.util :only [expose-testables]])
   (:require [clojure.java.io             :as io]
             [cemerick.pomegranate.aether :as aether]))
 
 (deftest all-tests
+
+  (expose-testables immutant.runtime.bootstrap)
   
   (let [app-root (io/file (io/resource "project-root"))
         another-app-root (io/file (io/resource "another-project-root"))]
@@ -45,35 +48,36 @@
     (fact "lib-dir should work"
       (lib-dir app-root) => (io/file app-root "lib"))
     
-    (fact "bundled-jars should work"
+    (facts "bundled-jars"
       (let [jar-set (bundled-jars (io/file app-root))]
-        ;; include the jars
-        jar-set => (contains (set (map #(io/file (io/resource %))
-                                       ["project-root/lib/some.jar"
-                                        "project-root/lib/some-other.jar"])) :gaps-ok)
-        ;; don't include non jars
-        jar-set =not=> (contains (io/file (io/resource "project-root/lib/some.txt")))
-        ;; don't include dev jars
-        jar-set =not=> (io/file (io/resource "project-root/lib/dev/invalid.jar"))))
+        (fact "should include the jars"
+          jar-set => (contains (set (map #(io/file (io/resource %))
+                                         ["project-root/lib/some.jar"
+                                          "project-root/lib/some-other.jar"])) :gaps-ok))
+        
+        (fact "shouldn't include non jars"
+          jar-set =not=> (contains (io/file (io/resource "project-root/lib/some.txt"))))
+        
+        (fact "shouldn't include dev jars"
+          jar-set =not=> (io/file (io/resource "project-root/lib/dev/invalid.jar")))))
        
-    (facts "get-dependencies should work"
+    (facts "get-dependencies"
       (let [deps (get-dependencies app-root true)]
 
-        ;; return deps from project.clj
-        deps => (contains (first (aether/dependency-files
-                                  (aether/resolve-dependencies
-                                   :coordinates [['org.clojure/clojure "1.3.0"]]))))
+        (fact "should return deps from project.clj"
+          deps => (contains (aether/dependency-files
+                             (aether/resolve-dependencies
+                              :coordinates [['org.clojure/clojure "1.3.0"]]))))
 
-        ;; return deps from lib
-        deps => (contains (io/file (io/resource "project-root/lib/some.jar")))
+        (fact "should return deps from lib"
+          deps => (contains (io/file (io/resource "project-root/lib/some.jar"))))
 
-        ;; exclude lib deps from resolved deps
-        deps     => (contains (io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar")))
-        deps =not=> (contains (first
-                               (filter #(= "tools.logging-0.2.3.jar" (.getName %))
-                                       (aether/dependency-files
-                                        (aether/resolve-dependencies
-                                         :coordinates [['org.clojure/tools.logging "0.2.3"]])))))))
+        (fact "should exclude lib deps from resolved deps"
+          deps     => (contains (io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar")))
+          deps =not=> (contains (filter #(= "tools.logging-0.2.3.jar" (.getName %))
+                                        (aether/dependency-files
+                                         (aether/resolve-dependencies
+                                          :coordinates [['org.clojure/tools.logging "0.2.3"]])))))))
 
     (fact "get-dependencies without resolve-deps should only return jars from lib"
       (get-dependencies app-root false) => (just
@@ -99,16 +103,17 @@
       (lib-dir app-root) => (io/file app-root "lib"))
 
 
-    (fact "bundled-jars should work"
+    (facts "bundled-jars"
       (let [jar-set (bundled-jars (io/file app-root))]
-        ;; include the jars
-        jar-set => (contains (set (map #(io/file (io/resource %))
-                                       ["non-project-root/lib/some.jar"
-                                        "non-project-root/lib/some-other.jar"])) :gaps-ok)
-        ;; don't include non jars
-        jar-set =not=> (contains (io/file (io/resource "non-project-root/lib/some.txt")))
-        ;; don't include dev jars
-        jar-set =not=> (io/file (io/resource "non-project-root/lib/dev/invalid.jar"))))
+        (fact "should include the jars"
+          jar-set => (contains (set (map #(io/file (io/resource %))
+                                         ["non-project-root/lib/some.jar"
+                                          "non-project-root/lib/some-other.jar"])) :gaps-ok))
+        
+        (fact "shouldn't include non jars"
+          jar-set =not=> (contains (io/file (io/resource "non-project-root/lib/some.txt"))))
+        (fact "shouldn't include dev jars"
+          jar-set =not=> (io/file (io/resource "non-project-root/lib/dev/invalid.jar")))))
     
     (fact "get-dependencies should return deps from lib"
       (get-dependencies app-root true) =>
@@ -119,4 +124,23 @@
                                             (io/file (io/resource "non-project-root/lib/some.jar"))
                                             (io/file (io/resource "non-project-root/lib/some-other.jar"))
                                             (io/file (io/resource "non-project-root/lib/tools.logging-0.2.3.jar"))
-                                            :in-any-order))))
+                                            :in-any-order)))
+
+  (facts "resolve-dependencies"
+    (let [project (read-project (io/file (io/resource "project-root")))
+          expected-deps (set (aether/dependency-files
+                              (aether/resolve-dependencies
+                               :coordinates (:dependencies project))))]
+
+      (fact "should return the correct deps when there are no unresolvable deps"
+        (resolve-dependencies project) => expected-deps)
+
+      (let [project-with-bad-dep (update-in project [:dependencies]
+                                            conj ['i-dont-exist "1.0.0"])]
+        (fact "should return the correct deps when there is an unresolvable dep"
+          (resolve-dependencies project-with-bad-dep) => expected-deps)
+        
+        (let [project-with-bad-deps (update-in project-with-bad-dep [:dependencies]
+                                               conj ['i-also-dont-exist "1.0.0"])]
+          (fact "should return the correct deps when there are multiple unresolvable deps"
+            (resolve-dependencies project-with-bad-deps) => expected-deps))))))

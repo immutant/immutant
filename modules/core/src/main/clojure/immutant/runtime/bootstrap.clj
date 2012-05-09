@@ -19,11 +19,13 @@
   "Functions used in app bootstrapping."
   (:require [clojure.java.io          :as io]
             [clojure.walk             :as walk]
+            [clojure.tools.logging    :as log]
             [leiningen.core.classpath :as classpath]
             [leiningen.core.project   :as project]
             [cemerick.pomegranate     :as pomegranate])
   (:import [java.io   File FilenameFilter]
-           [java.util ArrayList]))
+           java.util.ArrayList
+           org.sonatype.aether.resolution.DependencyResolutionException))
 
 (extend-type org.jboss.modules.ModuleClassLoader
   pomegranate/URLClasspath
@@ -63,11 +65,40 @@
   (when-let [project (walk/stringify-keys (read-project app-root))]
     (stringify-init-symbol ["immutant"] project)))
 
-(defn ^{:private true} resolve-dependencies
-  "Resolves dependencies from the lein project. It currently just delegates to leiningen-core."
+(defn ^{:private true} remove-dependencies
+  "Removes the given dependency coordinates from the given project."
+  [project coords]
+  (update-in project [:dependencies]
+             #(remove (partial contains? coords) %)))
+
+(defn ^{:private true} extract-coordinates
+  "Extracts dependency coordinates from an exception message."
+  [s]
+  (reduce (fn [coords [_ group name version _]]
+            (if (= group name)
+              (conj coords [(symbol group name) version] [(symbol name) version])
+              (conj coords [(symbol group name) version])))
+          #{}
+          (re-seq #" (\S*?):(\S*?):jar:(\S*?)(,| )" s)))
+
+(defn ^{:private true :testable true} resolve-dependencies
+  "Resolves dependencies from the lein project. It delegates to leiningen-core, but attempts
+to gracefully handle missing dependencies."
   [project]
   (when project
-    (classpath/resolve-dependencies :dependencies project)))
+    (try
+      (classpath/resolve-dependencies :dependencies project)
+      (catch DependencyResolutionException e
+        (let [msg (.getMessage e)
+              coords (extract-coordinates msg)]
+          (log/warn "Failed to resolve one or more dependencies: " msg)
+          (if (some coords (:dependencies project))
+            (do
+              (log/warn "Attempting dependency resolution again with the above dependencies removed.")
+              (resolve-dependencies (remove-dependencies project coords)))
+            (do
+              (log/error "The above resolution failure prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
+              nil)))))))
 
 (defn ^{:internal true} lib-dir
   "Resolve the library dir for the application."
@@ -87,7 +118,7 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
                          :source-path    ;; lein1
                          :source-paths   ;; lein2
                          :native-path    ;; lein2
-                         ])))) 
+                         ]))))
 
 (defn ^{:private true} resource-paths-for-projectless-app
   "Resolves the resource paths (in the AS7 usage of the term) for a non-leiningen application."

@@ -35,7 +35,7 @@
      descriptor with the configuration from the descriptor taking
      precedence. If the deployment was not an archive file, Leiningen is
      used to resolve the dependencies present in the =project= via 
-     Maven (this behavior can be overridden - see [[#initialization-configuration][:resolve-dependencies]]. 
+     Maven (this behavior can be overridden - see [[#initialization-configuration][:resolve-dependencies]]). 
 
   4. If a =lib/= directory is present in the application root, any jars
      within it are merged with the dependencies calculated in the previous
@@ -187,7 +187,7 @@
 
   Immutant generates a unique classpath for each deployed application
   based upon dependencies and source & resource directories defined in
-  [[#initialization-project-clj][project.clj]]  and any jars found in the =lib/= at the application root. 
+  [[#initialization-project-clj][project.clj]] and any jars found in the =lib/= at the application root. 
 
   The =lib/= directory can be used to bundle dependencies with your
   application, and can be useful in the following situations:
@@ -203,7 +203,13 @@
   against a local [[http://maven.apache.org/guides/introduction/introduction-to-repositories.html][Maven repository]]. If the dependencies aren't available 
   in the local repository, they are downloaded into it. The local repository
   is located based on the value of =$M2_REPO=, and defaults to 
-  =~/.m2/repository/=.
+  =~/.m2/repository/=. If dependency resolution fails and the failing dependency
+  is listed in =project.clj=, Immutant will reattempt resolution with the
+  failing dependency excluded. If the unresolved dependency isn't listed in
+  =project.clj=, all maven dependency resolution will fail. In either case,
+  any dependencies that fail to resolve must be present elsewhere on the
+  application's resource path (=lib/= for example) to be accessible to the
+  application.
 
   The enablement of dependency resolution depends upon the value of
   the =:resolve-dependencies= option and the type of deployment.

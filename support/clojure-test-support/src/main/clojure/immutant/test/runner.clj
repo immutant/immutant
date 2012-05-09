@@ -33,6 +33,6 @@
                              (swap! results conj (:type x)))]
             (apply run-tests namespaces)))
         (shutdown-agents)
-        ;(println @results)
+        ;;(println @results)
         (System/exit (if (empty? (filter #(re-find #"fail|error|incorrect" (name %)) @results)) 0 -1))))))
 
