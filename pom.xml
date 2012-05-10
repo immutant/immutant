@@ -262,7 +262,7 @@
   </dependencyManagement>
 
   <properties>
-    <version.polyglot>1.5.2</version.polyglot>
+    <version.polyglot>1.6.0-SNAPSHOT</version.polyglot>
     <version.junit>4.7</version.junit>
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>

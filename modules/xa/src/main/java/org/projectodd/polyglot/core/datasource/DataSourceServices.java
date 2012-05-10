@@ -17,35 +17,24 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.xa;
+package org.projectodd.polyglot.core.datasource;
 
-import java.util.Map;
-import javax.sql.DataSource;
-
-import org.immutant.xa.as.XaServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceName;
-import org.projectodd.polyglot.core.datasource.DataSourceFactory;
-import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
 
-
-public class XAifier extends AtRuntimeInstaller<XAifier> {
-
-    public XAifier(DeploymentUnit unit) {
-        super( unit );
+public class DataSourceServices {
+    
+    
+    public static ServiceName driverName(DeploymentUnit unit, String driverType) {
+        return unit.getServiceName().append( "jdbc", "drivers", driverType );
     }
     
-    public DataSource createDataSource(final String name, Map<String,Object> spec) {
-        return getFactory().create(name, spec);
+    public static ServiceName datasourceName(DeploymentUnit unit, String dsName) {
+        return unit.getServiceName().append( "jdbc", "data-sources", dsName );
     }
     
-    protected synchronized DataSourceFactory getFactory() {
-        if (null == factory) {
-            factory = new DataSourceFactory(getUnit(), getTarget());
-        }
-        return factory;
+    public static String jndiName(DeploymentUnit unit, String dsName) {
+        return "java:/torquebox/datasources/" + unit.getName() + "/" + dsName;
     }
 
-    private DataSourceFactory factory;
-        
 }
