@@ -21,8 +21,8 @@
 
 (defn datasource
   "Return an XA-capable datasource"
-  [spec]
-  ())
+  [name spec]
+  (.createDataSource (lookup/fetch "xaifier") name spec))
   
 (defmacro transaction
   "Define an XA transaction"

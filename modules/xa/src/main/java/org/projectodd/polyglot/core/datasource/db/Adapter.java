@@ -28,6 +28,7 @@ import org.jboss.jca.common.api.metadata.ds.Validation;
 
 public abstract class Adapter {
 
+    static Map<String,Adapter> adapters = new HashMap<String,Adapter>();
     static {
         new H2Adapter();
         new PostgresAdapter();
@@ -85,11 +86,10 @@ public abstract class Adapter {
         return null;
     }
 
+
     private String id;
     private String requirePath;
     private String driverClassName;
     private String dataSourceClassName;
-
-    private static Map<String,Adapter> adapters = new HashMap<String,Adapter>();
 
 }
