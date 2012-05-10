@@ -33,6 +33,7 @@ import org.jboss.as.naming.ServiceBasedNamingStore;
 import org.jboss.as.naming.deployment.ContextNames;
 import org.jboss.as.naming.service.BinderService;
 import org.jboss.as.naming.service.NamingService;
+import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.jca.common.api.metadata.common.CommonXaPool;
 import org.jboss.jca.common.api.metadata.common.FlushStrategy;
@@ -69,6 +70,7 @@ public class DataSourceFactory {
 
         try {
             Adapter adapter = Adapter.find(spec);
+            registerDriver(adapter);
             ModifiableXaDataSource config = createConfig( name, spec, adapter);
             XaDataSourceService service = new XaDataSourceService( jndiName );
 
@@ -123,6 +125,15 @@ public class DataSourceFactory {
             throw new RuntimeException( e );
         }
 
+    }
+
+    protected void registerDriver(Adapter adapter) throws Exception {
+        DriverService driverService = new DriverService(adapter, unit.getAttachment(Attachments.MODULE).getClassLoader());
+        ServiceName name = DataSourceServices.driverName(unit, adapter.getId());
+        target.addService(name, driverService)
+            .addDependency(ConnectorServices.JDBC_DRIVER_REGISTRY_SERVICE, DriverRegistry.class, driverService.getDriverRegistryInjector())
+            .setInitialMode(ServiceController.Mode.ACTIVE)
+            .install();
     }
 
     protected ModifiableXaDataSource createConfig(String name, Map<String,Object> spec, Adapter adapter) throws Exception {
