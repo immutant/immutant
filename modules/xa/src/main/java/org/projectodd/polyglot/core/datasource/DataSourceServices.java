@@ -34,7 +34,7 @@ public class DataSourceServices {
     }
     
     public static String jndiName(DeploymentUnit unit, String dsName) {
-        return "java:/torquebox/datasources/" + unit.getName() + "/" + dsName;
+        return "java:/polyglot/datasources/" + unit.getName() + "/" + dsName;
     }
 
 }

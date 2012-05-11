@@ -42,24 +42,17 @@ public class DriverService implements Service<Driver> {
 
     @Override
     public void start(final StartContext context) throws StartException {
-        context.asynchronous();
-        context.execute( new Runnable() {
-            public void run() {
-                try {
-                    DriverService.this.driver = instantiateDriver();
-                    log.debug( "driver: " + DriverService.this.driver );
-                    DriverService.this.installedDriver = createInstalledDriver();
-
-                    DriverRegistry registry = DriverService.this.driverRegistryInjector.getValue();
-                    registry.registerInstalledDriver( installedDriver );
-                    
-                    context.complete();
-                } catch (Exception e) {
-                    context.failed( new StartException( e ) );
-                }
-            }
-        } );
-
+        try {
+            DriverService.this.driver = instantiateDriver();
+            log.debug( "driver: " + DriverService.this.driver );
+            DriverService.this.installedDriver = createInstalledDriver();
+            
+            DriverRegistry registry = DriverService.this.driverRegistryInjector.getValue();
+            registry.registerInstalledDriver( installedDriver );
+            
+        } catch (Exception e) {
+            throw new StartException( e );
+        }
     }
 
     @Override

@@ -20,7 +20,6 @@
 package org.immutant.xa;
 
 import java.util.Map;
-import javax.sql.DataSource;
 
 import org.immutant.xa.as.XaServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -35,8 +34,12 @@ public class XAifier extends AtRuntimeInstaller<XAifier> {
         super( unit );
     }
     
-    public DataSource createDataSource(final String name, Map<String,Object> spec) {
-        return getFactory().create(name, spec);
+    public String createDataSource(final String name, Map<String,Object> spec) {
+        String jndiName = getFactory().create(name, spec);
+        synchronized (jndiName) {
+            try { jndiName.wait(); } catch (InterruptedException ignored) {}
+        }
+        return jndiName;
     }
     
     protected synchronized DataSourceFactory getFactory() {

@@ -63,7 +63,7 @@ public class DataSourceFactory {
         this.target = target;
     }
 
-    public DataSource create(String name, Map<String,Object> spec) {
+    public String create(String name, Map<String,Object> spec) {
 
         final String jndiName = DataSourceServices.jndiName( unit, name );
         final ServiceName dataSourceServiceName = DataSourceServices.datasourceName( unit, name );
@@ -103,6 +103,9 @@ public class DataSourceFactory {
                             switch (transition) {
                             case STARTING_to_UP: {
                                 log.infof( "Bound data source [%s]", jndiName );
+                                synchronized (jndiName) {
+                                    jndiName.notifyAll();
+                                }
                                 break;
                             }
                             case START_REQUESTED_to_DOWN: {
@@ -120,7 +123,7 @@ public class DataSourceFactory {
             binderBuilder.setInitialMode( Mode.ACTIVE );
             binderBuilder.install();
 
-            return service.getValue();
+            return jndiName;
         } catch (Exception e) {
             throw new RuntimeException( e );
         }

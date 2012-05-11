@@ -17,12 +17,14 @@
 
 (ns immutant.xa
   "Distributed XA transactional support"
+  (:import [javax.naming InitialContext])
   (:require [immutant.registry :as lookup]))
 
 (defn datasource
   "Return an XA-capable datasource"
   [name spec]
-  (.createDataSource (lookup/fetch "xaifier") name spec))
+  (let [name (.createDataSource (lookup/fetch "xaifier") name spec)]
+    (.lookup (InitialContext.) name)))
   
 (defmacro transaction
   "Define an XA transaction"
