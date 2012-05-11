@@ -47,8 +47,14 @@ public abstract class Adapter {
     }
 
     public static Adapter find(Map<String,Object> spec) {
-        Adapter result = find(spec.get("adapter").toString());
-        return result==null ? find(spec.get("subprotocol").toString()) : result;
+        Adapter result = find((String) spec.get("adapter"));
+        if (result==null) {
+            result = find((String) spec.get("subprotocol"));
+        }
+        if (result==null) {
+            throw new RuntimeException("Unknown datasource adapter");
+        }
+        return result;
     }
 
     public static Adapter find(String name) {

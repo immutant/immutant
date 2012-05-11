@@ -22,8 +22,9 @@
 
 (defn datasource
   "Return an XA-capable datasource"
-  [name spec]
-  (let [name (.createDataSource (lookup/fetch "xaifier") name spec)]
+  [id spec]
+  (let [params (into {} (for [[k v] spec] [(name k) v]))
+        name (.createDataSource (lookup/fetch "xaifier") id params)]
     (.lookup (InitialContext.) name)))
   
 (defmacro transaction

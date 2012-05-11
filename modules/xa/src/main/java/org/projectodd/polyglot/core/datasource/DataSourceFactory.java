@@ -157,6 +157,7 @@ public class DataSourceFactory {
         boolean useCcm = false;
         String newConnectionSql = null;
         Recovery recovery = null;
+        Integer maxPoolSize = null==spec.get("pool") ? null : new Integer(spec.get("pool").toString());
 
         return new ModifiableXaDataSource(transactionIsolation,
                                           timeOut,
@@ -175,13 +176,12 @@ public class DataSourceFactory {
                                           adapter.getDataSourceClassName(),
                                           adapter.getId(),
                                           newConnectionSql,
-                                          createPool((Integer) spec.get("pool")),
+                                          createPool(maxPoolSize),
                                           recovery);
     }
 
-    protected CommonXaPool createPool(int poolSize) throws Exception {
+    protected CommonXaPool createPool(Integer maxPoolSize) throws Exception {
         Integer minPoolSize = 0;
-        Integer maxPoolSize = poolSize;
         Boolean prefill = false;
         Boolean useStrictMin = false;
         FlushStrategy flushStrategy = FlushStrategy.FAILING_CONNECTION_ONLY;
