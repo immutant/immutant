@@ -20,7 +20,9 @@
 package org.projectodd.polyglot.core.datasource;
 
 import java.sql.Driver;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import javax.sql.DataSource;
 
 import org.jboss.as.connector.ConnectorServices;
@@ -70,7 +72,9 @@ public class DataSourceFactory {
 
         try {
             Adapter adapter = Adapter.find(spec);
-            registerDriver(adapter);
+            if (drivers.add(adapter.getId())) {
+                registerDriver(adapter);
+            }
             ModifiableXaDataSource config = createConfig( name, spec, adapter);
             XaDataSourceService service = new XaDataSourceService( jndiName );
 
@@ -202,5 +206,6 @@ public class DataSourceFactory {
     private static final Logger log = Logger.getLogger( DataSourceFactory.class );
     private DeploymentUnit unit;
     private ServiceTarget target;
+    private Set<String> drivers = new HashSet<String>();
 
 }
