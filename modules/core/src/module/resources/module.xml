@@ -42,7 +42,8 @@
         <resource-root path="aether-api.jar"/>
         <resource-root path="aether-connector-file.jar"/>
         <resource-root path="aether-connector-wagon.jar"/>
-        <resource-root path="commons-httpclient.jar"/>
+        <resource-root path="httpclient.jar"/>
+        <resource-root path="httpcore.jar"/>
         <resource-root path="ordered.jar"/>
         <resource-root path="maven-aether-provider.jar"/>
         <resource-root path="maven-model.jar"/>
@@ -52,7 +53,7 @@
         <resource-root path="plexus-interpolation.jar"/>
         <resource-root path="wagon-provider-api.jar"/>
         <resource-root path="wagon-http.jar"/>
-        <resource-root path="wagon-http-shared.jar"/>
+        <resource-root path="wagon-http-shared4.jar"/>
     </resources>
 
     <exports>

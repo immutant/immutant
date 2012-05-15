@@ -42,7 +42,7 @@
 
     (fact "resource-paths should work"
       (let [paths (map #(.getAbsolutePath (io/file app-root %))
-                       ["dev-resources" "resources" "native" "src" "classes" "target/classes"])]
+                       ["dev-resources" "resources" "target/native" "src" "classes" "target/classes"])]
         (resource-paths app-root) => (just paths :in-any-order)))
     
     (fact "lib-dir should work"
@@ -128,9 +128,9 @@
 
   (facts "resolve-dependencies"
     (let [project (read-project (io/file (io/resource "project-root")))
-          expected-deps (set (aether/dependency-files
-                              (aether/resolve-dependencies
-                               :coordinates (:dependencies project))))]
+          expected-deps (aether/dependency-files
+                         (aether/resolve-dependencies
+                          :coordinates (:dependencies project)))]
 
       (fact "should return the correct deps when there are no unresolvable deps"
         (resolve-dependencies project) => expected-deps)
