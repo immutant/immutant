@@ -52,17 +52,6 @@
       <scope>test</scope>
     </dependency>
 
-
-
-    <!-- polyglot -->
-    <dependency>
-      <groupId>org.jboss.as</groupId>
-      <artifactId>jboss-as-connector</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-
-
   </dependencies>
 
   <build>
