@@ -24,7 +24,7 @@ import java.util.Map;
 import org.immutant.xa.as.XaServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceName;
-import org.projectodd.polyglot.core.datasource.DataSourceFactory;
+import org.projectodd.polyglot.xa.datasource.DataSourceFactory;
 import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
 
 
