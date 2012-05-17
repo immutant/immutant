@@ -34,23 +34,13 @@ import clojure.lang.Var;
 
 public class ClojureRuntimeImpl extends ClojureRuntime {
 
-    @Override
-    public Object invoke(String namespacedFunction, Object... args) {
-        ClassLoader originalClassloader = preInvoke();
-        try {
-            return var( namespacedFunction ).applyTo( ArraySeq.create( args ) );
-        } finally {
-            postInvoke( originalClassloader );
-        }
-    }
-    
     protected ClassLoader preInvoke() {
         ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader(); 
         Thread.currentThread().setContextClassLoader( this.classLoader );
-       
+
         return originalClassloader;
     }
-    
+
     protected void postInvoke(ClassLoader originalClassloader) {
         try {
             // leaving these thread locals around will cause memory leaks when the application
@@ -112,9 +102,325 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
         return field;
     }
 
+    @Override
+    public Object invoke(String namespacedFunction) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke();
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16, Object arg17) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16, arg17);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16,
+            Object arg17, Object arg18) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16,
+                    arg17, arg18);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16,
+            Object arg17, Object arg18, Object arg19) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16,
+                    arg17, arg18, arg19);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16,
+            Object arg17, Object arg18, Object arg19, Object arg20) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16,
+                    arg17, arg18, arg19, arg20);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16,
+            Object arg17, Object arg18, Object arg19, Object arg20,
+            Object... args) {
+        ClassLoader originalClassloader = preInvoke();
+        try {
+            return var( namespacedFunction ).invoke(arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16,
+                    arg17, arg18, arg19, arg20,
+                    args);
+        } finally {
+            postInvoke( originalClassloader );
+        }
+    }
+
     private Map<String, Var> varCache = new HashMap<String, Var>();
     @SuppressWarnings("rawtypes")
     private HashMap<Class, Map<String, Field>> fieldCache = new HashMap<Class, Map<String, Field>>();
 
     static final Logger log = Logger.getLogger( "org.immutant.runtime" );
+
+
 }
