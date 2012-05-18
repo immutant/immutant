@@ -26,7 +26,6 @@ import org.immutant.runtime.ClojureRuntime;
 import org.jboss.logging.Logger;
 
 import clojure.lang.Agent;
-import clojure.lang.ArraySeq;
 import clojure.lang.LockingTransaction;
 import clojure.lang.RT;
 import clojure.lang.Symbol;
@@ -45,9 +44,13 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
         try {
             // leaving these thread locals around will cause memory leaks when the application
             // is undeployed.
-            removeThreadLocal( Var.class, "dvals" );
-            removeThreadLocal( Agent.class, "nested" );
             removeThreadLocal( LockingTransaction.class, "transaction" );
+            removeThreadLocal( Var.class, "dvals" );
+            
+            // this one doesn't leak, but leaving it set can theoretically allow another
+            // application to read the value off of the thread when it is doled out
+            //again from the pool
+            removeThreadLocal( Agent.class, "nested" );
         } catch (Exception e) {
             log.error( "Failed to clear thread locals: ", e );
         } finally {
@@ -73,7 +76,7 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
 
     @SuppressWarnings("rawtypes")
     protected void removeThreadLocal( Class klass, String fieldName ) throws Exception {
-        Field field = lookupField( klass, fieldName, true );
+        Field field = lookupField( klass, fieldName );
         if (field != null) {
             ThreadLocal tl = (ThreadLocal)field.get( null );
             if (tl != null) {
@@ -83,7 +86,7 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
     }
 
     @SuppressWarnings("rawtypes")
-    protected Field lookupField(Class klass, String fieldName, boolean makeAccessible) throws NoSuchFieldException {
+    protected Field lookupField(Class klass, String fieldName) throws NoSuchFieldException {
         Map<String, Field> fields = this.fieldCache.get( klass );
         if (fields == null) {
             fields = new HashMap<String, Field>();
@@ -93,9 +96,7 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
         Field field = fields.get( fieldName );
         if (field == null) {
             field = klass.getDeclaredField( fieldName );
-            if (makeAccessible) {
-                field.setAccessible( true );
-            }
+            field.setAccessible( true );
             fields.put( fieldName, field );
         }
 
