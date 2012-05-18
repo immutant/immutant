@@ -47,6 +47,7 @@
         <module name="org.jboss.logging"/>
         <module name="org.jboss.vfs"/>
         <module name="org.immutant.core"/>
+        <module name="org.immutant.xa"/>
     </dependencies>
 </module>
 

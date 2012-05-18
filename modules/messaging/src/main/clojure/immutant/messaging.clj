@@ -20,6 +20,7 @@
    data structure to dynamically-created topics and queues. Message
    distribution is automatically load-balanced when clustered."
   (:use [immutant.utilities :only (at-exit)])
+  (:use [immutant.xa :only (transaction)])
   (:use [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]))
 
@@ -74,15 +75,16 @@
    The following options are supported [default]:
     :concurrency   the number of threads handling messages [1]"
   [dest-name f & {:keys [concurrency selector] :or {concurrency 1}}]
-  (let [connection (.createConnection connection-factory)]
+  (let [connection (.createXAConnection connection-factory)]
     (try
       (dotimes [_ concurrency]
         (let [session (create-session connection)
               destination (destination session dest-name)
               consumer (.createConsumer session destination selector)]
-          (.setMessageListener consumer (proxy [javax.jms.MessageListener] []
-                                          (onMessage [message]
-                                            (f (codecs/decode message)))))))
+          (.setMessageListener consumer
+                               (proxy [javax.jms.MessageListener] []
+                                 (onMessage [message]
+                                   (transaction [(.getXAResource session)] (f (codecs/decode message))))))))
       (at-exit #(.close connection))
       (.start connection)
       connection

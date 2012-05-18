@@ -21,8 +21,10 @@
   (:require [immutant.registry :as lookup])
   (:require [immutant.messaging.hornetq :as hornetq]))
 
+(defonce CF-NAME "jboss.naming.context.java.ConnectionFactory")
+
 (def connection-factory
-  (if-let [reference-factory (lookup/fetch "jboss.naming.context.java.ConnectionFactory")]
+  (if-let [reference-factory (lookup/fetch CF-NAME)]
     (let [reference (.getReference reference-factory)]
       (try
         (.getInstance reference)
@@ -64,7 +66,9 @@
   message)
 
 (defn create-session [connection]
-  (.createSession connection false Session/AUTO_ACKNOWLEDGE))
+  (if (lookup/fetch CF-NAME)
+    (.createXASession connection)
+    (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
 
 (defn with-session [f]
   (with-open [connection (.createConnection connection-factory)

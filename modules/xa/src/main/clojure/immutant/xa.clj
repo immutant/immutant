@@ -20,6 +20,9 @@
   (:import [javax.naming InitialContext])
   (:require [immutant.registry :as lookup]))
 
+(def tm (lookup/fetch "jboss.txn.TransactionManager"))
+(def ^{:dynamic true} *tx* nil)
+
 (defn datasource
   "Return an XA-capable datasource"
   [id spec]
@@ -27,8 +30,26 @@
         name (.createDataSource (lookup/fetch "xaifier") id params)]
     (.lookup (InitialContext.) name)))
   
+(defn transaction*
+  "Pass XA resources to enlist in a new transaction and call func"
+  [resources func]
+  (.begin tm)
+  (binding [*tx* (.getTransaction tm)]
+    (doseq [r resources] (.enlistResource *tx* r))
+    (try
+      (let [result (func)]
+        (.commit tm)
+        result)
+      (catch Throwable e
+        (.rollback tm)
+        (throw e))
+      (finally
+       (.suspend tm)))))
+
 (defmacro transaction
   "Define an XA transaction"
-  [& body]
-  ())
+  [& args]
+  (let [[resources & body] args
+        [resources body] (if (vector? resources) [resources body] [[] args])]
+    `(transaction* ~resources (fn [] ~@body))))
   
