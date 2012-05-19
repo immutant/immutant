@@ -19,10 +19,10 @@
   "Easily publish and receive messages containing any type of nested
    data structure to dynamically-created topics and queues. Message
    distribution is automatically load-balanced when clustered."
-  (:use [immutant.utilities :only (at-exit)])
-  (:use [immutant.xa :only (transaction)])
-  (:use [immutant.messaging.core])
-  (:require [immutant.messaging.codecs :as codecs]))
+  (:use [immutant.utilities :only (at-exit)]
+        [immutant.messaging.core])
+  (:require [immutant.xa.transaction :as tx]
+            [immutant.messaging.codecs :as codecs]))
 
 (defn start 
   "Create a message destination; name should be prefixed with either /queue or /topic"
@@ -84,7 +84,9 @@
           (.setMessageListener consumer
                                (proxy [javax.jms.MessageListener] []
                                  (onMessage [message]
-                                   (transaction [(.getXAResource session)] (f (codecs/decode message))))))))
+                                   (tx/required
+                                    (tx/enlist (.getXAResource session))
+                                    (f (codecs/decode message))))))))
       (at-exit #(.close connection))
       (.start connection)
       connection

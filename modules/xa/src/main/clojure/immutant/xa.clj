@@ -18,10 +18,8 @@
 (ns immutant.xa
   "Distributed XA transactional support"
   (:import [javax.naming InitialContext])
-  (:require [immutant.registry :as lookup]))
-
-(def tm (lookup/fetch "jboss.txn.TransactionManager"))
-(def ^{:dynamic true} *tx* nil)
+  (:require [immutant.registry :as lookup]
+            [immutant.xa.transaction :as tx]))
 
 (defn datasource
   "Return an XA-capable datasource"
@@ -29,27 +27,13 @@
   (let [params (into {} (for [[k v] spec] [(name k) v]))
         name (.createDataSource (lookup/fetch "xaifier") id params)]
     (.lookup (InitialContext.) name)))
-  
-(defn transaction*
-  "Pass XA resources to enlist in a new transaction and call func"
-  [resources func]
-  (.begin tm)
-  (binding [*tx* (.getTransaction tm)]
-    (doseq [r resources] (.enlistResource *tx* r))
-    (try
-      (let [result (func)]
-        (.commit tm)
-        result)
-      (catch Throwable e
-        (.rollback tm)
-        (throw e))
-      (finally
-       (.suspend tm)))))
 
 (defmacro transaction
-  "Define an XA transaction"
-  [& args]
-  (let [[resources & body] args
-        [resources body] (if (vector? resources) [resources body] [[] args])]
-    `(transaction* ~resources (fn [] ~@body))))
-  
+  "Execute body within the current transaction, if available, otherwise start a new one.
+
+  See the macros in immutant.xa.transaction for finer grained
+  transactional semantics corresponding to the attributes of the JEE
+  @Transaction annotation."
+  [& body]
+  `(tx/required ~@body))
+
