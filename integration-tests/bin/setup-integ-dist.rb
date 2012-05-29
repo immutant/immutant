@@ -27,6 +27,7 @@ Dir.chdir( assembly_dir ) do
     cmd = [ 'rsync -av . --relative',
             '--include jboss/modules',
             '--include jboss/standalone',
+            '--exclude jboss/standalone/deployments',
             output_dir ].join( ' ' )
     puts cmd
     puts `#{cmd}`
