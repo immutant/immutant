@@ -21,6 +21,7 @@ package org.immutant.core.processors;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -33,6 +34,7 @@ import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
+import org.jboss.as.server.deployment.annotation.CompositeIndex;
 import org.jboss.as.server.deployment.module.ModuleRootMarker;
 import org.jboss.as.server.deployment.module.MountHandle;
 import org.jboss.as.server.deployment.module.ResourceRoot;
@@ -44,6 +46,7 @@ import org.projectodd.polyglot.core.as.ArchivedDeploymentMarker;
 
 public class AppDependenciesProcessor implements DeploymentUnitProcessor {
 
+    @SuppressWarnings("unchecked")
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         DeploymentUnit unit = phaseContext.getDeploymentUnit();
@@ -92,7 +95,12 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }
-
+        
+        // disable the annotation index, since we're not an EE app and it spits nasty WARNs to the log if
+        // ring is included as an app dep in relation to some jetty classes
+        unit.putAttachment( Attachments.COMPUTE_COMPOSITE_ANNOTATION_INDEX, false );
+        // AS let's us disable the index, but then assumes it's always there, so we give it an empty one
+        unit.putAttachment( Attachments.COMPOSITE_ANNOTATION_INDEX, new CompositeIndex( Collections.EMPTY_LIST ) );
     }
 
     private void mount(File file, DeploymentUnit unit) throws IOException {
@@ -100,7 +108,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         log.debug( unit.getName() + ": mounting " + file );
         final ResourceRoot childResource = new ResourceRoot( mountPath, 
                 new MountHandle( VFS.mountZip( file, mountPath, TempFileProviderService.provider() ) ) );
-        ModuleRootMarker.mark(childResource);
+        ModuleRootMarker.mark( childResource );
         unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
     }
 
