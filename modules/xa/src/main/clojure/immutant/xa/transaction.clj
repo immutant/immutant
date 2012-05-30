@@ -24,7 +24,7 @@
 (defn current
   "Return the active transaction"
   []
-  (.getTransaction manager))
+  (and manager (.getTransaction manager)))
 
 (defn active?
   "True if currently running within a transaction"
