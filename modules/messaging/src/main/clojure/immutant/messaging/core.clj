@@ -26,9 +26,9 @@
 (def factory-name "jboss.naming.context.java.ConnectionFactory")
 
 ;;; Thread-local connection
-(def ^{:dynamic true} *connection* nil)
+(def ^{:private true, :dynamic true} *connection* nil)
 ;;; Thread-local map of transactions to sessions
-(def ^{:dynamic true} *sessions* nil)
+(def ^{:private true, :dynamic true} *sessions* nil)
 
 (def connection-factory
   (if-let [reference-factory (lookup/fetch factory-name)]
@@ -72,39 +72,6 @@
        :else (.setStringProperty message key (str v)))))
   message)
 
-(defn create-session [connection]
-  (if (lookup/fetch factory-name)
-    (.createXASession connection)
-    (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
-
-(defn join-current-transaction
-  "Enlist a session in the current transaction, if any"
-  [session]
-  (let [transaction (tx/current)]
-    (if transaction
-      (tx/enlist (.getXAResource session)))
-    (set! *sessions* (assoc *sessions* transaction session))))
-
-(defn session
-  []
-  (let [transaction (tx/current)]
-    (if-not (contains? *sessions* transaction)
-      (join-current-transaction (create-session *connection*)))
-    (get *sessions* transaction)))
-
-(defmacro with-connection [& body]
-  `(if *connection*
-     (do ~@body)
-     (binding [*connection* (.createXAConnection connection-factory)
-               *sessions* {}]
-       (.start *connection*)
-       (try 
-         ~@body
-         (finally
-          (if (tx/active?)
-            (tx/after-completion #(.close *connection*))
-            (.close *connection*)))))))
-
 (defn destination [session name]
   (cond
    (queue? name) (.createQueue session name)
@@ -132,6 +99,57 @@
     (do (.createTopic manager false name (into-array String []))
         (at-exit #(stop-destination name)))
     (throw (Exception. (str "Unable to start topic, " name)))))
+
+(defn create-session [connection]
+  (if (lookup/fetch factory-name)
+    (.createXASession connection)
+    (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
+
+(defn join-current-transaction
+  "Enlist a session in the current transaction, if any"
+  [session]
+  (let [transaction (tx/current)]
+    (if transaction
+      (tx/enlist (.getXAResource session)))
+    (set! *sessions* (assoc *sessions* transaction session))))
+
+(defn session
+  []
+  (let [transaction (tx/current)]
+    (if-not (contains? *sessions* transaction)
+      (join-current-transaction (create-session *connection*)))
+    (get *sessions* transaction)))
+
+(defn with-connection* [f]
+  (if *connection*
+    (f)
+    (binding [*connection* (.createXAConnection connection-factory)
+              *sessions* {}]
+      (.start *connection*)
+      (try 
+        (f)
+        (finally
+         (if (tx/active?)
+           (tx/after-completion #(.close *connection*))
+           (.close *connection*)))))))
+
+(defmacro with-connection [& body]
+  `(with-connection* (fn [] ~@body)))
+
+(defn bind-transaction
+  "Create a transaction, bind the connection, enlist the session, and
+   call the function. Most useful for a listener's onMessage calls, so
+   as to re-use its session and connection for subsequent
+   transactional JMS interactions invoked by the function."
+  [session connection f]
+  (binding [*connection* connection
+            *sessions* {}]
+    (tx/requires-new
+     (join-current-transaction session)
+     (f))
+    ;; Close the sessions used for nested tx's, if any
+    (doseq [s (remove #(= session) (vals *sessions*))] (.close s))))
+
 
 
 ;; TODO: This is currently unused and, if deemed necessary, could

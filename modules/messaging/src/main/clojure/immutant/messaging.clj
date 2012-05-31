@@ -21,8 +21,7 @@
    distribution is automatically load-balanced when clustered."
   (:use [immutant.utilities :only (at-exit)]
         [immutant.messaging.core])
-  (:require [immutant.xa.transaction :as tx]
-            [immutant.messaging.codecs :as codecs]))
+  (:require [immutant.messaging.codecs :as codecs]))
 
 (defn start 
   "Create a message destination; name should be prefixed with either /queue or /topic"
@@ -62,6 +61,7 @@
   (with-connection
     (let [session (session)
           destination (destination session dest-name)
+
           consumer (.createConsumer session destination selector)
           encoded (.receive consumer (or timeout 10000))]
       (and encoded (codecs/decode encoded)))))
@@ -86,12 +86,7 @@
           (.setMessageListener consumer
                                (reify javax.jms.MessageListener
                                  (onMessage [_ message]
-                                   (binding [*connection* connection
-                                             *sessions* {}]
-                                     (tx/requires-new
-                                      (join-current-transaction session)
-                                      (f (codecs/decode message)))
-                                     (doseq [[_ s] *sessions*] (if (not= s session) (.close s)))))))))
+                                   (bind-transaction session connection #(f (codecs/decode message))))))))
       (at-exit #(.close connection))
       (.start connection)
       connection
