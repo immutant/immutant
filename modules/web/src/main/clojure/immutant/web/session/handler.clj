@@ -17,7 +17,11 @@
 
 (ns immutant.web.session.handler
   (:use [immutant.web.core :only [current-servlet-request]])
-  (:require [ring.util.codec :as codec]))
+  (:require [immutant.utilities :as util]))
+
+(def cookie-encoder (util/try-resolve-any
+                     'ring.util.codec/form-encode  ;; ring >= 1.1.0
+                     'ring.util.codec/url-encode))
 
 (defn remove-ring-session-cookie
   "Middleware that removes the ring-session cookie if the servlet session is used."
@@ -28,7 +32,7 @@
         (update-in response [:headers "Set-Cookie"]
                    #(filter (fn [^String cookie]
                               (not (.contains cookie
-                                              (codec/url-encode (.getId session))))) %))
+                                              (cookie-encoder (.getId session))))) %))
         response))))
 
 

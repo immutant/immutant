@@ -58,3 +58,23 @@ Used internally to shutdown various services, but can be used by application cod
 (def ^{:doc "Looks up the ip address for the AS unsecure interface."}
   unsecure-interface-address
   (partial lookup-interface-address "unsecure"))
+
+(defn try-resolve
+  "Tries to resolve the given namespace-qualified symbol"
+  [sym]
+  (try
+    (require (symbol (namespace sym)))
+    (resolve sym)
+    (catch java.io.FileNotFoundException _)))
+
+(defn try-resolve-any
+  "Tries to resolve the given namespace-qualified symbols. Returns the
+   first successfully resolved symbol, or nil if none of the given symbols
+   resolve."
+  [& syms]
+  (if-let [sym (try-resolve (first syms))]
+    sym
+    (if-let [tail (seq (rest syms))]
+      (apply try-resolve-any tail)
+      (throw (IllegalArgumentException.
+              "Unable to resolve a valid symbol from the given list.")))))

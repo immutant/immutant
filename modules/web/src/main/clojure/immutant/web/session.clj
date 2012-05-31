@@ -27,7 +27,7 @@
   "Returns the servlet session for the current request."
   []
   (and current-servlet-request
-       (.getSession current-servlet-request true)))
+       (.getSession current-servlet-request)))
 
 (deftype
     ^{:doc "A ring SessionStore implementation that uses the session provided by the servlet container."}
