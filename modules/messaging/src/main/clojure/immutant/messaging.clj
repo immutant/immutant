@@ -84,8 +84,8 @@
               destination (destination session dest-name)
               consumer (.createConsumer session destination selector)]
           (.setMessageListener consumer
-                               (proxy [javax.jms.MessageListener] []
-                                 (onMessage [message]
+                               (reify javax.jms.MessageListener
+                                 (onMessage [_ message]
                                    (binding [*connection* connection
                                              *sessions* {}]
                                      (tx/requires-new
