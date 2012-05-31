@@ -18,13 +18,20 @@
 (ns immutant.messaging.core
   (:use [immutant.utilities :only (at-exit)])
   (:import (javax.jms Session DeliveryMode))
-  (:require [immutant.registry :as lookup])
-  (:require [immutant.messaging.hornetq :as hornetq]))
+  (:require [immutant.registry :as lookup]
+            [immutant.messaging.hornetq :as hornetq]
+            [immutant.xa.transaction :as tx]))
 
-(defonce CF-NAME "jboss.naming.context.java.ConnectionFactory")
+;;; The name of the JBoss connection factory
+(def factory-name "jboss.naming.context.java.ConnectionFactory")
+
+;;; Thread-local connection
+(def ^{:dynamic true} *connection* nil)
+;;; Thread-local map of transactions to sessions
+(def ^{:dynamic true} *sessions* nil)
 
 (def connection-factory
-  (if-let [reference-factory (lookup/fetch CF-NAME)]
+  (if-let [reference-factory (lookup/fetch factory-name)]
     (let [reference (.getReference reference-factory)]
       (try
         (.getInstance reference)
@@ -66,15 +73,36 @@
   message)
 
 (defn create-session [connection]
-  (if (lookup/fetch CF-NAME)
+  (if (lookup/fetch factory-name)
     (.createXASession connection)
     (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
 
-(defn with-session [f]
-  (with-open [connection (.createConnection connection-factory)
-              session (create-session connection)]
-    (.start connection)
-    (f session)))
+(defn join-current-transaction
+  "Enlist a session in the current transaction, if any"
+  [session]
+  (let [transaction (tx/current)]
+    (if transaction
+      (tx/enlist (.getXAResource session)))
+    (set! *sessions* (assoc *sessions* transaction session))))
+
+(defn session
+  []
+  (let [transaction (tx/current)]
+    (if-not (contains? *sessions* transaction)
+      (join-current-transaction (create-session *connection*)))
+    (get *sessions* transaction)))
+
+(defmacro with-connection [& body]
+  `(if *connection*
+     (do ~@body)
+     (binding [*connection* (.createXAConnection connection-factory)
+               *sessions* {}]
+       (.start *connection*)
+       (try 
+         ~@body
+         (finally
+          ;; TODO: This won't work if the tx hasn't completed!
+          (.close *connection*))))))
 
 (defn destination [session name]
   (cond

@@ -43,13 +43,14 @@
     :persistent   whether undelivered messages survive restarts [true]
     :properties   a hash to which selectors may be applied"
   [dest-name message & {:as opts}]
-  (with-session (fn [session]
-                  (let [destination (destination session dest-name)
-                        producer (.createProducer session destination)
-                        encoded (set-properties! (codecs/encode session message opts)
-                                                 (:properties opts))
-                        {:keys [delivery priority ttl]} (wash-publish-options opts producer)]
-                    (.send producer encoded delivery priority ttl)))))
+  (with-connection
+    (let [session (session)
+          destination (destination session dest-name)
+          producer (.createProducer session destination)
+          encoded (set-properties! (codecs/encode session message opts)
+                                   (:properties opts))
+          {:keys [delivery priority ttl]} (wash-publish-options opts producer)]
+      (.send producer encoded delivery priority ttl))))
     
 (defn receive 
   "Receive a message from a destination
@@ -58,11 +59,12 @@
     :timeout    time in ms, after which nil is returned [10000]
     :selector   A JMS (SQL 92) expression matching message properties"
   [dest-name & {:keys [timeout selector]}]
-  (with-session (fn [session]
-                  (let [destination (destination session dest-name)
-                        consumer (.createConsumer session destination selector)
-                        encoded (.receive consumer (or timeout 10000))]
-                    (and encoded (codecs/decode encoded))))))
+  (with-connection
+    (let [session (session)
+          destination (destination session dest-name)
+          consumer (.createConsumer session destination selector)
+          encoded (.receive consumer (or timeout 10000))]
+      (and encoded (codecs/decode encoded)))))
 
 (defn message-seq
   "A lazy sequence of messages received from a destination. Accepts same options as receive"
@@ -84,9 +86,12 @@
           (.setMessageListener consumer
                                (proxy [javax.jms.MessageListener] []
                                  (onMessage [message]
-                                   (tx/required
-                                    (tx/enlist (.getXAResource session))
-                                    (f (codecs/decode message))))))))
+                                   (binding [*connection* connection
+                                             *sessions* {}]
+                                     (tx/requires-new
+                                      (join-current-transaction session)
+                                      (f (codecs/decode message)))
+                                     (doseq [[_ s] *sessions*] (if (not= s session) (.close s)))))))))
       (at-exit #(.close connection))
       (.start connection)
       connection
