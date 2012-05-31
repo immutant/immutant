@@ -125,7 +125,7 @@
 
   Immutant provides a session store that can be used with the
   [[https://github.com/mmcgrana/ring/blob/master/ring-core/src/ring/middleware/session.clj][Ring session middleware]] (and any other middleware that uses =ring.middleware.sesion=,
-  like [[https://github.com/brentonashworth/sandbar][Sandbar]]). The Immutant session store uses session provided by
+  like [[https://github.com/brentonashworth/sandbar][Sandbar]]). The Immutant session store uses the session provided by
   the underlying JBoss AS7 servlet container, which automatically replicates
   session data across a cluster. You create the store by calling 
   [[./apidoc/immutant.web.session-api.html#immutant.web.session/servlet-store][immutant.web.session/servlet-store]], and use it by passing it as the =:store=
@@ -145,7 +145,7 @@
 
   *Note:* since this store is managed by the servlet container, the session cookie
   (=jsessionid= by default) is itself managed at the servlet level. Any options
-  other than =:root= passed to =ring.middleware.session/wrap-session= (=:cookie-attrs=,
+  other than =:store= passed to =ring.middleware.session/wrap-session= (=:cookie-attrs=,
   =:cookie-name=, or =:root=) will therefore be ignored.
 
 * src-dir
