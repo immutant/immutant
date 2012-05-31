@@ -37,6 +37,13 @@
   (let [tx (current)]
     (doseq [resource resources] (.enlistResource tx resource))))
 
+(defn after-completion
+  "Register a callback to fire when transaction is complete"
+  [f]
+  (.registerSynchronization (current)
+                            (reify javax.transaction.Synchronization
+                              (afterCompletion [_ _] (f)))))
+
 (defn suspend
   "Suspend, invoke, resume"
   [func]

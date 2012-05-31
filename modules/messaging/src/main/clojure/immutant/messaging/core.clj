@@ -101,8 +101,9 @@
        (try 
          ~@body
          (finally
-          ;; TODO: This won't work if the tx hasn't completed!
-          (.close *connection*))))))
+          (if (tx/active?)
+            (tx/after-completion #(.close *connection*))
+            (.close *connection*)))))))
 
 (defn destination [session name]
   (cond
