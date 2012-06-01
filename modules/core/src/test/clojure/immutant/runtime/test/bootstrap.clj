@@ -31,25 +31,34 @@
   (let [app-root (io/file (io/resource "project-root"))
         another-app-root (io/file (io/resource "another-project-root"))]
     (fact "read-project should work"
-      (:ham (read-project app-root)) => :biscuit)
+      (:ham (read-project app-root nil)) => :biscuit)
+
+    (fact "read-project with profiles should work"
+      (:ham (read-project app-root [:gravy])) => :not-bacon)
+
+    (fact "read-project without profiles should use the ones defined in :immutant"
+      (:egg (read-project app-root nil)) => :biscuit)
+
+    (fact "read-project with profiles should ignore the ones defined in :immutant"
+      (:egg (read-project app-root [:gravy])) => :sandwich)
 
     (fact "read-and-stringify-project should work"
-      (read-and-stringify-project app-root) => (contains {"ham" :biscuit}))
+      (read-and-stringify-project app-root nil) => (contains {"ham" :biscuit}))
 
     (facts "read-and-stringify-project should stringify an init fn"
-      (get-in (read-and-stringify-project app-root) ["immutant" "init"]) => "some.namespace/init"
-      (get-in (read-and-stringify-project another-app-root) ["immutant" "init"]) => "some.namespace/string")
+      (get-in (read-and-stringify-project app-root nil) ["immutant" "init"]) => "some.namespace/init"
+      (get-in (read-and-stringify-project another-app-root nil) ["immutant" "init"]) => "some.namespace/string")
 
     (fact "resource-paths should work"
       (let [paths (map #(.getAbsolutePath (io/file app-root %))
-                       ["dev-resources" "resources" "target/native" "src" "classes" "target/classes"])]
-        (resource-paths app-root) => (just paths :in-any-order)))
+                       ["resources" "target/native" "src" "classes" "target/classes"])]
+        (resource-paths app-root nil) => (just paths :in-any-order)))
     
     (fact "lib-dir should work"
-      (lib-dir app-root) => (io/file app-root "lib"))
+      (lib-dir app-root nil) => (io/file app-root "lib"))
     
     (facts "bundled-jars"
-      (let [jar-set (bundled-jars (io/file app-root))]
+      (let [jar-set (bundled-jars (io/file app-root) nil)]
         (fact "should include the jars"
           jar-set => (contains (set (map #(io/file (io/resource %))
                                          ["project-root/lib/some.jar"
@@ -62,7 +71,7 @@
           jar-set =not=> (io/file (io/resource "project-root/lib/dev/invalid.jar")))))
        
     (facts "get-dependencies"
-      (let [deps (get-dependencies app-root true)]
+      (let [deps (get-dependencies app-root true nil)]
 
         (fact "should return deps from project.clj"
           deps => (contains (aether/dependency-files
@@ -80,31 +89,31 @@
                                           :coordinates [['org.clojure/tools.logging "0.2.3"]])))))))
 
     (fact "get-dependencies without resolve-deps should only return jars from lib"
-      (get-dependencies app-root false) => (just
-                                            (io/file (io/resource "project-root/lib/some.jar"))
-                                            (io/file (io/resource "project-root/lib/some-other.jar"))
-                                            (io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar"))
-                                            :in-any-order)))
+      (get-dependencies app-root false nil) => (just
+                                                (io/file (io/resource "project-root/lib/some.jar"))
+                                                (io/file (io/resource "project-root/lib/some-other.jar"))
+                                                (io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar"))
+                                                :in-any-order)))
 
 
   (let [app-root (io/file (io/resource "non-project-root"))]
     (fact "read-project should return nil"
-      (read-project app-root) => nil?)
+      (read-project app-root nil) => nil?)
 
     (fact "read-and-stringify-project should return nil"
-      (read-and-stringify-project app-root) => nil?)
+      (read-and-stringify-project app-root nil) => nil?)
 
     (fact "resource-paths should work"
-      (resource-paths app-root) => (just (map #(.getAbsolutePath (io/file app-root %))
-                                              ["resources" "native" "src" "classes"])
-                                         :in-any-order))
+      (resource-paths app-root nil) => (just (map #(.getAbsolutePath (io/file app-root %))
+                                                  ["resources" "native" "src" "classes"])
+                                             :in-any-order))
 
     (fact "lib-dir should work"
-      (lib-dir app-root) => (io/file app-root "lib"))
+      (lib-dir app-root nil) => (io/file app-root "lib"))
 
 
     (facts "bundled-jars"
-      (let [jar-set (bundled-jars (io/file app-root))]
+      (let [jar-set (bundled-jars (io/file app-root) nil)]
         (fact "should include the jars"
           jar-set => (contains (set (map #(io/file (io/resource %))
                                          ["non-project-root/lib/some.jar"
@@ -116,18 +125,31 @@
           jar-set =not=> (io/file (io/resource "non-project-root/lib/dev/invalid.jar")))))
     
     (fact "get-dependencies should return deps from lib"
-      (get-dependencies app-root true) =>
+      (get-dependencies app-root true nil) =>
       (contains (io/file (io/resource "non-project-root/lib/some.jar"))))
 
     (fact "get-dependencies without resolve-deps should only return jars from lib"
-      (get-dependencies app-root false) => (just
-                                            (io/file (io/resource "non-project-root/lib/some.jar"))
-                                            (io/file (io/resource "non-project-root/lib/some-other.jar"))
-                                            (io/file (io/resource "non-project-root/lib/tools.logging-0.2.3.jar"))
-                                            :in-any-order)))
+      (get-dependencies app-root false nil) =>
+      (just
+       (io/file (io/resource "non-project-root/lib/some.jar"))
+       (io/file (io/resource "non-project-root/lib/some-other.jar"))
+       (io/file (io/resource "non-project-root/lib/tools.logging-0.2.3.jar"))
+       :in-any-order)))
 
+  (tabular
+   (fact "normalize-profiles"
+     (normalize-profiles ?given) => ?expected)
+   ?expected    ?given
+   #{:default}  nil
+   #{:default}  []
+   #{:foo}      [:foo]
+   #{:foo}      [":foo"]
+   #{:foo}      ["foo"]
+   #{:foo :bar} [:foo :bar]
+   #{:foo :bar} [":foo" :bar])
+  
   (facts "resolve-dependencies"
-    (let [project (read-project (io/file (io/resource "project-root")))
+    (let [project (read-project (io/file (io/resource "project-root")) nil)
           expected-deps (aether/dependency-files
                          (aether/resolve-dependencies
                           :coordinates (:dependencies project)))]

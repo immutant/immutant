@@ -38,7 +38,7 @@
     (is (= "biscuit" (.getString md "ham"))))
 
   (let [merged-md (doto (ClojureMetaData. "app-name" descriptor)
-                     (.setLeinProject (bootstrap/read-and-stringify-project (io/file (io/resource "project-root")))))]
+                     (.setLeinProject (bootstrap/read-and-stringify-project (io/file (io/resource "project-root")) nil)))]
     (deftest the-immutant-map-from-project-clj-should-be-included
       (is (= "gravy" (.getString merged-md "biscuit"))))
 
@@ -55,11 +55,23 @@
       (.explode md (io/file ""))
       (is (= false (.resolveDependencies md))))))
 
-(deftest getHash "it should return the proper value as a Hash"
-  (let [md (ClojureMetaData. "app-name"
-                              (ClojureMetaData/parse (io/file (io/resource "hashy-descriptor.clj"))))
-        value (.getHash md "ham")]
-    (is (= {"biscuit" "gravy"} value))))
+(let [md (ClojureMetaData. "app-name"
+                           (ClojureMetaData/parse (io/file (io/resource "hashy-descriptor.clj"))))]
+  
+  (deftest getHash "it should return the proper value as a Hash"
+    (is (= {"biscuit" "gravy"} (.getHash md "ham"))))
+  
+  (deftest getList "it should return the proper value as a List"
+    (is (= [:biscuit :gravy] (.getList md "foo"))))
+
+  (deftest getLeinProfiles "it should stringify the values so we can share across runtimes"
+    (is (= [":dev" ":prod"] (.getLeinProfiles md)))))
+
+
+
+
+
+
 
 
 

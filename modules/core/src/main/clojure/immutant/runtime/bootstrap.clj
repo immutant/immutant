@@ -19,6 +19,8 @@
   "Functions used in app bootstrapping."
   (:require [clojure.java.io          :as io]
             [clojure.walk             :as walk]
+            [clojure.set              :as set]
+            [clojure.string           :as str]
             [clojure.tools.logging    :as log]
             [leiningen.core.classpath :as classpath]
             [leiningen.core.project   :as project]
@@ -39,31 +41,69 @@
     (str (namespace sym) "/" (name sym))
     sym))
 
-(defn ^{:private true} stringify-init-symbol
-  "Turns the :init value into a string so we can use it in another runtime."
-  [depth m]
-  (update-in m (conj depth "init") stringify-symbol))
+(defn ^{:private true} updatifier
+  "Generates a function to update map values with a given function with an optional path."
+  [key f]
+  (fn
+    ([m]
+       (update-in m [key] f))
+    ([m path]
+       (update-in m (conj path key) f))))
+
+(def ^{:private true
+       :doc "Turns the :init value into a string so we can use it in another runtime."}
+  stringify-init-symbol
+  (updatifier "init" stringify-symbol))
+
+(def ^{:private true
+       :doc "Turns the :lein-profiles values into strings so we can use them in another runtime."}
+  stringify-lein-profiles
+  (updatifier "lein-profiles" #(map str %)))
 
 (defn ^{:internal true} read-descriptor
   "Reads a deployment descriptor and returns the resulting hash."
   [^File file]
-  (stringify-init-symbol
-   nil
-   (walk/stringify-keys (read-string (slurp (.getAbsolutePath file))))))
+  (-> (walk/stringify-keys (read-string (slurp (.getAbsolutePath file))))
+      stringify-init-symbol
+      stringify-lein-profiles))
 
-;; TODO: support specifying profiles
+(defn ^{:private true
+        :testable true}
+  normalize-profiles [profiles]
+  (set (if (seq profiles)
+         (map #(if (keyword? %)
+                 %
+                 (keyword (str/replace % ":" "")))
+              profiles)
+         [:default])))
+
 (defn ^{:internal true} read-project
   "Reads a leiningen project.clj file in the given root dir."
-  [app-root]
+  [app-root profiles]
   (let [project-file (io/file app-root "project.clj")]
     (when (.exists project-file)
-      (project/read (.getAbsolutePath project-file) [:default]))))
+      (let [normalized-profiles (normalize-profiles profiles)
+            project (project/read
+                     (.getAbsolutePath project-file)
+                     normalized-profiles)
+            other-profiles (set (get-in project [:immutant :lein-profiles]))]
+        (if (or (seq profiles) (not other-profiles))
+          project
+          (-> project
+              (project/unmerge-profiles (set/difference normalized-profiles
+                                                        other-profiles))
+              (project/merge-profiles (set/difference other-profiles
+                                                      normalized-profiles))))))))
 
 (defn ^{:internal true} read-and-stringify-project
   "Reads a leiningen project.clj file in the given root dir and stringifies the keys."
-  [app-root]
-  (when-let [project (walk/stringify-keys (read-project app-root))]
-    (stringify-init-symbol ["immutant"] project)))
+  ([app-root]
+     (read-and-stringify-project app-root nil))
+  ([app-root profiles]
+     (when-let [project (walk/stringify-keys (read-project app-root profiles))]
+       (-> project 
+           (stringify-init-symbol ["immutant"])
+           (stringify-lein-profiles ["immutant"])))))
 
 (defn ^{:private true} remove-dependencies
   "Removes the given dependency coordinates from the given project."
@@ -102,8 +142,8 @@ to gracefully handle missing dependencies."
 
 (defn ^{:internal true} lib-dir
   "Resolve the library dir for the application."
-  [^File app-root]
-  (io/file (:library-path (read-project app-root)
+  [^File app-root profiles]
+  (io/file (:library-path (read-project app-root profiles)
                           (str (.getAbsolutePath app-root) "/lib"))))
 
 (defn ^{:private true} resource-paths-from-project
@@ -135,16 +175,16 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
 
 (defn ^{:internal true} resource-paths
   "Resolves the resource paths (in the AS7 usage of the term) for an application."
-  [app-root]
-  (if-let [project (read-project app-root)]
+  [app-root profiles]
+  (if-let [project (read-project app-root profiles)]
     (add-default-lein1-paths app-root
                              (resource-paths-from-project project))
     (resource-paths-for-projectless-app app-root)))
 
 (defn ^{:internal true} bundled-jars
   "Returns a set of any jars that are bundled in the application's lib-dir."
-  [app-root]
-  (let [^File lib-dir (lib-dir app-root)]
+  [app-root profiles]
+  (let [^File lib-dir (lib-dir app-root profiles)]
     (set
      (if (.isDirectory lib-dir)
        (.listFiles lib-dir (proxy [FilenameFilter] []
@@ -155,11 +195,11 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
   "Resolves the dependencies for an application. It concats bundled jars with any aether resolved
 dependencies, with bundled jars taking precendence. If resolve-deps is false, dependencies aren't
 resolved via aether and only bundled jars are returned."
-  [app-root resolve-deps]
-  (let [bundled (bundled-jars app-root)
+  [app-root resolve-deps profiles]
+  (let [bundled (bundled-jars app-root profiles)
         bundled-jar-names (map (fn [^File f] (.getName f)) bundled)]
     (concat
      bundled
      (when resolve-deps
        (filter (fn [^File f] (not (some #{(.getName f)} bundled-jar-names)))
-               (resolve-dependencies (read-project app-root)))))))
+               (resolve-dependencies (read-project app-root profiles)))))))

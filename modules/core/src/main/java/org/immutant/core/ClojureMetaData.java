@@ -52,6 +52,11 @@ public class ClojureMetaData extends ApplicationMetaData {
         return getString( "init" );
     }
 
+    @SuppressWarnings("rawtypes")
+    public List getLeinProfiles() {
+        return getList( "lein-profiles" );
+    }
+    
     /**
      * See if the user has explicitly set :resolve-dependencies. If not, 
      * resolve for non-archives.

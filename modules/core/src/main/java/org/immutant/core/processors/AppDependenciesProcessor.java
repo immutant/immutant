@@ -60,7 +60,9 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         File root = metaData.getRoot();
 
         try {
-            List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, metaData.resolveDependencies() );
+            List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, 
+                    metaData.resolveDependencies(),
+                    metaData.getLeinProfiles() );
 
             boolean clojureProvided = false;
 
@@ -86,7 +88,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
             String runtimePath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/immutant-runtime-impl.jar";
             mount( new File( runtimePath ), unit );
             
-            for(String each : ApplicationBootstrapUtils.resourceDirs( root )) {
+            for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles() )) {
                 final ResourceRoot childResource = new ResourceRoot( VFS.getChild( each ), null );
                 ModuleRootMarker.mark(childResource);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );

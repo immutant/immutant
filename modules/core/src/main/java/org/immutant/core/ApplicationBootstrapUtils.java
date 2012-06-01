@@ -59,19 +59,19 @@ public class ApplicationBootstrapUtils {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static List<String> resourceDirs(final File applicationRoot) throws Exception {
+    public static List<String> resourceDirs(final File applicationRoot, final List profiles) throws Exception {
         return (List<String>) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "resource-paths" ).invoke( applicationRoot ); 
+                return bootstrapVar( "resource-paths" ).invoke( applicationRoot, profiles ); 
             }
         } );
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static List<File> getDependencies(final File applicationRoot, final boolean resolveDeps) throws Exception {
+    public static List<File> getDependencies(final File applicationRoot, final boolean resolveDeps, final List profiles) throws Exception {
         return (List<File>) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "get-dependencies" ).invoke( applicationRoot, resolveDeps ); 
+                return bootstrapVar( "get-dependencies" ).invoke( applicationRoot, resolveDeps, profiles ); 
             }
         } );
     }
