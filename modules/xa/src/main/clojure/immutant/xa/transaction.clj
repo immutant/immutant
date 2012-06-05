@@ -42,6 +42,7 @@
   [f]
   (.registerSynchronization (current)
                             (reify javax.transaction.Synchronization
+                              (beforeCompletion [_])
                               (afterCompletion [_ _] (f)))))
 
 (defn suspend
