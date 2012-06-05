@@ -148,7 +148,7 @@
      (join-current-transaction session)
      (f))
     ;; Close the sessions used for nested tx's, if any
-    (doseq [s (remove #(= session) (vals *sessions*))] (.close s))))
+    (doseq [s (remove (partial = session) (vals *sessions*))] (.close s))))
 
 
 
