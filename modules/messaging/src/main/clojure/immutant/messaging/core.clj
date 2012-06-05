@@ -129,9 +129,10 @@
       (try 
         (f)
         (finally
-         (if (tx/active?)
-           (tx/after-completion #(.close *connection*))
-           (.close *connection*)))))))
+         (let [conn *connection*]
+           (if (tx/active?)
+             (tx/after-completion #(.close conn))
+             (.close conn))))))))
 
 (defmacro with-connection [& body]
   `(with-connection* (fn [] ~@body)))
