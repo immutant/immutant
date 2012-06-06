@@ -40,6 +40,13 @@
       <artifactId>clojure</artifactId>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>java.jdbc</artifactId>
+      <version>0.2.1</version>
+    </dependency>
+
     <dependency>
       <groupId>org.jboss.as</groupId>
       <artifactId>jboss-as-jmx</artifactId>

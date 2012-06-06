@@ -17,6 +17,7 @@
 
 (ns immutant.xa.transaction
   "Distributed XA transactional support"
+  (:use [clojure.java.jdbc :only [transaction*]])
   (:require [immutant.registry :as lookup]))
 
 (def manager (lookup/fetch "jboss.txn.TransactionManager"))
@@ -45,6 +46,25 @@
                               (beforeCompletion [_])
                               (afterCompletion [_ _] (f)))))
 
+;;; Monkey-patchery to prevent calls to setAutoCommit/commit/rollback on connection
+(in-ns 'clojure.java.jdbc)
+(def ^{:dynamic true} xa-transaction* transaction*)
+(defn transaction* [& args] (apply xa-transaction* args))
+(in-ns 'immutant.xa.transaction)
+
+(defn begin
+  "Begin, invoke, commit, rollback if error"
+  [func]
+  (binding [clojure.java.jdbc/xa-transaction* (fn [f] (f))]
+    (.begin manager)
+    (try
+      (let [result (func)]
+        (.commit manager)
+        result)
+      (catch Throwable e
+        (.rollback manager)
+        (throw e)))))
+
 (defn suspend
   "Suspend, invoke, resume"
   [func]
@@ -53,18 +73,6 @@
       (func)
       (finally
        (.resume manager tx)))))
-
-(defn begin
-  "Begin, invoke, commit, rollback if error"
-  [func]
-  (.begin manager)
-  (try
-    (let [result (func)]
-      (.commit manager)
-      result)
-    (catch Throwable e
-      (.rollback manager)
-      (throw e))))
 
 (defmacro required
   "JEE Required"

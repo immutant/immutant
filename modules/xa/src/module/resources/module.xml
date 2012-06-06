@@ -27,6 +27,7 @@
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="polyglot-xa.jar"/>
+        <resource-root path="java.jdbc.jar"/>
     </resources>
 
     <dependencies>
