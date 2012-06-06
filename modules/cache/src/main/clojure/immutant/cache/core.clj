@@ -18,10 +18,17 @@
 (ns immutant.cache.core
   (:require [immutant.registry :as registry])
   (:import [org.infinispan.config Configuration$CacheMode]
-           [org.infinispan.manager DefaultCacheManager]))
+           [org.infinispan.configuration.cache ConfigurationBuilder]
+           [org.infinispan.manager DefaultCacheManager]
+           [org.infinispan.transaction TransactionMode]
+           [org.infinispan.transaction.lookup GenericTransactionManagerLookup]))
 
-(def local-manager (DefaultCacheManager.))
 (def clustered-manager (registry/fetch "jboss.infinispan.web"))
+(def local-manager (delay (DefaultCacheManager.
+                            (.. (ConfigurationBuilder.) transaction
+                                (transactionManagerLookup (GenericTransactionManagerLookup.))
+                                (transactionMode TransactionMode/TRANSACTIONAL)
+                                build))))
 
 (defn cache-mode
   [kw sync]
@@ -51,6 +58,7 @@
   (let [config (.clone (.getDefaultConfiguration clustered-manager))]
     (.setClassLoader config (.getContextClassLoader (Thread/currentThread)))
     (.setCacheMode config mode)
+    (.setTransactionManagerLookup config (GenericTransactionManagerLookup.))
     (.defineConfiguration clustered-manager name config)
     (doto (.getCache clustered-manager name)
       (.start))))
@@ -62,8 +70,8 @@
     (configure name (cache-mode mode sync))))
 
 (defn local-cache
-  ([] (.getCache local-manager))
-  ([name] (.getCache local-manager name)))
+  ([] (.getCache @local-manager))
+  ([name] (.getCache @local-manager name)))
 
 (defn raw-cache
   "Returns the raw Infinispan cache, clustered if possible, otherwise local"
