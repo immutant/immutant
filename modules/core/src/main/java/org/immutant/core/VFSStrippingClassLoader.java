@@ -32,27 +32,39 @@ import java.net.URL;
  */
 public class VFSStrippingClassLoader extends ClassLoader {
 
-    public VFSStrippingClassLoader(ClassLoader parent) {
+    public VFSStrippingClassLoader(ClassLoader parent, JarMountMap mountMap) {
         super( parent );
+        this.mountMap = mountMap;
     }
     
     @Override
     public URL getResource(String name) {
         URL url = getParent().getResource( name );
         if (url != null && "vfs".equals( url.getProtocol() )) {
-            try {
-                URL nonVFSUrl = new URL( "file" + url.toExternalForm().substring( 3 ) );
-                if ((new File( nonVFSUrl.toURI() )).exists()) {
-                    url = nonVFSUrl;
-                }
+            try {   
+                String urlAsString = url.toExternalForm();
+                int splitPoint = urlAsString.indexOf( ".jar/" ) + 5;
+                String jarPrefix = urlAsString.substring( 0, splitPoint );
+                String fileName = urlAsString.substring( splitPoint );
+                if (this.mountMap.containsKey( jarPrefix )) {
+                    //translate resources within tmp mounted jars to the actual path. see IMMUTANT-70
+                    url = new URL( "jar:" + this.mountMap.get( jarPrefix ) + "!/" + fileName );
+                } else {
+                    URL nonVFSUrl = new URL( "file" + url.toExternalForm().substring( 3 ) );
+                    if ((new File( nonVFSUrl.toURI() )).exists()) {
+                        url = nonVFSUrl;
+                    }
+                } 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }
         }
-        
+
         return url;
     }
+
+    private JarMountMap mountMap;
     
 }

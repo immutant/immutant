@@ -28,6 +28,7 @@ import org.apache.commons.io.FileUtils;
 import org.immutant.core.ApplicationBootstrapUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
+import org.immutant.core.JarMountMap;
 import org.immutant.core.as.CoreServices;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
@@ -59,6 +60,9 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
 
         File root = metaData.getRoot();
 
+        JarMountMap mountMap = new JarMountMap();
+        unit.putAttachment( JarMountMap.ATTACHMENT_KEY, mountMap );
+        
         try {
             List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, 
                     metaData.resolveDependencies(),
@@ -70,7 +74,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
                 if (each.getName().matches( "^clojure(-\\d.\\d.\\d)?\\.jar$" )) {
                     clojureProvided = true;
                 }
-                mount( each, unit );
+                mount( each, unit, mountMap );
             }
 
             if (!clojureProvided) {
@@ -81,12 +85,12 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
 
                 // borrow the shipped clojure.jar
                 String jarPath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/clojure.jar";
-                mount( new File( jarPath ), unit );
+                mount( new File( jarPath ), unit, mountMap );
             }
 
             //mount the runtime jar
             String runtimePath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/immutant-runtime-impl.jar";
-            mount( new File( runtimePath ), unit );
+            mount( new File( runtimePath ), unit, mountMap );
             
             for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles() )) {
                 final ResourceRoot childResource = new ResourceRoot( VFS.getChild( each ), null );
@@ -105,13 +109,16 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         unit.putAttachment( Attachments.COMPOSITE_ANNOTATION_INDEX, new CompositeIndex( Collections.EMPTY_LIST ) );
     }
 
-    private void mount(File file, DeploymentUnit unit) throws IOException {
+    private void mount(File file, DeploymentUnit unit, JarMountMap mountMap) throws IOException {
         VirtualFile mountPath = VFS.getChild( File.createTempFile( file.getName(), ".jar", tmpMountDir( unit ) ).toURI() );
         log.debug( unit.getName() + ": mounting " + file );
         final ResourceRoot childResource = new ResourceRoot( mountPath, 
                 new MountHandle( VFS.mountZip( file, mountPath, TempFileProviderService.provider() ) ) );
         ModuleRootMarker.mark( childResource );
         unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
+        
+        mountMap.put( mountPath.toURL().toExternalForm(), file.toURI().toURL().toExternalForm() );
+        
     }
 
     private File tmpMountDir(DeploymentUnit unit) throws IOException {
