@@ -29,12 +29,16 @@
 
 (deftest web-start "should work"
   (is (.startsWith
-       ((client/get "http://localhost:8080/basic-ring/stopper") :body)
+       ((client/get "http://localhost:8080/basic-ring/starter") :body)
        "Hello from Immutant!")))
 
 (deftest web-stop "should work"
+  (client/get "http://localhost:8080/basic-ring/starter")
   (is (.startsWith
        ((client/get "http://localhost:8080/basic-ring/stopper") :body)
        "Hello from Immutant!"))
   (is (= 404
-         (:status (client/get "http://localhost:8080/basic-ring/stopper" {:throw-exceptions false})))))
+         (:status (client/get "http://localhost:8080/basic-ring/stopper" {:throw-exceptions false}))))
+  (is (= 404
+         (:status (client/get "http://localhost:8080/basic-ring/starter" {:throw-exceptions false})))))
+

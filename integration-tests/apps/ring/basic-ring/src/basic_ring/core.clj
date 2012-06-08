@@ -51,9 +51,13 @@
 
 (defn init-web-start-testing []
   (init)
-  (web/start "/stopper"
+  (web/start "/starter"
              (fn [r]
-               (web/stop "/stopper")
+               (web/start "/stopper"
+                          (fn [r]
+                            (web/stop "/stopper")
+                            (web/stop "/starter")
+                            (handler r)))
                (handler r))))
 
 (defn init-resources []
