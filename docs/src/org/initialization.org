@@ -77,6 +77,11 @@
     archives. See [[#initialization-dependencies][Dependencies & Resources]] for more details on the dependency
     resolution process.
 
+  - =:lein-profiles= - If the application is a Leiningen 2 (or greater) project, 
+    you can specify the [[https://github.com/technomancy/leiningen/blob/master/doc/PROFILES.md][Leiningen profiles]] (as a collection) to apply when loading 
+    =project.clj=. If no profiles are specified, only the =:default= profile is 
+    loaded.
+
   - =:swank-port= & =:nrepl-port= - Immutant can provide a per-application repl,
     either via [[https://github.com/technomancy/swank-clojure][Swank]] or [[https://github.com/clojure/tools.nrepl][nREPL]]. Immutant will automatically start a repl for
     you if you specify an unused port using either =:swank-port= or =:nrepl-port=.
