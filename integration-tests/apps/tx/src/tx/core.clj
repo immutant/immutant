@@ -12,8 +12,13 @@
 (def cache (ic/cache "test"))
 
 ;;; And an in-memory, transactional database
-(defonce ds (ixa/datasource "foo" {:adapter "h2" :database "mem:foo"}))
-(def spec {:datasource ds})
+(defonce h2 (ixa/datasource "h2" {:adapter "h2" :database "mem:foo"}))
+(defonce oracle (ixa/datasource "oracle" {:adapter "oracle"
+                                          :host "myinstance.cpct4icp7nye.us-east-1.rds.amazonaws.com"
+                                          :username "dummy"
+                                          :password "password"
+                                          :database "mydb"}))
+(def spec {:datasource h2})
 
 ;;; Helper methods to verify database activity
 (defn write-thing-to-db [name]
@@ -26,14 +31,14 @@
 (defn count-things-in-db []
   (sql/with-connection spec
     (sql/with-query-results rows ["select count(*) c from things"]
-      ((first rows) :c))))
+      (int ((first rows) :c)))))
 
 ;;; Ensure each test starts with an empty table called THINGS
 (use-fixtures :each (fn [f]
                       (ic/delete-all cache)
                       (sql/with-connection spec
                         (try (sql/drop-table :things) (catch Exception _))
-                        (sql/create-table :things [:id :serial] [:name :varchar]))
+                        (sql/create-table :things [:name "varchar2(50)"]))
                       (f)))
 
 (deftest db+msg+cache-should-commit "Test happy-path XA transaction involving three resources"
