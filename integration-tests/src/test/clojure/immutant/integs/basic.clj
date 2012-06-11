@@ -32,3 +32,9 @@
     ;(println "RESPONSE" result)
     (is (.startsWith (result :body) "Hello from Immutant!"))))
 
+(deftest app-should-have-its-config
+  (let [result (client/get "http://localhost:8080/basic-ring")]
+    ;(println "RESPONSE" result)
+    (is (.contains (result :body) ":ham :biscuit"))))
+
+

@@ -32,9 +32,9 @@ import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.as.server.deployment.module.ResourceRoot;
 import org.jboss.logging.Logger;
 
-public class ProjectCljParsingProcessor implements DeploymentUnitProcessor {
+public class FullAppConfigLoadingProcessor implements DeploymentUnitProcessor {
     
-    public ProjectCljParsingProcessor() {
+    public FullAppConfigLoadingProcessor() {
     }
 
     @Override
@@ -49,9 +49,12 @@ public class ProjectCljParsingProcessor implements DeploymentUnitProcessor {
         
         ResourceRoot resourceRoot = deploymentUnit.getAttachment( Attachments.DEPLOYMENT_ROOT );
         File root;
+        File descriptor = deploymentUnit.getAttachment( ClojureMetaData.DESCRIPTOR_FILE );
         try {
             root = resourceRoot.getRoot().getPhysicalFile();
-            metaData.setLeinProject( ApplicationBootstrapUtils.readLeinProject( root ) );
+            metaData.setConfig( ApplicationBootstrapUtils.readFullAppConfig( descriptor, root ) );
+           deploymentUnit.putAttachment( ClojureMetaData.FULL_APP_CONFIG, 
+                   ApplicationBootstrapUtils.readFullAppConfigAsString( descriptor, root ) );
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }

@@ -42,12 +42,12 @@
     (fact "read-project with profiles should ignore the ones defined in :immutant"
       (:egg (read-project app-root [:gravy])) => :sandwich)
 
-    (fact "read-and-stringify-project should work"
-      (read-and-stringify-project app-root nil) => (contains {"ham" :biscuit}))
+    (fact "read-and-stringify-full-app-config should work"
+      (read-and-stringify-full-app-config nil app-root) => (contains {"ham" "basket"}))
 
-    (facts "read-and-stringify-project should stringify an init fn"
-      (get-in (read-and-stringify-project app-root nil) ["immutant" "init"]) => "some.namespace/init"
-      (get-in (read-and-stringify-project another-app-root nil) ["immutant" "init"]) => "some.namespace/string")
+    (facts "read-and-stringify-full-app-config should stringify an init fn"
+      ((read-and-stringify-full-app-config nil app-root) "init") => "some.namespace/init"
+      ((read-and-stringify-full-app-config nil another-app-root) "init") => "some.namespace/string")
 
     (fact "resource-paths should work"
       (let [paths (map #(.getAbsolutePath (io/file app-root %))
@@ -99,9 +99,6 @@
   (let [app-root (io/file (io/resource "non-project-root"))]
     (fact "read-project should return nil"
       (read-project app-root nil) => nil?)
-
-    (fact "read-and-stringify-project should return nil"
-      (read-and-stringify-project app-root nil) => nil?)
 
     (fact "resource-paths should work"
       (resource-paths app-root nil) => (just (map #(.getAbsolutePath (io/file app-root %))
@@ -165,4 +162,34 @@
         (let [project-with-bad-deps (update-in project-with-bad-dep [:dependencies]
                                                conj ['i-also-dont-exist "1.0.0"])]
           (fact "should return the correct deps when there are multiple unresolvable deps"
-            (resolve-dependencies project-with-bad-deps) => expected-deps))))))
+            (resolve-dependencies project-with-bad-deps) => expected-deps)))))
+
+
+    
+    
+  (facts "read-full-app-config"
+    (let [project-root (io/file (io/resource "project-root"))
+          non-project-root (io/file (io/resource "non-project-root"))
+          descriptor (io/file (io/resource "simple-descriptor.clj"))]
+      
+      (fact "should work"
+        (read-full-app-config descriptor project-root) => {:init "my.namespace/init"
+                                                           :ham "biscuit"
+                                                           :biscuit "gravy"
+                                                           :resolve-dependencies false
+                                                           :lein-profiles [:cheese]})
+      (fact "should work with no project"
+        (read-full-app-config descriptor non-project-root) => {:init "my.namespace/init"
+                                                               :ham "biscuit"})
+      
+      (fact "should work with no descriptor"
+        (read-full-app-config nil project-root) => {:ham "basket"
+                                                    :biscuit "gravy"
+                                                    :init 'some.namespace/init
+                                                    :resolve-dependencies false
+                                                    :lein-profiles [:cheese]})
+      
+      (fact "should work with no descriptor and no project"
+        (read-full-app-config nil non-project-root) => nil))))
+
+

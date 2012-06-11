@@ -39,7 +39,7 @@ import org.immutant.core.processors.ArchiveRecognizer;
 import org.immutant.core.processors.ClojureRuntimeInstaller;
 import org.immutant.core.processors.CloserInstaller;
 import org.immutant.core.processors.DeploymentDescriptorParsingProcessor;
-import org.immutant.core.processors.ProjectCljParsingProcessor;
+import org.immutant.core.processors.FullAppConfigLoadingProcessor;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -92,7 +92,7 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 10, new ArchiveRecognizer() );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 20, new DeploymentDescriptorParsingProcessor() );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 30, new ApplicationExploder() );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 50, new ProjectCljParsingProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 50, new FullAppConfigLoadingProcessor() );
         processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 100, new AppDependenciesProcessor() );
         
         processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new CoreDependenciesProcessor() );

@@ -55,7 +55,7 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
         String deploymentName = deploymentUnit.getName();
 
         try {
-            VirtualFile descriptor = getFile( deploymentUnit );
+            VirtualFile descriptor = getDescriptorFile( deploymentUnit );
             if (descriptor == null) {
                 return;
             }
@@ -85,7 +85,8 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
             }
             
             deploymentUnit.putAttachment( Attachments.DEPLOYMENT_ROOT, new ResourceRoot( virtualRoot, mountHandle ) );
-
+            deploymentUnit.putAttachment( ClojureMetaData.DESCRIPTOR_FILE, descriptor.getPhysicalFile() );
+            
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }
@@ -96,7 +97,7 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
        
     }
     
-    protected VirtualFile getFile(DeploymentUnit unit) throws DeploymentUnitProcessingException, IOException {
+    protected VirtualFile getDescriptorFile(DeploymentUnit unit) throws DeploymentUnitProcessingException, IOException {
         List<VirtualFile> matches = new ArrayList<VirtualFile>();
 
         ResourceRoot resourceRoot = unit.getAttachment( Attachments.DEPLOYMENT_ROOT );
@@ -105,11 +106,11 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
         }
         VirtualFile root = resourceRoot.getRoot();
         
-        if (this.knobFilter.accepts( root )) {
+        if (this.descriptorFilter.accepts( root )) {
             return root;
         }
 
-        matches = root.getChildren( this.knobFilter );
+        matches = root.getChildren( this.descriptorFilter );
 
         if (matches.size() > 1) {
             throw new DeploymentUnitProcessingException( "Multiple Immutant descriptors found in " + root );
@@ -123,7 +124,7 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
         return file;
     }
     
-    private VirtualFileFilter knobFilter = (new VirtualFileFilter() {
+    private VirtualFileFilter descriptorFilter = (new VirtualFileFilter() {
             public boolean accepts(VirtualFile file) {
                 return file.getName().endsWith( Immutant.DESCRIPTOR_SUFFIX );
             }

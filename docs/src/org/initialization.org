@@ -62,7 +62,7 @@
   :END:
 
   The following configuration options can appear in the [[./deployment.html#deployment-descriptor][deployment descriptor]] 
-  or (with the exception of =:root=) the =:immutant= hash of =project.clj=.
+  or (with the exception of =:root=) the =:immutant= map of =project.clj=.
   
   - =:root= - specifies the path to the 'root' of the application. This can 
     either be the path to the application directory, or the path to an 
@@ -106,6 +106,25 @@
      :init my.app/init
      :context-path "/" }
   #+end_src
+
+** Arbitrary Configuration Values
+
+   Since Immutant can host multiple apps, using system properties
+   or environment variables may not be a practical way to provide per app 
+   configuration. In addition to the above options, you can put any values you need 
+   into the configuration within the deployment descriptor or the =:immutant= map of 
+   =project.clj=. This full configuration (including the above options) is available
+   to your application by passing the =:config= key to  [[./apidoc/immutant.registry-api.html#immutant.registry/fetch][immutant.registry/fetch]]:
+
+   #+begin_src clojure
+     (require '[immutant.registry :as registry])
+     
+     (let [cfg (registry/fetch :config)]
+       (:root cfg)             ;; "/the/path/to/my/app"
+       (:init cfg)             ;; my.app/init
+       (:my-custom-option cfg) ;; :my-custom-value
+       )
+   #+end_src
 
 * Files Used In Configuration & Initialization
 

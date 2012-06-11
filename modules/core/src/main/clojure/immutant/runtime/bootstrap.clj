@@ -25,7 +25,7 @@
             [leiningen.core.classpath :as classpath]
             [leiningen.core.project   :as project]
             [cemerick.pomegranate     :as pomegranate])
-  (:import [java.io   File FilenameFilter]
+  (:import [java.io File FilenameFilter]
            java.util.ArrayList
            org.sonatype.aether.resolution.DependencyResolutionException))
 
@@ -61,9 +61,15 @@
   (updatifier "lein-profiles" #(map str %)))
 
 (defn ^{:internal true} read-descriptor
-  "Reads a deployment descriptor and returns the resulting hash."
+  "Reads a deployment descriptor and returns the resulting map."
   [^File file]
-  (-> (walk/stringify-keys (read-string (slurp (.getAbsolutePath file))))
+  (read-string (slurp (.getAbsolutePath file))))
+
+(defn ^{:internal true} read-and-stringify-descriptor
+  "Reads a deployment descriptor and returns the resulting stringified map."
+  [^File file]
+  (-> (read-descriptor file)
+      walk/stringify-keys 
       stringify-init-symbol
       stringify-lein-profiles))
 
@@ -95,15 +101,28 @@
               (project/merge-profiles (set/difference other-profiles
                                                       normalized-profiles))))))))
 
-(defn ^{:internal true} read-and-stringify-project
-  "Reads a leiningen project.clj file in the given root dir and stringifies the keys."
-  ([app-root]
-     (read-and-stringify-project app-root nil))
-  ([app-root profiles]
-     (when-let [project (walk/stringify-keys (read-project app-root profiles))]
-       (-> project 
-           (stringify-init-symbol ["immutant"])
-           (stringify-lein-profiles ["immutant"])))))
+(defn ^{:internal true} read-full-app-config
+  "Returns the full configuration for an app. This consists of the :immutant map
+from project.clj (if any) with the contents of the descriptor map merged onto it (if any). Returns
+nil if neither are available."
+  [descriptor-file app-root]
+  (let [from-descriptor (and descriptor-file
+                          (read-descriptor descriptor-file))
+        from-project (:immutant (read-project app-root (:lein-profiles from-descriptor)))]
+    (merge from-project from-descriptor)))
+
+(defn ^{:internal true} read-and-stringify-full-app-config
+  "Loads the full app config and stringifies the keys."
+  [descriptor-file app-root]
+  (-> (read-full-app-config descriptor-file app-root)
+      walk/stringify-keys
+      stringify-init-symbol
+      stringify-lein-profiles))
+
+(defn ^{:internal true} read-full-app-config-to-string
+  "Returns the full configuration for an app as a pr string that can move across runtimes."
+  [descriptor-file app-root]
+  (pr-str (read-full-app-config descriptor-file app-root)))
 
 (defn ^{:private true} remove-dependencies
   "Removes the given dependency coordinates from the given project."

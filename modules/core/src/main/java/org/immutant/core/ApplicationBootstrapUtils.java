@@ -44,20 +44,29 @@ public class ApplicationBootstrapUtils {
     public static Map parseDescriptor(final File file) throws Exception {
         return (Map) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "read-descriptor" ).invoke( file ); 
+                return bootstrapVar( "read-and-stringify-descriptor" ).invoke( file ); 
             }
         } );
     }
 
     @SuppressWarnings("rawtypes")
-    public static Map readLeinProject(final File applicationRoot) throws Exception {
+    public static Map readFullAppConfig(final File descriptor, final File applicationRoot) throws Exception {
         return (Map) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "read-and-stringify-project" ).invoke( applicationRoot ); 
+                return bootstrapVar( "read-and-stringify-full-app-config" ).invoke( descriptor, applicationRoot ); 
             }
         } );
     }
-
+    
+    @SuppressWarnings("rawtypes")
+    public static String readFullAppConfigAsString(final File descriptor, final File applicationRoot) throws Exception {
+        return (String) inCL( new Callable() {
+            public Object call() throws Exception {
+                return bootstrapVar( "read-full-app-config-to-string" ).invoke( descriptor, applicationRoot ); 
+            }
+        } );
+    }
+    
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static List<String> resourceDirs(final File applicationRoot, final List profiles) throws Exception {
         return (List<String>) inCL( new Callable() {

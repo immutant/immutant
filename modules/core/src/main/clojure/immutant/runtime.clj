@@ -22,7 +22,8 @@ bootstrapping process. Applications shouldn't use anything here."
             [clojure.string        :as str]
             [clojure.tools.logging :as log]
             [immutant.repl         :as repl]
-            [immutant.utilities    :as util]))
+            [immutant.utilities    :as util]
+            [immutant.registry     :as registry]))
 
 (defn ^{:internal true} require-and-invoke 
   "Takes a string of the form \"namespace/fn\", requires the namespace, then invokes fn"
@@ -31,20 +32,28 @@ bootstrapping process. Applications shouldn't use anything here."
     (require namespace)
     (apply (intern namespace function) args)))
 
+(defn ^{:private true} post-initialize
+  [config]
+  (repl/init-repl config))
+
 (defn ^{:internal true} initialize 
   "Attempts to initialize the app by calling an init-fn (if given) or, lacking that,
-tries to load an immutant.clj from the app-root"
+tries to load an immutant.clj from the app-root. In either case, post-initialize is called
+to finalize initialization."
   [init-fn config-hash]
-  (let [config (into {} config-hash)
-        config-file (io/file (util/app-root) "immutant.clj")
-        config-exists (.exists config-file)]
+  (let [init-file (io/file (util/app-root) "immutant.clj")
+        init-file-exists (.exists init-file)]
     (if init-fn
       (do
-        (if config-exists
+        (if init-file-exists
           (log/warn "immutant.clj found in" (util/app-name) ", but you specified an :init fn; ignoring immutant.clj"))
         (require-and-invoke init-fn))
-      (if config-exists
-        (load-file (.getAbsolutePath config-file))
-        (log/warn "no immutant.clj found in" (util/app-name) "and you specified no init fn; no app initialization will be performed")))
-    (repl/init-repl config)))
+      (if init-file-exists
+        (load-file (.getAbsolutePath init-file))
+        (log/warn "no immutant.clj found in" (util/app-name) "and you specified no init fn; no app initialization will be performed"))))
+  (post-initialize (into {} config-hash)))
 
+(defn ^{:internal true} set-app-config
+  "Takes the full application config as a data string and makes it available as data under the :config key in the registry."
+  [config]
+  (registry/put :config (read-string config)))

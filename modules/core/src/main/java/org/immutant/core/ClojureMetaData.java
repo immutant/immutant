@@ -32,10 +32,12 @@ import org.projectodd.polyglot.core.app.ApplicationMetaData;
 public class ClojureMetaData extends ApplicationMetaData {
 
     public static final AttachmentKey<ClojureMetaData> ATTACHMENT_KEY = AttachmentKey.create( ClojureMetaData.class );
+    public static final AttachmentKey<File> DESCRIPTOR_FILE = AttachmentKey.create( File.class );
+    public static final AttachmentKey<String> FULL_APP_CONFIG = AttachmentKey.create( String.class );
 
     public ClojureMetaData(String applicationName, Map<String, Object> config) {
         super( applicationName ); 
-        this.config = config;
+        setConfig( config );
         String root = getString( "root" );
         if (root != null) {
             setRoot( new File( root ) );
@@ -84,29 +86,8 @@ public class ClojureMetaData extends ApplicationMetaData {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public void setLeinProject(Map leinProject) {
-        this.leinProject = leinProject;
-        if (leinProject != null) {
-            merge( (Map<String, Object>) leinProject.get( "immutant" ) );
-        }
-    }
-
-    /** 
-     * Merges additional configuration with the existing config, allowing
-     * the existing config to take precedence. We have to make a new config
-     * since the one we have is a PersistentHashMap, which denies put().
-     */
-    protected void merge(Map<String, Object> additionalConfig) {
-        if (additionalConfig != null) {
-            Map<String, Object> config = new HashMap<String, Object>( this.config );
-
-            for (Entry<String, Object> each : additionalConfig.entrySet()) {
-                if (config.get( each.getKey() ) == null) {
-                    config.put( each.getKey(), each.getValue() );
-                }
-            }
-            this.config = config;
-        }
+    public void setConfig(Map config) {
+        this.config = config;
     }
 
     public Map<String, Object> getConfig() {
@@ -119,5 +100,4 @@ public class ClojureMetaData extends ApplicationMetaData {
     }
 
     private Map<String, Object> config;
-    private Map<String, Object> leinProject;
 }

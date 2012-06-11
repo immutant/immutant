@@ -3,6 +3,7 @@
             [immutant.web            :as web]
             [immutant.web.session    :as isession]
             [immutant.repl           :as repl]
+            [immutant.registry       :as reg]
             [ring.middleware.session :as rsession]
             [clojure.java.io         :as io])
   (:import SomeClass))
@@ -17,7 +18,8 @@
    :body body})
 (defn handler [request]
   (let [body (str "Hello from Immutant! This is basic-ring <p>a-value:" @a-value
-                  "</p><p>version:" (clojure-version) "</p>")]
+                  "</p><p>version:" (clojure-version) "</p><p>"
+                  (pr-str (reg/fetch :config)) "</p>")]
     (reset! a-value "not-default")
     (response body)))
 

@@ -38,7 +38,9 @@
     (is (= "biscuit" (.getString md "ham"))))
 
   (let [merged-md (doto (ClojureMetaData. "app-name" descriptor)
-                     (.setLeinProject (bootstrap/read-and-stringify-project (io/file (io/resource "project-root")) nil)))]
+                    (.setConfig (bootstrap/read-and-stringify-full-app-config
+                                 (io/file (io/resource "simple-descriptor.clj"))
+                                 (io/file (io/resource "project-root")) )))]
     (deftest the-immutant-map-from-project-clj-should-be-included
       (is (= "gravy" (.getString merged-md "biscuit"))))
 
