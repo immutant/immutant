@@ -30,7 +30,7 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.Value;
 
 
-public class WebContextRegistrar extends RegisteringProcessor {
+public class WebContextRegisteringProcessor extends RegisteringProcessor {
 
     @Override
     public RegistryEntry registryEntry(DeploymentPhaseContext context) {

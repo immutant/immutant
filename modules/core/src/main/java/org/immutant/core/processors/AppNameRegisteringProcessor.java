@@ -19,23 +19,19 @@
 
 package org.immutant.core.processors;
 
-import java.io.File;
-
-import org.jboss.as.server.deployment.Attachments;
+import org.immutant.core.ClojureMetaData;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.jboss.as.server.deployment.module.ResourceRoot;
 
 
-public class AppRootRegistrar extends RegisteringProcessor {
+public class AppNameRegisteringProcessor extends RegisteringProcessor {
 
-    public RegistryEntry registryEntry(DeploymentPhaseContext context) throws Exception {
+    public RegistryEntry registryEntry(DeploymentPhaseContext context) {
         DeploymentUnit unit = context.getDeploymentUnit();
                 
-        ResourceRoot resourceRoot = unit.getAttachment( Attachments.DEPLOYMENT_ROOT );
-        File root = resourceRoot.getRoot().getPhysicalFile();
-
-        return new RegistryEntry( "app-root", root );
+        ClojureMetaData metaData = unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
+        
+        return new RegistryEntry( "app-name", metaData.getApplicationName() );
     }
 
 }

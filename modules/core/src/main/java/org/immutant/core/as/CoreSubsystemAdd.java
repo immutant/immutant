@@ -32,8 +32,8 @@ import javax.management.MBeanServer;
 import org.immutant.core.Immutant;
 import org.immutant.core.ImmutantMBean;
 import org.immutant.core.processors.AppDependenciesProcessor;
-import org.immutant.core.processors.AppNameRegistrar;
-import org.immutant.core.processors.AppRootRegistrar;
+import org.immutant.core.processors.AppNameRegisteringProcessor;
+import org.immutant.core.processors.AppRootRegisteringProcessor;
 import org.immutant.core.processors.ApplicationInitializer;
 import org.immutant.core.processors.ArchiveRecognizer;
 import org.immutant.core.processors.ClojureRuntimeInstaller;
@@ -99,8 +99,8 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         
         processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 120, new ClojureRuntimeInstaller() );
         processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 130, new CloserInstaller() );
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 140, new AppNameRegistrar() );
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 141, new AppRootRegistrar() );
+        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 140, new AppNameRegisteringProcessor() );
+        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 141, new AppRootRegisteringProcessor() );
         
         processorTarget.addDeploymentProcessor( Phase.INSTALL, 10000, new ApplicationInitializer() );
     }
