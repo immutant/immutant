@@ -258,6 +258,31 @@
         <artifactId>autodoc</artifactId>
         <version>${version.autodoc}</version>
       </dependency>
+
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${version.commons-io}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>clj-glob</groupId>
+        <artifactId>clj-glob</artifactId>
+        <version>${version.clj-glob}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.immutant</groupId>
+        <artifactId>overlay</artifactId>
+        <version>${version.overlay}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>digest</groupId>
+        <artifactId>digest</artifactId>
+        <version>${version.digest}</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 
@@ -276,6 +301,11 @@
     <version.ring-servlet>1.1.0</version.ring-servlet>
     <version.swank-clojure>1.4.2</version.swank-clojure>
     <version.nrepl>0.2.0-beta5</version.nrepl>
+
+    <version.commons-io>2.0.1</version.commons-io>
+    <version.clj-glob>1.0.0</version.clj-glob>
+    <version.overlay>1.1.0</version.overlay>
+    <version.digest>1.4.0</version.digest>
 
     <version.data.json>0.1.1</version.data.json>
     <version.midje>1.4.0-beta2</version.midje>
