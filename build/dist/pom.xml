@@ -38,6 +38,13 @@
       <type>pom</type>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-build-support</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -95,6 +102,23 @@
             </goals>
             <configuration>
               <file>bin/generate_build_metadata.rb</file>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>clojure-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>perform-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <mainClass>immutant.build.generate_sha1</mainClass>
+              <args>target/ .zip .json</args>
             </configuration>
           </execution>
         </executions>
