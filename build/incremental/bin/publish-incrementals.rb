@@ -92,8 +92,9 @@ class Publisher
      '/../../dist/target/build-metadata.json',
      '/../../assembly/target/stage/immutant/jboss/standalone/configuration/standalone.xml'
     ].each do |f|
-      dav_put( build_base_url + "/#{File.basename( f )}", f )
-      sha1 = f + "sha1"
+      file = File.dirname(__FILE__) + f
+      dav_put( build_base_url + "/#{File.basename( file )}", file )
+      sha1 = file + "sha1"
       dav_put( build_base_url + "/#{File.basename( sha1 )}", sha1 ) if File.exists?( sha1 )
     end
   end
