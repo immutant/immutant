@@ -94,7 +94,7 @@ class Publisher
     ].each do |f|
       file = File.dirname(__FILE__) + f
       dav_put( build_base_url + "/#{File.basename( file )}", file )
-      sha1 = file + "sha1"
+      sha1 = file + ".sha1"
       dav_put( build_base_url + "/#{File.basename( sha1 )}", sha1 ) if File.exists?( sha1 )
     end
   end
