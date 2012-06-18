@@ -47,8 +47,9 @@
    See [[./deployment.html][Deployment]] for the details of deploying Clojure applications.
 
    You can override the default context path via the =:context-path= key in
-   either in the deployment descriptor or the application's =project.clj=.
-   See [[./initialization.html][Initialization]] for the details on setting configuration values.
+   either in the deployment descriptor or the =:immutant= section of the 
+   application's =project.clj= (see [[./initialization.html][Initialization]] for the details on setting 
+   configuration values).
 
    This context path is considered the *top-level* context path - you have the
    option to bind a handler to a *sub-context* path that will be nested within
@@ -64,6 +65,20 @@
    path is appended to the top-level context path for purposes of routing
    requests to the handler, and allows you to have multiple webapps within
    a single application.
+
+* Virtual Host
+  :PROPERTIES:
+  :CUSTOM_ID: web-virtual-host
+  :END:
+
+  In addition to segmenting applications by context path, you can also segment
+  by *virtual host*. To specify the virtual host (or hosts) for an application,
+  set the =:virtual-host= key in either in the deployment descriptor or the 
+  =:immutant= section of the application's =project.clj= (see [[./initialization.html][Initialization]] 
+  for the details on setting configuration values). =:virtual-host= must be
+  a string specifying a single host or a vector of strings specifying multiple
+  hosts. Two applications with different virtual hosts can use the same 
+  context path without collision.
 
 * Registering Handlers
 

@@ -95,6 +95,9 @@
   - =:context-path= - overrides the default web context path that is generated
     based on the deployment name. See [[./web.html#web-context-path][Web - Context Paths]] for more details.
 
+  - =:virtual-host= - allows setting a virtual host for the application. See
+    [[./web.html#web-virtual-host][Web - Virtual Host]] for more details.
+
   A sample deployment descriptor:
 
   #+begin_src clojure

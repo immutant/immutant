@@ -98,18 +98,24 @@
 
 (defn deploy
   "Create an app deployment descriptor from the content and deploy it"
-  [name content]
-  (let [file (if (= java.io.File (class content)) content (descriptor name content))
-        fname (.getName file)
-        url (str (.toURL file))
-        add (api :operation "add" :address ["deployment" fname] :content [{:url url}])]
-    (when-not (= "success" (add :outcome))
-      (api :operation "remove" :address ["deployment" fname])
-      (api :operation "add" :address ["deployment" fname] :content [{:url url}]))
-    (api :operation "deploy" :address ["deployment" fname])))
+  ([content-map]
+     (doseq [[name content] content-map]
+       (deploy name content)))
+  ([name content]
+      (let [file (if (= java.io.File (class content)) content (descriptor name content))
+            fname (.getName file)
+            url (str (.toURL file))
+            add (api :operation "add" :address ["deployment" fname] :content [{:url url}])]
+        (when-not (= "success" (add :outcome))
+          (api :operation "remove" :address ["deployment" fname])
+          (api :operation "add" :address ["deployment" fname] :content [{:url url}]))
+        (api :operation "deploy" :address ["deployment" fname]))))
 
 (defn undeploy
-  "Undeploy the app named name"
-  [name]
-  (api :operation "remove" :address ["deployment" (deployment-name name)]))
+  "Undeploy the apps deployed under the given names"
+  [& names]
+  (doseq [name names]
+    (api :operation "remove" :address ["deployment" (deployment-name name)])))
+
+
 

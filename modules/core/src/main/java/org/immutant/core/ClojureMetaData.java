@@ -65,26 +65,30 @@ public class ClojureMetaData extends ApplicationMetaData {
      */
     public boolean resolveDependencies() {
         if (this.config.containsKey( "resolve-dependencies" )) {
-            return (Boolean)this.config.get( "resolve-dependencies" );
+            return (Boolean)get( "resolve-dependencies" );
         } else {
             return !isArchive();
         }
     }
     
     public String getString(String key) {
-        return (String)this.config.get( key );
+        return (String)get( key );
     }
 
     @SuppressWarnings("unchecked")
     public Map<String, ?> getHash(String key) {
-        return (Map<String, Object>)this.config.get( key );
+        return (Map<String, Object>)get( key );
     }
 
     @SuppressWarnings("rawtypes")
     public List getList(String key) {
-        return (List) this.config.get( key );
+        return (List) get( key );
     }
 
+    public Object get(String key) {
+        return this.config.get( key );
+    }
+    
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void setConfig(Map config) {
         this.config = config;

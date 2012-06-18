@@ -31,9 +31,16 @@ public class RingMetaData extends WebApplicationMetaData {
 
     public static final AttachmentKey<RingMetaData> ATTACHMENT_KEY = AttachmentKey.create(RingMetaData.class);
     
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public RingMetaData(ClojureMetaData appMetaData) {
         this.appMetaData = appMetaData;
         setStaticPathPrefix( this.appMetaData.getString( "static" ) );
+        final Object host = this.appMetaData.get( "virtual-host" );
+        if (host instanceof List) {
+            addHosts( (List)host );
+        } else {
+            addHost( (String)host );
+        }
     }
 
     @Override
