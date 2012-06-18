@@ -65,25 +65,15 @@ class WebSubsystemAdd extends AbstractBoottimeAddStepHandler {
     }
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
-        processorTarget.addDeploymentProcessor( Phase.PARSE, 0, new RingApplicationRecognizer() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 10, new RailsApplicationRecognizer() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 30, new WebYamlParsingProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 40, new RailsVersionProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 50, new RailsRackProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.PARSE, 60, new WebApplicationDefaultsProcessor( false, true ) );
-        processorTarget.addDeploymentProcessor( Phase.PARSE, 70, new RingWebApplicationInstaller() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 1000, new RailsRuntimeProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.PARSE, 1100, new RackRuntimeProcessor() );
+        processorTarget.addDeploymentProcessor( WebExtension.SUBSYSTEM_NAME, Phase.PARSE, 0, new RingApplicationRecognizer() );
+        processorTarget.addDeploymentProcessor( WebExtension.SUBSYSTEM_NAME, Phase.PARSE, 60, new WebApplicationDefaultsProcessor( false, true ) );
+        processorTarget.addDeploymentProcessor( WebExtension.SUBSYSTEM_NAME, Phase.PARSE, 70, new RingWebApplicationInstaller() );
         
-        processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new WebDependenciesProcessor() );
+        processorTarget.addDeploymentProcessor( WebExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 1, new WebDependenciesProcessor() );
         
-        //processorTarget.addDeploymentProcessor( Phase.CONFIGURE_MODULE, 100, new WebRuntimePoolProcessor() );
-        //processorTarget.addDeploymentProcessor( Phase.CONFIGURE_MODULE, 500, new RailsAutoloadPathProcessor() );
-        
-        //processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 120, new RackApplicationComponentResolverInstaller() );
-        processorTarget.addDeploymentProcessor( Phase.INSTALL, 1, new RingFilterClojureRuntimeInstaller() );
-        processorTarget.addDeploymentProcessor( Phase.INSTALL, 2100, new VirtualHostInstaller() );
-        processorTarget.addDeploymentProcessor( Phase.INSTALL, Phase.INSTALL_WAR_DEPLOYMENT + 1, new WebContextRegisteringProcessor() );
+        processorTarget.addDeploymentProcessor( WebExtension.SUBSYSTEM_NAME, Phase.INSTALL, 1, new RingFilterClojureRuntimeInstaller() );
+        processorTarget.addDeploymentProcessor( WebExtension.SUBSYSTEM_NAME, Phase.INSTALL, 2100, new VirtualHostInstaller() );
+        processorTarget.addDeploymentProcessor( WebExtension.SUBSYSTEM_NAME, Phase.INSTALL, Phase.INSTALL_WAR_DEPLOYMENT + 1, new WebContextRegisteringProcessor() );
     }
 
 

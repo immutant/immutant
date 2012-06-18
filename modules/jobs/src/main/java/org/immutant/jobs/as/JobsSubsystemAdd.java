@@ -59,9 +59,9 @@ public class JobsSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
 
-        processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new JobsDependenciesProcessor() );
+        processorTarget.addDeploymentProcessor( JobsExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 1, new JobsDependenciesProcessor() );
 
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 200, new JobSchedulizerInstaller() );
+        processorTarget.addDeploymentProcessor( JobsExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, new JobSchedulizerInstaller() );
     }
 
     static ModelNode createOperation(ModelNode address) {

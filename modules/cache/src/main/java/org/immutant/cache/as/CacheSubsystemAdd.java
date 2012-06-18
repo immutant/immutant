@@ -59,9 +59,9 @@ public class CacheSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
 
-        processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new CacheDependenciesProcessor() );
+        processorTarget.addDeploymentProcessor( CacheExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 1, new CacheDependenciesProcessor() );
 
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 200, new PossiblyLeakingClusterAwareCacheManagerDependencyInator() );
+        processorTarget.addDeploymentProcessor( CacheExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, new PossiblyLeakingClusterAwareCacheManagerDependencyInator() );
     }
 
     static ModelNode createOperation(ModelNode address) {

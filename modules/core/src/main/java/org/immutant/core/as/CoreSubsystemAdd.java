@@ -87,22 +87,22 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
     }
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 0, new DescriptorRootMountProcessor( Immutant.DESCRIPTOR_SUFFIX ) );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, 0, new ArchiveStructureProcessor( Immutant.ARCHIVE_SUFFIX ) );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 10, new ArchiveRecognizer() );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 20, new DeploymentDescriptorParsingProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 30, new ApplicationExploder() );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 50, new FullAppConfigLoadingProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 100, new AppDependenciesProcessor() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, 0, new DescriptorRootMountProcessor( Immutant.DESCRIPTOR_SUFFIX ) );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, 0, new ArchiveStructureProcessor( Immutant.ARCHIVE_SUFFIX ) );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 10, new ArchiveRecognizer() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 20, new DeploymentDescriptorParsingProcessor() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 30, new ApplicationExploder() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 50, new FullAppConfigLoadingProcessor() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 100, new AppDependenciesProcessor() );
         
-        processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new CoreDependenciesProcessor() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 1, new CoreDependenciesProcessor() );
         
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 120, new ClojureRuntimeInstaller() );
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 130, new CloserInstaller() );
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 140, new AppNameRegisteringProcessor() );
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 141, new AppRootRegisteringProcessor() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 120, new ClojureRuntimeInstaller() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 130, new CloserInstaller() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 140, new AppNameRegisteringProcessor() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 141, new AppRootRegisteringProcessor() );
         
-        processorTarget.addDeploymentProcessor( Phase.INSTALL, 10000, new ApplicationInitializer() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.INSTALL, 10000, new ApplicationInitializer() );
     }
 
     @SuppressWarnings("serial")

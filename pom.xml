@@ -283,6 +283,13 @@
         <version>${version.digest}</version>
       </dependency>
 
+      <!-- we explicitly bring this in here to workaround a transitive
+           dep issue with pomegranate. -->
+      <dependency>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-provider-api</artifactId>
+        <version>${version.wagon}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -292,7 +299,7 @@
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>
     <version.hamcrest>1.1</version.hamcrest>
-    <version.jbossas>7.1.1.Final</version.jbossas>
+    <version.jbossas>7.1.x.incremental.1</version.jbossas>
     <version.clojure>1.4.0</version.clojure>
     <version.clojure-contrib>1.2.0</version.clojure-contrib>
     <version.clojure.tools.logging>0.2.3</version.clojure.tools.logging>
@@ -301,6 +308,7 @@
     <version.ring-servlet>1.1.0</version.ring-servlet>
     <version.swank-clojure>1.4.2</version.swank-clojure>
     <version.nrepl>0.2.0-beta5</version.nrepl>
+    <version.wagon>2.2</version.wagon>
 
     <version.commons-io>2.0.1</version.commons-io>
     <version.clj-glob>1.0.0</version.clj-glob>
@@ -440,7 +448,7 @@
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
         <artifactId>wagon-webdav-jackrabbit</artifactId>
-        <version>1.0-beta-7</version>
+        <version>2.2</version>
       </extension>
     </extensions>
 

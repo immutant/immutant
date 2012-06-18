@@ -59,9 +59,9 @@ public class XaSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
 
-        processorTarget.addDeploymentProcessor( Phase.DEPENDENCIES, 1, new XaDependenciesProcessor() );
+        processorTarget.addDeploymentProcessor( XaExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 1, new XaDependenciesProcessor() );
 
-        processorTarget.addDeploymentProcessor( Phase.POST_MODULE, 200, new XAifierInstaller() );
+        processorTarget.addDeploymentProcessor( XaExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, new XAifierInstaller() );
 
     }
 
