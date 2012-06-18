@@ -3,4 +3,5 @@
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [java.jdbc "0.2.1"]
                  [com.h2database/h2 "1.3.160"]
-                 [org.clojars.gukjoon/ojdbc "1.4"]])
+                 [org.clojars.gukjoon/ojdbc "1.4"]
+                 [org.clojars.kjw/mysql-connector "5.1.11"]])

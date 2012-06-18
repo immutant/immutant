@@ -11,13 +11,19 @@
 ;;; And an Infinispan cache
 (def cache (ic/cache "test"))
 
-;;; And an in-memory, transactional database
+;;; And some transactional databases
 (defonce h2 (ixa/datasource "h2" {:adapter "h2" :database "mem:foo"}))
 (defonce oracle (ixa/datasource "oracle" {:adapter "oracle"
-                                          :host "myinstance.cpct4icp7nye.us-east-1.rds.amazonaws.com"
-                                          :username "dummy"
-                                          :password "password"
+                                          :host "oracle.cpct4icp7nye.us-east-1.rds.amazonaws.com"
+                                          :username "myuser"
+                                          :password "mypassword"
                                           :database "mydb"}))
+(defonce mysql (ixa/datasource "mysql" {:adapter "mysql"
+                                          :host "mysql.cpct4icp7nye.us-east-1.rds.amazonaws.com"
+                                          :username "myuser"
+                                          :password "mypassword"
+                                          :database "mydb"}))
+
 (def spec {:datasource h2})
 
 ;;; Helper methods to verify database activity
@@ -38,7 +44,7 @@
                       (ic/delete-all cache)
                       (sql/with-connection spec
                         (try (sql/drop-table :things) (catch Exception _))
-                        (sql/create-table :things [:name "varchar2(50)"]))
+                        (sql/create-table :things [:name "varchar(50)"]))
                       (f)))
 
 (deftest db+msg+cache-should-commit "Test happy-path XA transaction involving three resources"
