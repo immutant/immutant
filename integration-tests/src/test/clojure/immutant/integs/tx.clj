@@ -25,6 +25,8 @@
                        :root "target/apps/tx/"
                        }))
 
-(deftest verify-app-deployed
-  (is (= 200 (:status (client/get "http://localhost:8080/tx")))))
+(deftest verify-app
+  (let [result (client/get (str "http://localhost:8080/tx?dbs=" (System/getProperty "databases")))]
+    (is (= 200 (:status result)))
+    (is (successful? (read-string (:body result))))))
 

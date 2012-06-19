@@ -19,6 +19,7 @@
     <integ.clojure.versions>1.4.0</integ.clojure.versions>
     <fntest.debug>false</fntest.debug>
     <ns />
+    <databases>h2</databases>
   </properties>
 
   <dependencies>
@@ -130,7 +131,7 @@
         <artifactId>clojure-maven-plugin</artifactId>
         <configuration>
           <testScript>src/test/clojure/immutant/integs.clj</testScript>
-          <clojureOptions>-Dinteg.clojure.versions=${integ.clojure.versions} -Dns=${ns} -Dfntest.debug=${fntest.debug}</clojureOptions>
+          <clojureOptions>-Ddatabases=${databases} -Dinteg.clojure.versions=${integ.clojure.versions} -Dns=${ns} -Dfntest.debug=${fntest.debug}</clojureOptions>
         </configuration>
         <executions>
           <execution>
