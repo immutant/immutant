@@ -51,9 +51,11 @@
 ;;; Ensure each test starts with an empty table called THINGS
 (use-fixtures :each (fn [f]
                       (ic/delete-all cache)
-                      (doseq [spec specs] (sql/with-connection spec
-                                            (try (sql/drop-table :things) (catch Exception _))
-                                            (sql/create-table :things [:name "varchar(50)"])))
+                      (doseq [spec specs]
+                        (try (sql/with-connection spec
+                               (try (sql/drop-table :things) (catch Exception _))
+                               (sql/create-table :things [:name "varchar(50)"]))
+                             (catch Exception _)))
                       (f)))
 
 (deftest db+msg+cache-should-commit "Test happy-path XA transaction involving three resources"
