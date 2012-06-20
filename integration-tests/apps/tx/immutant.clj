@@ -8,6 +8,6 @@
 (defn handler [{params :params}]
   {:status 200
    :headers {"Content-Type" "text/plain"}
-   :body (str (tx.core/test (str/split (params "dbs") #",")))})
+   :body (str (apply tx.core/testes (str/split (params "dbs") #",")))})
 
 (web/start "/" (wrap-params handler))

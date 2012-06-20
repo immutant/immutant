@@ -82,6 +82,16 @@
     (attempt-transaction mysql #(throw (Exception. "rollback")))
     (verify-transaction-failure mysql)))
 
+(defmacro define-tests [db]
+  `(let [ds# (var-get (resolve (symbol ~db)))]
+     (list
+      (deftest ~(gensym "commit-") 
+        (attempt-transaction ds#)
+        (verify-transaction-success ds#))
+      (deftest ~(gensym "rollback-")
+        (attempt-transaction ds# #(throw (Exception. "rollback")))
+        (verify-transaction-failure ds#)))))
+
 (defn db-fixture [db]
   (fn [f]
     (try
@@ -95,10 +105,12 @@
   (ic/delete-all cache)
   (f))
 
-(defn test [dbs]
+(defn testes [& dbs]
   (binding [*ns* *ns*]
     (in-ns 'tx.core)
-    (apply use-fixtures :each cache-fixture (map #(db-fixture (var-get (resolve (symbol %)))) dbs))
-    (doseq [db dbs]
-      ((resolve (symbol (str "define-" db "-tests")))))
+    (try
+      (apply use-fixtures :each cache-fixture (map #(db-fixture (var-get (resolve (symbol %)))) dbs))
+      (doseq [db dbs]
+        (define-tests db))
+      (catch Exception _))
     (run-tests)))
