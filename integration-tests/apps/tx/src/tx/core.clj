@@ -58,39 +58,14 @@
   (is (nil? (:a cache)))
   (is (nil? (imsg/receive "/queue/test" :timeout 2000))))
 
-(defn define-h2-tests []
-  (deftest h2-db+msg+cache-should-commit
-    (attempt-transaction h2)
-    (verify-transaction-success h2))
-  (deftest h2-db+msg+cache-should-rollback
-    (attempt-transaction h2 #(throw (Exception. "rollback")))
-    (verify-transaction-failure h2)))
-
-(defn define-oracle-tests []
-  (deftest oracle-db+msg+cache-should-commit
-    (attempt-transaction oracle)
-    (verify-transaction-success oracle))
-  (deftest oracle-db+msg+cache-should-rollback
-    (attempt-transaction oracle #(throw (Exception. "rollback")))
-    (verify-transaction-failure oracle)))
-
-(defn define-mysql-tests []
-  (deftest mysql-db+msg+cache-should-commit
-    (attempt-transaction mysql)
-    (verify-transaction-success mysql))
-  (deftest mysql-db+msg+cache-should-rollback
-    (attempt-transaction mysql #(throw (Exception. "rollback")))
-    (verify-transaction-failure mysql)))
-
-(defmacro define-tests [db]
-  `(let [ds# (var-get (resolve (symbol ~db)))]
-     (list
-      (deftest ~(gensym "commit-") 
-        (attempt-transaction ds#)
-        (verify-transaction-success ds#))
-      (deftest ~(gensym "rollback-")
-        (attempt-transaction ds# #(throw (Exception. "rollback")))
-        (verify-transaction-failure ds#)))))
+(defn define-tests [db]
+  (eval `(let [ds# (var-get (resolve (symbol ~db)))]
+           (deftest ~(symbol (str "commit-" db)) 
+             (attempt-transaction ds#)
+             (verify-transaction-success ds#))
+           (deftest ~(symbol (str "rollback-" db))
+             (attempt-transaction ds# #(throw (Exception. "rollback")))
+             (verify-transaction-failure ds#)))))
 
 (defn db-fixture [db]
   (fn [f]
@@ -108,9 +83,7 @@
 (defn testes [& dbs]
   (binding [*ns* *ns*]
     (in-ns 'tx.core)
-    (try
-      (apply use-fixtures :each cache-fixture (map #(db-fixture (var-get (resolve (symbol %)))) dbs))
-      (doseq [db dbs]
-        (define-tests db))
-      (catch Exception _))
+    (apply use-fixtures :each cache-fixture (map #(db-fixture (var-get (resolve (symbol %)))) dbs))
+    (doseq [db dbs]
+      (define-tests db))
     (run-tests)))
