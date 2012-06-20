@@ -65,3 +65,12 @@
   (publish ham-queue "die!" :ttl 1)
   (is (nil? (receive ham-queue :timeout 1000))))
 
+(testing "remote connections"
+  (deftest remote-publish-should-work
+    (publish ham-queue "testing-remote" :host "integ-app1.torquebox.org" :port 5445)
+    (is (= (receive ham-queue :timeout 60000) "testing-remote")))
+  
+  (deftest remote-receive-should-work
+    (publish ham-queue "testing-remote")
+    (is (= (receive ham-queue :timeout 60000 :host "integ-app1.torquebox.org" :port 5445)
+           "testing-remote"))))

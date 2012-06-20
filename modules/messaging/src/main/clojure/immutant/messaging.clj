@@ -40,9 +40,13 @@
     :priority     0-9 or :low :normal :high :critical [4]
     :ttl          time to live, in ms [0=forever]
     :persistent   whether undelivered messages survive restarts [true]
-    :properties   a hash to which selectors may be applied"
+    :properties   a hash to which selectors may be applied
+    :host         the remote host to connect to (default is to connect in-vm, requires :port to be set as well) [nil]
+    :port         the remote port to connect to (requires :host to be set) [nil]
+    :username     the username to use to auth the connection (requires :password to be set) [nil]
+    :password     the password to use to auth the connection (requires :username to be set) [nil]"
   [dest-name message & {:as opts}]
-  (with-connection
+  (with-connection opts
     (let [session (session)
           destination (destination session dest-name)
           producer (.createProducer session destination)
@@ -56,9 +60,13 @@
 
    The following options are supported [default]:
     :timeout    time in ms, after which nil is returned [10000]
-    :selector   A JMS (SQL 92) expression matching message properties"
-  [dest-name & {:keys [timeout selector]}]
-  (with-connection
+    :selector   A JMS (SQL 92) expression matching message properties
+    :host       the remote host to connect to (default is to connect in-vm, requires :port to be set as well) [nil]
+    :port       the remote port to connect to (requires :host to be set) [nil]
+    :username   the username to use to auth the connection (requires :password to be set) [nil]
+    :password   the password to use to auth the connection (requires :username to be set) [nil]"
+  [dest-name & {:keys [timeout selector] :as opts}]
+  (with-connection opts
     (let [session (session)
           destination (destination session dest-name)
 
@@ -75,9 +83,13 @@
   "The handler function, f, will receive any messages sent to dest-name.
 
    The following options are supported [default]:
-    :concurrency   the number of threads handling messages [1]"
-  [dest-name f & {:keys [concurrency selector] :or {concurrency 1}}]
-  (let [connection (.createXAConnection connection-factory)]
+    :concurrency   the number of threads handling messages [1]
+    :host          the remote host to connect to (default is to connect in-vm, requires :port to be set as well) [nil]
+    :port          the remote port to connect to (requires :host to be set) [nil]
+    :username      the username to use to auth the connection (requires :password to be set) [nil]
+    :password      the password to use to auth the connection (requires :username to be set) [nil]"
+  [dest-name f & {:keys [concurrency selector] :or {concurrency 1} :as opts}]
+  (let [connection (.createXAConnection (connection-factory opts))]
     (try
       (dotimes [_ concurrency]
         (let [session (create-session connection)
@@ -86,7 +98,7 @@
           (.setMessageListener consumer
                                (reify javax.jms.MessageListener
                                  (onMessage [_ message]
-                                   (bind-transaction session connection #(f (codecs/decode message))))))))
+                                   (f (codecs/decode message)))))))
       (at-exit #(.close connection))
       (.start connection)
       connection

@@ -20,8 +20,9 @@
   (:use [clojure.java.jdbc :only [transaction*]])
   (:require [immutant.registry :as lookup]))
 
-(def manager (lookup/fetch "jboss.txn.TransactionManager"))
-  
+(def ^javax.transaction.TransactionManager
+  manager (lookup/fetch "jboss.txn.TransactionManager"))
+
 (defn current
   "Return the active transaction"
   []

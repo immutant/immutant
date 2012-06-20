@@ -15,17 +15,23 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.messaging.hornetq
-  (:import (org.hornetq.jms.client HornetQDestination))
-  (:import (org.hornetq.api.core TransportConfiguration))
-  (:import (org.hornetq.api.jms HornetQJMSClient JMSFactoryType)))
+(ns immutant.integs.msg.remote-listen
+  (:use fntest.core
+        clojure.test
+        immutant.messaging))
 
-(defn connection-factory
-  "Create a connection factory, typically invoked when outside container"
-  ([]
-     (connection-factory nil))
-  ([{:keys [host port] :or {host "localhost" port 5445}}]
-      (let [connect_opts { "host" host "port" (Integer. port) }
-            transport_config (new TransportConfiguration "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" connect_opts)]
-        (HornetQJMSClient/createConnectionFactoryWithoutHA JMSFactoryType/CF (into-array [transport_config])))))
+(def bam-queue "/queue/bam")
+(def hiscuit-queue "/queue/hiscuit")
 
+(use-fixtures :once (with-deployment *file*
+                      {
+                       :root "target/apps/messaging/queues"
+                       }))
+
+(deftest remote-listen-should-work
+  (listen bam-queue
+          (fn [m]
+            (publish hiscuit-queue m))
+          :host "integ-app1.torquebox.org" :port 5445)
+  (publish bam-queue "listen-up")
+  (is (= (receive hiscuit-queue :timeout 60000) "listen-up")))

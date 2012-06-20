@@ -18,27 +18,40 @@
 (ns immutant.messaging.core
   (:use [immutant.utilities :only (at-exit)])
   (:import (javax.jms Session DeliveryMode))
-  (:require [immutant.registry :as lookup]
+  (:require [immutant.registry          :as lookup]
             [immutant.messaging.hornetq :as hornetq]
-            [immutant.xa.transaction :as tx]))
+            [immutant.xa.transaction    :as tx]
+            [clojure.tools.logging      :as log]))
 
 ;;; The name of the JBoss connection factory
 (def factory-name "jboss.naming.context.java.ConnectionFactory")
 
-;;; Thread-local connection
+;;; Thread-local connection set
+(def ^{:private true, :dynamic true} *connections* nil)
+;;; Thread-local current connection
 (def ^{:private true, :dynamic true} *connection* nil)
 ;;; Thread-local map of transactions to sessions
 (def ^{:private true, :dynamic true} *sessions* nil)
 
-(def connection-factory
-  (if-let [reference-factory (lookup/fetch factory-name)]
-    (let [reference (.getReference reference-factory)]
-      (try
-        (.getInstance reference)
-        (finally (at-exit #(.release reference)))))
-    (do
-      (println "WARN: unable to obtain JMS Connection Factory so we must be outside container")
-      (hornetq/connection-factory))))
+(defn ^{:private true} remote-connection? [opts]
+  (:host opts))
+
+(defn ^{:private true} connection-key [opts]
+  (map #(% opts) [:host :port :username :password]))
+
+(let [local-connection-factory
+      (if-let [reference-factory (lookup/fetch factory-name)]
+        (let [reference (.getReference reference-factory)]
+          (try
+            (.getInstance reference)
+            (finally (at-exit #(.release reference)))))
+        (do
+          (log/warn "Unable to obtain JMS Connection Factory - assuming we are outside the container")
+          (hornetq/connection-factory)))]
+  (defn connection-factory [opts]
+    (if (remote-connection? opts)
+      (hornetq/connection-factory opts)
+      local-connection-factory)))
 
 (defn queue? [name]
   (.startsWith name "/queue"))
@@ -84,9 +97,9 @@
       (if (queue? name)
         (.destroyQueue manager name)
         (.destroyTopic manager name))
-      (println "Stopped" name)
+      (log/info "Stopped" name)
       (catch Throwable e
-        (println "WARN:" (.getMessage (.getCause e)))))))
+        (log/warn (.getMessage (.getCause e)))))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
@@ -105,53 +118,46 @@
     (.createXASession connection)
     (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
 
-(defn join-current-transaction
+(defn create-connection
+  "Creates a connection and registers it in the *connections* map"
+  [opts]
+  (let [conn (.createXAConnection (connection-factory opts) (:username opts) (:password opts))]
+    (set! *connections* (assoc *connections* (connection-key opts) conn))
+    conn))
+
+(defn enlist-session
   "Enlist a session in the current transaction, if any"
   [session]
   (let [transaction (tx/current)]
     (if transaction
       (tx/enlist (.getXAResource session)))
-    (set! *sessions* (assoc *sessions* transaction session))))
+    (set! *sessions* (assoc *sessions* transaction session)))
+  session)
 
 (defn session
   []
-  (let [transaction (tx/current)]
-    (if-not (contains? *sessions* transaction)
-      (join-current-transaction (create-session *connection*)))
-    (get *sessions* transaction)))
+  (enlist-session (create-session *connection*)))
 
-(defn with-connection* [f]
-  (if *connection*
-    (f)
-    (binding [*connection* (.createXAConnection connection-factory)
-              *sessions* {}]
-      (.start *connection*)
-      (try 
-        (f)
-        (finally
-         (let [conn *connection*]
-           (if (tx/active?)
-             (tx/after-completion #(.close conn))
-             (.close conn))))))))
+(defn with-connection* [opts f]
+  (binding [*connections* (or *connections* {})]
+    (if-let [conn (*connections* (connection-key opts))]
+      ;; this connection has been used before in the current call stack, just rebind it
+      (binding [*connection* conn] 
+        (f))
+      ;; we need a new connection, so we have to start it and clean up after
+      (binding [*connection* (create-connection opts)
+                *sessions* {}]
+        (.start *connection*)
+        (try 
+          (f)
+          (finally
+           (let [conn *connection*]
+             (if (tx/active?)
+               (tx/after-completion #(.close conn))
+               (.close conn)))))))))
 
-(defmacro with-connection [& body]
-  `(with-connection* (fn [] ~@body)))
-
-(defn bind-transaction
-  "Create a transaction, bind the connection, enlist the session, and
-   call the function. Most useful for a listener's onMessage calls, so
-   as to re-use its session and connection for subsequent
-   transactional JMS interactions invoked by the function."
-  [session connection f]
-  (binding [*connection* connection
-            *sessions* {}]
-    (tx/requires-new
-     (join-current-transaction session)
-     (f))
-    ;; Close the sessions used for nested tx's, if any
-    (doseq [s (remove (partial = session) (vals *sessions*))] (.close s))))
-
-
+(defmacro with-connection [options & body]
+  `(with-connection* ~options (fn [] ~@body)))
 
 ;; TODO: This is currently unused and, if deemed necessary, could
 ;; probably be better implemented
