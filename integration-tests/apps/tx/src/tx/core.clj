@@ -19,64 +19,86 @@
                                           :password "mypassword"
                                           :database "mydb"}))
 (defonce mysql (ixa/datasource "mysql" {:adapter "mysql"
-                                          :host "mysql.cpct4icp7nye.us-east-1.rds.amazonaws.com"
-                                          :username "myuser"
-                                          :password "mypassword"
-                                          :database "mydb"}))
-
-;;; Bind specs to the databases involved in the tests
-(def ^{:dynamic true} specs [{:datasource mysql} {:datasource h2} {:datasource oracle}])
-(defmacro with-databases [dbs & body]
-  `(binding [specs (map #(hash-map :datasource (var-get (ns-resolve 'tx.core (symbol %)))) ~dbs)]
-     ~@body))
+                                        :host "mysql.cpct4icp7nye.us-east-1.rds.amazonaws.com"
+                                        :username "myuser"
+                                        :password "mypassword"
+                                        :database "mydb"}))
 
 ;;; Helper methods to verify database activity
-(defn write-thing-to-dbs [name]
-  (doseq [spec specs]
-    (sql/with-connection spec
-      (sql/insert-records :things {:name name}))))
-(defn read-thing-from-dbs [name]
-  (doall
-   (for [spec specs]
-     (sql/with-connection spec
-       (sql/with-query-results rows ["select name from things where name = ?" name]
-         (first rows))))))
-(defn count-things-in-dbs []
-  (doall
-   (for [spec specs]
-     (sql/with-connection spec
-       (sql/with-query-results rows ["select count(*) c from things"]
-         (int ((first rows) :c)))))))
+(defn write-thing-to-db [spec name]
+  (sql/with-connection spec
+    (sql/insert-records :things {:name name})))
+(defn read-thing-from-db [spec name]
+  (sql/with-connection spec
+    (sql/with-query-results rows ["select name from things where name = ?" name]
+      (first rows))))
+(defn count-things-in-db [spec]
+  (sql/with-connection spec
+    (sql/with-query-results rows ["select count(*) c from things"]
+      (int ((first rows) :c)))))
 
-;;; Ensure each test starts with an empty table called THINGS
-(use-fixtures :each (fn [f]
-                      (ic/delete-all cache)
-                      (doseq [spec specs]
-                        (try (sql/with-connection spec
-                               (try (sql/drop-table :things) (catch Exception _))
-                               (sql/create-table :things [:name "varchar(50)"]))
-                             (catch Exception _)))
-                      (f)))
-
-(deftest db+msg+cache-should-commit "Test happy-path XA transaction involving three resources"
-  (ixa/transaction
-   (write-thing-to-dbs "kiwi")
-   (imsg/publish "/queue/test" "kiwi")
-   (ic/put cache :a 1))
-  (is (= (map (constantly "kiwi") specs) (map :name (read-thing-from-dbs "kiwi"))))
-  (is (= (map (constantly 1) specs) (count-things-in-dbs)))
-  (is (= 1 (:a cache)))
-  (is (= "kiwi" (imsg/receive "/queue/test"))))
-
-(deftest db+msg+cache-should-rollback "Test that all three resources rollback when exception is tossed"
+(defn attempt-transaction [db & [f]]
   (try
     (ixa/transaction
-     (write-thing-to-dbs "kiwi")
+     (write-thing-to-db {:datasource db} "kiwi")
      (imsg/publish "/queue/test" "kiwi")
      (ic/put cache :a 1)
-     (throw (Exception. "Rollback everything")))
-    (catch Exception _))
-  (is (every? nil? (read-thing-from-dbs "kiwi")))
-  (is (= (map (constantly 0) specs) (count-things-in-dbs)))
+     (if f (f)))
+    (catch Exception _)))
+
+(defn verify-transaction-success [db]
+  (is (= "kiwi" (:name (read-thing-from-db {:datasource db} "kiwi"))))
+  (is (= 1 (count-things-in-db {:datasource db})))
+  (is (= "kiwi" (imsg/receive "/queue/test")))
+  (is (= 1 (:a cache))))
+
+(defn verify-transaction-failure [db]
+  (is (nil? (read-thing-from-db {:datasource db} "kiwi")))
+  (is (= 0 (count-things-in-db {:datasource db})))
   (is (nil? (:a cache)))
   (is (nil? (imsg/receive "/queue/test" :timeout 2000))))
+
+(defn define-h2-tests []
+  (deftest h2-db+msg+cache-should-commit
+    (attempt-transaction h2)
+    (verify-transaction-success h2))
+  (deftest h2-db+msg+cache-should-rollback
+    (attempt-transaction h2 #(throw (Exception. "rollback")))
+    (verify-transaction-failure h2)))
+
+(defn define-oracle-tests []
+  (deftest oracle-db+msg+cache-should-commit
+    (attempt-transaction oracle)
+    (verify-transaction-success oracle))
+  (deftest oracle-db+msg+cache-should-rollback
+    (attempt-transaction oracle #(throw (Exception. "rollback")))
+    (verify-transaction-failure oracle)))
+
+(defn define-mysql-tests []
+  (deftest mysql-db+msg+cache-should-commit
+    (attempt-transaction mysql)
+    (verify-transaction-success mysql))
+  (deftest mysql-db+msg+cache-should-rollback
+    (attempt-transaction mysql #(throw (Exception. "rollback")))
+    (verify-transaction-failure mysql)))
+
+(defn db-fixture [db]
+  (fn [f]
+    (try
+      (sql/with-connection {:datasource db}
+        (try (sql/drop-table :things) (catch Exception _))
+        (sql/create-table :things [:name "varchar(50)"]))
+      (catch Exception _))
+    (f)))
+
+(defn cache-fixture [f]
+  (ic/delete-all cache)
+  (f))
+
+(defn test [dbs]
+  (binding [*ns* *ns*]
+    (in-ns 'tx.core)
+    (apply use-fixtures :each cache-fixture (map #(db-fixture (var-get (resolve (symbol %)))) dbs))
+    (doseq [db dbs]
+      ((resolve (symbol (str "define-" db "-tests")))))
+    (run-tests)))

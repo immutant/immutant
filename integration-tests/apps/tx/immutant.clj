@@ -6,8 +6,8 @@
             [tx.core]))
 
 (defn handler [{params :params}]
-  (tx.core/with-databases (str/split (params "dbs") #",")
-    {:status 200
-     :headers {"Content-Type" "text/plain"}
-     :body (str (run-tests 'tx.core))}))
+  {:status 200
+   :headers {"Content-Type" "text/plain"}
+   :body (str (tx.core/test (str/split (params "dbs") #",")))})
+
 (web/start "/" (wrap-params handler))
