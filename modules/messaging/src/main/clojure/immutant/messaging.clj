@@ -98,7 +98,8 @@
           (.setMessageListener consumer
                                (reify javax.jms.MessageListener
                                  (onMessage [_ message]
-                                   (f (codecs/decode message)))))))
+                                   (with-transaction session
+                                     (f (codecs/decode message))))))))
       (at-exit #(.close connection))
       (.start connection)
       connection

@@ -23,6 +23,11 @@
 (def ^javax.transaction.TransactionManager
   manager (lookup/fetch "jboss.txn.TransactionManager"))
 
+(defn available?
+  "Returns true if transactions are available"
+  []
+  (not (nil? manager)))
+
 (defn current
   "Return the active transaction"
   []

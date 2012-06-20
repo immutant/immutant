@@ -131,13 +131,25 @@
   (let [transaction (tx/current)]
     (if transaction
       (tx/enlist (.getXAResource session)))
-    (set! *sessions* (assoc *sessions* transaction session)))
-  session)
+    (set! *sessions* (assoc *sessions* transaction session))))
 
 (defn session
   []
-  (enlist-session (create-session *connection*)))
+  (let [transaction (tx/current)]
+    (if-not (contains? *sessions* transaction)
+      (enlist-session (create-session *connection*)))	  	
+    (get *sessions* transaction)))
 
+(defmacro with-transaction
+  [session & body]
+  `(if (tx/available?)
+     (binding [*sessions* {}]
+       (tx/requires-new
+        (enlist-session ~session)
+        ~@body))
+     (do
+       ~@body)))
+  
 (defn with-connection* [opts f]
   (binding [*connections* (or *connections* {})]
     (if-let [conn (*connections* (connection-key opts))]
