@@ -7,6 +7,7 @@
 
 ;;; Create a JMS queue
 (imsg/start "/queue/test")
+(imsg/start "/queue/remote-test")
 
 ;;; And an Infinispan cache
 (def cache (ic/cache "test"))
@@ -42,6 +43,7 @@
     (ixa/transaction
      (write-thing-to-db {:datasource db} "kiwi")
      (imsg/publish "/queue/test" "kiwi")
+     (imsg/publish "/queue/remote-test" "starfruit" :host "localhost" :port 5445)
      (ic/put cache :a 1)
      (if f (f)))
     (catch Exception _)))
@@ -50,13 +52,15 @@
   (is (= "kiwi" (:name (read-thing-from-db {:datasource db} "kiwi"))))
   (is (= 1 (count-things-in-db {:datasource db})))
   (is (= "kiwi" (imsg/receive "/queue/test")))
+  (is (= "starfruit" (imsg/receive "/queue/remote-test")))
   (is (= 1 (:a cache))))
 
 (defn verify-transaction-failure [db]
   (is (nil? (read-thing-from-db {:datasource db} "kiwi")))
   (is (= 0 (count-things-in-db {:datasource db})))
   (is (nil? (:a cache)))
-  (is (nil? (imsg/receive "/queue/test" :timeout 2000))))
+  (is (nil? (imsg/receive "/queue/test" :timeout 2000)))
+  (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000))))
 
 (defn define-tests [db]
   (eval `(let [ds# (var-get (resolve (symbol ~db)))]
