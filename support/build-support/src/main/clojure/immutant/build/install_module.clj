@@ -22,6 +22,6 @@
 
 (defn -main [assembly-path module-path]
   (let [module-dir (.getCanonicalFile (io/file module-path))]
-    (println "Installing module from " module-dir)
+    (println "Installing module from" (.getAbsolutePath module-dir))
     (init (io/file assembly-path))
     (install-module module-dir)))
