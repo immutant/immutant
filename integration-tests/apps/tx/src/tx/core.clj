@@ -25,6 +25,10 @@
                                         :username "myuser"
                                         :password "mypassword"
                                         :database "mydb"}))
+(defonce postgres (ixa/datasource "postgres" {:adapter "postgresql"
+                                              :username "myuser"
+                                              :password "mypassword"
+                                              :database "mydb"}))
 
 ;;; Helper methods to verify database activity
 (defn write-thing-to-db [spec name]
