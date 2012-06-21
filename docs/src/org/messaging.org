@@ -75,13 +75,18 @@
 
    A number of optional key-value parameters may be passed as well:
 
-   | Option        | Default    | Description                         |
-   |---------------+------------+-------------------------------------|
-   |               | <c>        | <35>                                |
-   | =:encoding=   | =:clojure= | One of =:clojure=, =:json= or =:text= |
-   | =:priority=   | 4          | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively |
-   | =:ttl=        | 0          | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed |
-   | =:properties= | {}         | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages |
+   | Option        | Default                        | Description                         |
+   |---------------+--------------------------------+-------------------------------------|
+   |               | <c>                            | <35>                                |
+   | =:encoding=   | =:clojure=                     | One of =:clojure=, =:json= or =:text= |
+   | =:priority=   | 4                              | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively |
+   | =:ttl=        | 0                              | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed |
+   | =:properties= | {}                             | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages |
+   | =:host=       | nil                            | A remote HornetQ host to connect to. |
+   | =:port=       | nil, or 5445 if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
+   | =:username=   | nil                            | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
+   | =:password=   | nil                            | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
+   #+TBLFM: 
 
    The =:json= encoding is useful when the message consumers aren't
    written in Clojure. For example, [[http://torquebox.org][TorqueBox]] Ruby processors will
@@ -104,6 +109,8 @@
       (msg/publish "/queue/work" {:a "b" :c [1 2 3 {:foo 42}]})
       ;; Make messages consumable by a Ruby app
       (msg/publish "/queue/work" {:a "b" :c [1 2 3 {:foo 42}]} :encoding :json)
+      ;; Publish to a remote broker
+      (msg/publish "/queue/remote-work" "a message" :host "foo.example.com" :port 5445)
     #+end_src
 
 ** Receiving
@@ -122,22 +129,31 @@
    Both =receive= and =message-seq= expect the destination name as the
    first parameter, and optionally, the following key/value pairs:
 
-   | Option      | Default | Description                         |
-   |-------------+---------+-------------------------------------|
-   |             | <c>     | <35>                                |
-   | =:timeout=  | 10000   | An expiration in milliseconds, after which nil is returned; a value of 0 means wait forever |
-   | =:selector= |         | A JMS expression used to filter messages according to the values of arbitrary =:properties= |
+   | Option      | Default                        | Description                         |
+   |-------------+--------------------------------+-------------------------------------|
+   |             | <c>                            | <35>                                |
+   | =:timeout=  | 10000                          | An expiration in milliseconds, after which nil is returned; a value of 0 means wait forever |
+   | =:selector= |                                | A JMS expression used to filter messages according to the values of arbitrary =:properties= |
+   | =:host=     | nil                            | A remote HornetQ host to connect to. |
+   | =:port=     | nil, or 5445 if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
+   | =:username= | nil                            | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
+   | =:password= | nil                            | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
+
 
    The =listen= method takes two parameters: the destination name and
    a function accepting one parameter, to which will be passed the
    decoded message. The following key/value options are also
    available:
 
-   | Option         | Default | Description                         |
-   |----------------+---------+-------------------------------------|
-   |                | <c>     | <35>                                |
-   | =:concurrency= | 1       | The maximum number of listening threads that can simultaneouly call the function |
-   | =:selector=    |         | Same as =receive=                   |
+   | Option         | Default                        | Description                         |
+   |----------------+--------------------------------+-------------------------------------|
+   |                | <c>                            | <35>                                |
+   | =:concurrency= | 1                              | The maximum number of listening threads that can simultaneouly call the function |
+   | =:selector=    |                                | Same as =receive=                   |
+   | =:host=        | nil                            | A remote HornetQ host to connect to. |
+   | =:port=        | nil, or 5445 if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
+   | =:username=    | nil                            | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
+   | =:password=    | nil                            | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
 
 *** Some Examples
 
@@ -148,6 +164,9 @@
       
       ;; Case-sensitive work queues?
       (msg/listen "/queue/lower" #(msg/publish "/queue/upper" (.toUpperCase %)))
+      
+      ;; Listen to a remote queue
+      (msg/listen "queue/remote" #(do-someting %) :host "foo.example.com" :port 5445)
       
       ;; Contrived laziness
       (let [messages (message-seq queue)]

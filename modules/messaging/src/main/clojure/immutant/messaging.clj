@@ -41,8 +41,8 @@
     :ttl          time to live, in ms [0=forever]
     :persistent   whether undelivered messages survive restarts [true]
     :properties   a hash to which selectors may be applied
-    :host         the remote host to connect to (default is to connect in-vm, requires :port to be set as well) [nil]
-    :port         the remote port to connect to (requires :host to be set) [nil]
+    :host         the remote host to connect to (default is to connect in-vm) [nil]
+    :port         the remote port to connect to (requires :host to be set) [nil, or 5445 if :host is set]
     :username     the username to use to auth the connection (requires :password to be set) [nil]
     :password     the password to use to auth the connection (requires :username to be set) [nil]"
   [dest-name message & {:as opts}]
@@ -61,8 +61,8 @@
    The following options are supported [default]:
     :timeout    time in ms, after which nil is returned [10000]
     :selector   A JMS (SQL 92) expression matching message properties
-    :host       the remote host to connect to (default is to connect in-vm, requires :port to be set as well) [nil]
-    :port       the remote port to connect to (requires :host to be set) [nil]
+    :host       the remote host to connect to (default is to connect in-vm) [nil]
+    :port       the remote port to connect to (requires :host to be set) [nil, or 5445 if :host is set]
     :username   the username to use to auth the connection (requires :password to be set) [nil]
     :password   the password to use to auth the connection (requires :username to be set) [nil]"
   [dest-name & {:keys [timeout selector] :as opts}]
@@ -84,8 +84,8 @@
 
    The following options are supported [default]:
     :concurrency   the number of threads handling messages [1]
-    :host          the remote host to connect to (default is to connect in-vm, requires :port to be set as well) [nil]
-    :port          the remote port to connect to (requires :host to be set) [nil]
+    :host          the remote host to connect to (default is to connect in-vm) [nil]
+    :port          the remote port to connect to (requires :host to be set) [nil, or 5445 if :host is set]
     :username      the username to use to auth the connection (requires :password to be set) [nil]
     :password      the password to use to auth the connection (requires :username to be set) [nil]"
   [dest-name f & {:keys [concurrency selector] :or {concurrency 1} :as opts}]
