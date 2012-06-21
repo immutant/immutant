@@ -89,7 +89,9 @@
     :username      the username to use to auth the connection (requires :password to be set) [nil]
     :password      the password to use to auth the connection (requires :username to be set) [nil]"
   [dest-name f & {:keys [concurrency selector] :or {concurrency 1} :as opts}]
-  (let [connection (.createXAConnection (connection-factory opts))]
+  (let [connection (.createXAConnection (connection-factory opts)
+                                        (:username opts)
+                                        (:password opts))]
     (try
       (dotimes [_ concurrency]
         (let [session (create-session connection)
