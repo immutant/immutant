@@ -9,6 +9,7 @@
 ;;; Create a JMS queue
 (imsg/start "/queue/test")
 (imsg/start "/queue/remote-test")
+(imsg/start "/queue/trigger")
 
 ;;; And an Infinispan cache
 (def cache (ic/cache "test"))
@@ -43,38 +44,53 @@
     (sql/with-query-results rows ["select count(*) c from things"]
       (int ((first rows) :c)))))
 
+(defn write-the-data [db]
+  (write-thing-to-db {:datasource (var-get db)} "kiwi")
+  (imsg/publish "/queue/test" "kiwi")
+  (imsg/publish "/queue/remote-test" "starfruit" :host "localhost" :port 5445)
+  (ic/put cache :a 1))
+
 (defn attempt-transaction [db & [f]]
   (try
     (ixa/transaction
-     (write-thing-to-db {:datasource db} "kiwi")
-     (imsg/publish "/queue/test" "kiwi")
-     (imsg/publish "/queue/remote-test" "starfruit" :host "localhost" :port 5445)
-     (ic/put cache :a 1)
+     (write-the-data db)
      (if f (f)))
     (catch Exception _)))
 
+(defn listener [m]
+  (tx.core/write-the-data (:db m))
+  (if (:f m) ((:f m))))
+
+(imsg/listen "/queue/trigger" listener)
+
+(defn trigger-listener
+  [db & [f]]
+  (imsg/publish "/queue/trigger" {:db db :f f}))
+
 (defn verify-transaction-success [db]
-  (is (= "kiwi" (:name (read-thing-from-db {:datasource db} "kiwi"))))
-  (is (= 1 (count-things-in-db {:datasource db})))
-  (is (= "kiwi" (imsg/receive "/queue/test")))
+  (is (= "kiwi" (imsg/receive "/queue/test" :timeout 2000)))
   (is (= "starfruit" (imsg/receive "/queue/remote-test")))
+  (let [ds (var-get db)]
+    (is (= "kiwi" (:name (read-thing-from-db {:datasource ds} "kiwi"))))
+    (is (= 1 (count-things-in-db {:datasource ds}))))
   (is (= 1 (:a cache))))
 
 (defn verify-transaction-failure [db]
-  (is (nil? (read-thing-from-db {:datasource db} "kiwi")))
-  (is (= 0 (count-things-in-db {:datasource db})))
-  (is (nil? (:a cache)))
   (is (nil? (imsg/receive "/queue/test" :timeout 2000)))
-  (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000))))
+  (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000)))
+  (let [ds (var-get db)]
+    (is (nil? (read-thing-from-db {:datasource ds} "kiwi")))
+    (is (= 0 (count-things-in-db {:datasource ds}))))
+  (is (nil? (:a cache))))
 
-(defn define-tests [db]
-  (eval `(let [ds# (var-get (resolve (symbol ~db)))]
-           (deftest ~(symbol (str "commit-" db)) 
-             (attempt-transaction ds#)
-             (verify-transaction-success ds#))
-           (deftest ~(symbol (str "rollback-" db))
-             (attempt-transaction ds# #(throw (Exception. "rollback")))
-             (verify-transaction-failure ds#)))))
+(defn define-tests [db f]
+  (eval `(let [ds-sym# (resolve (symbol ~db))]
+           (deftest ~(gensym (str "commit-" db)) 
+             (~f ds-sym#)
+             (verify-transaction-success ds-sym#))
+           (deftest ~(gensym (str "rollback-" db))
+             (~f ds-sym# #(throw (Exception. "rollback")))
+             (verify-transaction-failure ds-sym#)))))
 
 (defn db-fixture [db]
   (fn [f]
@@ -89,10 +105,13 @@
   (ic/delete-all cache)
   (f))
 
-(defn testes [& dbs]
+(defn testes [nss f & dbs]
   (binding [*ns* *ns*]
     (in-ns 'tx.core)
     (apply use-fixtures :each cache-fixture (map #(db-fixture (var-get (resolve (symbol %)))) dbs))
     (doseq [db dbs]
-      (define-tests db))
-    (run-tests 'tx.core 'tx.scope)))
+      (define-tests db f))
+    (apply run-tests nss)))
+
+(def explicit-transaction-testes (partial testes ['tx.core 'tx.scope] attempt-transaction))
+(def listen-testes (partial testes ['tx.core] trigger-listener))

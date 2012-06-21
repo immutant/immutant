@@ -5,9 +5,17 @@
             [clojure.string :as str]
             [tx.core]))
 
-(defn handler [{params :params}]
+(defn response [body]
   {:status 200
    :headers {"Content-Type" "text/plain"}
-   :body (str (apply tx.core/testes (str/split (params "dbs") #",")))})
+   :body (pr-str body)})
+
+(defn handler [{params :params}]
+  (response (apply tx.core/explicit-transaction-testes (str/split (params "dbs") #","))))
 
 (web/start "/" (wrap-params handler))
+
+(defn listen-handler [{params :params}]
+  (response (apply tx.core/listen-testes (str/split (params "dbs") #","))))
+
+(web/start "/listen" (wrap-params listen-handler))

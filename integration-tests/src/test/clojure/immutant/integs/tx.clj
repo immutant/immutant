@@ -20,14 +20,18 @@
   (:use clojure.test)
   (:require [clj-http.client :as client]))
 
-(use-fixtures :once (with-deployment *file*
+(use-fixtures :each (with-deployment *file*
                       {
                        :root "target/apps/tx/"
                        }))
 
-(deftest verify-in-container-tests
-  (let [result (client/get (str "http://localhost:8080/tx?dbs=" (System/getProperty "databases")))]
-    (println "In-container results:" (:body result))
-    (is (= 200 (:status result)))
-    (is (successful? (read-string (:body result))))))
+(defn verify-results [result]
+  (println "In-container results:" (:body result))
+  (is (= 200 (:status result)))
+  (is (successful? (read-string (:body result)))))
 
+(deftest verify-in-container-tests
+  (verify-results (client/get (str "http://localhost:8080/tx?dbs=" (System/getProperty "databases")))))
+
+(deftest verify-tx-in-listener-in-container
+  (verify-results (client/get (str "http://localhost:8080/tx/listen?dbs=" (System/getProperty "databases")))))
