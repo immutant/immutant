@@ -58,6 +58,9 @@
 (defn transaction* [& args] (apply xa-transaction* args))
 (in-ns 'immutant.xa.transaction)
 
+
+;;; The functions that enable the various transactional scope macros
+
 (defn begin
   "Begin, invoke, commit, rollback if error"
   [func]
@@ -80,8 +83,11 @@
       (finally
        (.resume manager tx)))))
 
+
+;;; Macros analagous to the JEE Transaction attribute scopes
+
 (defmacro required
-  "JEE Required"
+  "JEE Required - execute within current transaction, if any, otherwise start one"
   [& body]
   (let [f `(fn [] ~@body)]
     `(if (active?)
@@ -89,23 +95,15 @@
        (begin ~f))))
 
 (defmacro requires-new
-  "JEE RequiresNew"
+  "JEE RequiresNew - suspend current transaction, if any, and start a new one"
   [& body]
   (let [f `(fn [] ~@body)]
     `(if (active?)
        (suspend #(begin ~f))
        (begin ~f))))
 
-(defmacro mandatory
-  "JEE Mandatory"
-  [& body]
-  (let [f `(fn [] ~@body)]
-    `(if (active?)
-       (~f)
-       (throw (Exception. "No active transaction")))))
-
 (defmacro not-supported
-  "JEE NotSupported"
+  "JEE NotSupported - suspend current transaction, if any, and run body outside of any transaction"
   [& body]
   (let [f `(fn [] ~@body)]
     `(if (active?)
@@ -113,13 +111,21 @@
        (~f))))
 
 (defmacro supports
-  "JEE Supports (kinda silly)"
+  "JEE Supports - run body inside current transaction, if any, otherwise outside (unpredictable)"
   [& body]
   (let [f `(fn [] ~@body)]
     `(~f)))
 
+(defmacro mandatory
+  "JEE Mandatory - throws an exception unless there's a current transaction"
+  [& body]
+  (let [f `(fn [] ~@body)]
+    `(if (active?)
+       (~f)
+       (throw (Exception. "No active transaction")))))
+
 (defmacro never
-  "JEE Never"
+  "JEE Never - throws an exception if there's a current transaction"
   [& body]
   (let [f `(fn [] ~@body)]
     `(if (active?)

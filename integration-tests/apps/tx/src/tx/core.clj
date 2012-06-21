@@ -3,7 +3,8 @@
   (:require [immutant.xa :as ixa]
             [immutant.cache :as ic]
             [immutant.messaging :as imsg]
-            [clojure.java.jdbc :as sql]))
+            [clojure.java.jdbc :as sql]
+            [tx.scope]))
 
 ;;; Create a JMS queue
 (imsg/start "/queue/test")
@@ -90,4 +91,4 @@
     (apply use-fixtures :each cache-fixture (map #(db-fixture (var-get (resolve (symbol %)))) dbs))
     (doseq [db dbs]
       (define-tests db))
-    (run-tests)))
+    (run-tests 'tx.core 'tx.scope)))
