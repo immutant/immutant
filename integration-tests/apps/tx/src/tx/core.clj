@@ -29,6 +29,11 @@
                                               :username "myuser"
                                               :password "mypassword"
                                               :database "mydb"}))
+(defonce mssql (ixa/datasource "mssql" {:adapter "mssql"
+                                        :host "mssql.cpct4icp7nye.us-east-1.rds.amazonaws.com"
+                                        :username "myuser"
+                                        :password "mypassword"
+                                        :database "mydb"}))
 
 ;;; Helper methods to verify database activity
 (defn write-thing-to-db [spec name]
