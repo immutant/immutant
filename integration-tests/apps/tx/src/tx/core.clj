@@ -15,20 +15,24 @@
 
 ;;; And some transactional databases
 (defonce h2 (ixa/datasource "h2" {:adapter "h2" :database "mem:foo"}))
+;;; rds-create-db-instance oracle -s 10 -c db.m1.small -e oracle-se -u myuser -p mypassword --db-name mydb
 (defonce oracle (ixa/datasource "oracle" {:adapter "oracle"
                                           :host "oracle.cpct4icp7nye.us-east-1.rds.amazonaws.com"
                                           :username "myuser"
                                           :password "mypassword"
                                           :database "mydb"}))
+;;; rds-create-db-instance mysql -s 10 -c db.m1.small -e mysql -u myuser -p mypassword --db-name mydb
 (defonce mysql (ixa/datasource "mysql" {:adapter "mysql"
                                         :host "mysql.cpct4icp7nye.us-east-1.rds.amazonaws.com"
                                         :username "myuser"
                                         :password "mypassword"
                                         :database "mydb"}))
+;;; configured locally
 (defonce postgres (ixa/datasource "postgres" {:adapter "postgresql"
                                               :username "myuser"
                                               :password "mypassword"
                                               :database "mydb"}))
+;;; nfi since --db-name isn't supported for RDS sqlserver-se instances
 (defonce mssql (ixa/datasource "mssql" {:adapter "mssql"
                                         :host "mssql.cpct4icp7nye.us-east-1.rds.amazonaws.com"
                                         :username "myuser"
