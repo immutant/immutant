@@ -33,5 +33,3 @@
 (deftest verify-in-container-tests
   (verify-results (client/get (str "http://localhost:8080/tx?dbs=" (System/getProperty "databases")))))
 
-(deftest verify-tx-in-listener-in-container
-  (verify-results (client/get (str "http://localhost:8080/tx/listen?dbs=" (System/getProperty "databases")))))

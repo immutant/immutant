@@ -3,8 +3,7 @@
   (:require [immutant.xa :as ixa]
             [immutant.cache :as ic]
             [immutant.messaging :as imsg]
-            [clojure.java.jdbc :as sql]
-            [tx.scope]))
+            [clojure.java.jdbc :as sql]))
 
 ;;; Create a JMS queue
 (imsg/start "/queue/test")
@@ -85,10 +84,10 @@
 
 (defn define-tests [db f]
   (eval `(let [ds-sym# (resolve (symbol ~db))]
-           (deftest ~(gensym (str "commit-" db)) 
+           (deftest ~(symbol (str "commit-" db "-" f)) 
              (~f ds-sym#)
              (verify-transaction-success ds-sym#))
-           (deftest ~(gensym (str "rollback-" db))
+           (deftest ~(symbol (str "rollback-" db "-" f))
              (~f ds-sym# #(throw (Exception. "rollback")))
              (verify-transaction-failure ds-sym#)))))
 
@@ -105,13 +104,10 @@
   (ic/delete-all cache)
   (f))
 
-(defn testes [nss f & dbs]
+(defn testes [& dbs]
   (binding [*ns* *ns*]
     (in-ns 'tx.core)
     (apply use-fixtures :each cache-fixture (map #(db-fixture (var-get (resolve (symbol %)))) dbs))
-    (doseq [db dbs]
-      (define-tests db f))
-    (apply run-tests nss)))
+    (doseq [db dbs f [attempt-transaction trigger-listener]]
+      (define-tests db f))))
 
-(def explicit-transaction-testes (partial testes ['tx.core 'tx.scope] attempt-transaction))
-(def listen-testes (partial testes ['tx.core] trigger-listener))
