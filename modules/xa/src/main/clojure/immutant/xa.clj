@@ -23,11 +23,11 @@
 
 (defn datasource
   "Create an XA-capable datasource named by 'id'. The result can be
-   associated with the :datasource key in a clojure.java.sql spec,
+   associated with the :datasource key in a clojure.java.jdbc spec,
    e.g.
 
      (defonce ds (immutant.xa/datasource \"myds\" {...}))
-     (clojure.java.sql/with-connection {:datasource ds} ...)
+     (clojure.java.jdbc/with-connection {:datasource ds} ...)
 
    The spec hash keys are adapter-specific, but all should support the
    following:

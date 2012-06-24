@@ -87,7 +87,7 @@
 ;;; Macros analagous to the JEE Transaction attribute scopes
 
 (defmacro required
-  "JEE Required - execute within current transaction, if any, otherwise start one"
+  "JEE Required - execute within current transaction, if any, otherwise wrap body in a new one"
   [& body]
   (let [f `(fn [] ~@body)]
     `(if (active?)
@@ -95,7 +95,7 @@
        (begin ~f))))
 
 (defmacro requires-new
-  "JEE RequiresNew - suspend current transaction, if any, and start a new one"
+  "JEE RequiresNew - suspend current transaction, if any, and wrap body in a new one"
   [& body]
   (let [f `(fn [] ~@body)]
     `(if (active?)
@@ -103,7 +103,7 @@
        (begin ~f))))
 
 (defmacro not-supported
-  "JEE NotSupported - suspend current transaction, if any, and run body outside of any transaction"
+  "JEE NotSupported - suspend current transaction, if any, and run body without a transaction"
   [& body]
   (let [f `(fn [] ~@body)]
     `(if (active?)
@@ -111,7 +111,7 @@
        (~f))))
 
 (defmacro supports
-  "JEE Supports - run body inside current transaction, if any, otherwise outside (unpredictable)"
+  "JEE Supports - run body regardless of current transaction state (unpredictable)"
   [& body]
   (let [f `(fn [] ~@body)]
     `(~f)))
