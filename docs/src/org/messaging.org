@@ -31,10 +31,10 @@
 
 ** Deployment
 
-   Use  [[./apidoc/immutant.messaging-api.html#immutant.messaging/start][immutant.messaging/start]] function to define a messaging 
-   destination. A simple naming convention designates the destination 
-   as either a queue or a topic: if its name begins with =/queue=, it's 
-   a queue; if it begins with =/topic=, it's a topic.
+   Use the [[./apidoc/immutant.messaging-api.html#immutant.messaging/start][immutant.messaging/start]] function to define a messaging
+   destination. A simple naming convention designates the destination
+   as either a queue or a topic: if its name begins with =/queue=,
+   it's a queue; if it begins with =/topic=, it's a topic.
 
    #+begin_src clojure
      (require '[immutant.messaging :as msg])
