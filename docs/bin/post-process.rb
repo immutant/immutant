@@ -12,6 +12,7 @@ PAGES =
       jobs
       messaging
       caching
+      transactions
       daemons
       interactive }
 

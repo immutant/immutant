@@ -1,0 +1,53 @@
+#+TITLE:     Distributed Transactions (XA)
+
+* Introduction
+  
+  Immutant encapsulates the state-of-the-art distributed XA
+  transaction support provided by JBoss AS7.
+
+  A *distributed* transaction is one in which multiple types of
+  resources may participate. The most common example of a
+  transactional resource is a relational database, but Immutant caches
+  (backed by Infinispan) and message handlers (backed by HornetQ) are
+  also transactional. Technically speaking, they provide
+  implementations of the XA protocol, and any back-end data store that
+  does so may participate in an Immutant transaction.
+
+  This allows your application to say, tie the success of a SQL
+  database update to the delivery of a message to a queue or the
+  storage of an entry on a replicated data grid, i.e. the message is
+  only sent if the database and data grid update successfully. If any
+  one component of an XA transaction fails, all of them rollback.
+
+* XA DataSources
+
+  In order for your database to participate in an XA transaction, an
+  XA DataSource must be created for it. As an Immutant developer, you
+  have two choices: either use the JBoss AS7 configuration facilities
+  or simply call =immutant.xa/datasource= from your application. The
+  latter is simple, but the former is recommended if you have multiple
+  applications sharing the same DataSource in a clustered environment.
+
+** Using an Immutant DataSource with =clojure.java.jdbc=
+
+   The spec you pass to =with-connection= will either set the
+   =:datasource= key to the value returned by =immutant.xa/datasource=
+   or the =:name= key to the JNDI name from the JBoss configuration.
+
+   It's just that simple. And any library based on =clojure.java.jdbc=
+   should work with that spec.
+
+* Transaction Scope
+
+  When transactional components interact, the state of a transaction
+  when a particular function is invoked isn't always easy to predict,
+  e.g. can a function that requires a transaction assume one has been
+  started prior to its invocation? In JEE container-managed
+  persistence, a developer answers these questions using the
+  @Transaction annotation.
+
+  But annotations are gross, right? :)
+
+  So instead, =immutant.xa.transaction= provides analogs to the
+  @Transaction scope attribute in the form of Clojure macros.
+
