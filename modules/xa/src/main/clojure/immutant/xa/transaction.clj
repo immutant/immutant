@@ -16,7 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.xa.transaction
-  "Distributed XA transactional support"
+  "Fine-grained XA transactional control"
   (:use [clojure.java.jdbc :only [transaction*]])
   (:require [immutant.registry :as lookup]))
 
@@ -24,7 +24,7 @@
   manager (lookup/fetch "jboss.txn.TransactionManager"))
 
 (defn available?
-  "Returns true if transactions are available"
+  "Returns true if a TransactionManager is available to manage XA transactions"
   []
   (not (nil? manager)))
 
@@ -34,18 +34,18 @@
   (and manager (.getTransaction manager)))
 
 (defn active?
-  "True if currently running within a transaction"
+  "Returns true if currently running within a transaction"
   []
   (not (nil? (current))))
 
 (defn enlist
-  "Enlist resources in the current transaction"
+  "Enlist XA resources in the current transaction"
   [& resources]
   (let [tx (current)]
     (doseq [resource resources] (.enlistResource tx resource))))
 
 (defn after-completion
-  "Register a callback to fire when transaction is complete"
+  "Register a callback to fire when the current transaction is complete"
   [f]
   (.registerSynchronization (current)
                             (reify javax.transaction.Synchronization
@@ -62,7 +62,7 @@
 ;;; The functions that enable the various transactional scope macros
 
 (defn begin
-  "Begin, invoke, commit, rollback if error"
+  "Begin, invoke func, commit, rollback if error"
   [func]
   (binding [clojure.java.jdbc/xa-transaction* (fn [f] (f))]
     (.begin manager)
@@ -75,7 +75,7 @@
         (throw e)))))
 
 (defn suspend
-  "Suspend, invoke, resume"
+  "Suspend, invoke func, resume"
   [func]
   (let [tx (.suspend manager)]
     (try
@@ -117,7 +117,7 @@
     `(~f)))
 
 (defmacro mandatory
-  "JEE Mandatory - throws an exception unless there's a current transaction"
+  "JEE Mandatory - throws an exception unless there's an active transaction"
   [& body]
   (let [f `(fn [] ~@body)]
     `(if (active?)
@@ -125,7 +125,7 @@
        (throw (Exception. "No active transaction")))))
 
 (defmacro never
-  "JEE Never - throws an exception if there's a current transaction"
+  "JEE Never - throws an exception if there's an active transaction"
   [& body]
   (let [f `(fn [] ~@body)]
     `(if (active?)

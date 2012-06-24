@@ -22,18 +22,37 @@
             [immutant.xa.transaction :as tx]))
 
 (defn datasource
-  "Return an XA-capable datasource"
+  "Create an XA-capable datasource named by 'id'. The result can be
+   associated with the :datasource key in a clojure.java.sql spec,
+   e.g.
+
+     (defonce ds (immutant.xa/datasource \"myds\" {...}))
+     (clojure.java.sql/with-connection {:datasource ds} ...)
+
+   The spec hash keys are adapter-specific, but all should support the
+   following:
+    :adapter   one of h2|oracle|mysql|postgres|mssql (required)
+    :host      the host on which the database server is running [localhost]
+    :port      the port on which the server is listening [adapter-specific]
+    :database  the database name
+    :username  the username for the database connection
+    :password  the password associated with the username
+    :pool      the maximum number of simultaneous connections used"
   [id spec]
   (let [params (into {} (for [[k v] spec] [(name k) v]))
         name (.createDataSource (lookup/fetch "xaifier") id params)]
     (.lookup (InitialContext.) name)))
 
 (defmacro transaction
-  "Execute body within the current transaction, if available, otherwise start a new one.
+  "Execute body within the current transaction, if available,
+   otherwise invoke body within a new transaction.
 
-  See the macros in immutant.xa.transaction for finer grained
-  transactional semantics corresponding to the attributes of the JEE
-  @Transaction annotation."
+  This is really just a convenient alias for
+  immutant.xa.transaction/required, which is the default behavior for
+  transactions in standard JEE containers. See the macros in
+  immutant.xa.transaction for finer-grained transactional control
+  corresponding to all the analogous attributes of the JEE @Transaction
+  annotation."
   [& body]
   `(tx/required ~@body))
 
