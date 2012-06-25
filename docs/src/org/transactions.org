@@ -30,28 +30,32 @@
 * Creating XA DataSources
 
   In order for your database to participate in an XA transaction, an
-  XA DataSource must be created for it. As an Immutant user, you have
-  two options: either 1) call =immutant.xa/datasource= from your
-  application or 2) use the JBoss AS7 configuration facilities. The
+  XA DataSource must be created for it. In Immutant, you have two
+  options: either 1) call =immutant.xa/datasource= from your
+  application, or 2) use the JBoss AS7 configuration facilities. The
   former is simple and recommended for most deployments, but the
-  latter facilitates management when you have multiple applications
-  sharing the same DataSource in a clustered environment.
+  latter can be easier to manage when multiple applications share the
+  same DataSource in a clustered environment.
 
 ** Using an Immutant DataSource with =clojure.java.jdbc=
 
-   The spec you pass to =clojure.java.jdbc/with-connection= will
-   either set the =:datasource= key to the value returned by
-   =immutant.xa/datasource= or the =:name= key to the JNDI name from
-   the JBoss configuration.
+   The spec you pass to =clojure.java.jdbc/with-connection= depends on
+   how you create the DataSource. If you call
+   =immmutant.xa/datasource=, then associate the =:datasource= key to its
+   result. 
 
-   It's just that simple. And any library based on =clojure.java.jdbc=
-   should work with that spec.
+   Otherwise, set the =:name= key to the JNDI name you set for the
+   =xa-datasource= in the JBoss AS7 configuration.
 
-*** A DataSource created using =immutant.xa/datasource=
+   And any library based on =clojure.java.jdbc= should work just fine
+   with that spec.
+
+*** Using =immutant.xa/datasource=
 
     To create your own DataSource, you must make the appropriate JDBC
     driver available. This is easily done with a [[http://leiningen.org/][Leiningen]] project in
-    =project.clj=. All of the following drivers are known to work:
+    =project.clj=. The following drivers have been tested
+    successfully:
 
     #+begin_src clojure
       (defproject foo "1.0.0-SNAPSHOT"
@@ -63,7 +67,7 @@
                        [java.jdbc "0.2.2"]])
     #+end_src
 
-    Here's an example creating a datasource for an in-memory H2 database:
+    Here's an example creating a DataSource for an in-memory H2 database:
     
     #+begin_src clojure
       (defonce ds (immutant.xa/datasource "foo" {:adapter "h2" :database "mem:foo"}))
@@ -71,7 +75,7 @@
         (jdbc/create-table :things [:name "varchar(50)"]))
     #+end_src
 
-    Here's an example creating an Oracle datasource for an Amazon RDS
+    Here's an example creating an Oracle DataSource for an Amazon RDS
     instance:
 
     #+begin_src clojure
@@ -84,7 +88,7 @@
       (jdbc/with-connection {:datasource ds} ...)
     #+end_src
 
-*** An AS7-configured DataSource
+*** Using an AS7-configured DataSource
 
     Once you've [[https://docs.jboss.org/author/display/AS71/DataSource%2Bconfiguration][configured your XA DataSource in AS7]], you simply refer
     to its JNDI name:
@@ -97,17 +101,52 @@
 
 * Defining Transactions
 
+  A transaction is defined using the =immutant.xa/transaction= macro:
+
+  #+begin_src clojure
+    (ns xa.example
+      (:require [immutant.xa :as xa]
+                [immutant.cache :as cache]
+                [immutant.messaging :as msg]
+                [clojure.java.jdbc :as sql]))
+    
+    (xa/transaction
+     (sql/with-connection {:datasource my-ds}
+       (sql/insert-records :things {:name "foo"}))
+     (cache/put my-cache :a 1)
+     (msg/publish "/queue/test" "success!"))
+  #+end_src
+
+  In the example above, we insert a record into a SQL database, write
+  an entry to a cache and publish a message to a queue, all within the
+  same XA transaction. If the body of =xa/transaction= runs without
+  tossing an exception, the transaction will be committed. Otherwise
+  it will be rolled back. All or nothing. Simple.
+
 ** Transaction Scope
 
    When transactional components interact, the state of a transaction
-   when a particular function is invoked isn't always easy to predict,
-   e.g. can a function that requires a transaction assume one has been
-   started prior to its invocation? In JEE container-managed
+   when a particular function is invoked isn't always easy to predict.
+   For example, can a function that requires a transaction assume one
+   has been started prior to its invocation? In JEE container-managed
    persistence, a developer answers these questions using the
-   @Transaction annotation.
+   @TransactionAttribute annotation.
 
    But annotations are gross, right? :)
 
-   So instead, =immutant.xa.transaction= provides analogs to the
-   @Transaction scope attribute in the form of Clojure macros.
+   So instead, [[./apidoc/immutant.xa-api.html#immutant.xa.transaction][immutant.xa.transaction]] provides analogs to [[http://docs.oracle.com/javaee/6/tutorial/doc/bncij.html][the
+   @TransactionAttribute values]] in the form of Clojure macros. In
+   fact, the =xa/transaction= macro shown above is merely an alias for
+   =immutant.xa.transaction/required=, which is the implicit attribute
+   used in JEE. There are a total of 6 macros:
 
+   | =required=      | Execute within current transaction, if any, otherwise start a new one, execute, commit or rollback.              |
+   | =requires-new=  | Suspend current transaction, if any, start a new one, execute, commit or rollback, and resume the suspended one. |
+   | =not-supported= | Suspend current transaction, if any, and execute without a transaction.                                          |
+   | =supports=      | Execute the body whether there's a transaction or not; may lead to unpredictable results                         |
+   | =mandatory=     | Toss an exception if there's no active transaction                                                               |
+   | =never=         | Toss an exception if there is an active transaction                                                              |
+
+   These macros give the developer complete declarative control over
+   the transactional semantics of his application as its functional
+   chunks are combined.
