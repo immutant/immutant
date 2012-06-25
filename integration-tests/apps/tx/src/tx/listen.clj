@@ -29,5 +29,5 @@
 (deftest transactional-writes-in-listener-should-fail-on-rollback
   (trigger-listener true)
   (is (nil? (imsg/receive "/queue/test" :timeout 2000)))
-  (is (nil? (imsg/receive "/queue/remote-test")))
+  (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000)))
   (is (nil? (:a core/cache))))
