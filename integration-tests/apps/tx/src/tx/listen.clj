@@ -11,6 +11,8 @@
   (imsg/publish "/queue/test" "kiwi")
   (imsg/publish "/queue/remote-test" "starfruit" :host "localhost" :port 5445)
   (ic/put core/cache :a 1)
+  (tx/not-supported
+   (ic/put core/cache :deliveries (inc (or (:deliveries core/cache) 0))))
   (if (:throw? m) (throw (Exception. "rollback")))
   (if (:rollback? m) (tx/set-rollback-only)))
 
@@ -32,10 +34,12 @@
   (trigger-listener :throw? true)
   (is (nil? (imsg/receive "/queue/test" :timeout 2000)))
   (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000)))
-  (is (nil? (:a core/cache))))
+  (is (nil? (:a core/cache)))
+  (is (= 10 (:deliveries core/cache))))
 
 (deftest transactional-writes-in-listener-should-fail-on-rollback
   (trigger-listener :rollback? true)
   (is (nil? (imsg/receive "/queue/test" :timeout 2000)))
   (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000)))
-  (is (nil? (:a core/cache))))
+  (is (nil? (:a core/cache)))
+  (is (= 10 (:deliveries core/cache))))
