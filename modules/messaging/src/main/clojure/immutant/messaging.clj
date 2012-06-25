@@ -65,13 +65,12 @@
     :port       the remote port to connect to (requires :host to be set) [nil, or 5445 if :host is set]
     :username   the username to use to auth the connection (requires :password to be set) [nil]
     :password   the password to use to auth the connection (requires :username to be set) [nil]"
-  [dest-name & {:keys [timeout selector] :as opts}]
+  [dest-name & {:keys [timeout selector] :or {timeout 10000} :as opts}]
   (with-connection opts
     (let [session (session)
           destination (destination session dest-name)
-
           consumer (.createConsumer session destination selector)
-          encoded (.receive consumer (or timeout 10000))]
+          encoded (.receive consumer timeout)]
       (and encoded (codecs/decode encoded)))))
 
 (defn message-seq
