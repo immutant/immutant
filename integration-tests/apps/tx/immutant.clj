@@ -3,7 +3,7 @@
   (:use ring.middleware.params)
   (:require [immutant.web :as web]
             [clojure.string :as str]
-            [tx core scope]))
+            [tx core scope listen]))
 
 (defn response [body]
   {:status 200
@@ -12,7 +12,7 @@
 
 (defn handler [{params :params}]
   (apply tx.core/testes (str/split (params "dbs") #","))
-  (response (run-tests 'tx.core 'tx.scope)))
+  (response (run-tests 'tx.core 'tx.scope 'tx.listen)))
 
 (web/start "/" (wrap-params handler))
 
