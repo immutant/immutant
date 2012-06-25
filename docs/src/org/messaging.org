@@ -155,6 +155,19 @@
    | =:username=    | nil                            | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
    | =:password=    | nil                            | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
 
+   By default, message handlers are transactional, so the function
+   invoked in response to a message effectively demarcates a
+   transaction that will be automatically committed if no exceptions
+   are raised in the handler, and otherwise rolled back.
+
+   Any messages published within the handler automatically become part
+   of its transaction, by default. So they won't be delivered until
+   that transaction commits. To override this behavior, wrap your
+   handler inside the =immutant.xa.transaction/not-supported= macro.
+
+   See [[./transactions.html][Distributed Transactions]] for more details.
+
+
 *** Some Examples
 
     #+begin_src clojure

@@ -7,11 +7,11 @@
 
   A *distributed* transaction is one in which multiple types of
   resources may participate. The most common example of a
-  transactional resource is a relational database, but Immutant
-  /caches/ (backed by [[http://www.infinispan.org][Infinispan]]) and /message handlers/ (backed by
-  [[http://www.jboss.org/hornetq/][HornetQ]]) are also transactional. Technically speaking, they provide
-  implementations of the [[http://en.wikipedia.org/wiki/X/Open_XA][XA protocol]], and any back-end data store that
-  does so may participate in an Immutant transaction.
+  transactional resource is a relational database, but in Immutant
+  both caching (backed by [[http://www.infinispan.org][Infinispan]]) and messaging (backed by
+  [[http://www.jboss.org/hornetq/][HornetQ]]) are also automatically transactional. Technically speaking,
+  they provide implementations of the [[http://en.wikipedia.org/wiki/X/Open_XA][XA protocol]], and any back-end
+  data store that does so may participate in an Immutant transaction.
 
   This allows your application to say, tie the success of a SQL
   database update or the storage of an entry on a replicated data grid
@@ -37,7 +37,7 @@
   latter can be easier to manage when multiple applications share the
   same DataSource in a clustered environment.
 
-** Using an Immutant DataSource with =clojure.java.jdbc=
+** For use with =clojure.java.jdbc=
 
    The spec you pass to =clojure.java.jdbc/with-connection= depends on
    how you create the DataSource. If you call
@@ -101,7 +101,8 @@
 
 * Defining Transactions
 
-  A transaction is defined using the =immutant.xa/transaction= macro:
+  A transaction is easily defined using the =immutant.xa/transaction=
+  macro:
 
   #+begin_src clojure
     (ns xa.example
@@ -130,13 +131,12 @@
    For example, can a function that requires a transaction assume one
    has been started prior to its invocation? In JEE container-managed
    persistence, a developer answers these questions using the
-   @TransactionAttribute annotation.
+   =@TransactionAttribute= annotation.
 
    But annotations are gross, right? :)
 
-   So instead, [[./apidoc/immutant.xa-api.html#immutant.xa.transaction][immutant.xa.transaction]] provides analogs to [[http://docs.oracle.com/javaee/6/tutorial/doc/bncij.html][the
-   @TransactionAttribute values]] in the form of Clojure macros. In
-   fact, the =xa/transaction= macro shown above is merely an alias for
+   So instead, [[./apidoc/immutant.xa-api.html#immutant.xa.transaction][immutant.xa.transaction]] provides analogs to [[http://docs.oracle.com/javaee/6/tutorial/doc/bncij.html][the JEE transaction attributes]] in the form of Clojure macros. In fact, the
+   =xa/transaction= macro shown above is merely an alias for
    =immutant.xa.transaction/required=, which is the implicit attribute
    used in JEE. There are a total of 6 macros:
 
