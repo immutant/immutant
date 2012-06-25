@@ -40,6 +40,7 @@ Used internally to shutdown various services, but can be used by application cod
     (.atExit closer f)
     (println "WARN: Unable to register at-exit handler with housekeeper")))
 
+;; ignoring reflection here, since it's only used at compile time
 (defn ^{:private true} lookup-interface-address
   "Looks up the ip address from the proper service for the given name."
   [name]

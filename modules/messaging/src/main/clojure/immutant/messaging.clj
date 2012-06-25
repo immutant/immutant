@@ -94,7 +94,7 @@
                                         (:password opts))]
     (try
       (dotimes [_ concurrency]
-        (let [session (create-session connection)
+        (let [^javax.jms.Session session (create-session connection)
               destination (destination session dest-name)
               consumer (.createConsumer session destination selector)]
           (.setMessageListener consumer
@@ -113,7 +113,7 @@
   "Pass the result of a call to listen to de-register the handler. You
   only need to do this if you wish to stop the handler's destination
   before your app is undeployed"
-  [listener]
+  [^javax.jms.XAConnection listener]
   (.close listener))
 
 (defn stop 

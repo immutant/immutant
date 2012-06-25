@@ -25,7 +25,9 @@
   ([]
      (connection-factory nil))
   ([{:keys [host port] :or {host "localhost" port 5445}}]
-      (let [connect_opts { "host" host "port" (Integer. port) }
-            transport_config (new TransportConfiguration "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" connect_opts)]
-        (HornetQJMSClient/createConnectionFactoryWithoutHA JMSFactoryType/CF (into-array [transport_config])))))
+     (let [connect_opts { "host" host "port" (Integer. (int port)) }
+           transport_config (new TransportConfiguration "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" connect_opts)]
+       (HornetQJMSClient/createConnectionFactoryWithoutHA
+        JMSFactoryType/CF
+        ^"[Lorg.hornetq.api.core.TransportConfiguration;" (into-array [transport_config])))))
 

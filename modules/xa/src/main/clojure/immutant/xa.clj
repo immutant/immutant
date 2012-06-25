@@ -17,7 +17,7 @@
 
 (ns immutant.xa
   "Distributed XA transactional support"
-  (:import [javax.naming InitialContext])
+  (:import javax.naming.InitialContext)
   (:require [immutant.registry :as lookup]
             [immutant.xa.transaction :as tx]))
 
@@ -40,8 +40,8 @@
     :pool      the maximum number of simultaneous connections used"
   [id spec]
   (let [params (into {} (for [[k v] spec] [(name k) v]))
-        name (.createDataSource (lookup/fetch "xaifier") id params)]
-    (.lookup (InitialContext.) name)))
+        name (.createDataSource ^org.immutant.xa.XAifier (lookup/fetch "xaifier") id params)]
+    (.lookup ^javax.naming.InitialContext (InitialContext.) name)))
 
 (defmacro transaction
   "Execute body within the current transaction, if available,

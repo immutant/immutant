@@ -29,7 +29,7 @@
 ;;; Thread-local connection set
 (def ^{:private true, :dynamic true} *connections* nil)
 ;;; Thread-local current connection
-(def ^{:private true, :dynamic true} *connection* nil)
+(def ^{:private true, :dynamic true} ^javax.jms.XAConnection *connection* nil)
 ;;; Thread-local map of transactions to sessions
 (def ^{:private true, :dynamic true} *sessions* nil)
 
@@ -39,6 +39,7 @@
 (defn ^{:private true} connection-key [opts]
   (map #(% opts) [:host :port :username :password]))
 
+;; ignore reflection here since it only occurs once at compile time
 (let [local-connection-factory
       (if-let [reference-factory (lookup/fetch factory-name)]
         (let [reference (.getReference reference-factory)]
@@ -48,20 +49,21 @@
         (do
           (log/warn "Unable to obtain JMS Connection Factory - assuming we are outside the container")
           (hornetq/connection-factory)))]
-  (defn connection-factory [opts]
+  (defn ^org.hornetq.jms.client.HornetQConnectionFactory connection-factory
+    [opts]
     (if (remote-connection? opts)
       (hornetq/connection-factory opts)
       local-connection-factory)))
 
-(defn queue? [name]
+(defn queue? [^String name]
   (.startsWith name "/queue"))
 
-(defn topic? [name]
+(defn topic? [^String name]
   (.startsWith name "/topic"))
 
 (defn wash-publish-options
   "Wash publish options relative to default values from a producer"
-  [opts producer]
+  [opts ^javax.jms.MessageProducer producer]
   {:delivery (if (contains? opts :persistent)
                (if (:persistent opts)
                  DeliveryMode/PERSISTENT
@@ -75,7 +77,7 @@
 
 (defn set-properties!
   "Set user-defined properties on a JMS message. Returns message"
-  [message properties]
+  [^javax.jms.Message message properties]
   (doseq [[k,v] properties]
     (let [key (name k)]
       (cond
@@ -85,14 +87,15 @@
        :else (.setStringProperty message key (str v)))))
   message)
 
-(defn destination [session name]
+(defn destination [^javax.jms.Session session name]
   (cond
    (queue? name) (.createQueue session name)
    (topic? name) (.createTopic session name)
    :else (throw (Exception. "Illegal destination name"))))
 
 (defn stop-destination [name]
-  (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
+  (if-let [^org.hornetq.jms.server.JMSServerManager manager
+           (lookup/fetch "jboss.messaging.default.jms.manager")]
     (try
       (if (queue? name)
         (.destroyQueue manager name)
@@ -102,18 +105,20 @@
         (log/warn (.getMessage (.getCause e)))))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
-  (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
+  (if-let [^org.hornetq.jms.server.JMSServerManager manager
+           (lookup/fetch "jboss.messaging.default.jms.manager")]
     (do (.createQueue manager false name selector durable (into-array String []))
         (at-exit #(stop-destination name)))
     (throw (Exception. (str "Unable to start queue, " name)))))
 
 (defn start-topic [name & opts]
-  (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
+  (if-let [^org.hornetq.jms.server.JMSServerManager manager
+           (lookup/fetch "jboss.messaging.default.jms.manager")]
     (do (.createTopic manager false name (into-array String []))
         (at-exit #(stop-destination name)))
     (throw (Exception. (str "Unable to start topic, " name)))))
 
-(defn create-session [connection]
+(defn create-session [^javax.jms.XAConnection connection]
   (if (lookup/fetch factory-name)
     (.createXASession connection)
     (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
@@ -127,13 +132,13 @@
 
 (defn enlist-session
   "Enlist a session in the current transaction, if any"
-  [session]
+  [^javax.jms.XASession session]
   (let [transaction (tx/current)]
     (if transaction
       (tx/enlist (.getXAResource session)))
     (set! *sessions* (assoc *sessions* transaction session))))
 
-(defn session
+(defn ^javax.jms.XASession session
   []
   (let [transaction (tx/current)]
     (if-not (contains? *sessions* transaction)

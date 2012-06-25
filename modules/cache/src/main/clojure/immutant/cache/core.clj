@@ -23,12 +23,14 @@
            [org.infinispan.transaction TransactionMode]
            [org.infinispan.transaction.lookup GenericTransactionManagerLookup]))
 
-(def clustered-manager (registry/fetch "jboss.infinispan.web"))
-(def local-manager (delay (DefaultCacheManager.
-                            (.. (ConfigurationBuilder.) transaction
-                                (transactionManagerLookup (GenericTransactionManagerLookup.))
-                                (transactionMode TransactionMode/TRANSACTIONAL)
-                                build))))
+(def ^org.infinispan.manager.EmbeddedCacheManager clustered-manager
+  (registry/fetch "jboss.infinispan.web"))
+(def local-manager
+  (delay (DefaultCacheManager.
+           (.. (ConfigurationBuilder.) transaction
+               (transactionManagerLookup (GenericTransactionManagerLookup.))
+               (transactionMode TransactionMode/TRANSACTIONAL)
+               build))))
 
 (defn cache-mode
   [kw sync]
@@ -40,9 +42,9 @@
    :default (throw (IllegalArgumentException. "Must be one of :distributed, :replicated, :invalidated, or :local"))))
 
 (defn reconfigure
-  [name mode]
-  (let [cache (.getCache clustered-manager name)
-        config (.getConfiguration cache)
+  [^String name ^String mode]
+  (let [^org.infinispan.Cache cache (.getCache clustered-manager name)
+        ^org.infinispan.config.Configuration config (.getConfiguration cache)
         current (.getCacheMode config)]
     (when-not (= mode current)
       (println "Reconfiguring cache" name "from" (str current) "to" (str mode))
@@ -53,7 +55,7 @@
     cache))
 
 (defn configure
-  [name mode]
+  [^String name ^String mode]
   (println "Configuring cache" (str name) "as" (str mode))
   (let [config (.clone (.getDefaultConfiguration clustered-manager))]
     (.setClassLoader config (.getContextClassLoader (Thread/currentThread)))
@@ -70,8 +72,10 @@
     (configure name (cache-mode mode sync))))
 
 (defn local-cache
-  ([] (.getCache @local-manager))
-  ([name] (.getCache @local-manager name)))
+  ([]
+     (.getCache ^org.infinispan.manager.EmbeddedCacheManager @local-manager))
+  ([^String name]
+     (.getCache ^org.infinispan.manager.EmbeddedCacheManager @local-manager name)))
 
 (defn raw-cache
   "Returns the raw Infinispan cache, clustered if possible, otherwise local"

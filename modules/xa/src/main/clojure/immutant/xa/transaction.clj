@@ -28,7 +28,7 @@
   []
   (not (nil? manager)))
 
-(defn current
+(defn ^javax.transaction.Transaction current
   "Return the active transaction"
   []
   (and manager (.getTransaction manager)))

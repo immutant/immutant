@@ -48,19 +48,19 @@
 
 (defmulti encode (fn [_ _ {encoding :encoding}] (or encoding :clojure)))
 
-(defmethod encode :clojure [session message options]
+(defmethod encode :clojure [^javax.jms.Session session message options]
   "Stringify a clojure data structure"
   (set-encoding
    (.createTextMessage session (core/encode message))
    :clojure))
 
-(defmethod encode :json [session message options]
+(defmethod encode :json [^javax.jms.Session session message options]
   "Stringify a json data structure"
   (set-encoding
    (.createTextMessage session (core/encode message :json))
    :json))
 
-(defmethod encode :text [session message options]
+(defmethod encode :text [^javax.jms.Session session message options]
   "Treat the payload as a raw String. No encoding is done."
   (set-encoding
    (.createTextMessage session message)

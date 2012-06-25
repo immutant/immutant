@@ -67,7 +67,8 @@ A singleton scheduler will participate in a cluster, and will only execute its j
             (wait-for-scheduler
              scheduler
              #(.addJob scheduler name (ClojureJob. f)))
-            (proxy-super start))
+            (let [^BaseScheduledJob this this] ;; hack to eliminate reflection
+              (proxy-super start)))
           (getScheduler []
             (.getScheduler scheduler)))
       .start)))
@@ -80,6 +81,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
 
 ;; we don't currently register an mbean for each job, since we can't
 ;; yet easily unregister the mbean
+;; ignore reflection here for now, since we don't even use it yet
 (defn register-job-mbean [name job]
   (register-mbean
    "immutant.jobs"
