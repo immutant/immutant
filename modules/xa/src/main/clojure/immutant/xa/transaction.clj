@@ -38,6 +38,11 @@
   []
   (not (nil? (current))))
 
+(defn set-rollback-only
+  "Modify the current transaction such that the only possible outcome is a roll back"
+  []
+  (and manager (.setRollbackOnly manager)))
+
 (defn enlist
   "Enlist XA resources in the current transaction"
   [& resources]
@@ -70,6 +75,7 @@
       (let [result (func)]
         (.commit manager)
         result)
+      (catch javax.transaction.RollbackException ignored)
       (catch Throwable e
         (.rollback manager)
         (throw e)))))
