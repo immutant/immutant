@@ -26,5 +26,5 @@
    in a cluster"
   [name start stop & {singleton :singleton :or {singleton true}}]
   (if-let [^org.immutant.daemons.Daemonizer daemonizer (lookup/fetch "daemonizer")]
-    (.createDaemon daemonizer name #(future (start)) stop (boolean singleton))))
+    (.createDaemon daemonizer name start stop (boolean singleton))))
   

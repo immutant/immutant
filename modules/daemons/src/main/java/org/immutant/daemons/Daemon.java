@@ -19,6 +19,7 @@
 
 package org.immutant.daemons;
 
+import org.jboss.logging.Logger;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
@@ -26,21 +27,29 @@ import org.jboss.msc.service.StopContext;
 
 
 public class Daemon implements DaemonMBean, Service<Daemon> {
-
+    
     public Daemon(Runnable startFunction, Runnable stopFunction) {
         this.startFunction = startFunction;
         this.stopFunction = stopFunction;
     }
 
     public void start() {
-        this.startFunction.run();
-        this.started = true;
+        this.thread = new Thread( this.startFunction );
+        this.thread.start();
     }
 
     public void stop() {
-        if (this.stopFunction != null) {
+        if (isStarted() && this.stopFunction != null) {
             this.stopFunction.run();
-            this.started = false;
+            try {
+                this.thread.join( THREAD_TIMEOUT );
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if ( this.thread.isAlive() ) {
+                log.warn( "Timed out waiting for daemon thread to die" );
+            }
+            this.thread = null;
         }
     }
 
@@ -72,7 +81,7 @@ public class Daemon implements DaemonMBean, Service<Daemon> {
     }
     
     public boolean isStarted() {
-        return this.started;
+        return (this.thread != null);
     }
 
     public boolean isStopped() {
@@ -86,9 +95,10 @@ public class Daemon implements DaemonMBean, Service<Daemon> {
         return "STOPPED";
     }
 
-
-    private boolean started;
+    private int THREAD_TIMEOUT = 20000;
+    private Thread thread;
     private Runnable startFunction;
     private Runnable stopFunction;
 
+    static final Logger log = Logger.getLogger( "org.immutant.daemons" );
 }

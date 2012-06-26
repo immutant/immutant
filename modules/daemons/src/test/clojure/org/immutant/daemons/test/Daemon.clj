@@ -21,49 +21,59 @@
   (:import org.immutant.runtime.ClojureRuntime
            org.immutant.daemons.Daemon))
 
-(def daemon-status (ref "not-started"))
+(def daemon-status (atom nil))
 
-(defn start-daemon []
-  (dosync (ref-set daemon-status "started")))
+(defn start []
+   (reset! daemon-status "started"))
 
-(defn stop-daemon []
-  (dosync (ref-set daemon-status "stopped")))
+(defn stop []
+  (reset! daemon-status "stopped"))
 
 (def ^:dynamic *daemon*)
 
 (use-fixtures :each
               (fn [f]
-                (binding [*daemon* (Daemon. start-daemon stop-daemon)]
+                (binding [*daemon* (Daemon. start stop)]
+                  (reset! daemon-status "not-started")
                   (f))))
 
-(deftest start-should-call-the-start-function
+(defn start-daemon []
   (.start *daemon*)
+  (Thread/sleep 10))
+
+(deftest start-should-call-the-start-function
+  (start-daemon)
   (is (= "started" @daemon-status)))
 
 (deftest stop-should-call-the-stop-function
+  (start-daemon)
   (.stop *daemon*)
   (is (= "stopped" @daemon-status)))
+
+(deftest stop-should-not-call-the-stop-function-if-not-started
+  (.stop *daemon*)
+  (is (= "not-started" @daemon-status)))
 
 (deftest stop-should-not-raise-if-no-stop-function-provided
   (binding [*daemon* (Daemon. start-daemon nil)]
     (is (not-thrown? Exception (.stop *daemon*)))))
 
 (deftest it-should-be-started-after-start
-  (.start *daemon*)
+  (start-daemon)
   (is (.isStarted *daemon*))
   (is-not (.isStopped *daemon*))
   (is (= "STARTED" (.getStatus *daemon*))))
 
 (deftest it-should-be-stopped-after-stop
-  (.start *daemon*)
+  (start-daemon)
   (.stop *daemon*)
   (is (.isStopped *daemon*))
   (is-not (.isStarted *daemon*))
   (is (= "STOPPED" (.getStatus *daemon*))))
 
 (deftest it-should-not-be-stopped-after-stop-if-no-stop-function-provided
-  (binding [*daemon* (Daemon. start-daemon nil)]
-    (.start *daemon*)
+  (binding [*daemon* (Daemon. start nil)]
+    (start-daemon)
     (.stop *daemon*)
     (is-not (.isStopped *daemon*))
     (is (.isStarted *daemon*))
