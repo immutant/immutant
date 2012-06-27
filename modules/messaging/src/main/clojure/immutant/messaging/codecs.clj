@@ -25,7 +25,9 @@
   (.setStringProperty msg encoding-header-name (name enc))
   msg)
 
-(defn ^{:private true} get-encoding [^javax.jms.Message msg]
+(defn get-encoding
+  "Retrieve the encoding from a JMS message."
+  [^javax.jms.Message msg]
   (keyword (.getStringProperty msg encoding-header-name)))
 
 (defprotocol AsText
@@ -84,3 +86,8 @@
 
 (defmethod decode :default [message]
   (throw (RuntimeException. (str "Received unknown message encoding: " (get-encoding message)))))
+
+(defn decode-if
+  "Decodes the given message if decode? is truthy."
+  [decode? msg]
+  (if decode? (decode msg) msg))

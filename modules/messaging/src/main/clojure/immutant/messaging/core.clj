@@ -17,7 +17,7 @@
 
 (ns immutant.messaging.core
   (:use [immutant.utilities :only (at-exit)])
-  (:import (javax.jms Session DeliveryMode))
+  (:import (javax.jms DeliveryMode Destination Queue Session Topic))
   (:require [immutant.registry          :as lookup]
             [immutant.messaging.hornetq :as hornetq]
             [immutant.xa.transaction    :as tx]
@@ -55,11 +55,18 @@
       (hornetq/connection-factory opts)
       local-connection-factory)))
 
-(defn queue? [^String name]
+
+(defn queue-name? [^String name]
   (.startsWith name "/queue"))
 
-(defn topic? [^String name]
+(defn queue? [queue]
+  (or (isa? (class queue) Queue) (queue-name? queue)))
+
+(defn topic-name? [^String name]
   (.startsWith name "/topic"))
+
+(defn topic? [topic]
+  (or (isa? (class topic) Topic) (topic-name? topic)))
 
 (defn wash-publish-options
   "Wash publish options relative to default values from a producer"
@@ -75,6 +82,17 @@
                    (.getPriority producer)))
    :ttl (or (:ttl opts) (.getTimeToLive producer))})
 
+(defn set-attributes!
+  "Sets attributes on a JMS message. Returns message."
+  [^javax.jms.Message message attributes]
+  (doseq [[attr v] attributes]
+    (condp = attr
+      :correlation-id (.setJMSCorrelationID message v)
+      :reply-to       (.setJMSReplyTo message v)
+      :type           (.setJMSType message v)
+      nil))
+  message)
+
 (defn set-properties!
   "Set user-defined properties on a JMS message. Returns message"
   [^javax.jms.Message message properties]
@@ -87,22 +105,23 @@
        :else (.setStringProperty message key (str v)))))
   message)
 
-(defn destination [^javax.jms.Session session name]
+(defn destination [^Session session name-or-dest]
   (cond
-   (queue? name) (.createQueue session name)
-   (topic? name) (.createTopic session name)
+   (isa? (class name-or-dest) Destination) name-or-dest
+   (queue-name? name-or-dest) (.createQueue session name-or-dest)
+   (topic-name? name-or-dest) (.createTopic session name-or-dest)
    :else (throw (Exception. "Illegal destination name"))))
 
 (defn stop-destination [name]
   (if-let [^org.hornetq.jms.server.JMSServerManager manager
            (lookup/fetch "jboss.messaging.default.jms.manager")]
     (try
-      (if (queue? name)
+      (if (queue-name? name)
         (.destroyQueue manager name)
         (.destroyTopic manager name))
       (log/info "Stopped" name)
       (catch Throwable e
-        (log/warn (.getMessage (.getCause e)))))))
+        (log/warn e)))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
   (if-let [^org.hornetq.jms.server.JMSServerManager manager

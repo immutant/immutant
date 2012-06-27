@@ -16,9 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns test.immutant.messaging
-  (:require [immutant.registry :as lookup])
-  (:use [immutant.messaging])
-  (:use [clojure.test]))
+  (:use immutant.messaging
+        clojure.test)
+  (:require [immutant.registry :as lookup]))
 
 (def dummies { "jboss.messaging.default.jms.manager"
                (proxy [org.hornetq.jms.server.JMSServerManager][]
@@ -50,3 +50,8 @@
 (deftest bad-destination-name
   (is (thrown-with-msg? Exception #"names must start with" (start "/bad/name"))))
 
+(deftest request-with-a-topic-should-throw
+  (is (thrown? AssertionError (request "/topic/foo" "biscuit"))))
+
+(deftest respond-with-a-topic-should-throw
+  (is (thrown? AssertionError (respond "/topic/foo" str))))

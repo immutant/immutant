@@ -74,3 +74,8 @@
     (publish ham-queue "testing-remote")
     (is (= (receive ham-queue :timeout 60000 :host "integ-app1.torquebox.org" :port 5445)
            "testing-remote"))))
+
+(deftest receive-with-decode-disabled-should-work
+  (publish ham-queue "biscuit")
+  (let [msg (receive ham-queue :decode? false)]
+    (is (isa? (class msg) javax.jms.Message))))
