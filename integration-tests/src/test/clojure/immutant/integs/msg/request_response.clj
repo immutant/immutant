@@ -21,6 +21,7 @@
   (:use immutant.messaging))
 
 (def ham-queue "/queue/ham")
+(def biscuit-queue "/queue/biscuit")
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -29,3 +30,11 @@
 
 (deftest request-and-respond-should-both-work
   (is (= "BISCUIT" @(request ham-queue "biscuit" :timeout 2000))))
+
+(deftest request-and-respond-with-a-selector-should-work
+  (is (= "BISCUIT" @(request biscuit-queue "biscuit"
+                             :timeout 2000
+                             :properties {"worker" "upper"})))
+  (is (= "ham" @(request biscuit-queue "HAM"
+                         :timeout 2000
+                         :properties {"worker" "lower"}))))
