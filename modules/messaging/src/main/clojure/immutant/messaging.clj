@@ -140,7 +140,7 @@ In addition to the same options as publish, it also accepts [default]:
              dereferenced, after which nil is returned [10000]"
   [queue message & {:as opts}]
   {:pre [(queue? queue)]}
-  (let [message (apply publish queue message
+  (let [^javax.jms.Message message (apply publish queue message
                        (map-to-seq
                         (update-in opts [:properties] #(merge % {"synchronous" "true"}))))]
     (delay
@@ -154,7 +154,7 @@ result of applying f to the message. queue can either be the name of the
 queue or a javax.jms.Queue. Accepts the same options as listen."
   [queue f & {:keys [decode?] :or {decode? true} :as opts}]
   {:pre [(queue? queue)]}
-  (letfn [(respond* [msg]
+  (letfn [(respond* [^javax.jms.Message msg]
             (publish (.getJMSDestination msg)
                      (f (codecs/decode-if decode? msg))
                      :correlation-id (.getJMSMessageID msg)
