@@ -7,10 +7,22 @@
 * Installation via Leiningen
 
   To install Immutant via the [[http://leiningen.org/][Leiningen]] plugin, you'll need to
-  first install Leiningen, followed by the [[https://github.com/immutant/lein-immutant/][lein-immutant]] plugin:
+  first install Leiningen, followed by the [[https://github.com/immutant/lein-immutant/][lein-immutant]] plugin.
+  The plugin supports both Leiningen 1.x and 2.x, but the method for
+  installing the plugin is different for each version.
+
+  To install the plugin under Leiningen 1.x (version 1.6.2 or greater),
+  you'll use the =lein plugin install= command:
   
   #+begin_src sh
    $ lein plugin install lein-immutant VERSION
+  #+end_src
+
+  To install the plugin under 2.x, you'll need to add it to the plugin
+  list in =~/.lein/profiles.clj=:
+
+  #+begin_src clojure
+    {:user {:plugins [[lein-immutant "VERSION"]]}}
   #+end_src
 
   You can determine the current version of the plugin by looking at
@@ -28,7 +40,7 @@
   released in subsequent incremental builds, simply run =install= again.
 
   To obtain a specific version, you can specify an incremental build 
-  number (ex: 123) or a released version (ex: 0.1.0).
+  number (ex: 123) or a released version (ex: 0.2.0).
 
   Releases installed via the plugin are installed by default under
   =~/.lein/immutant/releases=, and =~/.lein/immutant/current= is 
@@ -42,13 +54,16 @@
   The plugin will install Immutant there, and link =~/.lein/immutant/current=
   to that version.
 
+  This installed version of Immutant is shared across all Immutant applications
+  on your machine, and does not need to be installed for each application.
+
   See [[./deployment.html][Deployment]] for more details about the plugin.
 
 * Installation via Zip Download
 
   You can manually download any of the same builds that you can install 
   via the plugin. You can download incremental builds from our [[http://immutant.org/builds/][builds page]],
-  and official releases from our {{TODO}} page. 
+  and an official release from its release announcement on [[http://immutant.org/][immutant.org]]. 
   
   Once you have the zip downloaded, expand it somewhere handy. If you want
   to use the Leiningen plugin with this build, you'll need to set =$IMMUTANT_HOME=:
@@ -57,5 +72,5 @@
     $ mkdir immutant-releases
     $ cd immutant-releases
     $ unzip path/to/immutant-dist-bin.zip
-    $ export $IMMUTANT_HOME=~/immutant-releases/0.1.0/
+    $ export $IMMUTANT_HOME=~/immutant-releases/0.2.0/
   #+end_src

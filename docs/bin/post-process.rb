@@ -5,7 +5,6 @@ require 'fileutils'
 PAGES =
   %w{ what-is
       installation
-      jboss
       deployment
       initialization
       web
@@ -14,7 +13,8 @@ PAGES =
       caching
       transactions
       daemons
-      interactive }
+      interactive
+      jboss }
 
 TARGET_DIR = File.join( File.expand_path( File.dirname( __FILE__ ) ), "..", "target" )
 

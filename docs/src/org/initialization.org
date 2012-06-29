@@ -90,7 +90,7 @@
   - =:init= - specifies a function to call to initialize your application. This
     can be used as an alternative to an [[#initialization-immutant-clj][immutant.clj]] file. It can be either a
     namespace qualified symbol (=my.app/do-something=) or string 
-    (="my.app/do-something"=). 
+    ("my.app/do-something"). 
 
   - =:context-path= - overrides the default web context path that is generated
     based on the deployment name. See [[./web.html#web-context-path][Web - Context Paths]] for more details.
@@ -104,10 +104,11 @@
     ;; :root is the only required option
     {:root "/the/path/to/my/app"
      :resolve-dependecies false
+     :lein-profiles [:dev :clj15]
      :swank-port 4242
      :nrepl-port 4343
      :init my.app/init
-     :context-path "/" }
+     :context-path "/"}
   #+end_src
 
 ** Arbitrary Configuration Values
@@ -117,16 +118,15 @@
    configuration. In addition to the above options, you can put any values you need 
    into the configuration within the deployment descriptor or the =:immutant= map of 
    =project.clj=. This full configuration (including the above options) is available
-   to your application by passing the =:config= key to  [[./apidoc/immutant.registry-api.html#immutant.registry/fetch][immutant.registry/fetch]]:
+   to your application by passing the =:config= key to [[./apidoc/immutant.registry-api.html#immutant.registry/fetch][immutant.registry/fetch]]:
 
    #+begin_src clojure
      (require '[immutant.registry :as registry])
      
      (let [cfg (registry/fetch :config)]
-       (:root cfg)             ;; "/the/path/to/my/app"
-       (:init cfg)             ;; my.app/init
-       (:my-custom-option cfg) ;; :my-custom-value
-       )
+       (:root cfg)              ;; "/the/path/to/my/app"
+       (:init cfg)              ;; my.app/init
+       (:my-custom-option cfg)) ;; :my-custom-value
    #+end_src
 
 * Files Used In Configuration & Initialization
@@ -138,17 +138,17 @@
    to trigger the deployment of an application. It must contain a =:root= entry
    (see [[#initialization-configuration][above]]), but any other configuration is optional. Any configuration 
    specified here overrides configuration from =project.clj=. See the 
-   [[./deployment.html#deployment-descriptor][deployment descriptor]] section for more details.
+   [[./deployment.html#deployment-descriptor][deployment descriptor]] additional for more details.
 
 ** project.clj
    :PROPERTIES:
    :CUSTOM_ID: initialization-project-clj
    :END:
    
-   =project.clj= is the standard configuration file used by the [[http://leiningen.org/][Leiningen]] build 
-   tool. If a =project.clj= exists at the root of the application, Immutant will
-   parse it and use it to determine dependencies and resource paths, as well as
-   read Immutant specific configuration from the =:immutant= map. Here is a 
+   =project.clj= is the standard configuration file used by the [[http://leiningen.org/][Leiningen]] project
+   management tool. If a =project.clj= exists at the root of the application, 
+   Immutant will parse it and use it to determine dependencies and resource paths, 
+   as well as read Immutant specific configuration from the =:immutant= map. Here is a 
    sample =project.clj= including all of the Immutant options that are usable
    in that file:
 
@@ -158,6 +158,7 @@
                                 [noir "1.2.0"]]
                  :immutant {:init my-app.core/initialize
                             :resolve-dependencies true
+                            :lein-profiles [:dev :clj15]
                             :context-path "/"
                             :swank-port 4111
                             :nrepl-port 4112})
@@ -220,10 +221,10 @@
   application, and can be useful in the following situations:
 
   - you want to verify an application through a QA process without any 
-    external dependencies, can resolve dependencies
+    external dependencies
   - you don't have the option of resolving dependencies at deploy time
   - you have dependencies that aren't published to a maven repository
-  - you're project doesn't use Leiningen
+  - your project doesn't use Leiningen
 
   When dependency resolution is enabled for an application, Immutant
   uses [[https://github.com/cemerick/pomegranate][Pomegranate]] (via [[https://github.com/technomancy/leiningen/tree/master/leiningen-core][leiningen-core]]) to resolve the dependencies
