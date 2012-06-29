@@ -42,6 +42,7 @@
         <resource-root path="aether-api.jar"/>
         <resource-root path="aether-connector-file.jar"/>
         <resource-root path="aether-connector-wagon.jar"/>
+        <resource-root path="hooke.jar"/>
         <resource-root path="httpclient.jar"/>
         <resource-root path="httpcore.jar"/>
         <resource-root path="ordered.jar"/>
