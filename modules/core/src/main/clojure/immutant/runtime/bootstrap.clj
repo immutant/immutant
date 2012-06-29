@@ -145,6 +145,7 @@ nil if neither are available."
 to gracefully handle missing dependencies."
   [project]
   (when project
+    (project/load-certificates project)
     (try
       (classpath/resolve-dependencies :dependencies project)
       (catch DependencyResolutionException e
