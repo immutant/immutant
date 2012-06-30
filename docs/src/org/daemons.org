@@ -23,7 +23,7 @@
 
     | Option     | Default | Description                                                                                                |
     |------------+---------+------------------------------------------------------------------------------------------------------------|
-    | :singleton | /true/  | Singleton daemons will only execute on one node in a cluster. If false, the daemon will run on every node. |
+    | :singleton | =true=  | Singleton daemons will only execute on one node in a cluster. If false, the daemon will run on every node. |
 
   The =:singleton= option only applies when deployed to a
   cluster. Immutant provides automatic failover for singleton daemons:

@@ -108,7 +108,8 @@
      :swank-port 4242
      :nrepl-port 4343
      :init my.app/init
-     :context-path "/"}
+     :context-path "/"
+     :virtual-host "foo.host"} ;; can also be: ["foo1.host" "foo2.host"]
   #+end_src
 
 ** Arbitrary Configuration Values
@@ -160,6 +161,7 @@
                             :resolve-dependencies true
                             :lein-profiles [:dev :clj15]
                             :context-path "/"
+                            :virtual-host "foo.host" ;; can also be: ["foo1.host" "foo2.host"]
                             :swank-port 4111
                             :nrepl-port 4112})
    #+end_src

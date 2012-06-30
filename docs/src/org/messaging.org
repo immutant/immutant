@@ -79,15 +79,15 @@
    |-------------------+--------------------------------+-------------------------------------|
    |                   | <c>                            | <35>                                |
    | =:encoding=       | =:clojure=                     | One of =:clojure=, =:json= or =:text= |
-   | =:priority=       | 4                              | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively |
-   | =:ttl=            | 0                              | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed |
-   | =:persistent=     | true                           | If true, undelivered messages survive restarts. |
-   | =:properties=     | {}                             | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages |
-   | =:correlation-id= | nil                            | Used to set the JMSCorrelationID (see [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html#setJMSCorrelationID(java.lang.String)][setJMSCorrelationID]]) |
-   | =:host=           | nil                            | A remote HornetQ host to connect to. |
-   | =:port=           | nil, or 5445 if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
-   | =:username=       | nil                            | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
-   | =:password=       | nil                            | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
+   | =:priority=       | =4=                            | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively |
+   | =:ttl=            | =0=                            | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed. A 0 indicates that the message should be held indefinitely. |
+   | =:persistent=     | =true=                         | If true, undelivered messages survive restarts. |
+   | =:properties=     | ={}=                           | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages |
+   | =:correlation-id= | =nil=                          | Used to set the JMSCorrelationID (see [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html#setJMSCorrelationID(java.lang.String)][setJMSCorrelationID]]) |
+   | =:host=           | =nil=                          | A remote HornetQ host to connect to. |
+   | =:port=           | =nil=, or =5445= if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
+   | =:username=       | =nil=                          | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
+   | =:password=       | =nil=                          | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
    #+TBLFM: 
 
    The =:json= encoding is useful when the message consumers aren't
@@ -134,31 +134,31 @@
    | Option      | Default                        | Description                         |
    |-------------+--------------------------------+-------------------------------------|
    |             | <c>                            | <35>                                |
-   | =:timeout=  | 10000                          | An expiration in milliseconds, after which nil is returned; a value of 0 means wait forever |
-   | =:selector= | nil                            | A JMS expression used to filter messages according to the values of arbitrary =:properties= |
-   | =:decode?=  | true | If true, the decoded message body is returned. Otherwise, the javax.jms.Message object is returned |
-   | =:host=     | nil                            | A remote HornetQ host to connect to. |
-   | =:port=     | nil, or 5445 if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
-   | =:username= | nil                            | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
-   | =:password= | nil                            | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
+   | =:timeout=  | =10000=                        | An expiration in milliseconds, after which nil is returned; a value of 0 means wait forever |
+   | =:selector= | =nil=                          | A JMS expression used to filter messages according to the values of arbitrary =:properties= |
+   | =:decode?=  | =true= | If true, the decoded message body is returned. Otherwise, the javax.jms.Message object is returned |
+   | =:host=     | =nil=                          | A remote HornetQ host to connect to. |
+   | =:port=     | =nil=, or =5445= if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
+   | =:username= | =nil=                          | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
+   | =:password= | =nil=                          | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
 
    For more details on message selectors, see [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html][javax.jms.Message]]. 
 
    The =listen= method takes two parameters: the destination name and
-   a function accepting one parameter, to which will be passed the
-   decoded message. The following key/value options are also
+   a function accepting one parameter which will be applied to any
+   received message. The following key/value options are also
    available:
 
    | Option         | Default                        | Description                         |
    |----------------+--------------------------------+-------------------------------------|
    |                | <c>                            | <35>                                |
-   | =:concurrency= | 1                              | The maximum number of listening threads that can simultaneouly call the function |
-   | =:selector=    |                                | Same as =receive=                   |
-   | =:decode?=     | true                           | If true, the decoded message body is passed to f. Otherwise, the javax.jms.Message object is passed |
-   | =:host=        | nil                            | A remote HornetQ host to connect to. |
-   | =:port=        | nil, or 5445 if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
-   | =:username=    | nil                            | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
-   | =:password=    | nil                            | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
+   | =:concurrency= | =1=                            | The maximum number of listening threads that can simultaneouly call the function |
+   | =:selector=    | =nil=                          | Same as =receive=                   |
+   | =:decode?=     | =true=                         | If true, the decoded message body is passed to f. Otherwise, the javax.jms.Message object is passed |
+   | =:host=        | =nil=                          | A remote HornetQ host to connect to. |
+   | =:port=        | =nil=, or =5445= if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
+   | =:username=    | =nil=                          | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
+   | =:password=    | =nil=                          | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
 
    By default, message handlers are transactional, so the function
    invoked in response to a message effectively demarcates a
@@ -168,10 +168,9 @@
    Any messages published within the handler automatically become part
    of its transaction, by default. So they won't be delivered until
    that transaction commits. To override this behavior, wrap your
-   handler inside the =immutant.xa.transaction/not-supported= macro.
+   handler inside the [[./apidoc/immutant.messaging-api.html#immutant.xa.transaction/not-supported][immutant.xa.transaction/not-supported]] macro.
 
    See [[./transactions.html][Distributed Transactions]] for more details.
-
 
 *** Some Examples
 
@@ -212,12 +211,12 @@
    | Option     | Default | Description                         |
    |------------+---------+-------------------------------------|
    |            | <c>     | <35>                                |
-   | =:timeout= | 10000   | Time in ms for the delayed receive to wait once it it is dereferenced, after which nil is returned |
+   | =:timeout= | =10000= | Time in ms for the delayed receive to wait once it it is dereferenced, after which nil is returned |
 
 ** Respond
 
    The [[./apidoc/immutant.messaging-api.html#immutant.messaging/respond][immutant.messaging/respond]] method takes a queue, a function, and an
-   optional list of options. sets up a listener (via the =listen=
+   optional list of options. It sets up a listener (via the =listen=
    function) that applies the given function to any received message and publishes
    the result back to the queue for the delay returned by =request= to receive.
    It accepts the same options as listen.
