@@ -177,33 +177,35 @@
    Immutant specific services, like so:
 
    #+begin_src clojure
-     (ns my-app.init
-       (:require [immutant.daemons   :as daemons]
-                 [immutant.jobs      :as jobs]
-                 [immutant.messaging :as messaging]
-                 [immutant.web       :as web]
-                 [immutant.repl      :as repl]
-                 [noir.server        :as server]
-                 [my-app.core        :as core]))
+          (ns my-app.init
+            (:require [immutant.daemons   :as daemons]
+                      [immutant.jobs      :as jobs]
+                      [immutant.messaging :as messaging]
+                      [immutant.web       :as web]
+                      [immutant.repl      :as repl]
+                      [immutant.utilities :as util]
+                      [noir.server        :as server]
+                      [my-app.core        :as core]
+                      [clojure.java.io    :as io]))
+          
+          ;; point noir to the right place for views
+          (server/load-views (io/file (util/app-root) "src/my_app/views"))
+          
+          ;; start a web endpoint
+          (web/start "/" (server/gen-handler {:mode :dev :ns 'my-app}))
+          
+          ;; spin up a repl
+          (repl/start-swank 4321)
      
-     ;; point noir to the right place for views
-     (server/load-views (str (web/src-dir) "/my_app/views"))
-     
-     ;; start a web endpoint
-     (web/start "/" (server/gen-handler {:mode :dev :ns 'my-app}))
-     
-     ;; spin up a repl
-     (repl/start-swank 4321)
-
-     ;; schedule a job
-     (jobs/schedule "my-job" "*/5 * * * * ?" 
-                    my-app.core/process-tps-reports)
-     
-     ;; start a daemon
-     (deamons/start "my-daemon" core/daemon-start core/daemon-stop)
-     
-     ;; create a queue
-     (messaging/start "/queue/foo")
+          ;; schedule a job
+          (jobs/schedule "my-job" "*/5 * * * * ?" 
+                         my-app.core/process-tps-reports)
+          
+          ;; start a daemon
+          (deamons/start "my-daemon" core/daemon-start core/daemon-stop)
+          
+          ;; create a queue
+          (messaging/start "/queue/foo")
    #+end_src
 
    The services started in the above example are documented elsewhere

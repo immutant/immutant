@@ -61,15 +61,4 @@ If no sub-context-path is given, \"/\" is assumed."
            (.removeFilterMap filter-map)
            (.removeFilterDef filter-def)))
        (log/warn "Attempted to deregister ring handler at sub-context path:" sub-context-path ", but none found"))))
-
-(defmacro src-dir
-  "Find the absolute path to a sibling or parent directory, 'src' by default.
-   Useful for ring.middleware.reload-modified/wrap-reload-modified"
-  [& [dir]]
-  (let [target (or dir "src")]
-    `(loop [f# (.getParentFile (java.io.File. *file*))]
-       (if f#
-         (let [d# (java.io.File. f# ~target)]
-           (if (and (.exists d#) (.isDirectory d#))
-             (str d#)
-             (recur (.getParentFile f#)))))))) 
+ 

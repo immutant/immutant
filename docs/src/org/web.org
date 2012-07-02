@@ -163,7 +163,7 @@
   other than =:store= passed to =ring.middleware.session/wrap-session= (=:cookie-attrs=,
   =:cookie-name=, or =:root=) will therefore be ignored.
 
-* src-dir
+* Locating dirs within the application root
 
   When a web server is embedded within an application, it's fine to
   make assumptions about relative paths because the current working
@@ -176,14 +176,15 @@
   directory matches its root.
 
   But certain libraries require actual filesystem paths to directories
-  at runtime, and that's why [[./apidoc/immutant.web-api.html#immutant.web/src-dir][immutant.web/src-dir]] exists: it returns
-  the absolute path to a directory relative to the location of the
-  file in which it's called. That sounds complicated enough for an
-  example, right?
+  at runtime, so you need to be able to determine the path to the 
+  application root. You can do so via the [[./apidoc/immutant.utilities.html#immutant.utilities/app-root][immutant.utilities/app-root]] 
+  function.
+
+** An example
 
   This won't work on Immutant because "src" is a relative path, and it
   will resolve relative to the server's working directory, not the
-  app's:
+  application's:
 
   #+begin_src clojure
     (use 'ring.middleware.reload-modified)
@@ -195,6 +196,10 @@
   But this *will* work on Immutant, because it returns an absolute path:
 
   #+begin_src clojure
+    (use 'ring.middleware.reload-modified)
+    (require '[immutant.utilites :as util]
+             '[clojure.java.io :as io])
+    
     (def app
-      (wrap-reload-modified #'handler [(web/src-dir)]))
+      (wrap-reload-modified #'handler [(io/file (app/root) "src")]))
   #+end_src
