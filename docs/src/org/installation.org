@@ -62,8 +62,8 @@
 * Installation via Zip Download
 
   You can manually download any of the same builds that you can install 
-  via the plugin. You can download incremental builds from our [[http://immutant.org/builds/][builds page]],
-  and an official release from its release announcement on [[http://immutant.org/][immutant.org]]. 
+  via the plugin. You can download incremental builds from our [[http://immutant.org/builds/][builds page]]
+  and an official releases from our [[http://immutant.org/releases/][releases page]].
   
   Once you have the zip downloaded, expand it somewhere handy. If you want
   to use the Leiningen plugin with this build, you'll need to set =$IMMUTANT_HOME=:
