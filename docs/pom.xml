@@ -154,25 +154,24 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.3</version>
         <configuration>
-          <classesDirectory>target</classesDirectory>
-          <includes>
-            <include>html/**</include>
-          </includes>
+          <descriptors>
+            <descriptor>src/main/assembly/zip.xml</descriptor>
+          </descriptors>
         </configuration>
         <executions>
           <execution>
-            <id>generate-jar</id>
-            <phase>compile</phase>
+            <id>make-assembly</id> 
+            <phase>package</phase> 
             <goals>
-              <goal>jar</goal>
+              <goal>single</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
+
     </plugins>
   </build>
 
