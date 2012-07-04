@@ -18,7 +18,8 @@
 (ns immutant.utilities
   "Various utility functions."
   (:require [immutant.registry :as lookup]
-            [clojure.string    :as str])
+            [clojure.string    :as str]
+            [clojure.java.io :as io])
   (:import org.immutant.core.Closer))
 
 (defn app-root
@@ -31,6 +32,10 @@
   []
   (lookup/fetch "app-name"))
 
+(defn app-relative
+  "Returns a file relative to app-root"
+  [& path]
+  (apply io/file (app-root) path))
 
 (defn at-exit
   "Registers a function to be called when the application is undeployed.

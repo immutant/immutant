@@ -18,8 +18,7 @@
 (ns immutant.runtime
   "This namespace is solely for use during the application runtime
 bootstrapping process. Applications shouldn't use anything here."
-  (:require [clojure.java.io       :as io]
-            [clojure.string        :as str]
+  (:require [clojure.string        :as str]
             [clojure.tools.logging :as log]
             [immutant.repl         :as repl]
             [immutant.utilities    :as util]
@@ -41,7 +40,7 @@ bootstrapping process. Applications shouldn't use anything here."
 tries to load an immutant.clj from the app-root. In either case, post-initialize is called
 to finalize initialization."
   [init-fn config-hash]
-  (let [init-file (io/file (util/app-root) "immutant.clj")
+  (let [init-file (util/app-relative "immutant.clj")
         init-file-exists (.exists init-file)]
     (if init-fn
       (do
