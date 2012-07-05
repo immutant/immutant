@@ -7,8 +7,41 @@
   similar to what the [[http://torquebox.org][TorqueBox]] project does for Ruby applications.
   
   Immutant reduces the *incidental complexity* (a.k.a. [[http://en.wikipedia.org/wiki/No_Silver_Bullet][accidental]])
-  inherent in non-trivial applications by providing integrated
-  solutions for web, messaging, scheduling, caching, clustering, and
-  more. This frees the developer from having to build a unique stack
-  from scratch, not to mention the responsibility of supporting the
-  evolution of that stack as the application requirements expand.
+  inherent in non-trivial applications by providing an integrated
+  platform for [[./web.html][web]], [[./messaging.html][messaging]], [[./jobs.html][scheduling]], [[./caching.html][caching]], [[./daemons.html][daemons]],
+  [[./transactions.html][transactions]], and more. This frees the developer from having to
+  build a unique stack from scratch, not to mention the responsibility
+  of supporting the evolution of that stack as the application
+  requirements expand.
+
+  The Immutant API's are comprised of functions whose side effects
+  trigger the services provided by the app server. For example:
+
+  #+begin_src clojure
+    ;;; Mount a Ring handler, i.e. a web app
+    (immutant.web/start "/" your.web/app)
+    
+    ;;; Start a message queue
+    (immutant.messaging/start "/queue/tweets")
+    
+    ;;; Map a listener to the queue
+    (immutant.messaging/listen "/queue/tweets" your.msg/handler)
+    
+    ;;; Schedule a recurring job to run at midnight
+    (immutant.jobs/schedule "housekeeper" "0 0 0 * * ?" your.job/purge)
+    
+    ;;; Create a distributed data grid
+    (def data-grid (immutant.cache/cache "tweets" :mode :distributed))
+  #+end_src
+
+  All of the above functions are dynamic, meaning you can call them
+  from anywhere within your application. *There are no XML or YAML
+  config files, only Clojure.*
+
+  Leiningen applications may be deployed directly from disk using a
+  convenient Immutant plugin, so *there is no need to package your app
+  into a war file in order to deploy it.*
+
+  Further, Immutant enables [[./interactive.html][interactive, REPL-based development]],
+  allowing you to *manipulate your application while it's running in
+  the app server.*
