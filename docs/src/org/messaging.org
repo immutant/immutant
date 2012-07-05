@@ -192,6 +192,9 @@
     #+end_src
 
 * Request/Response
+   :PROPERTIES:
+   :CUSTOM_ID: messaging-request-response
+   :END:
 
   Immutant also provides an implementation of the [[http://en.wikipedia.org/wiki/Request-response][request/response]] pattern 
   for synchronous work distribution. This feature is provided by two 
