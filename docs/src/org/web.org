@@ -197,8 +197,7 @@
 
   #+begin_src clojure
     (use 'ring.middleware.reload-modified)
-    (require '[immutant.utilites :as util]
-             '[clojure.java.io :as io])
+    (require '[immutant.utilites :as util])
     
     (def app
       (wrap-reload-modified #'handler [(app/relative "src")]))

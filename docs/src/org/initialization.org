@@ -185,8 +185,7 @@
                  [immutant.repl      :as repl]
                  [immutant.utilities :as util]
                  [noir.server        :as server]
-                 [my-app.core        :as core]
-                 [clojure.java.io    :as io]))
+                 [my-app.core        :as core]))
      
      ;; point noir to the right place for views
      (server/load-views (util/app-relative "src/my_app/views"))
@@ -198,8 +197,7 @@
      (repl/start-swank 4321)
           
      ;; schedule a job
-     (jobs/schedule "my-job" "*/5 * * * * ?" 
-                    my-app.core/process-tps-reports)
+     (jobs/schedule "my-job" "*/5 * * * * ?" core/process-tps-reports)
      
      ;; start a daemon
      (deamons/start "my-daemon" core/daemon-start core/daemon-stop)
