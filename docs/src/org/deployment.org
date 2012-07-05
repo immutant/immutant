@@ -2,11 +2,10 @@
 
 * Introduction
   
-  Applications can be deployed to Immutant as a directory on disk, or as an
-  archive. The actual deployment process can be done manually or using the
-  =lein-immutant= Leiningen plugin. 
-
-  See the [[./installation.html][Installation]] chapter for details on how to install the plugin.
+  Applications can be deployed to Immutant as a directory on disk, or
+  as an archive. The actual deployment process can be done manually or
+  using the =lein-immutant= Leiningen plugin. See the [[./installation.html][Installation]]
+  chapter for details on how to install the plugin.
 
 * Manually Deploying Artifacts
 
@@ -105,3 +104,15 @@
   or the path to an =.ima= archive. For details on the format of the deployment
   descriptor, see [[./initialization.html#initialization-configuration][Configuration Options]]. 
 
+* Running Immutant
+
+  Regardless of how you deploy your app, it will only run if Immutant
+  itself is running. This is easily accomplished using the plugin:
+
+  #+begin_src sh
+    $ lein immutant run
+  #+end_src
+
+  Simply type Ctrl-c to exit, but you may as well leave it up. You can
+  deploy and undeploy as many applications as your RAM will allow to a
+  single Immutant instance.
