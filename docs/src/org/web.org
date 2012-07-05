@@ -177,7 +177,7 @@
 
   But certain libraries require actual filesystem paths to directories
   at runtime, so you need to be able to determine the path to the 
-  application root. You can do so via the [[./apidoc/immutant.utilities.html#immutant.utilities/app-root][immutant.utilities/app-root]] 
+  application root. You can do so via the [[./apidoc/immutant.utilities.html#immutant.utilities/app-relative][immutant.utilities/app-relative]] 
   function.
 
 ** An example
@@ -201,5 +201,5 @@
              '[clojure.java.io :as io])
     
     (def app
-      (wrap-reload-modified #'handler [(io/file (app/root) "src")]))
+      (wrap-reload-modified #'handler [(app/relative "src")]))
   #+end_src
