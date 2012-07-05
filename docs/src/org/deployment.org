@@ -116,3 +116,15 @@
   Simply type Ctrl-c to exit, but you may as well leave it up. You can
   deploy and undeploy as many applications as your RAM will allow to a
   single Immutant instance.
+
+  It's also possible to run Immutant in "clustered" mode. Doing so in
+  a network with multicast enabled causes Immutants to discover each
+  other and, for example, easily distribute work via a message queue
+  across a linearly-scalable data grid.
+
+  Just by doing this:
+
+  #+begin_src sh
+    $ lein immutant run --clustered
+  #+end_src
+
