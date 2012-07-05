@@ -39,8 +39,13 @@
   config files, only Clojure.*
 
   Leiningen applications may be deployed directly from disk using a
-  convenient Immutant plugin, so *there is no need to package your app
+  convenient [[./deployment.html][Immutant plugin]], so *there is no need to package your app
   into a war file in order to deploy it.*
+
+  Multiple applications can be deployed to the same Immutant instance
+  and are each given *a fully isolated Clojure runtime* that allows the
+  application to load its own versions of its dependencies (including
+  Clojure itself) without affecting other applications.
 
   Further, Immutant enables [[./interactive.html][interactive, REPL-based development]],
   allowing you to *manipulate your application while it's running in
