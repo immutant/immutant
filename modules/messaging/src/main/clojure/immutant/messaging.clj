@@ -19,7 +19,7 @@
   "Easily publish and receive messages containing any type of nested
    data structure to dynamically-created topics and queues. Message
    distribution is automatically load-balanced when clustered."
-  (:use [immutant.utilities :only (at-exit map-to-seq)]
+  (:use [immutant.utilities :only (at-exit mapply)]
         [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]))
 
@@ -140,13 +140,13 @@ In addition to the same options as publish, it also accepts [default]:
              dereferenced, after which nil is returned [10000]"
   [queue message & {:as opts}]
   {:pre [(queue? queue)]}
-  (let [^javax.jms.Message message (apply publish queue message
-                       (map-to-seq
-                        (update-in opts [:properties] #(merge % {"synchronous" "true"}))))]
+  (let [^javax.jms.Message message (mapply publish queue message
+                                           (update-in opts [:properties]
+                                                      #(merge % {"synchronous" "true"})))]
     (delay
-     (apply receive queue
-            (map-to-seq (assoc opts
-                          :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'")))))))
+     (mapply receive queue
+             (assoc opts
+               :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'"))))))
 
 (defn respond
   "Listen for messages on queue sent by the request function and respond with the 
@@ -159,11 +159,11 @@ queue or a javax.jms.Queue. Accepts the same options as listen."
                      (f (codecs/decode-if decode? msg))
                      :correlation-id (.getJMSMessageID msg)
                      :encoding (codecs/get-encoding msg)))]
-    (apply listen queue respond*
-           (map-to-seq (assoc (update-in opts [:selector]
-                                         #(str "synchronous = 'true'"
-                                               (when % (str " and " %))))
-                         :decode? false)))))
+    (mapply listen queue respond*
+            (assoc (update-in opts [:selector]
+                              #(str "synchronous = 'true'"
+                                    (when % (str " and " %))))
+              :decode? false))))
 
 (defn unlisten
   "Pass the result of a call to listen or respond to de-register the handler.

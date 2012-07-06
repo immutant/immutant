@@ -85,7 +85,7 @@ Used internally to shutdown various services, but can be used by application cod
       (throw (IllegalArgumentException.
               "Unable to resolve a valid symbol from the given list.")))))
 
-(defn map-to-seq
-  "Takes a map and returns a sequence of (k1 v1 k2 v2...)"
-  [m]
-  (interleave (keys m) (vals m)))
+(defn mapply [f & args]
+  "Applies args to f, and expands the last arg into a kwarg seq if it is a map"
+  (apply f (apply concat (butlast args) (last args))))
+
