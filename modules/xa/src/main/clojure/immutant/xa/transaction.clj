@@ -59,7 +59,8 @@
 
 ;;; Monkey-patchery to prevent calls to setAutoCommit/commit/rollback on connection
 (in-ns 'clojure.java.jdbc)
-(def ^{:dynamic true} xa-transaction* nil)
+;; we def here and alter-var-root later to work around CLJ-876 under 1.3
+(def ^{:dynamic true} xa-transaction* nil) 
 (clojure.core/refer 'clojure.core :exclude '[resultset-seq])
 (try
   (use '[clojure.java.jdbc :only [transaction*]])
