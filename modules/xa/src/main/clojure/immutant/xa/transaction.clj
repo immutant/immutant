@@ -59,10 +59,11 @@
 
 ;;; Monkey-patchery to prevent calls to setAutoCommit/commit/rollback on connection
 (in-ns 'clojure.java.jdbc)
+(def ^{:dynamic true} xa-transaction* nil)
 (clojure.core/refer 'clojure.core :exclude '[resultset-seq])
 (try
   (use '[clojure.java.jdbc :only [transaction*]])
-  (def ^{:dynamic true} xa-transaction* @(resolve 'transaction*))
+  (alter-var-root #'xa-transaction* (constantly @(resolve 'transaction*)))
   (defn transaction* [& args] (apply xa-transaction* args))
   (catch Throwable e
     (clojure.tools.logging/warn "Using XA with java.jdbc 0.1.x is not supported:" (.getMessage e))))
