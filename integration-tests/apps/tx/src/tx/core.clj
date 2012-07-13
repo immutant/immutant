@@ -59,7 +59,7 @@
      (imsg/publish "/queue/remote-test" "starfruit" :host "localhost" :port 5445)
      (ic/put cache :a 1)
      (if f (f)))
-    (catch Exception _)))
+    (catch Exception e (println "JC: wtf?" (.getMessage e)))))
 
 (defn verify-transaction-success [ds]
   (is (= "kiwi" (imsg/receive "/queue/test" :timeout 2000)))

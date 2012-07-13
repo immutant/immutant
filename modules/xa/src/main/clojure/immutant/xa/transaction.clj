@@ -17,8 +17,8 @@
 
 (ns immutant.xa.transaction
   "Fine-grained XA transactional control"
-  (:use [clojure.java.jdbc :only [transaction*]])
-  (:require [immutant.registry :as lookup]))
+  (:require [immutant.registry :as lookup]
+            clojure.tools.logging))
 
 (def ^javax.transaction.TransactionManager
   manager (lookup/fetch "jboss.txn.TransactionManager"))
@@ -59,8 +59,13 @@
 
 ;;; Monkey-patchery to prevent calls to setAutoCommit/commit/rollback on connection
 (in-ns 'clojure.java.jdbc)
-(def ^{:dynamic true} xa-transaction* transaction*)
-(defn transaction* [& args] (apply xa-transaction* args))
+(clojure.core/refer 'clojure.core :exclude '[resultset-seq])
+(try
+  (use '[clojure.java.jdbc :only [transaction*]])
+  (def ^{:dynamic true} xa-transaction* @(resolve 'transaction*))
+  (defn transaction* [& args] (apply xa-transaction* args))
+  (catch Throwable e
+    (clojure.tools.logging/warn "Using XA with java.jdbc 0.1.x is not supported:" (.getMessage e))))
 (in-ns 'immutant.xa.transaction)
 
 
