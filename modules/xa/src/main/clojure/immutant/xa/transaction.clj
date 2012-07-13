@@ -59,15 +59,18 @@
 
 ;;; Monkey-patchery to prevent calls to setAutoCommit/commit/rollback on connection
 (in-ns 'clojure.java.jdbc)
-;; we def here and alter-var-root later to work around CLJ-876 under 1.3
-(def ^{:dynamic true} xa-transaction* nil) 
 (clojure.core/refer 'clojure.core :exclude '[resultset-seq])
+;; we def here and intern the root value later to work around CLJ-876 under 1.3
+(def ^{:dynamic true} xa-transaction* nil)
 (try
+  ;; assume 0.2.x
   (use '[clojure.java.jdbc :only [transaction*]])
-  (alter-var-root #'xa-transaction* (constantly @(resolve 'transaction*)))
-  (defn transaction* [& args] (apply xa-transaction* args))
   (catch Throwable e
-    (clojure.tools.logging/warn "Using XA with java.jdbc 0.1.x is not supported:" (.getMessage e))))
+    ;; fall back to 0.1.x
+    (use '[clojure.java.jdbc.internal :only [transaction*]])))
+(intern *ns* 'xa-transaction* @(resolve 'transaction*))
+(intern (or (find-ns 'clojure.java.jdbc.internal) 'clojure.java.jdbc)
+        'transaction* (fn [& args] (apply xa-transaction* args)))
 (in-ns 'immutant.xa.transaction)
 
 
