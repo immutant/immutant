@@ -160,6 +160,11 @@
 (defn disable-hq-security [loc]
   (zip/append-child loc {:tag :security-enabled :content ["false"]}))
 
+(defn disable-flow-control
+  "Assumes loc is :jms-connection-factories and its first child is the in-vm one"
+  [loc]
+  (zip/append-child (zip/down loc) {:tag :consumer-window-size :content ["1"]}))
+
 (defn looking-at? [tag loc]
   (= tag (:tag (zip/node loc))))
 
@@ -188,6 +193,7 @@
              (looking-at? :max-size-bytes loc) (zip/edit loc assoc :content ["20971520"])
              (looking-at? :address-full-policy loc) (zip/edit loc assoc :content ["PAGE"])
              (looking-at? :hornetq-server loc) (disable-hq-security loc)
+             (looking-at? :jms-connection-factories loc) (disable-flow-control loc)
              :else loc)))))
   
 (defn transform-config [file]
