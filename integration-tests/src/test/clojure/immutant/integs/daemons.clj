@@ -26,7 +26,14 @@
                        }))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/daemons")]
-    ;; (println "RESPONSE" result)
-    (is (> (read-string (:body result)) 0))))
+  (let [result (client/get "http://localhost:8080/daemons")
+        body (read-string (:body result))]
+    ;;(println "RESPONSE" result)
+    (is (> (:value body) 0))))
+
+(deftest the-daemon-should-be-using-the-deployment-classloader
+  (let [result (client/get "http://localhost:8080/daemons")
+        body (read-string (:body result))]
+    ;;(println "RESPONSE" result)
+    (is (re-seq #"deployment\..*\.clj" (:loader body)))))
 

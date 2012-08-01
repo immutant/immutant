@@ -17,32 +17,22 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.daemons;
+package org.immutant.core;
 
-import org.immutant.core.ClassLoaderUtils;
-import org.immutant.daemons.as.DaemonServices;
+import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.jboss.msc.service.ServiceName;
-import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
+import org.jboss.modules.Module;
 
+public class ClassLoaderUtils {
 
-public class Daemonizer extends AtRuntimeInstaller<Daemonizer> {
-
-    public Daemonizer(DeploymentUnit unit) {
-        super( unit );
-    }
-
-    public Daemon createDaemon(final String daemonName, Runnable start, Runnable stop, boolean singleton) {
-
-        Daemon daemon = new Daemon(ClassLoaderUtils.getModuleLoader( getUnit() ), start, stop);
-        ServiceName serviceName = DaemonServices.daemon( getUnit(), daemonName );
-        
-        deploy( serviceName, daemon, singleton );
-
-        installMBean( serviceName, "immutant.daemons", daemon );
-
-        return daemon;
-
+    public static ClassLoader getModuleLoader(DeploymentUnit unit) {
+        Module module = unit.getAttachment( Attachments.MODULE );
+        if (module != null) {
+            return module.getClassLoader();
+        } else {
+            // this won't happen in production, but helps testing    
+            return ClassLoaderUtils.class.getClassLoader(); 
+        }
     }
     
 }

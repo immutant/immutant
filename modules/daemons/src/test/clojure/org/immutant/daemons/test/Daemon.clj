@@ -31,9 +31,11 @@
 
 (def ^:dynamic *daemon*)
 
+(def loader (.getClassLoader Daemon))
+
 (use-fixtures :each
               (fn [f]
-                (binding [*daemon* (Daemon. start stop)]
+                (binding [*daemon* (Daemon. loader start stop)]
                   (reset! daemon-status "not-started")
                   (f))))
 
@@ -55,7 +57,7 @@
   (is (= "not-started" @daemon-status)))
 
 (deftest stop-should-not-raise-if-no-stop-function-provided
-  (binding [*daemon* (Daemon. start-daemon nil)]
+  (binding [*daemon* (Daemon. loader start-daemon nil)]
     (is (not-thrown? Exception (.stop *daemon*)))))
 
 (deftest it-should-be-started-after-start
@@ -72,7 +74,7 @@
   (is (= "STOPPED" (.getStatus *daemon*))))
 
 (deftest it-should-not-be-stopped-after-stop-if-no-stop-function-provided
-  (binding [*daemon* (Daemon. start nil)]
+  (binding [*daemon* (Daemon. loader start nil)]
     (start-daemon)
     (.stop *daemon*)
     (is-not (.isStopped *daemon*))

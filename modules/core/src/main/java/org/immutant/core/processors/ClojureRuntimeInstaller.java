@@ -19,6 +19,7 @@
 
 package org.immutant.core.processors;
 
+import org.immutant.core.ClassLoaderUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.JarMountMap;
 import org.immutant.core.VFSStrippingClassLoader;
@@ -50,14 +51,8 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
             return;
         }
         
-        Module module = deploymentUnit.getAttachment( Attachments.MODULE );
-        ClassLoader loader;
-        if (module != null) {
-            loader = module.getClassLoader();
-        } else {
-            // this won't happen in production, but helps testing    
-            loader = this.getClass().getClassLoader(); 
-        }
+       ClassLoader loader = ClassLoaderUtils.getModuleLoader( deploymentUnit );
+       
         ClojureRuntime runtime = ClojureRuntime.newRuntime( new VFSStrippingClassLoader( loader, deploymentUnit.getAttachment( JarMountMap.ATTACHMENT_KEY ) ), deploymentUnit.getName() );
         runtime.invoke( "immutant.registry/set-msc-registry", deploymentUnit.getServiceRegistry() );
         

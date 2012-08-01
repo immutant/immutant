@@ -28,13 +28,15 @@ import org.jboss.msc.service.StopContext;
 
 public class Daemon implements DaemonMBean, Service<Daemon> {
     
-    public Daemon(Runnable startFunction, Runnable stopFunction) {
+    public Daemon(ClassLoader loader, Runnable startFunction, Runnable stopFunction) {
+        this.classLoader = loader;
         this.startFunction = startFunction;
         this.stopFunction = stopFunction;
     }
 
     public void start() {
         this.thread = new Thread( this.startFunction );
+        this.thread.setContextClassLoader( this.classLoader );
         this.thread.start();
     }
 
@@ -97,6 +99,7 @@ public class Daemon implements DaemonMBean, Service<Daemon> {
 
     private int THREAD_TIMEOUT = 20000;
     private Thread thread;
+    private ClassLoader classLoader;
     private Runnable startFunction;
     private Runnable stopFunction;
 
