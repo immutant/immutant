@@ -66,7 +66,7 @@
       (.start))))
 
 (defn clustered-cache
-  [name & {:keys [mode sync] :or {mode :invalidated}}]
+  [name & {:keys [mode sync] :or {mode :invalidated sync true}}]
   (if (.isRunning clustered-manager name)
     (reconfigure name (cache-mode mode sync))
     (configure name (cache-mode mode sync))))
