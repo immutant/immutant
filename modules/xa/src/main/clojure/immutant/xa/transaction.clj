@@ -21,7 +21,7 @@
             [clojure.tools.logging :as log]
             clojure.java.jdbc))
 
-(if (ns-resolve 'clojure.java.jdbc 'with-transaction-strategy)
+(if (resolve 'clojure.java.jdbc/with-transaction-strategy)
   (log/info "Using proper version of java.jdbc to set transaction strategy")
   (try
     (require 'immutant.xa.jdbc-2)
