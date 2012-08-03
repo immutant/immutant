@@ -19,6 +19,8 @@
 
 package org.immutant.core;
 
+import java.util.concurrent.Callable;
+
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.modules.Module;
@@ -27,12 +29,24 @@ public class ClassLoaderUtils {
 
     public static ClassLoader getModuleLoader(DeploymentUnit unit) {
         Module module = unit.getAttachment( Attachments.MODULE );
+        
         if (module != null) {
-            return module.getClassLoader();
+            return new VFSStrippingClassLoader( module.getClassLoader(), 
+                    unit.getAttachment( JarMountMap.ATTACHMENT_KEY ) );    
         } else {
             // this won't happen in production, but helps testing    
             return ClassLoaderUtils.class.getClassLoader(); 
         }
     }
     
+    @SuppressWarnings("rawtypes")
+    public static Object callInLoader(Callable body, ClassLoader loader) throws Exception {
+        ClassLoader originalCl = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader( loader );
+            return body.call();
+        } finally {
+            Thread.currentThread().setContextClassLoader( originalCl );
+        }
+    }
 }

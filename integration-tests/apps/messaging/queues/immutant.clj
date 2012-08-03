@@ -8,3 +8,11 @@
 (msg/start "/queue/bam")
 (msg/start "/queue/hiscuit")
 
+(msg/start "/queue/loader")
+(msg/start "/queue/loader-result")
+(msg/listen "/queue/loader"
+            (fn [_]
+              (msg/publish "/queue/loader-result"
+                           (-> (Thread/currentThread)
+                               .getContextClassLoader
+                               .toString))))

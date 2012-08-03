@@ -65,6 +65,10 @@ public class VFSStrippingClassLoader extends ClassLoader {
         return url;
     }
 
+    public String toString() {
+        return VFSStrippingClassLoader.class.getName() + "[" + getParent().toString() + "]";
+    }
+    
     private JarMountMap mountMap;
     
 }

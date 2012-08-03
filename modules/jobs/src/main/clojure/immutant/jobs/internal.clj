@@ -66,7 +66,9 @@ A singleton scheduler will participate in a cluster, and will only execute its j
           (start []
             (wait-for-scheduler
              scheduler
-             #(.addJob scheduler name (ClojureJob. f)))
+             #(.addJob scheduler
+                       name
+                       (ClojureJob. f (.getContextClassLoader (Thread/currentThread)))))
             (let [^BaseScheduledJob this this] ;; hack to eliminate reflection
               (proxy-super start)))
           (getScheduler []

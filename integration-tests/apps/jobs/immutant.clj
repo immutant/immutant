@@ -5,9 +5,11 @@
 
 (def a-value (atom 0))
 (def another-value (atom 0))
+(def loader (atom nil))
 
 (job/schedule "a-job" "*/1 * * * * ?" (fn []
                                         (println "a-job firing")
+                                        (reset! loader (.toString (.getContextClassLoader (Thread/currentThread))))
                                         (swap! a-value inc)))
 (job/schedule "another-job" "*/1 * * * * ?" (fn []
                                               (println "another-job firing")
@@ -18,7 +20,7 @@
     (job/schedule "another-job" "*/1 * * * * ?" #(reset! another-value "rescheduled")))
   {:status 200
    :headers {"Content-Type" "text/plain"}
-   :body (with-out-str (pr {:a-value @a-value :another-value @another-value}))})
+   :body (pr-str {:a-value @a-value :another-value @another-value :loader @loader})})
 
 (web/start "/" handler)
 

@@ -21,17 +21,13 @@ package org.immutant.core.processors;
 
 import org.immutant.core.ClassLoaderUtils;
 import org.immutant.core.ClojureMetaData;
-import org.immutant.core.JarMountMap;
-import org.immutant.core.VFSStrippingClassLoader;
 import org.immutant.core.as.CoreServices;
 import org.immutant.runtime.ClojureRuntime;
-import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.logging.Logger;
-import org.jboss.modules.Module;
 import org.jboss.msc.service.ServiceController.Mode;
 
 /**
@@ -53,7 +49,7 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
         
        ClassLoader loader = ClassLoaderUtils.getModuleLoader( deploymentUnit );
        
-        ClojureRuntime runtime = ClojureRuntime.newRuntime( new VFSStrippingClassLoader( loader, deploymentUnit.getAttachment( JarMountMap.ATTACHMENT_KEY ) ), deploymentUnit.getName() );
+        ClojureRuntime runtime = ClojureRuntime.newRuntime( loader, deploymentUnit.getName() );
         runtime.invoke( "immutant.registry/set-msc-registry", deploymentUnit.getServiceRegistry() );
         
         deploymentUnit.putAttachment( ClojureRuntime.ATTACHMENT_KEY, runtime );

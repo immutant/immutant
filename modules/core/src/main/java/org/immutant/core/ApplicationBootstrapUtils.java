@@ -92,12 +92,6 @@ public class ApplicationBootstrapUtils {
 
     @SuppressWarnings("rawtypes")
     private static Object inCL(Callable body) throws Exception {
-        ClassLoader originalCl = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader( Var.class.getClassLoader() );
-            return body.call();
-        } finally {
-            Thread.currentThread().setContextClassLoader( originalCl );
-        }
+       return ClassLoaderUtils.callInLoader( body, Var.class.getClassLoader() );
     }
 }

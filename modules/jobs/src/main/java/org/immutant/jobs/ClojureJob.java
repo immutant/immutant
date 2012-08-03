@@ -21,6 +21,7 @@ package org.immutant.jobs;
 
 import java.util.concurrent.Callable;
 
+import org.immutant.core.ClassLoaderUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -28,18 +29,20 @@ import org.quartz.StatefulJob;
 
 public class ClojureJob implements Job, StatefulJob {
 
-    public ClojureJob(Callable<?> fn) {
+    public ClojureJob(Callable<?> fn, ClassLoader loader) {
         this.fn = fn;
+        this.loader = loader;
     }
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
-             fn.call();
+             ClassLoaderUtils.callInLoader( this.fn, this.loader );
          } catch (Exception e) {
         	 throw new JobExecutionException( e );
          } 
     }
 
     private Callable<?> fn;
+    private ClassLoader loader;
 }

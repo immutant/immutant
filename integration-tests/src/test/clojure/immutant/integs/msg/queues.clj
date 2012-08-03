@@ -48,10 +48,6 @@
     (publish ham-queue message :encoding :json)
     (is (= (receive ham-queue :timeout 60000) message))))
 
-(deftest trigger-processor-to-log-something
-  (publish biscuit-queue "foo")
-  (is (= "FOO" (receive ham-queue :timeout 60000))))
-
 (deftest lazy-message-seq
   (let [messages (message-seq ham-queue)]
     (doseq [i (range 4)] (publish ham-queue i))

@@ -15,26 +15,38 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.daemons
+(ns immutant.integs.msg.listen
   (:use fntest.core
         clojure.test
-        immutant.integs.integ-helper)
-  (:require [clj-http.client :as client]))
+        immutant.messaging
+        immutant.integs.integ-helper))
+
+(def ham-queue "/queue/ham")
+(def biscuit-queue "/queue/biscuit")
+(def bam-queue "/queue/bam")
+(def hiscuit-queue "/queue/hiscuit")
+(def loader-queue "/queue/loader")
+(def loader-result-queue "/queue/loader-result")
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "target/apps/daemons/"
+                       :root "target/apps/messaging/queues"
                        }))
 
-(deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/daemons")
-        body (read-string (:body result))]
-    ;;(println "RESPONSE" result)
-    (is (> (:value body) 0))))
+(deftest listen-should-work
+  (publish biscuit-queue "foo")
+  (is (= "FOO" (receive ham-queue :timeout 60000))))
 
-(deftest the-daemon-should-be-using-the-deployment-classloader
-  (let [result (client/get "http://localhost:8080/daemons")
-        body (read-string (:body result))]
-    ;;(println "RESPONSE" result)
-    (is (re-seq deployment-class-loader-regex (:loader body)))))
+(deftest remote-listen-should-work
+  (listen bam-queue
+          (fn [m]
+            (publish hiscuit-queue m))
+          :host "integ-app1.torquebox.org" :port 5445)
+  (publish bam-queue "listen-up")
+  (is (= (receive hiscuit-queue :timeout 60000) "listen-up")))
+
+(deftest the-listener-should-be-using-the-deployment-classloader
+  (publish loader-queue "whatevs")
+  (is (re-seq deployment-class-loader-regex
+              (receive loader-result-queue :timeout 60000))))
 

@@ -16,8 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.jobs
-  (:use [fntest.core])
-  (:use clojure.test)
+  (:use fntest.core
+        clojure.test
+        immutant.integs.integ-helper)
   (:require [clj-http.client :as client]))
 
 (use-fixtures :once (with-deployment *file*
@@ -47,3 +48,6 @@
   (Thread/sleep 2000)
   (is (= (:another-value (get-values)) "rescheduled")))
 
+(deftest a-job-should-be-using-the-deployment-classloader
+  (is (re-seq deployment-class-loader-regex
+              (:loader (get-values)))))
