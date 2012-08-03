@@ -18,7 +18,17 @@
 (ns immutant.xa.transaction
   "Fine-grained XA transactional control"
   (:require [immutant.registry :as lookup]
-            clojure.tools.logging))
+            [clojure.tools.logging :as log]
+            clojure.java.jdbc))
+
+(if (ns-resolve 'clojure.java.jdbc 'with-transaction-strategy)
+  (log/info "Using proper version of java.jdbc to set transaction strategy")
+  (try
+    (require 'immutant.xa.jdbc-2)
+    (log/warn "Patching java.jdbc 0.2.x to set transaction strategy")
+    (catch Throwable e
+      (require 'immutant.xa.jdbc-1)
+      (log/warn "Patching java.jdbc 0.1.x to set transaction strategy"))))
 
 (def ^javax.transaction.TransactionManager
   manager (lookup/fetch "jboss.txn.TransactionManager"))
@@ -57,21 +67,10 @@
                               (beforeCompletion [_])
                               (afterCompletion [_ _] (f)))))
 
-;;; Monkey-patchery to prevent calls to setAutoCommit/commit/rollback on connection
-(in-ns 'clojure.java.jdbc)
-(clojure.core/refer 'clojure.core :exclude '[resultset-seq])
-;; we def here and intern the root value later to work around CLJ-876 under 1.3
-(def ^{:dynamic true} xa-transaction* nil)
-(try
-  ;; assume 0.2.x
-  (use '[clojure.java.jdbc :only [transaction*]])
-  (catch Throwable e
-    ;; fall back to 0.1.x
-    (use '[clojure.java.jdbc.internal :only [transaction*]])))
-(intern *ns* 'xa-transaction* @(resolve 'transaction*))
-(intern (or (find-ns 'clojure.java.jdbc.internal) 'clojure.java.jdbc)
-        'transaction* (fn [& args] (apply xa-transaction* args)))
-(in-ns 'immutant.xa.transaction)
+(defn no-tx-strategy
+  "Pass this to java.jdbc to prevent it from managing the tx on its connection"
+  [f]
+  (f))
 
 
 ;;; The functions that enable the various transactional scope macros
@@ -79,7 +78,7 @@
 (defn begin
   "Begin, invoke func, commit, rollback if error"
   [func]
-  (binding [clojure.java.jdbc/xa-transaction* (fn [f] (f))]
+  (clojure.java.jdbc/with-transaction-strategy no-tx-strategy
     (.begin manager)
     (try
       (let [result (func)]
