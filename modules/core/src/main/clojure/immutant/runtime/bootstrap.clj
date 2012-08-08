@@ -29,11 +29,6 @@
            java.util.ArrayList
            org.sonatype.aether.resolution.DependencyResolutionException))
 
-(extend-type org.jboss.modules.ModuleClassLoader
-  pomegranate/URLClasspath
-  (can-modify? [this] false)
-  (add-url [this _]))
-
 (defn ^{:private true} stringify-symbol
   "Turns a symbol into a namspace/name string."
   [sym]
