@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.module.ModuleRootMarker;
