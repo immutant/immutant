@@ -20,15 +20,13 @@
 package org.immutant.core.processors;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.immutant.core.ApplicationBootstrapUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
-import org.immutant.core.JarMountMap;
+import org.immutant.core.TmpResourceMounter;
 import org.immutant.core.as.CoreServices;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
@@ -37,12 +35,9 @@ import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.as.server.deployment.annotation.CompositeIndex;
 import org.jboss.as.server.deployment.module.ModuleRootMarker;
-import org.jboss.as.server.deployment.module.MountHandle;
 import org.jboss.as.server.deployment.module.ResourceRoot;
-import org.jboss.as.server.deployment.module.TempFileProviderService;
 import org.jboss.logging.Logger;
 import org.jboss.vfs.VFS;
-import org.jboss.vfs.VirtualFile;
 import org.projectodd.polyglot.core.as.ArchivedDeploymentMarker;
 
 public class AppDependenciesProcessor implements DeploymentUnitProcessor {
@@ -58,10 +53,10 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
             return;
         }
 
+        TmpResourceMounter mounter = (TmpResourceMounter)unit.getServiceRegistry()
+                .getService( CoreServices.tmpResourceMounter( unit ) ).getValue();
+        
         File root = metaData.getRoot();
-
-        JarMountMap mountMap = new JarMountMap();
-        unit.putAttachment( JarMountMap.ATTACHMENT_KEY, mountMap );
         
         try {
             List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, 
@@ -74,7 +69,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
                 if (each.getName().matches( "^clojure(-\\d.\\d.\\d)?\\.jar$" )) {
                     clojureProvided = true;
                 }
-                mount( each, unit, mountMap );
+                mounter.mount( each );
             }
 
             if (!clojureProvided) {
@@ -85,12 +80,12 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
 
                 // borrow the shipped clojure.jar
                 String jarPath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/clojure.jar";
-                mount( new File( jarPath ), unit, mountMap );
+                mounter.mount( new File( jarPath ) );
             }
 
             //mount the runtime jar
             String runtimePath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/immutant-runtime-impl.jar";
-            mount( new File( runtimePath ), unit, mountMap );
+            mounter.mount( new File( runtimePath ) );
             
             for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles() )) {
                 final ResourceRoot childResource = new ResourceRoot( VFS.getChild( each ), null );
@@ -109,33 +104,9 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         unit.putAttachment( Attachments.COMPOSITE_ANNOTATION_INDEX, new CompositeIndex( Collections.EMPTY_LIST ) );
     }
 
-    private void mount(File file, DeploymentUnit unit, JarMountMap mountMap) throws IOException {
-        VirtualFile mountPath = VFS.getChild( File.createTempFile( file.getName(), ".jar", tmpMountDir( unit ) ).toURI() );
-        log.debug( unit.getName() + ": mounting " + file );
-        final ResourceRoot childResource = new ResourceRoot( mountPath, 
-                new MountHandle( VFS.mountZip( file, mountPath, TempFileProviderService.provider() ) ) );
-        ModuleRootMarker.mark( childResource );
-        unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
-        
-        mountMap.put( mountPath.toURL().toExternalForm(), file.toURI().toURL().toExternalForm() );
-        
-    }
-
-    private File tmpMountDir(DeploymentUnit unit) throws IOException {
-        File dir = new File( unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY ).getRoot(), ".tmp_jar_mounts" );
-        dir.mkdir();
-        return dir;
-    }
-    
     @Override
     public void undeploy(DeploymentUnit unit) {
-        if (unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
-            try {
-                FileUtils.deleteDirectory( tmpMountDir( unit ) );
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+       
     }
 
     private static final Logger log = Logger.getLogger( "org.immutant.core" );

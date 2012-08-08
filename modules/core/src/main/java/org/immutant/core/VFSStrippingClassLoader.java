@@ -24,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+
 /**
  * Turns vfs: urls into file: urls for files that exist outside of an archive.
  * 
@@ -32,7 +33,7 @@ import java.net.URL;
  */
 public class VFSStrippingClassLoader extends ClassLoader {
 
-    public VFSStrippingClassLoader(ClassLoader parent, JarMountMap mountMap) {
+    public VFSStrippingClassLoader(ClassLoader parent, TmpResourceMountMap mountMap) {
         super( parent );
         this.mountMap = mountMap;
     }
@@ -46,9 +47,10 @@ public class VFSStrippingClassLoader extends ClassLoader {
                 int splitPoint = urlAsString.indexOf( ".jar/" ) + 5;
                 String jarPrefix = urlAsString.substring( 0, splitPoint );
                 String fileName = urlAsString.substring( splitPoint );
-                if (this.mountMap.containsKey( jarPrefix )) {
+                File actualFile = this.mountMap.getActualFile( jarPrefix );
+                if (actualFile != null) {
                     //translate resources within tmp mounted jars to the actual path. see IMMUTANT-70
-                    url = new URL( "jar:" + this.mountMap.get( jarPrefix ) + "!/" + fileName );
+                    url = new URL( "jar:" + actualFile.toURI().toURL().toExternalForm() + "!/" + fileName );
                 } else {
                     URL nonVFSUrl = new URL( "file" + url.toExternalForm().substring( 3 ) );
                     if ((new File( nonVFSUrl.toURI() )).exists()) {
@@ -69,6 +71,6 @@ public class VFSStrippingClassLoader extends ClassLoader {
         return VFSStrippingClassLoader.class.getName() + "[" + getParent().toString() + "]";
     }
     
-    private JarMountMap mountMap;
+    private TmpResourceMountMap mountMap;
     
 }

@@ -32,7 +32,7 @@ public class ClassLoaderUtils {
         
         if (module != null) {
             return new VFSStrippingClassLoader( module.getClassLoader(), 
-                    unit.getAttachment( JarMountMap.ATTACHMENT_KEY ) );    
+                    unit.getAttachment( TmpResourceMountMap.ATTACHMENT_KEY ) );
         } else {
             // this won't happen in production, but helps testing    
             return ClassLoaderUtils.class.getClassLoader(); 
