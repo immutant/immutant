@@ -20,13 +20,16 @@
 package org.immutant.cache.as;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.DESCRIBE;
 
 import org.jboss.as.controller.ExtensionContext;
 import org.jboss.as.controller.SubsystemRegistration;
 import org.jboss.as.controller.parsing.ExtensionParsingContext;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
+import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.logging.Logger;
 import org.projectodd.polyglot.core.as.AbstractBootstrappableExtension;
+import org.projectodd.polyglot.core.as.GenericSubsystemDescribeHandler;
 
 public class CacheExtension extends AbstractBootstrappableExtension {
   
@@ -41,6 +44,12 @@ public class CacheExtension extends AbstractBootstrappableExtension {
                 CacheSubsystemAdd.ADD_INSTANCE,
                 CacheSubsystemProviders.SUBSYSTEM_ADD,
                 false );
+
+        subsystem.registerOperationHandler(DESCRIBE, 
+                GenericSubsystemDescribeHandler.INSTANCE, 
+                GenericSubsystemDescribeHandler.INSTANCE, 
+                false, 
+                OperationEntry.EntryType.PRIVATE);
 
         registration.registerXMLElementWriter(CacheSubsystemParser.getInstance());
     }

@@ -20,13 +20,16 @@
 package org.immutant.xa.as;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.DESCRIBE;
 
 import org.jboss.as.controller.ExtensionContext;
 import org.jboss.as.controller.SubsystemRegistration;
 import org.jboss.as.controller.parsing.ExtensionParsingContext;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
+import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.logging.Logger;
 import org.projectodd.polyglot.core.as.AbstractBootstrappableExtension;
+import org.projectodd.polyglot.core.as.GenericSubsystemDescribeHandler;
 
 public class XaExtension extends AbstractBootstrappableExtension {
   
@@ -41,6 +44,11 @@ public class XaExtension extends AbstractBootstrappableExtension {
                 XaSubsystemAdd.ADD_INSTANCE,
                 XaSubsystemProviders.SUBSYSTEM_ADD,
                 false );
+        subsystem.registerOperationHandler(DESCRIBE, 
+                GenericSubsystemDescribeHandler.INSTANCE, 
+                GenericSubsystemDescribeHandler.INSTANCE, 
+                false, 
+                OperationEntry.EntryType.PRIVATE);
 
         registration.registerXMLElementWriter(XaSubsystemParser.getInstance());
     }
