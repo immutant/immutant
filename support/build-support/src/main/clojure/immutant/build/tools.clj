@@ -127,6 +127,14 @@
   (add-polyglot-subsystems
    (reduce (partial add-subsystem "immutant-") loc (keys immutant-modules))))
 
+(defn fix-profile [loc]
+  (let [name (get-in (zip/node loc) [:attrs :name])]
+    (if (= "default" name)
+      (zip/remove loc)
+      (add-subsystems (if (= "full-ha" name)
+                        (zip/edit loc assoc-in [:attrs :name] "default")
+                        loc)))))
+
 (defn server-element [name offset]
   {:tag :server
    :attrs {:name name, :group "default"},
@@ -205,7 +213,7 @@
     (recur (zip/next
             (cond
              (looking-at? :extensions loc) (do (append-system-properties loc) (add-extensions loc))
-             (looking-at? :profile loc) (add-subsystems loc)
+             (looking-at? :profile loc) (fix-profile loc)
              (looking-at? :periodic-rotating-file-handler loc) (add-logger-levels loc)
              (looking-at? :virtual-server loc) (set-welcome-root loc)
              (looking-at? :system-properties loc) (unquote-cookie-path loc)
