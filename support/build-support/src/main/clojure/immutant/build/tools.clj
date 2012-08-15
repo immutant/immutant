@@ -103,7 +103,7 @@
        (FileUtils/deleteQuietly artifact-dir)))))
 
 (defn increase-deployment-timeout [loc]
-  (zip/edit loc #(assoc-in % [:attrs :deployment-timeout] "1200")))
+  (zip/edit loc assoc-in [:attrs :deployment-timeout] "1200"))
 
 (defn add-extension [prefix loc name]
   (let [module-name (str prefix name)]
@@ -162,7 +162,7 @@
   (zip/append-child loc {:tag :property :attrs {:name prop :value value}}))
 
 (defn replace-system-property [loc prop value]
-  (zip/edit loc #(assoc % :attrs {:name prop :value value})))
+  (zip/edit loc assoc :attrs {:name prop :value value}))
 
 (defn set-system-property [loc prop value]
   (if-let [child (zfx/xml1-> loc :property (zfx/attr= :name value))]
@@ -175,10 +175,10 @@
 (defn set-welcome-root [loc]
   (if (= "false" (-> loc zip/node :attrs :enable-welcome-root))
     loc
-    (zip/edit loc #(update-in % [:attrs :enable-welcome-root] (constantly "false")))))
+    (zip/edit loc assoc-in [:attrs :enable-welcome-root] "false")))
 
 (defn disable-security [loc]
-    (zip/edit loc #(update-in % [:attrs] dissoc :security-realm)))
+  (zip/edit loc update-in [:attrs] dissoc :security-realm))
 
 (defn add-logger-levels [loc]
   (zip/append-child (zip/right
