@@ -135,6 +135,13 @@
                         (zip/edit loc assoc-in [:attrs :name] "default")
                         loc)))))
 
+(defn fix-socket-binding-group [loc]
+  (let [name (get-in (zip/node loc) [:attrs :name])]
+    (cond
+     (= "standard-sockets" name) (zip/remove loc)
+     (= "full-ha-sockets" name) (zip/edit loc assoc-in [:attrs :name] "standard-sockets")
+     :else loc)))
+
 (defn server-element [name offset]
   {:tag :server
    :attrs {:name name, :group "default"},
@@ -227,6 +234,7 @@
              (looking-at? :jms-connection-factories loc) (disable-flow-control loc)
              (looking-at? :servers loc) (replace-servers loc)
              (looking-at? :server-groups loc) (replace-server-groups loc)
+             (looking-at? :socket-binding-group loc) (fix-socket-binding-group loc)
              :else loc)))))
   
 (defn transform-config [file]
