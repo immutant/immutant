@@ -48,7 +48,8 @@
                     "standalone/configuration/standalone-ha.xml"
                     "standalone/configuration/standalone-full-ha.xml"
                     "standalone/configuration/standalone.xml"
-                    "domain/configuration/domain.xml"])]
+                    "domain/configuration/domain.xml"
+                    "domain/configuration/host.xml"])]
     (let [backup (io/file "target" (.getName cfg))]
       (if-not (.exists backup)
         (io/copy cfg backup)))))
@@ -56,7 +57,8 @@
 (defn transform-configs []
   (doseq [cfg ["standalone/configuration/standalone-full.xml"
                "standalone/configuration/standalone-full-ha.xml"
-               "domain/configuration/domain.xml"]]
+               "domain/configuration/domain.xml"
+               "domain/configuration/host.xml"]]
     (transform-config cfg)))
 
 (defn create-standalone-xml []

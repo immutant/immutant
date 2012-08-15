@@ -127,6 +127,28 @@
   (add-polyglot-subsystems
    (reduce (partial add-subsystem "immutant-") loc (keys immutant-modules))))
 
+(defn server-element [name offset]
+  {:tag :server
+   :attrs {:name name, :group "default"},
+   :content [{:tag :jvm
+              :attrs {:name "default"},
+              :content [{:tag :heap
+                         :attrs {:size "256m", :max-size "1024m"}}
+                        {:tag :permgen
+                         :attrs {:size "256m", :max-size "512m"}}]},
+             {:tag :socket-bindings
+              :attrs {:port-offset offset}}]})
+
+(defn replace-servers [loc]
+  (zip/replace loc {:tag :servers, :content [(server-element "server-01" "0")
+                                             (server-element "server-02" "100")]}))
+
+(defn replace-server-groups [loc]
+  (zip/replace loc {:tag :server-groups
+                    :content [{:tag :server-group
+                               :attrs {:name "default", :profile "default"}
+                               :content [{:tag :socket-binding-group
+                                          :attrs {:ref "standard-sockets"}}]}]}))
 
 (defn add-system-property [loc prop value]
   (zip/append-child loc {:tag :property :attrs {:name prop :value value}}))
@@ -168,20 +190,21 @@
 (defn looking-at? [tag loc]
   (= tag (:tag (zip/node loc))))
 
+(defn append-system-properties [loc]
+  (if (looking-at? :extensions loc)
+    (if-not (looking-at? :system-properties (zip/right loc))
+      (zip/insert-right loc {:tag :system-properties}))))
+
 (defn prepare-zip
-  "Make sure the doc has a <system-properties> element"
   [file]
-  (let [xml-zip (zip/xml-zip (xml/parse file))]
-    (if (zfx/xml1-> xml-zip zf/descendants :system-properties)
-      xml-zip
-      (zip/insert-right (zfx/xml1-> xml-zip :extensions) {:tag :system-properties}))))
+  (zip/xml-zip (xml/parse file)))
 
 (defn walk-the-doc [loc]
   (if (zip/end? loc)
     (zip/root loc)
     (recur (zip/next
             (cond
-             (looking-at? :extensions loc) (add-extensions loc)
+             (looking-at? :extensions loc) (do (append-system-properties loc) (add-extensions loc))
              (looking-at? :profile loc) (add-subsystems loc)
              (looking-at? :periodic-rotating-file-handler loc) (add-logger-levels loc)
              (looking-at? :virtual-server loc) (set-welcome-root loc)
@@ -194,6 +217,8 @@
              (looking-at? :address-full-policy loc) (zip/edit loc assoc :content ["PAGE"])
              (looking-at? :hornetq-server loc) (disable-hq-security loc)
              (looking-at? :jms-connection-factories loc) (disable-flow-control loc)
+             (looking-at? :servers loc) (replace-servers loc)
+             (looking-at? :server-groups loc) (replace-server-groups loc)
              :else loc)))))
   
 (defn transform-config [file]
