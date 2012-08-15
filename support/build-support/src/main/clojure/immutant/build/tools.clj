@@ -82,6 +82,8 @@
   (def polyglot-modules
     ["hasingleton"]))
 
+(defn looking-at? [tag loc]
+  (= tag (:tag (zip/node loc))))
 
 (defn install-module [module-dir]
   (let [name (second (re-find #"immutant-(.*)-module" (.getName module-dir)))
@@ -136,11 +138,13 @@
                         loc)))))
 
 (defn fix-socket-binding-group [loc]
-  (let [name (get-in (zip/node loc) [:attrs :name])]
-    (cond
-     (= "standard-sockets" name) (zip/remove loc)
-     (= "full-ha-sockets" name) (zip/edit loc assoc-in [:attrs :name] "standard-sockets")
-     :else loc)))
+  (if (looking-at? :socket-binding-groups (zip/up loc))
+    (let [name (get-in (zip/node loc) [:attrs :name])]
+      (cond
+       (= "standard-sockets" name) (zip/remove loc)
+       (= "full-ha-sockets" name) (zip/edit loc assoc-in [:attrs :name] "standard-sockets")
+       :else loc))
+    loc))
 
 (defn server-element [name offset]
   {:tag :server
@@ -202,13 +206,13 @@
   [loc]
   (zip/append-child (zip/down loc) {:tag :consumer-window-size :content ["1"]}))
 
-(defn looking-at? [tag loc]
-  (= tag (:tag (zip/node loc))))
-
 (defn append-system-properties [loc]
-  (if (looking-at? :extensions loc)
-    (if-not (looking-at? :system-properties (zip/right loc))
-      (zip/insert-right loc {:tag :system-properties}))))
+  (if (looking-at? :system-properties (zip/right loc))
+    loc
+    (zip/insert-right loc {:tag :system-properties})))
+
+(defn fix-extensions [loc]
+  (add-extensions (append-system-properties loc)))
 
 (defn prepare-zip
   [file]
@@ -219,7 +223,7 @@
     (zip/root loc)
     (recur (zip/next
             (cond
-             (looking-at? :extensions loc) (do (append-system-properties loc) (add-extensions loc))
+             (looking-at? :extensions loc) (fix-extensions loc)
              (looking-at? :profile loc) (fix-profile loc)
              (looking-at? :periodic-rotating-file-handler loc) (add-logger-levels loc)
              (looking-at? :virtual-server loc) (set-welcome-root loc)
