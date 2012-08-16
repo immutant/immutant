@@ -27,7 +27,7 @@
 (def ^{:dynamic true} *current-clojure-version* nil)
 
 (def clojure-versions
-  (set (string/split (System/getProperty "integ.clojure.versions") #",")))
+  (set (string/split (System/getProperty "versions") #",")))
 
 (defn find-app-dirs
   ([dir]
@@ -83,7 +83,7 @@
       (println "\n>>>>" (str \[ (.toString (java.util.Date.)) \])
                "Running integs with clojure" version )
       (binding [*current-clojure-version* version]
-        (apply run-tests namespaces))
+        (time (apply run-tests namespaces)))
       (println "\n<<<<" (str \[ (.toString (java.util.Date.)) \])
                "Finished integs with clojure"
                version "\n")

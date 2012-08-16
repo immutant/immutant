@@ -16,7 +16,7 @@
   <properties>
     <assembly.dir>${project.basedir}/../build/assembly/target/stage/immutant</assembly.dir>
     <integ.dist.dir>target/integ-dist</integ.dist.dir>
-    <integ.clojure.versions>1.4.0</integ.clojure.versions>
+    <versions>1.4.0</versions>
     <fntest.debug>false</fntest.debug>
     <ns />
     <databases>h2</databases>
@@ -131,7 +131,7 @@
         <artifactId>clojure-maven-plugin</artifactId>
         <configuration>
           <testScript>src/test/clojure/immutant/integs.clj</testScript>
-          <clojureOptions>-Ddatabases=${databases} -Dinteg.clojure.versions=${integ.clojure.versions} -Dns=${ns} -Dfntest.debug=${fntest.debug}</clojureOptions>
+          <clojureOptions>-Ddatabases=${databases} -Dversions=${versions} -Dns=${ns} -Dfntest.debug=${fntest.debug}</clojureOptions>
         </configuration>
         <executions>
           <execution>
