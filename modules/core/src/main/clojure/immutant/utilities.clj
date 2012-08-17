@@ -89,3 +89,15 @@ Used internally to shutdown various services, but can be used by application cod
   "Applies args to f, and expands the last arg into a kwarg seq if it is a map"
   (apply f (apply concat (butlast args) (last args))))
 
+(defmacro backoff
+  "A simple backoff strategy that retries body in the event of error.
+  The first retry occurs after sleeping start milliseconds, the next
+  after start*2 ms, and so on, until the sleep time exceeds end ms, at
+  which point the caught error is tossed."
+  [start end & body]
+  `(loop [x# ~start]
+     (let [result# (try
+                    ~@body
+                    (catch Exception e# (if (> ~end x#) (throw e#))))]
+       (or result# (do (Thread/sleep x#) (recur (* 2 x#)))))))
+

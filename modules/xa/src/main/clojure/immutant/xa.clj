@@ -19,6 +19,7 @@
   "Distributed XA transactional support"
   (:import javax.naming.InitialContext)
   (:require [immutant.registry :as lookup]
+            [immutant.utilities :as util]
             [immutant.xa.transaction :as tx]))
 
 (defn datasource
@@ -41,7 +42,7 @@
   [id spec]
   (let [params (into {} (for [[k v] spec] [(name k) v]))
         name (.createDataSource ^org.immutant.xa.XAifier (lookup/fetch "xaifier") id params)]
-    (.lookup ^javax.naming.InitialContext (InitialContext.) name)))
+    (util/backoff 10 2000 (.lookup ^javax.naming.InitialContext (InitialContext.) name))))
 
 (defmacro transaction
   "Execute body within the current transaction, if available,
