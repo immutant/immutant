@@ -23,12 +23,12 @@
             [immutant.xa.transaction :as tx]))
 
 (defn datasource
-  "Create an XA-capable datasource named by 'id'. The result can be
-   associated with the :datasource key in a clojure.java.jdbc spec,
-   e.g.
+  "Returns a future that asynchronously creates an XA-capable
+   datasource named by 'id'. The deref'd result can be associated with
+   the :datasource key in a clojure.java.jdbc spec, e.g.
 
      (defonce ds (immutant.xa/datasource \"myds\" {...}))
-     (clojure.java.jdbc/with-connection {:datasource ds} ...)
+     (clojure.java.jdbc/with-connection {:datasource @ds} ...)
 
    The spec hash keys are adapter-specific, but all should support the
    following:
@@ -40,9 +40,10 @@
     :password  the password associated with the username
     :pool      the maximum number of simultaneous connections used"
   [id spec]
-  (let [params (into {} (for [[k v] spec] [(name k) v]))
-        name (.createDataSource ^org.immutant.xa.XAifier (lookup/fetch "xaifier") id params)]
-    (util/backoff 10 2000 (.lookup ^javax.naming.InitialContext (InitialContext.) name))))
+  (future
+    (let [params (into {} (for [[k v] spec] [(name k) v]))
+          name (.createDataSource ^org.immutant.xa.XAifier (lookup/fetch "xaifier") id params)]
+      (util/backoff 10 10000 (.lookup ^javax.naming.InitialContext (InitialContext.) name)))))
 
 (defmacro transaction
   "Execute body within the current transaction, if available,

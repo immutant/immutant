@@ -21,7 +21,7 @@
 
   The =immutant.xa= namespace contains only two functions:
   
-  | =datasource=  | Creates a valid XA DataSource for the most common SQL databases           |
+  | =datasource=  | Asynchronously creates a valid XA DataSource for the most common SQL databases |
   | =transaction= | A macro that wraps its body in a transaction unless one is already active |
 
   More fine-grained transactional control is available through the
@@ -41,8 +41,8 @@
 
    The spec you pass to =clojure.java.jdbc/with-connection= depends on
    how you create the DataSource. If you call
-   =immmutant.xa/datasource=, then associate the =:datasource= key to its
-   result. 
+   =immmutant.xa/datasource=, then associate the =:datasource= key to
+   its deref'd result. 
 
    Otherwise, set the =:name= key to the JNDI name you set for the
    =xa-datasource= in the JBoss AS7 configuration.
@@ -71,7 +71,7 @@
     
     #+begin_src clojure
       (defonce ds (immutant.xa/datasource "foo" {:adapter "h2" :database "mem:foo"}))
-      (jdbc/with-connection {:datasource ds}
+      (jdbc/with-connection {:datasource @ds}
         (jdbc/create-table :things [:name "varchar(50)"]))
     #+end_src
 
@@ -85,7 +85,7 @@
                                          :username "myuser"
                                          :password "mypassword"
                                          :database "mydb"}))
-      (jdbc/with-connection {:datasource ds} ...)
+      (jdbc/with-connection {:datasource @ds} ...)
     #+end_src
 
 *** Using an AS7-configured DataSource
@@ -112,7 +112,7 @@
                 [clojure.java.jdbc :as sql]))
     
     (xa/transaction
-     (sql/with-connection {:datasource my-ds}
+     (sql/with-connection {:datasource @my-ds}
        (sql/insert-records :things {:name "foo"}))
      (cache/put my-cache :a 1)
      (msg/publish "/queue/test" "success!"))

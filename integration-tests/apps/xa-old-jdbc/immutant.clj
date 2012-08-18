@@ -4,7 +4,7 @@
             [clojure.java.jdbc :as sql]))
 
 (defonce ds (xa/datasource "foo" {:adapter "h2" :database "mem:foo"}))
-(def spec {:datasource ds})
+(def spec {:datasource @ds})
 
 (sql/with-connection spec
   (sql/create-table :things

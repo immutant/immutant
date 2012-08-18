@@ -54,7 +54,7 @@
 (defn attempt-transaction [ds & [f]]
   (try
     (ixa/transaction
-     (write-thing-to-db {:datasource ds} "kiwi")
+     (write-thing-to-db {:datasource @ds} "kiwi")
      (imsg/publish "/queue/test" "kiwi")
      (imsg/publish "/queue/remote-test" "starfruit" :host "localhost" :port 5445)
      (ic/put cache :a 1)
@@ -64,15 +64,15 @@
 (defn verify-transaction-success [ds]
   (is (= "kiwi" (imsg/receive "/queue/test" :timeout 2000)))
   (is (= "starfruit" (imsg/receive "/queue/remote-test")))
-  (is (= "kiwi" (:name (read-thing-from-db {:datasource ds} "kiwi"))))
-  (is (= 1 (count-things-in-db {:datasource ds})))
+  (is (= "kiwi" (:name (read-thing-from-db {:datasource @ds} "kiwi"))))
+  (is (= 1 (count-things-in-db {:datasource @ds})))
   (is (= 1 (:a cache))))
 
 (defn verify-transaction-failure [ds]
   (is (nil? (imsg/receive "/queue/test" :timeout 2000)))
   (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000)))
-  (is (nil? (read-thing-from-db {:datasource ds} "kiwi")))
-  (is (= 0 (count-things-in-db {:datasource ds})))
+  (is (nil? (read-thing-from-db {:datasource @ds} "kiwi")))
+  (is (= 0 (count-things-in-db {:datasource @ds})))
   (is (nil? (:a cache))))
 
 (defn define-tests [db]
@@ -84,10 +84,10 @@
              (attempt-transaction ds# #(throw (Exception. "rollback")))
              (verify-transaction-failure ds#)))))
 
-(defn db-fixture [db]
+(defn db-fixture [ds]
   (fn [f]
     (try
-      (sql/with-connection {:datasource db}
+      (sql/with-connection {:datasource @ds}
         (try (sql/drop-table :things) (catch Exception _))
         (sql/create-table :things [:name "varchar(50)"]))
       (catch Exception _))

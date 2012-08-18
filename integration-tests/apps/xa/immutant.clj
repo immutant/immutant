@@ -8,7 +8,7 @@
 (def ds (xa/datasource "foo" {:adapter "h2" :database "mem:foo"}))
 
 ;;; The connection spec required by clojure.java.jdbc
-(def spec {:datasource ds})
+(def spec {:datasource @ds})
 
 ;;; Some sample fruit
 (sql/with-connection spec
