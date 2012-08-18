@@ -98,6 +98,6 @@ Used internally to shutdown various services, but can be used by application cod
   `(loop [x# ~start]
      (let [result# (try
                     ~@body
-                    (catch Exception e# (if (> ~end x#) (throw e#))))]
+                    (catch Exception e# (if (> x# ~end) (throw e#))))]
        (or result# (do (Thread/sleep x#) (recur (* 2 x#)))))))
 
