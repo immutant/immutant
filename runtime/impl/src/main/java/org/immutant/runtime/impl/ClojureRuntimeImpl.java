@@ -26,6 +26,7 @@ import org.immutant.runtime.ClojureRuntime;
 import org.jboss.logging.Logger;
 
 import clojure.lang.Agent;
+import clojure.lang.IFn;
 import clojure.lang.LockingTransaction;
 import clojure.lang.RT;
 import clojure.lang.Symbol;
@@ -33,34 +34,42 @@ import clojure.lang.Var;
 
 public class ClojureRuntimeImpl extends ClojureRuntime {
 
-    protected ClassLoader preInvoke() {
+    protected StackData preInvoke() {
         ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader(); 
         Thread.currentThread().setContextClassLoader( this.classLoader );
-
-        return originalClassloader;
+        Boolean inStack = stackEntered.get();
+        if (inStack == null) { 
+            stackEntered.set( true );
+        }
+        
+        return new StackData( originalClassloader, inStack );
     }
 
-    protected void postInvoke(ClassLoader originalClassloader) {
-        try {
-            // leaving these thread locals around will cause memory leaks when the application
-            // is undeployed.
-            removeThreadLocal( LockingTransaction.class, "transaction" );
-            removeThreadLocal( Var.class, "dvals" );
-            
-            // this one doesn't leak, but leaving it set can theoretically allow another
-            // application to read the value off of the thread when it is doled out
-            //again from the pool
-            removeThreadLocal( Agent.class, "nested" );
-        } catch (Exception e) {
-            log.error( "Failed to clear thread locals: ", e );
-        } finally {
-            Thread.currentThread().setContextClassLoader( originalClassloader );
+    protected void postInvoke(StackData stackData) {
+        if (stackData.entryPoint) {
+            try {
+                // leaving these thread locals around will cause memory leaks when the application
+                // is undeployed.
+                removeThreadLocal( LockingTransaction.class, "transaction" );
+                removeThreadLocal( Var.class, "dvals" );
+
+                // this one doesn't leak, but leaving it set can theoretically allow another
+                // application to read the value off of the thread when it is doled out
+                //again from the pool
+                removeThreadLocal( Agent.class, "nested" );
+            } catch (Exception e) {
+                log.error( "Failed to clear thread locals: ", e );
+            } finally {
+                this.stackEntered.remove();
+                Thread.currentThread().setContextClassLoader( stackData.loader );
+            }
         }
     }
 
     protected Var var(String namespacedFunction) {
         Var var = this.varCache.get( namespacedFunction );
         if (var == null) {
+            StackData stackData = preInvoke();
             try {
                 String[] parts = namespacedFunction.split( "/" );
                 RT.var( "clojure.core", "require" ).invoke( Symbol.create( parts[0] ) );
@@ -68,6 +77,8 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
                 this.varCache.put( namespacedFunction, var );
             } catch (Exception e) {
                 throw new RuntimeException( "Failed to load Var " + namespacedFunction, e );
+            } finally {
+                postInvoke( stackData );
             }
         }
 
@@ -105,91 +116,139 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
 
     @Override
     public Object invoke(String namespacedFunction) {
-        ClassLoader originalClassloader = preInvoke();
-        try {
-            return var( namespacedFunction ).invoke();
-        } finally {
-            postInvoke( originalClassloader );
-        }
+        return invoke( var( namespacedFunction ) );
     }
 
+    @Override
+    public Object invoke(Object fn) {
+        StackData stackData = preInvoke();
+        try {
+            return ((IFn)fn).invoke();
+        } finally {
+            postInvoke( stackData );
+        }
+    }
+    
     @Override
     public Object invoke(String namespacedFunction, Object arg1) {
-        ClassLoader originalClassloader = preInvoke();
-        try {
-            return var( namespacedFunction ).invoke(arg1);
-        } finally {
-            postInvoke( originalClassloader );
-        }
+        return invoke( var( namespacedFunction ), arg1 );
     }
 
     @Override
-    public Object invoke(String namespacedFunction, Object arg1, Object arg2) {
-        ClassLoader originalClassloader = preInvoke();
+    public Object invoke(Object fn, Object arg1) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2);
+            return ((IFn)fn).invoke(arg1);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
+        }
+    }
+    
+    @Override
+    public Object invoke(String namespacedFunction, Object arg1, Object arg2) {
+        return invoke( var( namespacedFunction ), arg1, arg2);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2) {
+        StackData stackData = preInvoke();
+        try {
+            return ((IFn)fn).invoke(arg1, arg2);
+        } finally {
+            postInvoke( stackData );
         }
     }
 
     @Override
     public Object invoke(String namespacedFunction, Object arg1, Object arg2,
             Object arg3) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke( var( namespacedFunction ), arg1, arg2, arg3);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
-                    arg3);
+            return ((IFn)fn).invoke(arg1, arg2, arg3);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
     @Override
     public Object invoke(String namespacedFunction, Object arg1, Object arg2,
             Object arg3, Object arg4) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
     @Override
     public Object invoke(String namespacedFunction, Object arg1, Object arg2,
             Object arg3, Object arg4, Object arg5) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
     @Override
     public Object invoke(String namespacedFunction, Object arg1, Object arg2,
             Object arg3, Object arg4, Object arg5, Object arg6) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
     @Override
     public Object invoke(String namespacedFunction, Object arg1, Object arg2,
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -197,13 +256,22 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
     public Object invoke(String namespacedFunction, Object arg1, Object arg2,
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -211,13 +279,22 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
     public Object invoke(String namespacedFunction, Object arg1, Object arg2,
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -225,13 +302,22 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
     public Object invoke(String namespacedFunction, Object arg1, Object arg2,
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -239,13 +325,22 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
     public Object invoke(String namespacedFunction, Object arg1, Object arg2,
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -253,13 +348,22 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
     public Object invoke(String namespacedFunction, Object arg1, Object arg2,
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11, arg12);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -268,14 +372,25 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
             Object arg13) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11, arg12,
                     arg13);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -284,14 +399,25 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
             Object arg13, Object arg14) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11, arg12,
                     arg13, arg14);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -300,14 +426,25 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
             Object arg13, Object arg14, Object arg15) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11, arg12,
                     arg13, arg14, arg15);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -316,14 +453,25 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
             Object arg13, Object arg14, Object arg15, Object arg16) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11, arg12,
                     arg13, arg14, arg15, arg16);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -332,14 +480,25 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
             Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
             Object arg13, Object arg14, Object arg15, Object arg16, Object arg17) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16, arg17);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16, Object arg17) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11, arg12,
                     arg13, arg14, arg15, arg16, arg17);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -349,15 +508,28 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
             Object arg13, Object arg14, Object arg15, Object arg16,
             Object arg17, Object arg18) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16,
+                    arg17, arg18);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16,
+            Object arg17, Object arg18) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11, arg12,
                     arg13, arg14, arg15, arg16,
                     arg17, arg18);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -367,15 +539,28 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
             Object arg13, Object arg14, Object arg15, Object arg16,
             Object arg17, Object arg18, Object arg19) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16,
+                    arg17, arg18, arg19);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16,
+            Object arg17, Object arg18, Object arg19) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11, arg12,
                     arg13, arg14, arg15, arg16,
                     arg17, arg18, arg19);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -385,15 +570,28 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
             Object arg13, Object arg14, Object arg15, Object arg16,
             Object arg17, Object arg18, Object arg19, Object arg20) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16,
+                    arg17, arg18, arg19, arg20);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16,
+            Object arg17, Object arg18, Object arg19, Object arg20) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11, arg12,
                     arg13, arg14, arg15, arg16,
                     arg17, arg18, arg19, arg20);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
@@ -404,19 +602,46 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
             Object arg13, Object arg14, Object arg15, Object arg16,
             Object arg17, Object arg18, Object arg19, Object arg20,
             Object... args) {
-        ClassLoader originalClassloader = preInvoke();
+        return invoke(var( namespacedFunction ), arg1, arg2,
+                    arg3, arg4, arg5, arg6, arg7,
+                    arg8, arg9, arg10, arg11, arg12,
+                    arg13, arg14, arg15, arg16,
+                    arg17, arg18, arg19, arg20,
+                    args);
+    }
+
+    @Override
+    public Object invoke(Object fn, Object arg1, Object arg2,
+            Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12,
+            Object arg13, Object arg14, Object arg15, Object arg16,
+            Object arg17, Object arg18, Object arg19, Object arg20,
+            Object... args) {
+        StackData stackData = preInvoke();
         try {
-            return var( namespacedFunction ).invoke(arg1, arg2,
+            return ((IFn)fn).invoke(arg1, arg2,
                     arg3, arg4, arg5, arg6, arg7,
                     arg8, arg9, arg10, arg11, arg12,
                     arg13, arg14, arg15, arg16,
                     arg17, arg18, arg19, arg20,
                     args);
         } finally {
-            postInvoke( originalClassloader );
+            postInvoke( stackData );
         }
     }
 
+    class StackData {
+        public ClassLoader loader;
+        public boolean entryPoint;
+        
+        public StackData(ClassLoader loader, Boolean alreadyInStack) {
+            this.loader = loader;
+            this.entryPoint = (alreadyInStack == null);
+        }
+    }
+    
+    private ThreadLocal<Boolean> stackEntered = new ThreadLocal<Boolean>();
+   
     private Map<String, Var> varCache = new HashMap<String, Var>();
     @SuppressWarnings("rawtypes")
     private HashMap<Class, Map<String, Field>> fieldCache = new HashMap<Class, Map<String, Field>>();

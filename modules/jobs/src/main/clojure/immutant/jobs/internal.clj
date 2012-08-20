@@ -68,7 +68,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
              scheduler
              #(.addJob scheduler
                        name
-                       (ClojureJob. f (.getContextClassLoader (Thread/currentThread)))))
+                       (ClojureJob. (registry/fetch "clojure-runtime") f)))
             (let [^BaseScheduledJob this this] ;; hack to eliminate reflection
               (proxy-super start)))
           (getScheduler []

@@ -50,11 +50,12 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
        ClassLoader loader = ClassLoaderUtils.getModuleLoader( deploymentUnit );
        
         ClojureRuntime runtime = ClojureRuntime.newRuntime( loader, deploymentUnit.getName() );
-        runtime.invoke( "immutant.registry/set-msc-registry", deploymentUnit.getServiceRegistry() );
-        
         deploymentUnit.putAttachment( ClojureRuntime.ATTACHMENT_KEY, runtime );
         
-        phaseContext.getServiceTarget().addService(CoreServices.runtime( deploymentUnit ), runtime)
+        runtime.invoke( "immutant.registry/set-msc-registry", deploymentUnit.getServiceRegistry() );
+        runtime.invoke( "immutant.registry/put", "clojure-runtime", runtime );
+        
+        phaseContext.getServiceTarget().addService(  CoreServices.runtime( deploymentUnit ), runtime )
         .setInitialMode(Mode.ACTIVE)    
         .install();
     }

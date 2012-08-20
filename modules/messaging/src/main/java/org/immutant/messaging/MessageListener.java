@@ -17,30 +17,21 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.jobs;
+package org.immutant.messaging;
 
-import java.util.concurrent.Callable;
+import javax.jms.Message;
 
 import org.immutant.core.RuntimeWrappedHandler;
 import org.immutant.runtime.ClojureRuntime;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.StatefulJob;
 
-public class ClojureJob extends RuntimeWrappedHandler implements Job, StatefulJob {
-
-    public ClojureJob(ClojureRuntime runtime, Callable<?> fn) {
-        super( runtime, fn );
+public class MessageListener extends RuntimeWrappedHandler implements javax.jms.MessageListener {
+    
+    public MessageListener(ClojureRuntime runtime, Object handler) {
+        super( runtime, handler );
     }
-
+    
     @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        try {
-            getRuntime().invoke( getHandler() );
-        } catch (Exception e) {
-            throw new JobExecutionException( e );
-        }  
+    public void onMessage(Message message) {
+       getRuntime().invoke( getHandler(), message );
     }
-
 }

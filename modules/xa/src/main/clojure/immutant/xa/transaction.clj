@@ -19,7 +19,8 @@
   "Fine-grained XA transactional control"
   (:require [immutant.registry :as lookup]
             [clojure.tools.logging :as log]
-            clojure.java.jdbc))
+            clojure.java.jdbc)
+  (:import org.immutant.xa.Synchronization))
 
 (if (resolve 'clojure.java.jdbc/with-transaction-strategy)
   (log/info "Using proper version of java.jdbc to set transaction strategy")
@@ -63,9 +64,9 @@
   "Register a callback to fire when the current transaction is complete"
   [f]
   (.registerSynchronization (current)
-                            (reify javax.transaction.Synchronization
-                              (beforeCompletion [_])
-                              (afterCompletion [_ _] (f)))))
+                            (Synchronization.
+                             (lookup/fetch "clojure-runtime")
+                             f)))
 
 (defn no-tx-strategy
   "Pass this to java.jdbc to prevent it from managing the tx on its connection"

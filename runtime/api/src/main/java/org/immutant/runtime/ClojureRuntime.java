@@ -45,42 +45,83 @@ public abstract class ClojureRuntime implements Service<ClojureRuntime> {
 
     public abstract Object invoke(String namespacedFunction);
 
+    public abstract Object invoke(Object fn);
+    
     public abstract Object invoke(String namespacedFunction, Object arg1);
+    
+    public abstract Object invoke(Object fn, Object arg1);
 
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2);
 
+    public abstract Object invoke(Object fn, Object arg1, Object arg2);
+
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3);
+
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3);
 
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4);
 
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4);
+
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5);
+
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5);
 
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6);
 
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6);
+
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7);
 
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7);
+
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8);
+    
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8);
 
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9);
+    
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9);
 
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10);
+    
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10);
 
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11);
+    
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11);
 
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12);
+    
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12);
 
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13);
+    
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13);
 
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14);
 
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14);
+
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
+            Object arg15);
+
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
             Object arg15);
 
@@ -88,7 +129,15 @@ public abstract class ClojureRuntime implements Service<ClojureRuntime> {
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
             Object arg15, Object arg16);
 
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
+            Object arg15, Object arg16);
+
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
+            Object arg15, Object arg16, Object arg17);
+
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
             Object arg15, Object arg16, Object arg17);
 
@@ -96,7 +145,15 @@ public abstract class ClojureRuntime implements Service<ClojureRuntime> {
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
             Object arg15, Object arg16, Object arg17, Object arg18);
 
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
+            Object arg15, Object arg16, Object arg17, Object arg18);
+
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
+            Object arg15, Object arg16, Object arg17, Object arg18, Object arg19);
+
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
             Object arg15, Object arg16, Object arg17, Object arg18, Object arg19);
 
@@ -104,7 +161,16 @@ public abstract class ClojureRuntime implements Service<ClojureRuntime> {
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
             Object arg15, Object arg16, Object arg17, Object arg18, Object arg19, Object arg20);
 
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
+            Object arg15, Object arg16, Object arg17, Object arg18, Object arg19, Object arg20);
+
     public abstract Object invoke(String namespacedFunction, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
+            Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
+            Object arg15, Object arg16, Object arg17, Object arg18, Object arg19, Object arg20,
+            Object... args);
+
+    public abstract Object invoke(Object fn, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5, Object arg6, Object arg7,
             Object arg8, Object arg9, Object arg10, Object arg11, Object arg12, Object arg13, Object arg14,
             Object arg15, Object arg16, Object arg17, Object arg18, Object arg19, Object arg20,
             Object... args);

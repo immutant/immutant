@@ -21,7 +21,8 @@
    distribution is automatically load-balanced when clustered."
   (:use [immutant.utilities :only (at-exit mapply)]
         [immutant.messaging.core])
-  (:require [immutant.messaging.codecs :as codecs]))
+  (:require [immutant.messaging.codecs :as codecs]
+            [immutant.registry         :as reg]))
 
 (defn start 
   "Create a message destination; name should be prefixed with either /queue or /topic"
@@ -118,12 +119,15 @@ The following options are supported [default]:
       (dotimes [_ concurrency]
         (let [^javax.jms.Session session (create-session connection)
               destination (destination session dest)
-              consumer (.createConsumer session destination selector)]
+              consumer (.createConsumer session destination selector)
+              handler #(with-transaction session
+                         (f (codecs/decode-if decode? %)))]
           (.setMessageListener consumer
-                               (reify javax.jms.MessageListener
-                                 (onMessage [_ message]
-                                   (with-transaction session
-                                     (f (codecs/decode-if decode? message))))))))
+                               (if-let [runtime (reg/fetch "clojure-runtime")]
+                                 (org.immutant.messaging.MessageListener. runtime handler)
+                                 (reify javax.jms.MessageListener
+                                   (onMessage [_ message]
+                                     (handler message)))))))
       (at-exit #(.close connection))
       (.start connection)
       connection
