@@ -75,15 +75,15 @@
       (throw (Exception. (str "Failed to resolve clojure " version))))))
 
 (defn for-each-version
-  "Runs the integ apps under each clojure version"
-  [namespaces]
+  "Invokes the given fn with the integ apps set to use each clojure version."
+  [f]
   (doseq [version clojure-versions]
     (try
       (set-version version)
       (println "\n>>>>" (str \[ (.toString (java.util.Date.)) \])
                "Running integs with clojure" version )
       (binding [*current-clojure-version* version]
-        (time (apply run-tests namespaces)))
+        (time (f)))
       (println "\n<<<<" (str \[ (.toString (java.util.Date.)) \])
                "Finished integs with clojure"
                version "\n")
@@ -111,6 +111,8 @@
                 report (fn [x] (report-orig x)
                          (swap! results conj (:type x)))]
         (println "\n>>>> Testing against" clojure-versions "\n")
-        (with-jboss #(for-each-version namespaces)))
+        (for-each-version
+         #(with-jboss
+            (partial apply run-tests namespaces))))
       (shutdown-agents)
       (System/exit (if (empty? (filter #{:fail :error} @results)) 0 -1)))))
