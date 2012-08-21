@@ -93,14 +93,14 @@
   (let [c (cache "ttl" :seed {})]
     (put c :a 1 {:ttl 500 :units :milliseconds})
     (is (= 1 (get c :a)))
-    (Thread/sleep 501)
+    (Thread/sleep 550)
     (is (nil? (get c :a)))))
 
 (deftest test-put-default-ttl
   (let [c (cache "ttl" :seed {} :ttl 500 :units :days)]
     (put c :a 1 {:units :milliseconds})
     (is (= 1 (get c :a)))
-    (Thread/sleep 501)
+    (Thread/sleep 550)
     (is (nil? (get c :a)))))
 
 (deftest test-put-idle
@@ -110,7 +110,7 @@
     (is (= 1 (get c :a)))
     (Thread/sleep 300)
     (is (= 1 (get c :a)))
-    (Thread/sleep 501)
+    (Thread/sleep 550)
     (is (nil? (get c :a)))))
 
 (deftest test-put-if-absent-ttl
