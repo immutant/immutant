@@ -27,7 +27,7 @@
                        }))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/noir-app")]
+  (let [result (client/get "http://localhost:8080/noir-app/welcome")]
     ;; (println "RESPONSE" result)
-    (is (.contains (result :body) "Noir is up and running"))))
+    (is (.contains (result :body) "Welcome to noir-app, jim"))))
 
