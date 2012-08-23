@@ -19,14 +19,9 @@
       <artifactId>clojure</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>data.json</artifactId>
-      <version>0.1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>clj-http</groupId>
-      <artifactId>clj-http</artifactId>
-      <version>0.2.7</version>
+      <groupId>jboss-as-management</groupId>
+      <artifactId>jboss-as-management</artifactId>
+      <version>0.1.0</version>
     </dependency>
   </dependencies>
 
