@@ -1,15 +1,15 @@
 ;; Copyright 2008-2012 Red Hat, Inc, and individual contributors.
-;; 
+;;
 ;; This is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU Lesser General Public License as
 ;; published by the Free Software Foundation; either version 2.1 of
 ;; the License, or (at your option) any later version.
-;; 
+;;
 ;; This software is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ;; Lesser General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU Lesser General Public
 ;; License along with this software; if not, write to the Free
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -24,7 +24,7 @@
   (:require [immutant.messaging.codecs :as codecs]
             [immutant.registry         :as reg]))
 
-(defn start 
+(defn start
   "Create a message destination; name should be prefixed with either /queue or /topic"
   [name & opts]
   (cond
@@ -32,10 +32,11 @@
    (topic-name? name) (apply start-topic name opts)
    :else         (throw (Exception. "Destination names must start with /queue or /topic"))))
 
-(defn publish 
+(defn publish
   "Send a message to a destination. dest can either be the name of the
-destination or a javax.jms.Destination. Returns the JMS message object
-that was published.
+destination or a javax.jms.Destination. If the message is a javax.jms.Message,
+then the message is sent without modification to dest. Returns the JMS message
+object that was published.
 
 The following options are supported [default]:
   :encoding        :clojure :json or :text [:clojure]
@@ -58,14 +59,16 @@ The following options are supported [default]:
     (let [session (session)
           destination (destination session dest)
           producer (.createProducer session destination)
-          encoded (-> (codecs/encode session message opts)
-                      (set-properties! (:properties opts))
-                      (set-attributes! opts))
+          encoded (if (instance? javax.jms.Message message)
+                    message
+                    (-> (codecs/encode session message opts)
+                        (set-properties! (:properties opts))
+                        (set-attributes! opts)))
           {:keys [delivery priority ttl]} (wash-publish-options opts producer)]
       (.send producer encoded delivery priority ttl)
       encoded)))
-    
-(defn receive 
+
+(defn receive
   "Receive a message from a destination. dest can either be the name of the
 destination or a javax.jms.Destination.
 
@@ -95,7 +98,7 @@ The following options are supported [default]:
   [dest & opts]
   (lazy-seq (cons (apply receive dest opts) (message-seq dest))))
 
-(defn listen 
+(defn listen
   "The handler function, f, will receive each message sent to dest. dest can
 either be the name of the destination or a javax.jms.Destination.
 
@@ -153,7 +156,7 @@ In addition to the same options as publish, it also accepts [default]:
                :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'"))))))
 
 (defn respond
-  "Listen for messages on queue sent by the request function and respond with the 
+  "Listen for messages on queue sent by the request function and respond with the
 result of applying f to the message. queue can either be the name of the
 queue or a javax.jms.Queue. Accepts the same options as listen."
   [queue f & {:keys [decode?] :or {decode? true} :as opts}]
@@ -176,7 +179,7 @@ your app is undeployed."
   [^javax.jms.XAConnection listener]
   (.close listener))
 
-(defn stop 
+(defn stop
   "Destroy a message destination. Typically not necessary since it
   will be done for you when your app is undeployed. This will fail
   with a warning if any handlers are listening"
@@ -184,4 +187,3 @@ your app is undeployed."
   (if (or (queue-name? name) (topic-name? name))
     (stop-destination name)
     (throw (Exception. "Illegal destination name"))))
-
