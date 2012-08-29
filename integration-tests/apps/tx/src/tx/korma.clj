@@ -3,13 +3,10 @@
             [immutant.xa :as xa])
   (:use clojure.test
         [tx.core :only [h2]]
-        [korma.config :only [options]]
         korma.db
         korma.core))
 
-;;; Korma's connectioning is brittle, making assumptions about
-;;; pooling and lacking default options
-(default-connection {:pool {:datasource @h2} :options @options})
+(defdb prod {:datasource @h2})
 
 (defentity authors)
 (defentity posts)
