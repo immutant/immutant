@@ -25,7 +25,8 @@
             [immutant.registry         :as reg]))
 
 (defn start
-  "Create a message destination; name should be prefixed with either /queue or /topic"
+  "Create a message destination; name should be prefixed with either
+   /queue or /topic"
   [name & opts]
   (cond
    (queue-name? name) (apply start-queue name opts)
@@ -34,26 +35,26 @@
 
 (defn publish
   "Send a message to a destination. dest can either be the name of the
-destination or a javax.jms.Destination. If the message is a javax.jms.Message,
-then the message is sent without modification to dest. Returns the JMS message
-object that was published.
+   destination or a javax.jms.Destination. If the message is a
+   javax.jms.Message, then the message is sent without modification to
+   dest. Returns the JMS message object that was published.
 
-The following options are supported [default]:
-  :encoding        :clojure :json or :text [:clojure]
-  :priority        0-9 or :low :normal :high :critical [4]
-  :ttl             time to live, in ms [0=forever]
-  :persistent      whether undelivered messages survive restarts [true]
-  :properties      a hash to which selectors may be applied [nil]
-  :correlation-id  used to set the JMSCorrelationID (see
-                   http://docs.oracle.com/javaee/6/api/javax/jms/Message.html#setJMSCorrelationID(java.lang.String) [nil]
-  :host           the remote host to connect to (default is to connect in-vm)
-                  [nil]
-  :port           the remote port to connect to (requires :host to be set)
-                  [nil, or 5445 if :host is set]
-  :username       the username to use to auth the connection (requires :password
-                  to be set) [nil]
-  :password       the password to use to auth the connection (requires :username
-                  to be set) [nil]"
+   The following options are supported [default]:
+     :encoding        :clojure :json or :text [:clojure]
+     :priority        0-9 or :low :normal :high :critical [4]
+     :ttl             time to live, in ms [0=forever]
+     :persistent      whether undelivered messages survive restarts [true]
+     :properties      a hash to which selectors may be applied [nil]
+     :correlation-id  used to set the JMSCorrelationID [nil]
+                      see http://docs.oracle.com/javaee/6/api/javax/jms/Message.html#setJMSCorrelationID(java.lang.String) 
+     :host            the remote host to connect to (default is to connect in-vm)
+                      [nil]
+     :port            the remote port to connect to (requires :host to be set)
+                      [nil, or 5445 if :host is set]
+     :username        the username to use to auth the connection (requires :password
+                      to be set) [nil]
+     :password        the password to use to auth the connection (requires :username
+                      to be set) [nil]"
   [dest message & {:as opts}]
   (with-connection opts
     (let [session (session)
@@ -69,21 +70,21 @@ The following options are supported [default]:
       encoded)))
 
 (defn receive
-  "Receive a message from a destination. dest can either be the name of the
-destination or a javax.jms.Destination.
+  "Receive a message from a destination. dest can either be the name
+   of the destination or a javax.jms.Destination.
 
-The following options are supported [default]:
-  :timeout    time in ms, after which nil is returned [10000]
-  :selector   A JMS (SQL 92) expression matching message properties
-  :decode?    if true, the decoded message body is returned. Otherwise, the
-              javax.jms.Message object is returned [true]
-  :host       the remote host to connect to (default is to connect in-vm) [nil]
-  :port       the remote port to connect to (requires :host to be set) [nil, or
-              5445 if :host is set]
-  :username   the username to use to auth the connection (requires :password to
-              be set) [nil]
-  :password   the password to use to auth the connection (requires :username to
-              be set) [nil]"
+   The following options are supported [default]:
+     :timeout    time in ms, after which nil is returned [10000]
+     :selector   A JMS (SQL 92) expression matching message properties
+     :decode?    if true, the decoded message body is returned. Otherwise, the
+                 javax.jms.Message object is returned [true]
+     :host       the remote host to connect to (default is to connect in-vm) [nil]
+     :port       the remote port to connect to (requires :host to be set) [nil, or
+                 5445 if :host is set]
+     :username   the username to use to auth the connection (requires :password to
+                 be set) [nil]
+     :password   the password to use to auth the connection (requires :username to
+                 be set) [nil]"
   [dest & {:keys [timeout selector decode?] :or {timeout 10000 decode? true} :as opts}]
   (with-connection opts
     (let [session (session)
@@ -94,26 +95,28 @@ The following options are supported [default]:
         (codecs/decode-if decode? encoded)))))
 
 (defn message-seq
-  "A lazy sequence of messages received from a destination. Accepts same options as receive"
+  "A lazy sequence of messages received from a destination. Accepts
+   same options as receive"
   [dest & opts]
   (lazy-seq (cons (apply receive dest opts) (message-seq dest))))
 
 (defn listen
-  "The handler function, f, will receive each message sent to dest. dest can
-either be the name of the destination or a javax.jms.Destination.
+  "The handler function, f, will receive each message sent to dest.
+   dest can either be the name of the destination or a
+   javax.jms.Destination.
 
-The following options are supported [default]:
-  :concurrency  the number of threads handling messages [1]
-  :selector     A JMS (SQL 92) expression matching message properties
-  :decode?      if true, the decoded message body is passed to f. Otherwise, the
-                javax.jms.Message object is passed [true]
-  :host         the remote host to connect to (default is to connect in-vm) [nil]
-  :port         the remote port to connect to (requires :host to be set) [nil,
-                or 5445 if :host is set]
-  :username     the username to use to auth the connection (requires :password
-                to be set) [nil]
-  :password     the password to use to auth the connection (requires :username
-                to be set) [nil]"
+   The following options are supported [default]:
+     :concurrency  the number of threads handling messages [1]
+     :selector     A JMS (SQL 92) expression matching message properties
+     :decode?      if true, the decoded message body is passed to f. Otherwise, the
+                   javax.jms.Message object is passed [true]
+     :host         the remote host to connect to (default is to connect in-vm) [nil]
+     :port         the remote port to connect to (requires :host to be set) [nil,
+                   or 5445 if :host is set]
+     :username     the username to use to auth the connection (requires :password
+                   to be set) [nil]
+     :password     the password to use to auth the connection (requires :username
+                   to be set) [nil]"
   [dest f & {:keys [concurrency selector decode?] :or {concurrency 1 decode? true} :as opts}]
   (let [connection (.createXAConnection (connection-factory opts)
                                         (:username opts)
@@ -140,11 +143,13 @@ The following options are supported [default]:
 
 (defn request
   "Send a message to queue and return a delay that will retrieve the response.
-Implements the request-response pattern, and is used in conjunction with respond.
-queue can either be the name of the queue or a javax.jms.Queue.
-In addition to the same options as publish, it also accepts [default]:
-   :timeout  time in ms for the delayed receive to wait once it it is
-             dereferenced, after which nil is returned [10000]"
+   Implements the request-response pattern, and is used in conjunction
+   with respond. The queue parameter can either be the name of a
+   queue or an actual javax.jms.Queue.
+
+   It takes the same options as publish, and one more [default]:
+     :timeout  time in ms for the delayed receive to wait once it it is
+               dereferenced, after which nil is returned [10000]"
   [queue message & {:as opts}]
   {:pre [(queue? queue)]}
   (let [^javax.jms.Message message (mapply publish queue message
@@ -156,11 +161,12 @@ In addition to the same options as publish, it also accepts [default]:
                :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'"))))))
 
 (defn respond
-  "Listen for messages on queue sent by the request function and respond with the
-result of applying f to the message. queue can either be the name of the
-queue or a javax.jms.Queue. Accepts the same options as listen."
-  [queue f & {:keys [decode?] :or {decode? true} :as opts}]
-  {:pre [(queue? queue)]}
+  "Listen for messages on queue sent by the request function and
+   respond with the result of applying f to the message. queue can
+   either be the name of the queue or a javax.jms.Queue. Accepts the
+   same options as listen."
+  [queue f & {:keys [decode?] :or {decode?
+   true} :as opts}] {:pre [(queue? queue)]}
   (letfn [(respond* [^javax.jms.Message msg]
             (publish (.getJMSDestination msg)
                      (f (codecs/decode-if decode? msg))
@@ -174,15 +180,15 @@ queue or a javax.jms.Queue. Accepts the same options as listen."
 
 (defn unlisten
   "Pass the result of a call to listen or respond to de-register the handler.
-You only need to do this if you wish to stop the handler's destination before
-your app is undeployed."
+   You only need to do this if you wish to stop the handler's
+   destination before your app is undeployed."
   [^javax.jms.XAConnection listener]
   (.close listener))
 
 (defn stop
   "Destroy a message destination. Typically not necessary since it
-  will be done for you when your app is undeployed. This will fail
-  with a warning if any handlers are listening"
+   will be done for you when your app is undeployed. This will fail
+   with a warning if any handlers are listening"
   [name]
   (if (or (queue-name? name) (topic-name? name))
     (stop-destination name)
