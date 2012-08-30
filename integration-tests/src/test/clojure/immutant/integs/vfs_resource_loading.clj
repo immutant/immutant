@@ -20,7 +20,7 @@
         clojure.test)
   (:require [clj-http.client :as client]))
 
-(use-fixtures :each (with-deployment *file*
+(use-fixtures :once (with-deployment *file*
                       '{
                         :root "target/apps/ring/basic-ring/"
                         :init basic-ring.core/init-resources
