@@ -106,8 +106,8 @@
   (when-not *compile-files*
     (let [results (atom [])
           report-orig report]
-      (binding [fntest.jboss/home "./target/integ-dist/jboss"
-                fntest.jboss/descriptor-root "target/.descriptors"
+      (binding [fntest.jboss/*home* "./target/integ-dist/jboss"
+                fntest.jboss/*descriptor-root* "target/.descriptors"
                 report (fn [x] (report-orig x)
                          (swap! results conj (:type x)))]
         (println "\n>>>> Testing against" clojure-versions "\n")

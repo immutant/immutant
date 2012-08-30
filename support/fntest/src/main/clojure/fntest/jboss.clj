@@ -20,12 +20,12 @@
             [clojure.java.io     :as io]
             [jboss-as.management :as api]))
 
-(def ^:dynamic home (System/getenv "JBOSS_HOME"))
-(def ^:dynamic descriptor-root ".descriptors")
+(def ^:dynamic *home* (System/getenv "JBOSS_HOME"))
+(def ^:dynamic *descriptor-root* ".descriptors")
 
 (defn start-command []
   (let [java-home (System/getProperty "java.home")
-        jboss-home (.getCanonicalFile (io/file home))]
+        jboss-home (.getCanonicalFile (io/file *home*))]
     (str java-home
          "/bin/java -Xms64m -Xmx1024m -XX:MaxPermSize=1024m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSClassUnloadingEnabled"
          (if (= "true" (System/getProperty "fntest.debug"))
@@ -61,7 +61,7 @@
   "Return a File object representing the deployment descriptor"
   [name & [content]]
   (let [fname (if (re-seq #".+\.clj$" name) name (str name ".clj"))
-        file (io/file descriptor-root fname)]
+        file (io/file *descriptor-root* fname)]
     (when content
       (io/make-parents file)
       (spit file (into content {:root (str (.getCanonicalFile (io/file (:root content))))})))
@@ -80,20 +80,17 @@
      (doseq [[name content] content-map]
        (deploy name content)))
   ([name content]
-      (let [file (if (= java.io.File (class content)) content (descriptor name content))
-            fname (.getName file)
-            url (.toURL file)
-            add (api/add fname url)]
-        (when-not (= "success" (add :outcome))
-          (api/remove fname)
-          (api/add fname url))
-        (api/deploy fname))))
+     (let [file (if (instance? java.io.File content) content (descriptor name content))
+           fname (.getName file)
+           url (.toURL file)
+           add (api/add fname url)]
+       (when-not (= "success" (add :outcome))
+         (api/remove fname)
+         (api/add fname url))
+       (api/deploy fname))))
 
 (defn undeploy
   "Undeploy the apps deployed under the given names"
   [& names]
   (doseq [name names]
     (api/remove (deployment-name name))))
-
-
-
