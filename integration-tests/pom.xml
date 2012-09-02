@@ -26,7 +26,7 @@
     <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>fntest</artifactId>
-      <version>${project.version}</version>
+      <version>0.3.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <!-- TODO: wtf doesn't clj-http pull this in itself?  -->
