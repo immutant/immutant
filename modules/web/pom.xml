@@ -23,6 +23,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-dammit</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.projectodd</groupId>
       <artifactId>polyglot-web</artifactId>
       <version>${version.polyglot}</version>

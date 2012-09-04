@@ -30,6 +30,12 @@
 
     <dependency>
       <groupId>org.immutant</groupId>
+      <artifactId>immutant-dammit</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.immutant</groupId>
       <artifactId>immutant-runtime-api</artifactId>
       <version>${project.version}</version>
       <scope>compile</scope>

@@ -19,8 +19,7 @@
   "Various utility functions."
   (:require [immutant.registry :as lookup]
             [clojure.string    :as str]
-            [clojure.java.io :as io])
-  (:import org.immutant.core.Closer))
+            [clojure.java.io :as io]))
 
 (defn app-root
   "Returns a file pointing to the root dir of the application"
@@ -39,9 +38,10 @@
 
 (defn at-exit
   "Registers a function to be called when the application is undeployed.
-Used internally to shutdown various services, but can be used by application code as well."
+   Used internally to shutdown various services, but can be used by
+   application code as well."
   [f]
-  (if-let [^Closer closer (lookup/fetch "housekeeper")]
+  (if-let [closer (lookup/fetch "housekeeper")]
     (.atExit closer f)
     (println "WARN: Unable to register at-exit handler with housekeeper")))
 
@@ -91,9 +91,9 @@ Used internally to shutdown various services, but can be used by application cod
 
 (defmacro backoff
   "A simple backoff strategy that retries body in the event of error.
-  The first retry occurs after sleeping start milliseconds, the next
-  after start*2 ms, and so on, until the sleep time exceeds end ms, at
-  which point the caught error is tossed."
+   The first retry occurs after sleeping start milliseconds, the next
+   after start*2 ms, and so on, until the sleep time exceeds end ms,
+   at which point the caught error is tossed."
   [start end & body]
   `(loop [x# ~start]
      (let [result# (try
