@@ -233,17 +233,13 @@
   against a local [[http://maven.apache.org/guides/introduction/introduction-to-repositories.html][Maven repository]]. If the dependencies aren't available 
   in the local repository, they are downloaded into it. The local repository
   is located based on the value of =$M2_REPO=, and defaults to 
-  =~/.m2/repository/=. If dependency resolution fails and the failing dependency
-  is listed in =project.clj=, Immutant will reattempt resolution with the
-  failing dependency excluded. If the unresolved dependency isn't listed in
-  =project.clj=, all maven dependency resolution will fail. In either case,
-  any dependencies that fail to resolve must be present elsewhere on the
+  =~/.m2/repository/=. If this dependency resolution fails, none of the
+  application's dependencies will be available from the local repository
+  and must be be present elsewhere on the
   application's resource path (=lib/= for example) to be accessible to the
   application.
 
   The enablement of dependency resolution depends upon the value of
-  the =:resolve-dependencies= option and the type of deployment.
-
-   When deploying an application as a [[./deployment.html#deployment-directory][directory]], dependencies are resolved
+  the =:resolve-dependencies= option. Dependencies are resolved
    by default, but resolution can be disabled by setting =:resolve-dependencies=
    to /false/.     

@@ -156,15 +156,8 @@
 
       (let [project-with-bad-dep (update-in project [:dependencies]
                                             conj ['i-dont-exist "1.0.0"])]
-        (fact "should return the correct deps when there is an unresolvable dep"
-          (resolve-dependencies project-with-bad-dep) => expected-deps)
-        
-        (let [project-with-bad-deps (update-in project-with-bad-dep [:dependencies]
-                                               conj ['i-also-dont-exist "1.0.0"])]
-          (fact "should return the correct deps when there are multiple unresolvable deps"
-            (resolve-dependencies project-with-bad-deps) => expected-deps)))))
-
-
+        (fact "should return the no deps when there is an unresolvable dep"
+          (resolve-dependencies project-with-bad-dep) => nil))))
     
     
   (facts "read-full-app-config"

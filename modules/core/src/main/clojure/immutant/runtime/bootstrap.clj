@@ -119,22 +119,6 @@ nil if neither are available."
   [descriptor-file app-root]
   (pr-str (read-full-app-config descriptor-file app-root)))
 
-(defn ^{:private true} remove-dependencies
-  "Removes the given dependency coordinates from the given project."
-  [project coords]
-  (update-in project [:dependencies]
-             #(remove (partial contains? coords) %)))
-
-(defn ^{:private true} extract-coordinates
-  "Extracts dependency coordinates from an exception message."
-  [s]
-  (reduce (fn [coords [_ group name version _]]
-            (if (= group name)
-              (conj coords [(symbol group name) version] [(symbol name) version])
-              (conj coords [(symbol group name) version])))
-          #{}
-          (re-seq #" (\S*?):(\S*?):jar:(\S*?)(,| )" s)))
-
 (defn ^{:private true :testable true} resolve-dependencies
   "Resolves dependencies from the lein project. It delegates to leiningen-core, but attempts
 to gracefully handle missing dependencies."
@@ -143,17 +127,9 @@ to gracefully handle missing dependencies."
     (project/load-certificates project)
     (try
       (classpath/resolve-dependencies :dependencies project)
-      (catch DependencyResolutionException e
-        (let [msg (.getMessage e)
-              coords (extract-coordinates msg)]
-          (log/warn "Failed to resolve one or more dependencies: " msg)
-          (if (some coords (:dependencies project))
-            (do
-              (log/warn "Attempting dependency resolution again with the above dependencies removed.")
-              (resolve-dependencies (remove-dependencies project coords)))
-            (do
-              (log/error "The above resolution failure prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
-              nil)))))))
+      (catch clojure.lang.ExceptionInfo e
+        (log/error "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
+        nil))))
 
 (defn ^{:internal true} lib-dir
   "Resolve the library dir for the application."
