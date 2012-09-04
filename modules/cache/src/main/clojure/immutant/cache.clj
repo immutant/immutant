@@ -19,7 +19,7 @@
   "Infinispan-backed implementations of core.cache and core.memoize
    protocols supporting multiple replication options and more."
   (:use [immutant.cache.core]
-        [immutant.codecs])
+        [immutant.codecs :only [encode decode]])
   (:require [clojure.core.cache :as cc]
             [clojure.core.memoize :as cm])
   (:import [clojure.core.memoize PluggableMemoization]))
