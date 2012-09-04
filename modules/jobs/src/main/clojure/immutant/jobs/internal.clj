@@ -16,8 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.jobs.internal
-  (:use [immutant.utilities :only [app-name]]
-        [immutant.mbean :only [register-mbean]])
+  (:use [immutant.utilities :only [app-name]])
   (:require [immutant.registry :as registry]
             [clojure.tools.logging :as log])
   (:import [org.immutant.jobs ClojureJob JobScheduler JobSchedulizer ScheduledJobMBean]
@@ -85,11 +84,11 @@ A singleton scheduler will participate in a cluster, and will only execute its j
 ;; yet easily unregister the mbean
 ;; ignore reflection here for now, since we don't even use it yet
 (defn register-job-mbean [name job]
-  (register-mbean
-   "immutant.jobs"
+  (.installMBean
+   (job-schedulizer)
    (.append JobsServices/JOBS
             (doto (make-array String 2)
               (aset 0 (app-name))
               (aset 1 name)))
-   job
-   (job-schedulizer)))
+   "immutant.jobs"
+   job))
