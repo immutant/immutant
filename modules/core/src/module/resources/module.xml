@@ -45,7 +45,6 @@
         <resource-root path="hooke.jar"/>
         <resource-root path="httpclient.jar"/>
         <resource-root path="httpcore.jar"/>
-        <resource-root path="ordered.jar"/>
         <resource-root path="maven-aether-provider.jar"/>
         <resource-root path="maven-model.jar"/>
         <resource-root path="maven-model-builder.jar"/>
