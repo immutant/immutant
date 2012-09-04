@@ -50,12 +50,12 @@
     (deftest the-default-resolve-dependencies-for-non-archives-should-be-true
       (is (= true (.resolveDependencies md))))
 
-    (deftest a-resolve-dependencies-value-in-project-clj-should-win
-      (is (= false (.resolveDependencies merged-md))))
-
-    (deftest the-default-resolve-dependencies-for-archives-should-be-false
+    (deftest the-default-resolve-dependencies-for-archives-should-also-be-true
       (.explode md (io/file ""))
-      (is (= false (.resolveDependencies md))))))
+      (is (= true (.resolveDependencies md))))
+    
+    (deftest a-resolve-dependencies-value-in-project-clj-should-win
+      (is (= false (.resolveDependencies merged-md))))))
 
 (let [md (ClojureMetaData. "app-name"
                            (ClojureMetaData/parse (io/file (io/resource "hashy-descriptor.clj"))))]

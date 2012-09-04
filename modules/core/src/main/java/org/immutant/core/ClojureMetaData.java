@@ -61,13 +61,13 @@ public class ClojureMetaData extends ApplicationMetaData {
     
     /**
      * See if the user has explicitly set :resolve-dependencies. If not, 
-     * resolve for non-archives.
+     * resolve by default.
      */
     public boolean resolveDependencies() {
         if (this.config.containsKey( "resolve-dependencies" )) {
             return (Boolean)get( "resolve-dependencies" );
         } else {
-            return !isArchive();
+            return true;
         }
     }
     

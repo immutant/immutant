@@ -33,7 +33,7 @@
      is loaded and if an =:immutant= key is preset in the resulting
      =project=, it is merged with the configuration data from the
      descriptor with the configuration from the descriptor taking
-     precedence. If the deployment was not an archive file, Leiningen is
+     precedence. Leiningen is then
      used to resolve the dependencies present in the =project= via 
      Maven (this behavior can be overridden - see [[#initialization-configuration][:resolve-dependencies]]). 
 
@@ -73,8 +73,7 @@
     =project.clj= will be resolved via [[https://github.com/cemerick/pomegranate][Pomegranate]]. This resolution process
     downloads and installs any missing dependencies to =$M2_REPO= 
     (=~/.m2/repository= by default). If not specified, =:resolve-dependencies=
-    defaults to /true/ for dir-based deployments, and /false/ for Immutant
-    archives. See [[#initialization-dependencies][Dependencies & Resources]] for more details on the dependency
+    defaults to /true/. See [[#initialization-dependencies][Dependencies & Resources]] for more details on the dependency
     resolution process.
 
   - =:lein-profiles= - If the application is a Leiningen 2 (or greater) project, 
@@ -245,15 +244,6 @@
   The enablement of dependency resolution depends upon the value of
   the =:resolve-dependencies= option and the type of deployment.
 
-** Dependency Resolution In Directory Based Deployments
-
    When deploying an application as a [[./deployment.html#deployment-directory][directory]], dependencies are resolved
    by default, but resolution can be disabled by setting =:resolve-dependencies=
-   to /false/. 
-
-** Dependency Resolution In Archive Based Deployments
-
-   When deploying an application as an [[./deployment.html#deployment-archive][archive]], dependencies are *not* resolved 
-   by default, but resolution can be enabled by setting =:resolve-dependencies=
-   to /true/. 
-    
+   to /false/.     
