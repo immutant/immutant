@@ -16,8 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.jobs.internal
-  (:use immutant.utilities
-        immutant.mbean)
+  (:use [immutant.utilities :only [app-name]]
+        [immutant.mbean :only [register-mbean]])
   (:require [immutant.registry :as registry]
             [clojure.tools.logging :as log])
   (:import [org.immutant.jobs ClojureJob JobScheduler JobSchedulizer ScheduledJobMBean]

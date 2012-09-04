@@ -18,8 +18,7 @@
 (ns org.immutant.daemons.test.Daemon
   (:use clojure.test
         immutant.test.helpers)
-  (:import org.immutant.runtime.ClojureRuntime
-           org.immutant.daemons.Daemon))
+  (:import org.immutant.daemons.Daemon))
 
 (def daemon-status (atom nil))
 

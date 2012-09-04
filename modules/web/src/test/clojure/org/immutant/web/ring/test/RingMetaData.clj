@@ -20,8 +20,7 @@
         midje.sweet)
   (:import org.immutant.core.ClojureMetaData
            org.immutant.web.ring.RingMetaData)
-  (:require [clojure.java.io            :as io]
-            [immutant.runtime.bootstrap :as bootstrap]))
+  (:require [clojure.java.io :as io]))
 
 (deftest all-tests
 

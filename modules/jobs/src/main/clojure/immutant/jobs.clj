@@ -17,8 +17,8 @@
 
 (ns immutant.jobs
   "Associate recurring jobs with an application using cron-like specifications"
-  (:use immutant.utilities
-        immutant.jobs.internal)
+  (:use [immutant.utilities :only [at-exit]]
+        [immutant.jobs.internal :only [stop-job create-job]])
   (:require [clojure.tools.logging :as log]))
 
 (def ^{:private true} current-jobs (atom {}))
