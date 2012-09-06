@@ -32,7 +32,7 @@
   (if (worked? attempt)
     `(defn ~name ~@rest)
     `(defn ~name [& args#]
-       (log/warn "This function's behavior is limited when run outside of Immutant")
+       (log/warn (str "The function, " ~name ", is limited when run outside of Immutant"))
        nil)))
 
 (defmacro try-def [attempt name & rest]
