@@ -20,6 +20,7 @@
    data structure to dynamically-created topics and queues. Message
    distribution is automatically load-balanced when clustered."
   (:use [immutant.utilities :only (at-exit mapply)]
+        [immutant.try :only (try-defn)]
         [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]
             [immutant.registry         :as reg]))
@@ -100,7 +101,7 @@
   [dest & opts]
   (lazy-seq (cons (apply receive dest opts) (message-seq dest))))
 
-(defn listen
+(try-defn (import 'org.immutant.messaging.MessageListener) listen
   "The handler function, f, will receive each message sent to dest.
    dest can either be the name of the destination or a
    javax.jms.Destination.

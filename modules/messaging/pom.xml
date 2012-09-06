@@ -32,7 +32,6 @@
       <groupId>org.immutant</groupId>
       <artifactId>immutant-xa</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -45,7 +44,6 @@
     <dependency>
       <groupId>org.jboss.spec.javax.jms</groupId>
       <artifactId>jboss-jms-api_1.1_spec</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>

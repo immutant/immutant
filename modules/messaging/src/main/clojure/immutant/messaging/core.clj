@@ -49,7 +49,7 @@
         (do
           (log/warn "Unable to obtain JMS Connection Factory - assuming we are outside the container")
           (hornetq/connection-factory)))]
-  (defn ^org.hornetq.jms.client.HornetQConnectionFactory connection-factory
+  (defn connection-factory
     [opts]
     (if (remote-connection? opts)
       (hornetq/connection-factory opts)
@@ -113,7 +113,7 @@
    :else (throw (Exception. "Illegal destination name"))))
 
 (defn stop-destination [name]
-  (if-let [^org.hornetq.jms.server.JMSServerManager manager
+  (if-let [manager
            (lookup/fetch "jboss.messaging.default.jms.manager")]
     (try
       (if (queue-name? name)
@@ -124,14 +124,14 @@
         (log/warn e)))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
-  (if-let [^org.hornetq.jms.server.JMSServerManager manager
+  (if-let [manager
            (lookup/fetch "jboss.messaging.default.jms.manager")]
     (do (.createQueue manager false name selector durable (into-array String []))
         (at-exit #(stop-destination name)))
     (throw (Exception. (str "Unable to start queue, " name)))))
 
 (defn start-topic [name & opts]
-  (if-let [^org.hornetq.jms.server.JMSServerManager manager
+  (if-let [manager
            (lookup/fetch "jboss.messaging.default.jms.manager")]
     (do (.createTopic manager false name (into-array String []))
         (at-exit #(stop-destination name)))

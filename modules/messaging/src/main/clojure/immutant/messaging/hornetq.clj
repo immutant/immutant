@@ -16,18 +16,20 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging.hornetq
-  (:import (org.hornetq.jms.client HornetQDestination))
-  (:import (org.hornetq.api.core TransportConfiguration))
-  (:import (org.hornetq.api.jms HornetQJMSClient JMSFactoryType)))
+  (:use [immutant.try :only [try-defn]])
+  )
 
-(defn connection-factory
-  "Create a connection factory, typically invoked when outside container"
-  ([]
-     (connection-factory nil))
-  ([{:keys [host port] :or {host "localhost" port 5445}}]
-     (let [connect_opts { "host" host "port" (Integer. (int port)) }
-           transport_config (new TransportConfiguration "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" connect_opts)]
-       (HornetQJMSClient/createConnectionFactoryWithoutHA
-        JMSFactoryType/CF
-        ^"[Lorg.hornetq.api.core.TransportConfiguration;" (into-array [transport_config])))))
-
+(try-defn
+ (import '(org.hornetq.jms.client HornetQDestination)
+         '(org.hornetq.api.core TransportConfiguration)
+         '(org.hornetq.api.jms HornetQJMSClient JMSFactoryType))
+ connection-factory
+ "Create a connection factory, typically invoked when outside container"
+ ([]
+    (connection-factory nil))
+ ([{:keys [host port] :or {host "localhost" port 5445}}]
+    (let [connect_opts { "host" host "port" (Integer. (int port)) }
+          transport_config (new TransportConfiguration "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" connect_opts)]
+      (HornetQJMSClient/createConnectionFactoryWithoutHA
+       JMSFactoryType/CF
+       ^"[Lorg.hornetq.api.core.TransportConfiguration;" (into-array [transport_config])))))
