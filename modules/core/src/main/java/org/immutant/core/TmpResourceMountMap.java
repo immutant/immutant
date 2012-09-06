@@ -30,8 +30,8 @@ import org.jboss.as.server.deployment.module.ResourceRoot;
 public class TmpResourceMountMap {
     public static final AttachmentKey<TmpResourceMountMap> ATTACHMENT_KEY = AttachmentKey.create( TmpResourceMountMap.class );
     
-    public void put(URL mountURL, ResourceRoot resourceRoot, File actualFile) {
-        map.put( mountURL.toExternalForm(), new Entry( resourceRoot, actualFile ) );
+    public void put(URL mountURL, ResourceRoot resourceRoot, File actualFile, boolean unmountable) {
+        map.put( mountURL.toExternalForm(), new Entry( resourceRoot, actualFile, unmountable ) );
     }
     
     
@@ -45,6 +45,15 @@ public class TmpResourceMountMap {
             return entry.resourceRoot;
         } else {
             return null;
+        }
+    }
+    
+    public boolean isUnmountable(String mountPath) {
+        Entry entry = map.get( mountPath );
+        if (entry != null) {
+            return entry.unmountable;
+        } else {
+            return false;
         }
     }
     
@@ -74,10 +83,12 @@ public class TmpResourceMountMap {
     class Entry {
         public ResourceRoot resourceRoot;
         public File actualFile;
+        public boolean unmountable;
         
-        Entry(ResourceRoot resourceRoot, File actualFile) {
+        Entry(ResourceRoot resourceRoot, File actualFile, boolean unmountable) {
             this.resourceRoot = resourceRoot;
             this.actualFile = actualFile;
+            this.unmountable = unmountable;
         }
     }
 }

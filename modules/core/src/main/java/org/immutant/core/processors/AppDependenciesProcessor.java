@@ -80,12 +80,12 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
 
                 // borrow the shipped clojure.jar
                 String jarPath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/clojure.jar";
-                mounter.mount( new File( jarPath ) );
+                mounter.mount( new File( jarPath ), false );
             }
 
             //mount the runtime jar
             String runtimePath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/immutant-runtime-impl.jar";
-            mounter.mount( new File( runtimePath ) );
+            mounter.mount( new File( runtimePath ), false );
             
             for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles() )) {
                 final ResourceRoot childResource = new ResourceRoot( VFS.getChild( each ), null );

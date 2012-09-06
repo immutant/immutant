@@ -37,6 +37,12 @@
 (defn java-class-handler [request]
   (response (SomeClass/hello)))
 
+(defn dev-handler [request]
+  (use 'immutant.dev)
+  (eval '(merge-dependencies! '[clj-rome "0.3.0"]))
+  (use 'clj-rome.reader)
+  (response "success"))
+
 (defn init []
   (println "INIT CALLED"))
 
@@ -78,3 +84,7 @@
 (defn init-java-class []
   (init)
   (web/start java-class-handler))
+
+(defn init-dev-handler []
+  (init)
+  (web/start dev-handler))

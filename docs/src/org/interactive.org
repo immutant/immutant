@@ -179,3 +179,26 @@
    manually stop nREPL's you start yourself. If you start an nREPL service
    via the =:nrepl-port= configuration option, your only recourse is to
    allow Immutant to shut it down for you on undeploy.
+
+* Reloading application dependencies
+  
+  Immutant provides tools to aid interactive repl-based development via
+  the [[./apidoc/immutant.dev-api.html][immutant.dev]] namespace. Currently, it provides two functions for 
+  updating and reloading your application's dependencies in container:
+
+  - [[./apidoc/immutant.dev-api.html#immutant.dev/reload-dependencies!][immutant.dev/reload-dependencies!]] Reads the dependencies from the current
+    application's =project.clj=, and replaces the dependencies provided by
+    the application's ClassLoader with this dependency set.
+  - [[./apidoc/immutant.dev-api.html#immutant.dev/merge-dependencies!][immutant.dev/merge-dependencies!]] Reads the dependencies from the current
+    application's =project.clj=, merges the given dependencies, and 
+    replaces the dependencies provided by the application's ClassLoader with this 
+    merged dependency set. This does not alter your =project.clj=. You provide
+    one or more dependencies in Leiningen coordinate form (quoted):
+    #+begin_src clojure
+      (immutant.dev/merge-dependencies! '[dep-1 "1.0.0"] '[dep/two "0.1.0-SNAPSHOT"])
+    #+end_src
+  
+  Note that the =immutant.dev= namespace *can only be loaded within applications
+  that are using Clojure 1.4.0 or newer*.
+
+

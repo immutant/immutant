@@ -133,9 +133,9 @@ to gracefully handle missing dependencies."
 
 (defn ^{:internal true} lib-dir
   "Resolve the library dir for the application."
-  [^File app-root profiles]
-  (io/file (:library-path (read-project app-root profiles)
-                          (str (.getAbsolutePath app-root) "/lib"))))
+  [^File project]
+  (io/file (:library-path project
+                          (io/file (:root project) "lib"))))
 
 (defn ^{:private true} resource-paths-from-project
   "Resolves the resource paths (in the AS7 usage of the term) for a leiningen application. Handles
@@ -174,8 +174,8 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
 
 (defn ^{:internal true} bundled-jars
   "Returns a set of any jars that are bundled in the application's lib-dir."
-  [app-root profiles]
-  (let [^File lib-dir (lib-dir app-root profiles)]
+  [project]
+  (let [^File lib-dir (lib-dir project)]
     (set
      (if (.isDirectory lib-dir)
        (.listFiles lib-dir (proxy [FilenameFilter] []
@@ -186,11 +186,15 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
   "Resolves the dependencies for an application. It concats bundled jars with any aether resolved
 dependencies, with bundled jars taking precendence. If resolve-deps is false, dependencies aren't
 resolved via aether and only bundled jars are returned."
-  [app-root resolve-deps profiles]
-  (let [bundled (bundled-jars app-root profiles)
-        bundled-jar-names (map (fn [^File f] (.getName f)) bundled)]
-    (concat
-     bundled
-     (when resolve-deps
-       (filter (fn [^File f] (not (some #{(.getName f)} bundled-jar-names)))
-               (resolve-dependencies (read-project app-root profiles)))))))
+  ([app-root profiles resolve-deps?]
+     (get-dependencies (or (read-project app-root profiles)
+                           {:root app-root})
+                       resolve-deps?))
+  ([project resolve-deps?]
+     (let [bundled (bundled-jars project)
+           bundled-jar-names (map (fn [^File f] (.getName f)) bundled)]
+       (concat
+        bundled
+        (when resolve-deps?
+          (filter (fn [^File f] (not (some #{(.getName f)} bundled-jar-names)))
+                  (resolve-dependencies project)))))))

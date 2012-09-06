@@ -82,7 +82,10 @@
       (set-version version)
       (println "\n>>>>" (str \[ (.toString (java.util.Date.)) \])
                "Running integs with clojure" version )
-      (binding [*current-clojure-version* version]
+      (binding [*current-clojure-version*
+                (let [v (re-find #"(\d+)\.(\d+)\.(\d+)" version)]
+                  (zipmap [:full :major :minor :incremental]
+                          (conj (map #(Integer/parseInt %) (rest v)) (first v))))]
         (time (f)))
       (println "\n<<<<" (str \[ (.toString (java.util.Date.)) \])
                "Finished integs with clojure"

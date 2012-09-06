@@ -47,16 +47,32 @@ that weren't unmounted."
   (let [mounter (reg/fetch "resource-mounter")]
     (map #(.mount mounter %) paths)))
 
+(defn ^{:private true} read-project
+  "Reads the lein project in the current app dir."
+  []
+  (boot/read-project (util/app-root) 
+                     (:lein-profiles (reg/fetch :config))))
+
 (defn reload-dependencies!
   "Rereads the dependencies for the current application and resets the application's
-ClassLoader to provide those dependencies. This is beta, and either way should not be
-used in production."
-  []
-  (let [new-resources (mount-paths
-                       (boot/get-dependencies (util/app-root) true
-                                              (:lein-profiles (reg/fetch :config))))
-        keeper-resources (unmount-resources
-                          (remove nil?
-                                  (map #(.getResource % "/")
-                                       (ResourceLoaderUtil/getExistingResourceLoaders clojure.lang.Var))))]
-    (reset-classloader-resources (concat new-resources keeper-resources))))
+ClassLoader to provide those dependencies. This should never be used in production.
+Only works under Clojure 1.4 or newer. (beta)"
+  ([]
+     (reload-dependencies! (read-project)))
+  ([project]
+     (let [new-resources (mount-paths
+                          (boot/get-dependencies project true))
+           keeper-resources (unmount-resources
+                             (remove nil?
+                                     (map #(.getResource % "/")
+                                          (ResourceLoaderUtil/getExistingResourceLoaders
+                                           clojure.lang.Var))))]
+       (reset-classloader-resources (concat new-resources keeper-resources)))))
+
+(defn merge-dependencies!
+  "Rereads the dependencies for the current application, merges in the given dependencies,
+and resets the application's ClassLoader to provide those dependencies. This should never
+be used in production. Only works under Clojure 1.4 or newer. (beta)"
+  [& coords]
+  (reload-dependencies!
+   (update-in (read-project) [:dependencies] #(set (concat % coords)))))

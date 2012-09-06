@@ -55,10 +55,10 @@
         (resource-paths app-root nil) => (just paths :in-any-order)))
     
     (fact "lib-dir should work"
-      (lib-dir app-root nil) => (io/file app-root "lib"))
+      (lib-dir {:root app-root}) => (io/file app-root "lib"))
     
     (facts "bundled-jars"
-      (let [jar-set (bundled-jars (io/file app-root) nil)]
+      (let [jar-set (bundled-jars {:root app-root})]
         (fact "should include the jars"
           jar-set => (contains (set (map #(io/file (io/resource %))
                                          ["project-root/lib/some.jar"
@@ -71,7 +71,7 @@
           jar-set =not=> (io/file (io/resource "project-root/lib/dev/invalid.jar")))))
        
     (facts "get-dependencies"
-      (let [deps (get-dependencies app-root true nil)]
+      (let [deps (get-dependencies app-root nil true)]
 
         (fact "should return deps from project.clj"
           deps => (contains (aether/dependency-files
@@ -89,7 +89,7 @@
                                           :coordinates [['org.clojure/tools.logging "0.2.3"]])))))))
 
     (fact "get-dependencies without resolve-deps should only return jars from lib"
-      (get-dependencies app-root false nil) => (just
+      (get-dependencies app-root nil false) => (just
                                                 (io/file (io/resource "project-root/lib/some.jar"))
                                                 (io/file (io/resource "project-root/lib/some-other.jar"))
                                                 (io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar"))
@@ -106,11 +106,11 @@
                                              :in-any-order))
 
     (fact "lib-dir should work"
-      (lib-dir app-root nil) => (io/file app-root "lib"))
+      (lib-dir {:root app-root}) => (io/file app-root "lib"))
 
 
     (facts "bundled-jars"
-      (let [jar-set (bundled-jars (io/file app-root) nil)]
+      (let [jar-set (bundled-jars {:root app-root})]
         (fact "should include the jars"
           jar-set => (contains (set (map #(io/file (io/resource %))
                                          ["non-project-root/lib/some.jar"
@@ -122,11 +122,11 @@
           jar-set =not=> (io/file (io/resource "non-project-root/lib/dev/invalid.jar")))))
     
     (fact "get-dependencies should return deps from lib"
-      (get-dependencies app-root true nil) =>
+      (get-dependencies app-root nil true) =>
       (contains (io/file (io/resource "non-project-root/lib/some.jar"))))
 
     (fact "get-dependencies without resolve-deps should only return jars from lib"
-      (get-dependencies app-root false nil) =>
+      (get-dependencies app-root nil false) =>
       (just
        (io/file (io/resource "non-project-root/lib/some.jar"))
        (io/file (io/resource "non-project-root/lib/some-other.jar"))

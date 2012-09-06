@@ -80,7 +80,7 @@ public class ApplicationBootstrapUtils {
     public static List<File> getDependencies(final File applicationRoot, final boolean resolveDeps, final List profiles) throws Exception {
         return (List<File>) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "get-dependencies" ).invoke( applicationRoot, resolveDeps, profiles ); 
+                return bootstrapVar( "get-dependencies" ).invoke( applicationRoot, profiles, resolveDeps ); 
             }
         } );
     }

@@ -15,19 +15,23 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.bundled-clojure-version
+(ns immutant.integs.dev
   (:use fntest.core
         clojure.test)
   (:require [clj-http.client :as client]))
 
+(defn run-these-tests? []
+  (<= 4 (:minor immutant.integs/*current-clojure-version*)))
+
 (use-fixtures :once (with-deployment *file*
                       '{
                         :root "target/apps/ring/basic-ring/"
-                        :init basic-ring.core/init-web
-                        :context-path "/basic-ring"
+                        :init basic-ring.core/init-dev-handler
+                        :context-path "/dev"
                         }))
 
-(deftest verify-clojure-version
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    (println "RESPONSE:" (result :body))
-    (is (.contains (result :body) (str "version:" (:full immutant.integs/*current-clojure-version*))))))
+(deftest merge-dependencies!
+  (if (run-these-tests?)
+    (is (= (:body (client/get "http://localhost:8080/dev")) "success"))
+    (println "Skipping dev tests for" (:full immutant.integs/*current-clojure-version*)
+             "since the dev ns only works in clojure >= 1.4.0")))

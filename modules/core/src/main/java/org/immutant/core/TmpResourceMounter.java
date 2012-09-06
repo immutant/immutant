@@ -48,6 +48,10 @@ public class TmpResourceMounter implements Service<TmpResourceMounter> {
     }
     
     public ResourceRoot mount(File file) throws IOException {
+        return mount( file, true );
+    }
+    
+    public ResourceRoot mount(File file, boolean unmountable) throws IOException {
         synchronized (this.mountMap) {
             VirtualFile mountPath = VFS.getChild( File.createTempFile( file.getName(), ".jar", tmpMountDir() ).toURI() );
             log.debug( this.deploymentUnit.getName() + ": mounting " + file );
@@ -56,7 +60,7 @@ public class TmpResourceMounter implements Service<TmpResourceMounter> {
             ModuleRootMarker.mark( childResource );
             this.deploymentUnit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
 
-            this.mountMap.put( mountPath.toURL(), childResource, file );
+            this.mountMap.put( mountPath.toURL(), childResource, file, unmountable );
 
             return childResource;
         }
@@ -69,7 +73,8 @@ public class TmpResourceMounter implements Service<TmpResourceMounter> {
     public boolean unmount(String mountPath) {
         synchronized (this.mountMap) {
             ResourceRoot root = this.mountMap.getResourceRoot( mountPath );
-            if (root != null) {
+            if (root != null &&
+                    this.mountMap.isUnmountable( mountPath )) {
                 List<ResourceRoot> roots = this.deploymentUnit.getAttachmentList( Attachments.RESOURCE_ROOTS );
                 roots.remove( root );
                 root.getMountHandle().close();
