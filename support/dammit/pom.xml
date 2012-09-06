@@ -23,6 +23,42 @@
       <groupId>org.clojure</groupId>
       <artifactId>tools.logging</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.tcrawley</groupId>
+      <artifactId>autodoc</artifactId>
+      <scope>provided</scope>
+      <!-- autodoc pulls in old versions of all of these if we leave
+           it to its own devices, which break pomegranate (which we use
+           via leiningen-core). -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.maven</groupId>
+          <artifactId>maven-model</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.maven.wagon</groupId>
+          <artifactId>wagon-provider-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.plexus</groupId>
+          <artifactId>plexus-interpolation</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.plexus</groupId>
+          <artifactId>plexus-utils</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- autodoc needs ant-launcher, but doesn't pull it in -->
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant-launcher</artifactId>
+      <version>1.8.2</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
