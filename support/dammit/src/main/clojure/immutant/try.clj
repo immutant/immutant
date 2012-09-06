@@ -15,33 +15,27 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.registry
-  (:use [immutant.try :only [try-defn]]))
+(ns immutant.try
+  (:require [clojure.tools.logging :as log]))
 
-(def ^{:private true} registry (atom {}))
-(def ^{:private true} msc-registry (atom nil))
+(defn- worked? [attempt]
+  (try
+    (if (symbol? attempt)
+      (eval (eval attempt))
+      (eval attempt))
+    true
+    (catch Throwable e
+      (log/warn (.getMessage e))
+      false)))
 
-(defn set-msc-registry [v]
-  (reset! msc-registry v))
+(defmacro try-defn [attempt name & rest]
+  (if (worked? attempt)
+    `(defn ~name ~@rest)
+    `(defn ~name [& args#]
+       (log/warn "This function's behavior is limited when run outside of Immutant")
+       nil)))
 
-(try-defn
- (import '(org.jboss.msc.service ServiceController ServiceName))
- ^{:private true} get-from-msc [name get-container?]
- (if @msc-registry
-   (let [key (if (string? name) (ServiceName/parse name) name)
-         ^ServiceController value (.getService @msc-registry key)]
-     (and value
-          (if get-container?
-            value
-            (.getValue value))))))
-  
-(defn put [k v]
-  (swap! registry assoc k v)
-  v)
-
-(defn fetch
-  ([name]
-     (fetch name false))
-  ([name get-container?]
-     (or (get @registry name) (get-from-msc name get-container?))))
-
+(defmacro try-def [attempt name & rest]
+  (if (worked? attempt)
+    `(def ~name ~@rest)
+    `(def ~name nil)))

@@ -15,33 +15,6 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.registry
-  (:use [immutant.try :only [try-defn]]))
-
-(def ^{:private true} registry (atom {}))
-(def ^{:private true} msc-registry (atom nil))
-
-(defn set-msc-registry [v]
-  (reset! msc-registry v))
-
-(try-defn
- (import '(org.jboss.msc.service ServiceController ServiceName))
- ^{:private true} get-from-msc [name get-container?]
- (if @msc-registry
-   (let [key (if (string? name) (ServiceName/parse name) name)
-         ^ServiceController value (.getService @msc-registry key)]
-     (and value
-          (if get-container?
-            value
-            (.getValue value))))))
-  
-(defn put [k v]
-  (swap! registry assoc k v)
-  v)
-
-(defn fetch
-  ([name]
-     (fetch name false))
-  ([name get-container?]
-     (or (get @registry name) (get-from-msc name get-container?))))
-
+(ns immutant.test.registry
+  (:use immutant.registry)
+  (:use clojure.test))
