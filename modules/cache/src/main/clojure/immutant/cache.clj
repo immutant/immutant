@@ -54,7 +54,7 @@
   (delete-all [cache]
     "Clear all entries from the cache and return it"))
 
-(deftype InfinispanCache [^org.infinispan.Cache cache options]
+(deftype InfinispanCache [cache options]
 
   cc/CacheProtocol
   (lookup [this key]

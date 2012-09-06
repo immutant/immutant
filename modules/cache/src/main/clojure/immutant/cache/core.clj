@@ -16,23 +16,26 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.cache.core
-  (:require [immutant.registry :as registry])
-  (:import [org.infinispan.config Configuration$CacheMode]
-           [org.infinispan.configuration.cache ConfigurationBuilder]
-           [org.infinispan.manager DefaultCacheManager]
-           [org.infinispan.transaction TransactionMode]
-           [org.infinispan.transaction.lookup GenericTransactionManagerLookup]))
+  (:use [immutant.try :only [try-def try-defn]])
+  (:require [immutant.registry :as registry]
+            [clojure.tools.logging :as log]))
 
-(def ^org.infinispan.manager.EmbeddedCacheManager clustered-manager
-  (registry/fetch "jboss.infinispan.web"))
-(def local-manager
+(def reqs '(import '[org.infinispan.config Configuration$CacheMode]
+                   '[org.infinispan.configuration.cache ConfigurationBuilder]
+                   '[org.infinispan.manager DefaultCacheManager]
+                   '[org.infinispan.transaction TransactionMode]
+                   '[org.infinispan.transaction.lookup GenericTransactionManagerLookup]))
+
+(try-def reqs clustered-manager
+         (registry/fetch "jboss.infinispan.web"))
+(try-def reqs local-manager
   (delay (DefaultCacheManager.
            (.. (ConfigurationBuilder.) transaction
                (transactionManagerLookup (GenericTransactionManagerLookup.))
                (transactionMode TransactionMode/TRANSACTIONAL)
                build))))
 
-(defn cache-mode
+(try-defn reqs cache-mode
   [kw sync]
   (cond
    (= :invalidated kw) (if sync Configuration$CacheMode/INVALIDATION_SYNC Configuration$CacheMode/INVALIDATION_ASYNC)
@@ -41,22 +44,22 @@
    (= :local kw) Configuration$CacheMode/LOCAL
    :default (throw (IllegalArgumentException. "Must be one of :distributed, :replicated, :invalidated, or :local"))))
 
-(defn reconfigure
+(try-defn reqs reconfigure
   [^String name ^String mode]
-  (let [^org.infinispan.Cache cache (.getCache clustered-manager name)
-        ^org.infinispan.config.Configuration config (.getConfiguration cache)
+  (let [cache (.getCache clustered-manager name)
+        config (.getConfiguration cache)
         current (.getCacheMode config)]
     (when-not (= mode current)
-      (println "Reconfiguring cache" name "from" (str current) "to" (str mode))
+      (log/info "Reconfiguring cache" name "from" (str current) "to" (str mode))
       (.stop cache)
       (.setCacheMode config mode)
       (.defineConfiguration clustered-manager name config)
       (.start cache))
     cache))
 
-(defn configure
+(try-defn reqs configure
   [^String name ^String mode]
-  (println "Configuring cache" (str name) "as" (str mode))
+  (log/info "Configuring cache" (str name) "as" (str mode))
   (let [config (.clone (.getDefaultConfiguration clustered-manager))]
     (.setClassLoader config (.getContextClassLoader (Thread/currentThread)))
     (.setCacheMode config mode)
@@ -71,22 +74,26 @@
     (reconfigure name (cache-mode mode sync))
     (configure name (cache-mode mode sync))))
 
-(defn local-cache
+(try-defn reqs local-cache
   ([]
-     (.getCache ^org.infinispan.manager.EmbeddedCacheManager @local-manager))
+     (.getCache @local-manager))
   ([^String name]
-     (.getCache ^org.infinispan.manager.EmbeddedCacheManager @local-manager name)))
+     (.getCache @local-manager name)))
 
 (defn raw-cache
   "Returns the raw Infinispan cache, clustered if possible, otherwise local"
   ([name] (raw-cache name nil))
   ([name mode]
-     (if clustered-manager
-       (clustered-cache name :mode (or mode :invalidated))
-       (do
-         (if (and mode (not= mode :local))
-           (println "WARN: Invalid mode," mode ", falling back to local"))
-         (local-cache name)))))
+     (cond
+      clustered-manager (clustered-cache name :mode (or mode :invalidated))
+      local-manager (do
+                      (if (and mode (not= mode :local))
+                        (log/warn "Invalid mode," mode ", falling back to local"))
+                      (local-cache name))
+      :else (do
+              (log/warn "Infinispan not available; falling back to ConcurrentHashMap")
+              (java.util.concurrent.ConcurrentHashMap.)))))
+
 
 (defn lifespan-params [{:keys [ttl idle units] :or {ttl -1 idle -1 units :seconds}}]
   (let [u (.toUpperCase (name units))
