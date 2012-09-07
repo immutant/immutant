@@ -53,26 +53,36 @@ that weren't unmounted."
   (boot/read-project (util/app-root) 
                      (:lein-profiles (reg/fetch :config))))
 
-(defn reload-dependencies!
-  "Rereads the dependencies for the current application and resets the application's
+(let [current-deps (atom nil)]
+
+  (defn current-dependencies
+    "Returns the set of currently active dependencies as leiningen coordinates."
+    []
+    (or @current-deps
+        (reset! current-deps (:dependencies (read-project)))))
+
+  (defn reload-dependencies!
+    "Rereads the dependencies for the current application and resets the application's
 ClassLoader to provide those dependencies. This should never be used in production.
 Only works under Clojure 1.4 or newer. (beta)"
-  ([]
-     (reload-dependencies! (read-project)))
-  ([project]
-     (let [new-resources (mount-paths
-                          (boot/get-dependencies project true))
-           keeper-resources (unmount-resources
-                             (remove nil?
-                                     (map #(.getResource % "/")
-                                          (ResourceLoaderUtil/getExistingResourceLoaders
-                                           clojure.lang.Var))))]
-       (reset-classloader-resources (concat new-resources keeper-resources)))))
+    ([]
+       (reload-dependencies! (read-project)))
+    ([project]
+       (reset! current-deps (:dependencies project))
+       (let [new-resources (mount-paths
+                            (boot/get-dependencies project true))
+             keeper-resources (unmount-resources
+                               (remove nil?
+                                       (map #(.getResource % "/")
+                                            (ResourceLoaderUtil/getExistingResourceLoaders
+                                             clojure.lang.Var))))]
+         (reset-classloader-resources (concat new-resources keeper-resources)))))
 
-(defn merge-dependencies!
-  "Rereads the dependencies for the current application, merges in the given dependencies,
+  (defn merge-dependencies!
+    "Merges in the given dependencies into the currently active dependency set
 and resets the application's ClassLoader to provide those dependencies. This should never
 be used in production. Only works under Clojure 1.4 or newer. (beta)"
-  [& coords]
-  (reload-dependencies!
-   (update-in (read-project) [:dependencies] #(set (concat % coords)))))
+    [& coords]
+    (reload-dependencies!
+     (assoc (read-project)
+       :dependencies (set (concat (current-dependencies) coords))))))

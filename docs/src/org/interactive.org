@@ -183,19 +183,38 @@
 * Reloading application dependencies
   
   Immutant provides tools to aid interactive repl-based development via
-  the [[./apidoc/immutant.dev-api.html][immutant.dev]] namespace. Currently, it provides two functions for 
-  updating and reloading your application's dependencies in container:
+  the [[./apidoc/immutant.dev-api.html][immutant.dev]] namespace. Currently, it provides three functions for 
+  reloading, updating, and viewing your application's dependencies in container:
 
   - [[./apidoc/immutant.dev-api.html#immutant.dev/reload-dependencies!][immutant.dev/reload-dependencies!]] Reads the dependencies from the current
     application's =project.clj=, and replaces the dependencies provided by
     the application's ClassLoader with this dependency set.
-  - [[./apidoc/immutant.dev-api.html#immutant.dev/merge-dependencies!][immutant.dev/merge-dependencies!]] Reads the dependencies from the current
-    application's =project.clj=, merges the given dependencies, and 
-    replaces the dependencies provided by the application's ClassLoader with this 
-    merged dependency set. This does not alter your =project.clj=. You provide
-    one or more dependencies in Leiningen coordinate form (quoted):
+  - [[./apidoc/immutant.dev-api.html#immutant.dev/merge-dependencies!][immutant.dev/merge-dependencies!]] Merges in the given dependencies into the 
+    currently active dependency set and resets the application's ClassLoader to 
+    provide those dependencies. This does not alter your =project.clj=. You provide
+    one or more dependencies in Leiningen coordinate form (quoted).
+  - [[./apidoc/immutant.dev-api.html#immutant.dev/current-dependencies][immutant.dev/current-dependencies]] Returns the currently loaded dependency set
+    in Leiningen coordinate form. 
+    
+    Examples:
+
     #+begin_src clojure
-      (immutant.dev/merge-dependencies! '[dep-1 "1.0.0"] '[dep/two "0.1.0-SNAPSHOT"])
+      ;; assuming we have an app loaded that initially only depends on clojure
+      ;; (from its project.clj)
+      (require '[immutant.dev :as dev])
+      
+      (dev/current-dependencies) ; => #{[org.clojure/clojure "1.4.0"]}
+      
+      ;; let's add two more deps
+      (dev/merge-dependencies! '[dep-1 "1.0.0"] '[dep/two "0.1.0-SNAPSHOT"])
+      
+      (dev/current-dependencies) ; => #{[org.clojure/clojure "1.4.0"] [dep-1 "1.0.0"] [dep/two "0.1.0-SNAPSHOT"]}
+      
+      ;; now let's reset the deps to those specified in project.clj
+      (dev/reload-dependencies!)
+      
+      (dev/current-dependencies) ; => #{[org.clojure/clojure "1.4.0"]}
+      
     #+end_src
   
   Note that the =immutant.dev= namespace *can only be loaded within applications

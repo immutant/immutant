@@ -39,9 +39,15 @@
 
 (defn dev-handler [request]
   (use 'immutant.dev)
-  (eval '(merge-dependencies! '[clj-rome "0.3.0"]))
-  (use 'clj-rome.reader)
-  (response "success"))
+  (let [original-deps (eval '(current-dependencies))]
+    (eval '(merge-dependencies! '[clj-rome "0.3.0"] '[org.clojure/data.json "0.1.2"]))
+    (use 'clj-rome.reader)
+    (eval '(merge-dependencies! '[org.yaml/snakeyaml "1.5"]))
+    (response (pr-str {:original original-deps
+                       :added '[[clj-rome "0.3.0"]
+                                [org.clojure/data.json "0.1.2"]
+                                [org.yaml/snakeyaml "1.5"]]
+                       :final (eval '(current-dependencies))}))))
 
 (defn init []
   (println "INIT CALLED"))
