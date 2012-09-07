@@ -16,14 +16,12 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.jobs.internal
-  (:use [immutant.utilities :only [app-name]])
+  (:use [immutant.utilities :only [app-name]]
+        [immutant.try :only [try-defn]])
   (:require [immutant.registry :as registry]
-            [clojure.tools.logging :as log])
-  (:import [org.immutant.jobs ClojureJob JobScheduler JobSchedulizer ScheduledJobMBean]
-           [org.immutant.jobs.as JobsServices]
-           [org.projectodd.polyglot.jobs BaseScheduledJob]))
+            [clojure.tools.logging :as log]))
 
-(defn ^{:private true} #^JobSchedulizer job-schedulizer  []
+(defn ^{:private true} job-schedulizer  []
   (registry/fetch "job-schedulizer"))
 
 (defn ^{:internal true} create-scheduler
@@ -45,7 +43,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
   "Waits for the scheduler to start before invoking f"
   ([scheduler f]
      (wait-for-scheduler scheduler f 30))
-  ([^JobScheduler scheduler f attempts]
+  ([scheduler f attempts]
      (cond
       (.isStarted scheduler) (f)
       (< attempts 0)         (throw (IllegalStateException.
@@ -55,10 +53,12 @@ A singleton scheduler will participate in a cluster, and will only execute its j
                                (Thread/sleep 1000)
                                (recur scheduler f (dec attempts))))))
 
-(defn ^{:internal true} create-job
+(try-defn (import [org.immutant.jobs ClojureJob ScheduledJobMBean]
+                  org.projectodd.polyglot.jobs.BaseScheduledJob)
+  ^{:internal true} create-job
   "Instantiates and starts a job"
   [f name spec singleton]
-  (let [^JobScheduler scheduler (scheduler singleton)]
+  (let [scheduler (scheduler singleton)]
     (doto
         (proxy [BaseScheduledJob ScheduledJobMBean]
             [ClojureJob (app-name) name "" spec singleton]
@@ -76,14 +76,14 @@ A singleton scheduler will participate in a cluster, and will only execute its j
 
 (defn ^{:internal true} stop-job
   "Stops (unschedules) a job, removing it from the scheduler."
-  [^BaseScheduledJob job]
+  [job]
   (if-not (.isShutdown (.getScheduler job))
     (.stop job)))
 
 ;; we don't currently register an mbean for each job, since we can't
 ;; yet easily unregister the mbean
 ;; ignore reflection here for now, since we don't even use it yet
-(defn register-job-mbean [name job]
+(try-defn (import org.immutant.jobs.as.JobsServices) register-job-mbean [name job]
   (.installMBean
    (job-schedulizer)
    (.append JobsServices/JOBS
