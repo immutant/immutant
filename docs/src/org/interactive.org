@@ -108,7 +108,7 @@
    an =:nrepl-port= option in your configuration, or by calling
    =immutant.repl/start-nrepl= from application code.
 
-*** Starting nREPL Via :swank-port
+*** Starting nREPL Via :nrepl-port
 
     To have Immutant start a nREPL service on your behalf, you can specify
     an open port for it to bind to using the =:nrepl-port= configuration
@@ -137,7 +137,7 @@
 
 *** Connecting via Emacs
    :PROPERTIES:
-   :CUSTOM_ID: interative-nrepl-emacs
+   :CUSTOM_ID: interactive-nrepl-emacs
    :END:
 
     To connect to nREPL from Emacs, first install [[https://github.com/kingtim/nrepl.el][nrepl.el]], then connect
