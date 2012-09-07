@@ -20,12 +20,14 @@
    at unique context paths"
   (:require [immutant.registry     :as reg]
             [clojure.tools.logging :as log])
-  (:import (org.apache.catalina.core ApplicationFilterConfig StandardContext)
-           (org.apache.catalina.deploy FilterDef FilterMap)
-           org.immutant.web.servlet.RingFilter)
-  (:use immutant.web.core))
+  (:use immutant.web.core
+        [immutant.try :only [try-defn]]))
 
-(defn start
+(def reqs '(import '(org.apache.catalina.core ApplicationFilterConfig StandardContext)
+                   '(org.apache.catalina.deploy FilterDef FilterMap)
+                   org.immutant.web.servlet.RingFilter))
+
+(try-defn reqs start
   "Registers a Ring handler that will be called when requests are received on the given sub-context-path.
 If no sub-context-path is given, \"/\" is assumed."
   ([handler]
@@ -48,7 +50,7 @@ If no sub-context-path is given, \"/\" is assumed."
             (.addFilterMap filter-map)
             (.addApplicationFilterConfig (ApplicationFilterConfig. context filter-def)))))))
 
-(defn stop
+(try-defn reqs stop
   "Deregisters the Ring handler attached to the given sub-context-path. If no sub-context-path is given,
 \"/\" is assumed."
   ([]
