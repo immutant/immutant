@@ -36,6 +36,7 @@
   <modules>
     <module>support</module>
     <module>modules</module>
+    <module>namespaces</module>
     <module>runtime</module>
     <module>build</module>
   </modules>

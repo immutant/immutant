@@ -1,0 +1,52 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <parent>
+    <groupId>org.immutant</groupId>
+    <artifactId>immutant-namespaces-parent</artifactId>
+    <version>0.3.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>immutant</artifactId>
+  <packaging>jar</packaging>
+  <name>Aggregate Immutant Module</name>
+  <description>Pulls in all the Immutant namespaces</description>
+
+  <dependencies>
+
+    <!-- The only dependencies here should be immutant ones! -->
+
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-messaging</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-cache</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-daemons</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-jobs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-web</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-xa</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+</project>
