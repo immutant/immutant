@@ -38,44 +38,14 @@
   </dependencies>
 
   <build>
-    <plugins> 
-      <!-- <plugin> -->
-      <!--   <artifactId>maven-assembly-plugin</artifactId> -->
-      <!--   <executions> -->
-      <!--     <execution> -->
-      <!--       <id>assemble-module</id> -->
-      <!--       <phase>package</phase> -->
-      <!--     </execution> -->
-      <!--   </executions> -->
-      <!-- </plugin> -->
-
-      <!-- <plugin> -->
-      <!--   <groupId>com.theoryinpractise</groupId> -->
-      <!--   <artifactId>clojure-maven-plugin</artifactId> -->
-      <!--   <executions> -->
-      <!--     <execution> -->
-      <!--       <id>install-module</id> -->
-      <!--     </execution> -->
-      <!--   </executions> -->
-      <!-- </plugin> -->
-
-      <!-- <plugin> -->
-      <!--   <groupId>de.saumya.mojo</groupId> -->
-      <!--   <artifactId>jruby-maven-plugin</artifactId> -->
-      <!--   <executions> -->
-      <!--     <execution> -->
-      <!--       <id>generate-build-info</id> -->
-      <!--       <phase>process-classes</phase> -->
-      <!--       <goals> -->
-      <!--         <goal>jruby</goal> -->
-      <!--       </goals> -->
-      <!--       <configuration> -->
-      <!--         <file>./bin/generate-build-info.rb</file> -->
-      <!--       </configuration> -->
-      <!--     </execution> -->
-      <!--   </executions> -->
-      <!-- </plugin> -->
-
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
