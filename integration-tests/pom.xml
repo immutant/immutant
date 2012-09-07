@@ -23,33 +23,35 @@
   </properties>
 
   <dependencies>
+
+     <dependency>
+       <!-- TODO: Remove this RuntimeWrapperHandler is factored out -->
+       <groupId>org.immutant</groupId>
+       <artifactId>immutant-core</artifactId>
+       <version>${project.version}</version>
+       <scope>test</scope>
+     </dependency>
+
     <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>fntest</artifactId>
       <version>0.3.0-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <!-- TODO: wtf doesn't clj-http pull this in itself?  -->
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>1.1.1</version>
+      <groupId>leiningen-core</groupId>
+      <artifactId>leiningen-core</artifactId>
+      <version>${version.leiningen-core}</version>
+      <scope>compile</scope>
     </dependency>
-
     <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-core</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.nrepl</artifactId>
+      <version>${version.nrepl}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>immutant-messaging</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-xa</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -61,24 +63,16 @@
     <dependency>
       <groupId>org.hornetq</groupId>
       <artifactId>hornetq-core</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hornetq</groupId>
       <artifactId>hornetq-jms</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.jms</groupId>
-      <artifactId>jms</artifactId>
-      <version>1.1</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.jboss.netty</groupId>
       <artifactId>netty</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.spec.javax.transaction</groupId>
-      <artifactId>jboss-transaction-api_1.1_spec</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
