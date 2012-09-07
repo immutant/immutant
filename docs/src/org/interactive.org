@@ -78,6 +78,8 @@
     service within your Immutant application via the =slime-connect= emacs
     function (=M-x slime-connect RET=).
 
+    Note that =swank-clojure= is now deprecated in favor of [[#interactive-nrepl-emacs][nrepl.el]].
+
 *** Connecting via Vim
 
     You can connect to Swank from vim with [[http://www.vim.org/scripts/script.php?script_id%3D2531][SLIMV]]. See the SLIMV installation
@@ -132,7 +134,16 @@
     #+end_src
 
 ** Connecting to nREPL
-   
+
+*** Connecting via Emacs
+   :PROPERTIES:
+   :CUSTOM_ID: interative-nrepl-emacs
+   :END:
+
+    To connect to nREPL from Emacs, first install [[https://github.com/kingtim/nrepl.el][nrepl.el]], then connect
+    to your running nREPL via the =nrepl= function (=M-x nrepl RET=). 
+    It will prompt you for the host and port.
+
 *** Connecting via reply
 
     [[https://github.com/trptcolin/reply/][reply]] is an enhanced REPL for Clojure, and supports connecting to an
