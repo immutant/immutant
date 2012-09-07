@@ -1,7 +1,8 @@
 (ns xa.init
   (:require [immutant.xa :as xa]
             [immutant.web :as web]
-            [clojure.java.jdbc :as sql]))
+            [clojure.java.jdbc :as sql]
+            clojure.java.jdbc.internal)) ; ensure project dep wins
 
 (defonce ds (xa/datasource "foo" {:adapter "h2" :database "mem:foo"}))
 (def spec {:datasource ds})
