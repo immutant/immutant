@@ -16,9 +16,14 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.try
+  "Useful when unit tests (or any code not run inside Immutant) refer
+   to an Immutant ns that must compile when resources aren't
+   available."
   (:require [clojure.tools.logging :as log]))
 
-(defn- worked? [attempt]
+(defn- worked?
+  "Eval attempt and return true if it doesn't toss an exception, otherwise false"
+  [attempt]
   (try
     (if (symbol? attempt)
       (eval (eval attempt))
@@ -28,15 +33,21 @@
       (log/warn (.getMessage e))
       false)))
 
-(defmacro try-defn [attempt name & rest]
-  (let [fname (str name)]
+(defmacro try-defn
+  "Does exactly what defn does assuming eval'ing attempt doesn't throw
+   up. Otherwise, a dummy fn logging a warning is defined."
+  [attempt name & rest]
+  (let [fname (str *ns* "/" name)]      ; capture the ns-qualified name
     (if (worked? attempt)
       `(defn ~name ~@rest)
       `(defn ~name [& args#]
          (log/warn (str "The function, " ~fname ", is limited when run outside of Immutant"))
          nil))))
 
-(defmacro try-def [attempt name & rest]
+(defmacro try-def
+  "Does exactly what def does assuming eval'ing attempt doesn't throw
+   up. Otherwise, the var is set to nil."
+  [attempt name & rest]
   (if (worked? attempt)
     `(def ~name ~@rest)
     `(def ~name nil)))
