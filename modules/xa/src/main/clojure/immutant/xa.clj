@@ -41,7 +41,7 @@
     :pool      the maximum number of simultaneous connections used"
   [id spec]
   (let [params (into {} (for [[k v] spec] [(name k) v]))
-        name (.createDataSource ^org.immutant.xa.XAifier (lookup/fetch "xaifier") id params)]
+        name (.createDataSource (lookup/fetch "xaifier") id params)]
     (util/backoff 10 10000 (.lookup ^javax.naming.InitialContext (InitialContext.) name))))
 
 (defmacro transaction
