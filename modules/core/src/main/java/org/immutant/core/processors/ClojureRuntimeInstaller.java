@@ -23,6 +23,7 @@ import org.immutant.core.ClassLoaderUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.as.CoreServices;
 import org.immutant.runtime.ClojureRuntime;
+import org.immutant.runtime.ClojureRuntimeService;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
@@ -50,12 +51,12 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
        ClassLoader loader = ClassLoaderUtils.getModuleLoader( deploymentUnit );
        
         ClojureRuntime runtime = ClojureRuntime.newRuntime( loader, deploymentUnit.getName() );
-        deploymentUnit.putAttachment( ClojureRuntime.ATTACHMENT_KEY, runtime );
+        deploymentUnit.putAttachment( ClojureRuntimeService.ATTACHMENT_KEY, runtime );
         
         runtime.invoke( "immutant.registry/set-msc-registry", deploymentUnit.getServiceRegistry() );
         runtime.invoke( "immutant.registry/put", "clojure-runtime", runtime );
         
-        phaseContext.getServiceTarget().addService(  CoreServices.runtime( deploymentUnit ), runtime )
+        phaseContext.getServiceTarget().addService(  CoreServices.runtime( deploymentUnit ), new ClojureRuntimeService(runtime) )
         .setInitialMode(Mode.ACTIVE)    
         .install();
     }

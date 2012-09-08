@@ -19,7 +19,8 @@
   (:use [immutant.utilities :only [app-name]]
         [immutant.try :only [try-defn]])
   (:require [immutant.registry :as registry]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log])
+  (:import [org.immutant.jobs ClojureJob ScheduledJobMBean]))
 
 (defn ^{:private true} job-schedulizer  []
   (registry/fetch "job-schedulizer"))
@@ -53,8 +54,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
                                (Thread/sleep 1000)
                                (recur scheduler f (dec attempts))))))
 
-(try-defn (import [org.immutant.jobs ClojureJob ScheduledJobMBean]
-                  org.projectodd.polyglot.jobs.BaseScheduledJob)
+(try-defn (import org.projectodd.polyglot.jobs.BaseScheduledJob)
   ^{:internal true} create-job
   "Instantiates and starts a job"
   [f name spec singleton]

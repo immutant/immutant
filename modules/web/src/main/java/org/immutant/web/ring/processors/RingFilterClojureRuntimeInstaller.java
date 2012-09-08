@@ -20,6 +20,7 @@
 package org.immutant.web.ring.processors;
 
 import org.immutant.runtime.ClojureRuntime;
+import org.immutant.runtime.ClojureRuntimeService;
 import org.immutant.web.ring.RingMetaData;
 import org.immutant.web.servlet.RingFilter;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
@@ -39,7 +40,7 @@ public class RingFilterClojureRuntimeInstaller implements DeploymentUnitProcesso
             return;
         }
         
-        ClojureRuntime runtime = unit.getAttachment( ClojureRuntime.ATTACHMENT_KEY );
+        ClojureRuntime runtime = unit.getAttachment( ClojureRuntimeService.ATTACHMENT_KEY );
         ServletContextAttribute runtimeAttr = new ServletContextAttribute( RingFilter.CLOJURE_RUNTIME, runtime );
         unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, runtimeAttr );
     }

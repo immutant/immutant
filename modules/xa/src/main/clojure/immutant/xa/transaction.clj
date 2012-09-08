@@ -20,7 +20,8 @@
   (:use [immutant.try :only [try-defn]])
   (:require [immutant.registry :as lookup]
             [clojure.tools.logging :as log]
-            clojure.java.jdbc))
+            clojure.java.jdbc)
+  (:import org.immutant.xa.Synchronization))
 
 (if (resolve 'clojure.java.jdbc/with-transaction-strategy)
   (log/info "Using proper version of java.jdbc to set transaction strategy")
@@ -60,9 +61,7 @@
   (let [tx (current)]
     (doseq [resource resources] (.enlistResource tx resource))))
 
-(try-defn
- (import 'org.immutant.xa.Synchronization)
- after-completion
+(defn after-completion
  "Register a callback to fire when the current transaction is complete"
  [f]
  (.registerSynchronization (current)

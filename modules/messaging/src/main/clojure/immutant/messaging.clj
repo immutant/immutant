@@ -101,7 +101,7 @@
   [dest & opts]
   (lazy-seq (cons (apply receive dest opts) (message-seq dest))))
 
-(try-defn (import 'org.immutant.messaging.MessageListener) listen
+(defn listen
   "The handler function, f, will receive each message sent to dest.
    dest can either be the name of the destination or a
    javax.jms.Destination.

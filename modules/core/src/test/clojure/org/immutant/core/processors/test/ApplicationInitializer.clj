@@ -20,7 +20,7 @@
         immutant.test.as.helpers)
   (:import org.immutant.core.processors.ApplicationInitializer
            org.immutant.core.ClojureMetaData
-           org.immutant.runtime.ClojureRuntime))
+           [org.immutant.runtime ClojureRuntime ClojureRuntimeService]))
 
 (def a-value (atom "not-called"))
 
@@ -33,7 +33,7 @@
         func-name "a.namespace/init"]
     (on-thread
      (doto unit
-       (.putAttachment ClojureRuntime/ATTACHMENT_KEY
+       (.putAttachment ClojureRuntimeService/ATTACHMENT_KEY
                        (doto
                            (proxy [ClojureRuntime] []
                              (invoke [initialize-fn args]

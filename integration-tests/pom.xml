@@ -24,14 +24,6 @@
 
   <dependencies>
 
-     <dependency>
-       <!-- TODO: Remove this RuntimeWrapperHandler is factored out -->
-       <groupId>org.immutant</groupId>
-       <artifactId>immutant-core</artifactId>
-       <version>${project.version}</version>
-       <scope>test</scope>
-     </dependency>
-
     <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>fntest</artifactId>

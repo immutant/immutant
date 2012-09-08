@@ -19,15 +19,8 @@
 
 package org.immutant.runtime;
 
-import org.jboss.as.server.deployment.AttachmentKey;
-import org.jboss.logging.Logger;
-import org.jboss.msc.service.Service;
-import org.jboss.msc.service.StartContext;
-import org.jboss.msc.service.StartException;
-import org.jboss.msc.service.StopContext;
 
-public abstract class ClojureRuntime implements Service<ClojureRuntime> {
-    public static final AttachmentKey<ClojureRuntime> ATTACHMENT_KEY = AttachmentKey.create( ClojureRuntime.class );
+public abstract class ClojureRuntime {
 
     public static ClojureRuntime newRuntime(ClassLoader classLoader, String name) {
         ClojureRuntime runtime;
@@ -175,22 +168,6 @@ public abstract class ClojureRuntime implements Service<ClojureRuntime> {
             Object arg15, Object arg16, Object arg17, Object arg18, Object arg19, Object arg20,
             Object... args);
 
-
-    @Override
-    public void start(StartContext context) throws StartException {
-    }
-
-    @Override
-    public synchronized void stop(StopContext context) {
-        log.info( "Shutting down Clojure runtime for " + this.name );
-        invoke( "clojure.core/shutdown-agents" );
-    }
-
-    @Override 
-    public ClojureRuntime getValue() {
-        return this;
-    }
-
     public ClassLoader getClassLoader() {
         return this.classLoader;
     }
@@ -206,5 +183,4 @@ public abstract class ClojureRuntime implements Service<ClojureRuntime> {
     protected ClassLoader classLoader;
     protected String name;
 
-    static final Logger log = Logger.getLogger( "org.immutant.runtime" );
 }

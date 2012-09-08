@@ -22,7 +22,7 @@
            org.jboss.modules.Module
            org.immutant.core.processors.ClojureRuntimeInstaller
            org.immutant.core.ClojureMetaData
-           org.immutant.runtime.ClojureRuntime)
+           org.immutant.runtime.ClojureRuntimeService)
   (:require [clojure.java.io :as io]))
 
 (use-fixtures :each
@@ -37,7 +37,7 @@
 
      (.deploy *harness* phase-context)
 
-     (let [runtime (.getAttachment unit ClojureRuntime/ATTACHMENT_KEY)]
+     (let [runtime (.getAttachment unit ClojureRuntimeService/ATTACHMENT_KEY)]
        (is (not (nil? runtime)))))))
 
 (deftest it-should-not-install-a-runtime-if-no-metadata-present
@@ -45,4 +45,4 @@
    (let [phase-context (.createPhaseContext *harness*)
          unit (.getDeploymentUnit phase-context)]
      (.deploy *harness* phase-context)
-     (is (nil? (.getAttachment unit ClojureRuntime/ATTACHMENT_KEY))))))
+     (is (nil? (.getAttachment unit ClojureRuntimeService/ATTACHMENT_KEY))))))
