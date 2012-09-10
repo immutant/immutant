@@ -65,7 +65,7 @@
     </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-dayum</artifactId>
+      <artifactId>immutant-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

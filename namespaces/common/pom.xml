@@ -8,9 +8,9 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant-dayum</artifactId>
+  <artifactId>immutant-common</artifactId>
   <packaging>jar</packaging>
-  <name>Immutant Dayum Module</name>
+  <name>Immutant Common Module</name>
   <description>Common utilities and functions used by all the Immutant namespaces</description>
 
   <dependencies>

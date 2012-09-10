@@ -13,7 +13,7 @@
   <name>Immutant Namespaces Parent</name>
 
   <modules>
-    <module>dayum</module>
+    <module>common</module>
     <module>immutant</module>
   </modules>
 
