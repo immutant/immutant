@@ -8,15 +8,10 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant-runtime-parent</artifactId>
-  <packaging>pom</packaging>
-  <name>Immutant Runtime Parent</name>
+  <artifactId>immutant-runtime</artifactId>
+  <packaging>jar</packaging>
+  <name>Immutant Runtime</name>
   <description />
-
-  <modules>
-    <module>api</module>
-    <module>impl</module>
-  </modules>
 
   <dependencies>
     <dependency>
