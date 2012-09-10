@@ -21,26 +21,30 @@ package org.immutant.jobs;
 
 import java.util.concurrent.Callable;
 
-import org.immutant.core.RuntimeWrappedHandler;
 import org.immutant.runtime.ClojureRuntime;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.StatefulJob;
 
-public class ClojureJob extends RuntimeWrappedHandler implements Job, StatefulJob {
+public class ClojureJob implements Job, StatefulJob {
 
-    public ClojureJob(ClojureRuntime runtime, Callable<?> fn) {
-        super( runtime, fn );
+    @SuppressWarnings("rawtypes")
+    public ClojureJob(ClojureRuntime runtime, Callable fn) {
+        this.runtime = runtime;
+        this.fn = fn;
     }
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
-            getRuntime().invoke( getHandler() );
+            this.runtime.invoke( this.fn );
         } catch (Exception e) {
             throw new JobExecutionException( e );
         }  
     }
 
+    private ClojureRuntime runtime;
+    @SuppressWarnings("rawtypes")
+    private Callable fn;
 }

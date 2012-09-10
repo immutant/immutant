@@ -21,17 +21,20 @@ package org.immutant.messaging;
 
 import javax.jms.Message;
 
-import org.immutant.core.RuntimeWrappedHandler;
 import org.immutant.runtime.ClojureRuntime;
 
-public class MessageListener extends RuntimeWrappedHandler implements javax.jms.MessageListener {
+public class MessageListener implements javax.jms.MessageListener {
     
     public MessageListener(ClojureRuntime runtime, Object handler) {
-        super( runtime, handler );
+        this.runtime = runtime;
+        this.fn = handler;
     }
     
     @Override
     public void onMessage(Message message) {
-       getRuntime().invoke( getHandler(), message );
+       this.runtime.invoke( this.fn, message );
     }
+    
+    private ClojureRuntime runtime;
+    private Object fn;
 }

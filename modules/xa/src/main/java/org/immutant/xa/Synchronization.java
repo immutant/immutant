@@ -19,18 +19,18 @@
 
 package org.immutant.xa;
 
-import org.immutant.core.RuntimeWrappedHandler;
 import org.immutant.runtime.ClojureRuntime;
 
-public class Synchronization extends RuntimeWrappedHandler implements javax.transaction.Synchronization {
+public class Synchronization implements javax.transaction.Synchronization {
     
     public Synchronization(ClojureRuntime runtime, Object handler) {
-        super(runtime, handler);
+        this.runtime = runtime;
+        this.fn = handler;
     }
 
     @Override
     public void afterCompletion(int ignored) {
-        getRuntime().invoke(getHandler());
+        this.runtime.invoke( this.fn );
     }
 
     @Override
@@ -39,6 +39,8 @@ public class Synchronization extends RuntimeWrappedHandler implements javax.tran
         
     }
     
+    private ClojureRuntime runtime;
+    private Object fn;
     
 }
 
