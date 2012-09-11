@@ -100,7 +100,7 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version} 
-              :exclude {ring/ring-servlet [[org.clojure/clojure]]}</args>
+              :exclude {ring/ring-servlet [org.clojure/clojure]}</args>
             </configuration>
           </execution>
 
