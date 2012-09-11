@@ -115,7 +115,7 @@
           <execution>
             <id>generate-clojars-project</id>
             <configuration>
-              <args>../../build/clojars/ ${project.artifactId} ${project.version} 
+              <args>${project.artifactId} ${project.version} 
               :exclude {org.clojure/core.cache [[org.clojure/clojure]]
                         org.clojure/core.memoize [[org.clojure/clojure]]}</args>
             </configuration>

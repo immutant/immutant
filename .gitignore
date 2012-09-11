@@ -20,4 +20,3 @@ release.properties
 TAGS
 .repository
 .DS_Store
-build/clojars

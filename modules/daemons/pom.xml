@@ -90,7 +90,7 @@
           <execution>
             <id>generate-clojars-project</id>
             <configuration>
-              <args>../../build/clojars/ ${project.artifactId} ${project.version}</args>
+              <args>${project.artifactId} ${project.version}</args>
             </configuration>
           </execution>
 

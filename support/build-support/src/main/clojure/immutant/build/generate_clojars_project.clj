@@ -54,12 +54,12 @@
   ([]
      ;; ffs maven - this allows us to setup an execution to call this in
      ;; the top-level pom, but only have it do work for poms that configure it
-     (println "Not configured - skipping.")
-     )
-  ([target-dir project-name version & opts]
-     (let [dir (io/file target-dir project-name )
+     (println "Not configured - skipping."))
+  
+  ([project-name version & opts]
+     (let [opts (apply hash-map (read-string (str "[" (str/join " " opts) "]")))
+           dir (io/file (:target-dir opts "../../build/clojars/target") project-name)
            project-file (io/file dir "project.clj")
-           opts (apply hash-map (read-string (str "[" (str/join " " opts) "]")))
            deps (->> (read-deps "target/deps.txt")
                      (filter #(= "compile" (:scope %)))
                      (map (fn [d] [(symbol (:group d) (:name d))

@@ -102,7 +102,7 @@
           <execution>
             <id>generate-clojars-project</id>
             <configuration>
-              <args>../../build/clojars/ ${project.artifactId} ${project.version} 
+              <args>${project.artifactId} ${project.version} 
               :exclude {org.clojure/java.jdbc [[org.clojure/clojure]]}</args>
             </configuration>
           </execution>
