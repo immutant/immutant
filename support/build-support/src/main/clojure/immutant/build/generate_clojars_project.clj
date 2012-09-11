@@ -22,8 +22,7 @@
 
 
 (def base-project
-  {:description "The external %name% module for Immutant."
-   :url "http://immutant.org"
+  {:url "http://immutant.org"
    :mailing-list {:name "Immutant users list"
                   :post "immutant-users@immutant.org"
                   :subscribe "immutant-users-subscribe@immutant.org"
@@ -50,24 +49,16 @@
            [name version]))
        deps))
 
-(defn -main
-  ([]
-     ;; ffs maven - this allows us to setup an execution to call this in
-     ;; the top-level pom, but only have it do work for poms that configure it
-     (println "Not configured - skipping."))
-  
-  ([project-name version & opts]
-     (let [opts (apply hash-map (read-string (str "[" (str/join " " opts) "]")))
-           dir (io/file (:target-dir opts "../../build/clojars/target") project-name)
-           project-file (io/file dir "project.clj")
+(defn process-project [dir project-name version opts]
+  (let [project-file (io/file dir "project.clj")
            deps (->> (read-deps "target/deps.txt")
                      (filter #(= "compile" (:scope %)))
                      (map (fn [d] [(symbol (:group d) (:name d))
                                    (:version d)]))
                      (apply-exclusions (:exclude opts)))
-           project (-> base-project
-                       (assoc :dependencies deps)
-                       (update-in [:description] #(str/replace % "%name%" project-name)))]
+           project (assoc base-project
+                     :dependencies deps
+                     :description (:description opts))]
        (println "Generating" (.getAbsolutePath project-file))
        (.mkdirs dir)
        (spit project-file
@@ -76,6 +67,21 @@
                             ~(symbol "org.immutant" project-name)
                             ~version
                             ~@(interleave (keys project) (vals project))))))
-       (println "Copying jar...")
-       (io/copy (io/file "target" (str project-name ".jar"))
-                (io/file dir (str project-name "-" version ".jar"))))))
+       (let [src-jar (io/file "target" (str project-name ".jar"))
+             dest-jar (io/file dir (str project-name "-" version ".jar"))]
+         (println "Copying" (.getAbsolutePath src-jar) "to" (.getAbsolutePath dest-jar))
+         (io/copy src-jar dest-jar))))
+
+(defn -main
+  ([]
+     ;; ffs maven - this allows us to setup an execution to call this in
+     ;; the top-level pom, but only have it do work for poms that configure it
+     (println "Not configured - skipping."))
+  
+  ([project-name version & args]
+     (let [opts (apply hash-map (read-string (str "[" (str/join " " args) "]")))]
+       (process-project
+        (io/file (:target-dir opts "../../build/clojars/target") project-name)
+        (str/trim project-name)
+        (str/trim version)
+        opts))))

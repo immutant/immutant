@@ -103,6 +103,7 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version} 
+              :description "The Immutant XA module."
               :exclude {org.clojure/java.jdbc [org.clojure/clojure]}</args>
             </configuration>
           </execution>

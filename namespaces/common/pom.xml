@@ -71,7 +71,8 @@
           <execution>
             <id>generate-clojars-project</id>
             <configuration>
-              <args>${project.artifactId} ${project.version}</args>
+              <args>${project.artifactId} ${project.version}
+                    :description "Common tools used by other Immutant libraries."</args>
             </configuration>
           </execution>
         </executions>

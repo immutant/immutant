@@ -59,7 +59,8 @@
           <execution>
             <id>generate-clojars-project</id>
             <configuration>
-              <args>${project.artifactId} ${project.version}</args>
+              <args>${project.artifactId} ${project.version}
+                    :description "An aggregate lib that depends on all of the public Immutant libs."</args>
             </configuration>
           </execution>
         </executions>
