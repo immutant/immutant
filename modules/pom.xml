@@ -157,7 +157,24 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>clojure-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-clojars-project</id>
+            <phase>install</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <mainClass>immutant.build.generate_clojars_project</mainClass>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
+
     <pluginManagement>
         <plugins>
           <!-- <plugin> -->
@@ -218,16 +235,6 @@
                   </configuration>
                 </execution>
 
-                <execution>
-                  <id>generate-clojars-project</id>
-                  <phase>install</phase>
-                  <goals>
-                    <goal>run</goal>
-                  </goals>
-                  <configuration>
-                    <mainClass>immutant.build.generate_clojars_project</mainClass>
-                  </configuration>
-                </execution>
               </executions>
             </plugin>
          </plugins>
