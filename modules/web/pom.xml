@@ -11,7 +11,7 @@
   <artifactId>immutant-web</artifactId>
   <packaging>jar</packaging>
   <name>Immutant Web Module</name>
-  <description />
+  <description>The Immutant web module.</description>
 
   <dependencies>
 
@@ -100,7 +100,7 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version} 
-              :description "The Immutant web module."
+              :description "${project.description}"
               :exclude {ring/ring-servlet [org.clojure/clojure]}</args>
             </configuration>
           </execution>

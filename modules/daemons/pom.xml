@@ -11,7 +11,7 @@
   <artifactId>immutant-daemons</artifactId>
   <packaging>jar</packaging>
   <name>Immutant Daemons Module</name>
-  <description />
+  <description>The Immutant daemons module.</description>
 
   <dependencies>
     <dependency>
@@ -91,7 +91,7 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version}
-              :description "The Immutant daemons module."</args>
+              :description "${project.description}"</args>
             </configuration>
           </execution>
 

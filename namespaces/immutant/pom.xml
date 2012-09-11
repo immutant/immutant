@@ -11,7 +11,7 @@
   <artifactId>immutant</artifactId>
   <packaging>jar</packaging>
   <name>Aggregate Immutant Module</name>
-  <description>Pulls in all the Immutant namespaces</description>
+  <description>An aggregate lib that pulls in all of the public Immutant libs.</description>
 
   <dependencies>
 
@@ -60,7 +60,7 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version}
-                    :description "An aggregate lib that depends on all of the public Immutant libs."</args>
+                    :description "${project.description}"</args>
             </configuration>
           </execution>
         </executions>

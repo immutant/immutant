@@ -11,7 +11,7 @@
   <artifactId>immutant-jobs</artifactId>
   <packaging>jar</packaging>
   <name>Immutant Jobs Module</name>
-  <description />
+  <description>The Immutant jobs module.</description>
 
   <dependencies>
     <dependency>
@@ -98,7 +98,7 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version}
-              :description "The Immutant jobs module."</args>
+              :description "${project.description}"</args>
             </configuration>
           </execution>
         </executions>

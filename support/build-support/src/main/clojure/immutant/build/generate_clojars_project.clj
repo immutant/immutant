@@ -49,7 +49,7 @@
            [name version]))
        deps))
 
-(defn process-project [dir project-name version opts]
+(defn process-project [dir project-name version description opts]
   (let [project-file (io/file dir "project.clj")
            deps (->> (read-deps "target/deps.txt")
                      (filter #(= "compile" (:scope %)))
@@ -58,7 +58,7 @@
                      (apply-exclusions (:exclude opts)))
            project (assoc base-project
                      :dependencies deps
-                     :description (:description opts))]
+                     :description description)]
        (println "Generating" (.getAbsolutePath project-file))
        (.mkdirs dir)
        (spit project-file
@@ -84,4 +84,5 @@
         (io/file (:target-dir opts "../../build/clojars/target") project-name)
         (str/trim project-name)
         (str/trim version)
+        (:description opts)
         opts))))

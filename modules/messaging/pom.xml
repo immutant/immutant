@@ -11,7 +11,7 @@
   <artifactId>immutant-messaging</artifactId>
   <packaging>jar</packaging>
   <name>Immutant Messaging Module</name>
-  <description />
+  <description>The Immutant caching module.</description>
 
   <dependencies>
 
@@ -96,7 +96,7 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version}
-              :description "The Immutant caching module."</args>
+              :description "${project.description}"</args>
             </configuration>
           </execution>
         </executions>

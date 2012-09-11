@@ -11,7 +11,7 @@
   <artifactId>immutant-cache</artifactId>
   <packaging>jar</packaging>
   <name>Immutant Caching Module</name>
-  <description />
+  <description>The Immutant caching module.</description>
 
   <dependencies>
     <dependency>
@@ -116,7 +116,7 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version} 
-              :description "The Immutant caching module."
+              :description "${project.description}"
               :exclude {org.clojure/core.cache [org.clojure/clojure]
                         org.clojure/core.memoize [org.clojure/clojure]}</args>
             </configuration>

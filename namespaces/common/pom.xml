@@ -11,7 +11,7 @@
   <artifactId>immutant-common</artifactId>
   <packaging>jar</packaging>
   <name>Immutant Common Module</name>
-  <description>Common utilities and functions used by all the Immutant namespaces</description>
+  <description>Common utilities and functions used by all the Immutant namespaces.</description>
 
   <dependencies>
     <dependency>
@@ -72,7 +72,7 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version}
-                    :description "Common tools used by other Immutant libraries."</args>
+                    :description "${project.description}"</args>
             </configuration>
           </execution>
         </executions>
