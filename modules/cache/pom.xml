@@ -54,7 +54,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>core.cache</artifactId>
-      <version>0.6.1</version>
+      <version>${version.clojure.core.cache}</version>
       <exclusions>
         <exclusion>
           <groupId>org.clojure</groupId>
@@ -65,7 +65,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>core.memoize</artifactId>
-      <version>0.5.2</version>
+      <version>${version.clojure.core.memoize}</version>
       <exclusions>
         <exclusion>
           <groupId>org.clojure</groupId>
@@ -110,6 +110,15 @@
             <goals>
               <goal>test</goal>
             </goals>
+          </execution>
+
+          <execution>
+            <id>generate-clojars-project</id>
+            <configuration>
+              <args>../../build/clojars/ ${project.artifactId} ${project.version} 
+              :exclude {org.clojure/core.cache [[org.clojure/clojure]]
+                        org.clojure/core.memoize [[org.clojure/clojure]]}</args>
+            </configuration>
           </execution>
         </executions>
       </plugin>

@@ -17,6 +17,15 @@
     <module>immutant</module>
   </modules>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-build-support</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
   <build> 
     <plugins>
       <plugin>
@@ -36,6 +45,16 @@
             <goals>
               <goal>test</goal>
             </goals>
+          </execution>
+          <execution>
+            <id>generate-clojars-project</id>
+            <phase>install</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <mainClass>immutant.build.generate_clojars_project</mainClass>
+            </configuration>
           </execution>
         </executions>
       </plugin>

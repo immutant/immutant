@@ -91,6 +91,13 @@
             <goal>test</goal>
           </goals>
           </execution>
+
+          <execution>
+            <id>generate-clojars-project</id>
+            <configuration>
+              <args>../../build/clojars/ ${project.artifactId} ${project.version}</args>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 

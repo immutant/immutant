@@ -102,6 +102,14 @@
       <version>1.8.2</version>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-build-support</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
   <build> 
@@ -207,6 +215,17 @@
                   <configuration>
                     <mainClass>immutant.build.install_module</mainClass>
                     <args>../../build/assembly ${project.basedir}/target/${project.artifactId}-module</args>
+                  </configuration>
+                </execution>
+
+                <execution>
+                  <id>generate-clojars-project</id>
+                  <phase>install</phase>
+                  <goals>
+                    <goal>run</goal>
+                  </goals>
+                  <configuration>
+                    <mainClass>immutant.build.generate_clojars_project</mainClass>
                   </configuration>
                 </execution>
               </executions>

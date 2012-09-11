@@ -38,7 +38,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>java.jdbc</artifactId>
-      <version>0.2.3</version>
+      <version>${version.clojure.java.jdbc}</version>
       <exclusions>
         <exclusion>
           <groupId>org.clojure</groupId>
@@ -98,6 +98,15 @@
             <goal>test</goal>
           </goals>
           </execution>
+
+          <execution>
+            <id>generate-clojars-project</id>
+            <configuration>
+              <args>../../build/clojars/ ${project.artifactId} ${project.version} 
+              :exclude {org.clojure/java.jdbc [[org.clojure/clojure]]}</args>
+            </configuration>
+          </execution>
+
         </executions>
       </plugin>
 

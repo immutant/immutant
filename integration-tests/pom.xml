@@ -32,7 +32,6 @@
     <dependency>
       <groupId>leiningen-core</groupId>
       <artifactId>leiningen-core</artifactId>
-      <version>${version.leiningen-core}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
