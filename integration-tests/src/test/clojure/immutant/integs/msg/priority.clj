@@ -21,7 +21,7 @@
   (:use immutant.messaging))
 
 (def ham-queue "/queue/ham")
-(def biscuit-queue "/queue/biscuit")
+(def biscuit-queue ".queue.biscuit")
 
 (use-fixtures :once (with-deployment *file*
                       {

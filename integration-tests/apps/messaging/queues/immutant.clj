@@ -2,11 +2,11 @@
   (:require [immutant.messaging :as msg]))
 
 (msg/start "/queue/ham")
-(msg/start "/queue/biscuit")
-(msg/listen "/queue/biscuit" #(msg/publish "/queue/ham" (.toUpperCase %)))
+(msg/start ".queue.biscuit")
+(msg/listen ".queue.biscuit" #(msg/publish "/queue/ham" (.toUpperCase %)))
 
-(msg/start "/queue/bam")
-(msg/start "/queue/hiscuit")
+(msg/start "/queuebam")
+(msg/start "queue/hiscuit")
 
 (msg/start "/queue/loader")
 (msg/start "/queue/loader-result")

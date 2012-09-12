@@ -22,9 +22,9 @@
         immutant.integs.integ-helper))
 
 (def ham-queue "/queue/ham")
-(def biscuit-queue "/queue/biscuit")
-(def bam-queue "/queue/bam")
-(def hiscuit-queue "/queue/hiscuit")
+(def biscuit-queue ".queue.biscuit")
+(def bam-queue "/queuebam")
+(def hiscuit-queue "queue/hiscuit")
 (def loader-queue "/queue/loader")
 (def loader-result-queue "/queue/loader-result")
 

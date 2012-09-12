@@ -55,15 +55,14 @@
       (hornetq/connection-factory opts)
       local-connection-factory)))
 
-
 (defn queue-name? [^String name]
-  (.startsWith name "/queue"))
+  (not (nil? (re-find #"^.?queue" name))))
 
 (defn queue? [queue]
   (or (isa? (class queue) Queue) (queue-name? queue)))
 
 (defn topic-name? [^String name]
-  (.startsWith name "/topic"))
+  (not (nil? (re-find #"^.?topic" name))))
 
 (defn topic? [topic]
   (or (isa? (class topic) Topic) (topic-name? topic)))
