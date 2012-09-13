@@ -37,15 +37,19 @@
 (defn publish
   "Send a message to a destination. dest can either be the name of the
    destination or a javax.jms.Destination. If the message is a
-   javax.jms.Message, then the message is sent without modification to
-   dest. Returns the JMS message object that was published.
+   javax.jms.Message, then the message is sent without modification.
+   If the message contains metadata, it will be transferred as JMS
+   properties and reconstituted upon receipt. Metadata keys must be
+   valid Java identifiers (because they can be used in selectors) and
+   can be overridden using the :properties option. Returns the JMS
+   message object that was published.
 
    The following options are supported [default]:
      :encoding        :clojure :json or :text [:clojure]
      :priority        0-9 or :low :normal :high :critical [4]
      :ttl             time to live, in ms [0=forever]
      :persistent      whether undelivered messages survive restarts [true]
-     :properties      a hash to which selectors may be applied [nil]
+     :properties      a hash to which selectors may be applied, overrides metadata [nil]
      :correlation-id  used to set the JMSCorrelationID [nil]
                       see http://docs.oracle.com/javaee/6/api/javax/jms/Message.html#setJMSCorrelationID(java.lang.String) 
      :host            the remote host to connect to (default is to connect in-vm)
@@ -77,7 +81,7 @@
 
    The following options are supported [default]:
      :timeout    time in ms, after which nil is returned [10000]
-     :selector   A JMS (SQL 92) expression matching message properties
+     :selector   A JMS (SQL 92) expression matching message metadata/properties
      :decode?    if true, the decoded message body is returned. Otherwise, the
                  javax.jms.Message object is returned [true]
      :host       the remote host to connect to (default is to connect in-vm) [nil]
@@ -109,7 +113,7 @@
 
    The following options are supported [default]:
      :concurrency  the number of threads handling messages [1]
-     :selector     A JMS (SQL 92) expression matching message properties
+     :selector     A JMS (SQL 92) expression matching message metadata/properties
      :decode?      if true, the decoded message body is passed to f. Otherwise, the
                    javax.jms.Message object is passed [true]
      :host         the remote host to connect to (default is to connect in-vm) [nil]

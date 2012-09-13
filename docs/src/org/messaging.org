@@ -136,7 +136,7 @@
    properties, subject to any overridden values passed in the
    =:properties= option (see above). If the payload cannot accept
    metadata, the message properties can be converted to a convenient
-   Clojure hash using [[./apidoc/immutant.messaging-api.html#immutant.messaging/receive][immutant.messaging.core/get-properties]].
+   Clojure hash using [[./apidoc/immutant.messaging-api.html#immutant.messaging.core/get-properties][immutant.messaging.core/get-properties]].
 
    Immutant features three functions for consuming messages.
    - [[./apidoc/immutant.messaging-api.html#immutant.messaging/receive][immutant.messaging/receive]] Blocks the caller until a message arrives and returns
