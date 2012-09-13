@@ -17,6 +17,7 @@
 
 (ns immutant.messaging.codecs
   (:require [immutant.codecs :as core])
+  (:use [immutant.messaging.core :only [get-properties]])
   (:import [javax.jms BytesMessage TextMessage]))
 
 (def encoding-header-name "__ContentEncoding__")
@@ -88,6 +89,13 @@
   (throw (RuntimeException. (str "Received unknown message encoding: " (get-encoding message)))))
 
 (defn decode-if
-  "Decodes the given message if decode? is truthy."
+  "Decodes the given message if decode? is truthy. If the decoded
+   message is a clojure collection, the properties of the message will
+   be affixed as metadata"
   [decode? msg]
-  (if decode? (decode msg) msg))
+  (if decode?
+    (let [result (decode msg)]
+      (if (instance? clojure.lang.IObj result)
+        (with-meta result (get-properties msg))
+        result))
+    msg))

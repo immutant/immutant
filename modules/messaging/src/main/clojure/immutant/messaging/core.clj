@@ -104,6 +104,13 @@
        :else (.setStringProperty message key (str v)))))
   message)
 
+(defn get-properties
+  "Extract properties from message into a map, turning the JMS
+   property names into keywords unless the :keywords option is false"
+  [message & {:keys [keywords] :or {keywords true}}]
+  (into {} (for [k (enumeration-seq (.getPropertyNames message))]
+             [(if keywords (keyword k) k) (.getObjectProperty message k)])))
+
 (defn destination [^Session session name-or-dest]
   (cond
    (isa? (class name-or-dest) Destination) name-or-dest
