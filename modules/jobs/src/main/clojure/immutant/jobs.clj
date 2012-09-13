@@ -21,6 +21,8 @@
         [immutant.jobs.internal :only [stop-job create-job]])
   (:require [clojure.tools.logging :as log]))
 
+(def ^:dynamic ^org.quartz.JobExecutionContext *job-execution-context* nil)
+
 (def ^{:private true} current-jobs (atom {}))
 
 (defn unschedule
@@ -38,7 +40,8 @@ Calling this function with the same name as a previously scheduled job will repl
   [name spec f & {singleton :singleton :or {singleton true}}]
   (unschedule name)
   (log/info "Scheduling job" name "at" spec)
-  (swap! current-jobs assoc name
-         (create-job f name spec (boolean singleton)))
+  (letfn [(job [ctx] (binding [*job-execution-context* ctx] (f)))]
+    (swap! current-jobs assoc name
+           (create-job job name spec (boolean singleton))))
   (at-exit (partial unschedule name))
   nil)

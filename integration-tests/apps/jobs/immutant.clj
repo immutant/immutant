@@ -9,8 +9,9 @@
 
 (job/schedule "a-job" "*/1 * * * * ?" (fn []
                                         (println "a-job firing")
-                                        (reset! loader (.toString (.getContextClassLoader (Thread/currentThread))))
-                                        (swap! a-value inc)))
+                                        (when (instance? org.quartz.JobExecutionContext job/*job-execution-context*)
+                                          (reset! loader (.toString (.getContextClassLoader (Thread/currentThread))))
+                                          (swap! a-value inc))))
 (job/schedule "another-job" "*/1 * * * * ?" (fn []
                                               (println "another-job firing")
                                               (swap! another-value inc)))

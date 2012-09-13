@@ -38,7 +38,7 @@ public class ClojureJob implements Job, StatefulJob {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
-            this.runtime.invoke( this.fn );
+            this.runtime.invoke( this.fn, context );
         } catch (Exception e) {
             throw new JobExecutionException( e );
         }  
