@@ -166,8 +166,8 @@
    respond with the result of applying f to the message. queue can
    either be the name of the queue or a javax.jms.Queue. Accepts the
    same options as listen."
-  [queue f & {:keys [decode?] :or {decode?
-   true} :as opts}] {:pre [(queue? queue)]}
+  [queue f & {:keys [decode?] :or {decode? true} :as opts}]
+  {:pre [(queue? queue)]}
   (letfn [(respond* [^javax.jms.Message msg]
             (publish (.getJMSDestination msg)
                      (f (codecs/decode-if decode? msg))
