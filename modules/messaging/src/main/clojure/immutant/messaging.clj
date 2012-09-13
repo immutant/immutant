@@ -64,6 +64,7 @@
           encoded (if (instance? javax.jms.Message message)
                     message
                     (-> (codecs/encode session message opts)
+                        (set-properties! (meta message))
                         (set-properties! (:properties opts))
                         (set-attributes! opts)))
           {:keys [delivery priority ttl]} (wash-publish-options opts producer)]

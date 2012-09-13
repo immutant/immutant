@@ -28,22 +28,20 @@
                        }))
 
 (deftest properties-as-metadata
-  (publish ham-queue [] :properties {
-                                     :literalint     6
-                                     :int            (int 6)
-                                     :long           (long 6)
-                                     :bigint         (bigint 6)
-                                     :short          (short 6)
-                                     :literalfloat   6.5
-                                     :float          (float 6.5)
-                                     :double         (double 6.5)
-                                     :literaltrue    true
-                                     :booleantrue    (boolean 6)
-                                     :literalfalse   false
-                                     :booleanfalse   (boolean nil)
-                                     :literalstring  "{}"
-                                     :hashmap        {}
-                                     })
+  (publish ham-queue (with-meta [] {:literalint     6
+                                    :int            (int 6)
+                                    :long           (long 6)
+                                    :bigint         (bigint 6)
+                                    :short          (short 6)
+                                    :literalfloat   6.5
+                                    :float          (float 6.5)
+                                    :double         (double 6.5)
+                                    :literaltrue    true
+                                    :booleantrue    (boolean 6)
+                                    :literalfalse   false
+                                    :booleanfalse   (boolean nil)
+                                    :literalstring  "{}"
+                                    :hashmap        {}}))
   (let [message (receive ham-queue)
         props (meta message)]
     (is (= [] message))
@@ -62,3 +60,10 @@
     (is (= "{}" (:literalstring props)))
     (is (= "{}" (:hashmap props)))))
 
+(deftest option-overrides-metadata
+  (publish ham-queue (with-meta [1] {:foo 42 :bar 69}) :properties {:bar 99})
+  (let [message (receive ham-queue)
+        props (meta message)]
+    (is (= [1] message))
+    (is (= 42 (:foo props)))
+    (is (= 99 (:bar props)))))
