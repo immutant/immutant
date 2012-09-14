@@ -93,23 +93,30 @@
   - =handler= - the Ring handler to invoke when requests come in on the
     sub context path.
 
+  It also accepts an optional named argument =:reload= that, when
+  true, monitors your application =src/= directory for changes and
+  reloads the corresponding namespace. It's default value is false.
+
   Let's take a look at =start= in use. For the following example, assume
   the application has a top-level context path of =/my-app=:
 
   #+begin_src clojure
     (ns my.ns
       (:require [immutant.web :as web]))
-
+    
     ;; handle requests at the root sub-context (/).
     ;; this handler will receive any request that the app
     ;; receives at /my-app/* *except* for anything captured by another
     ;; sub-context.
     (web/start my-root-handler)
-
+    
     ;; handle requests at the /somewhere sub-context.
     ;; this handler will receive any request that the app
     ;; receives at /my-app/somewhere/*.
     (web/start "/somewhere" my-other-handler)
+    
+    ;; In development mode, you want to see your changes immediately
+    (web/start your-handler :reload true)
   #+end_src
 
   You can deregister a registered handler at any time. Immutant will deregister
@@ -187,18 +194,12 @@
   application's:
 
   #+begin_src clojure
-    (use 'ring.middleware.reload-modified)
-    
-    (def app
-      (wrap-reload-modified #'handler ["src"]))
+    (noir.server/load-views "src/my_project_name/views")
   #+end_src
   
   But this *will* work on Immutant, because it returns an absolute path:
 
   #+begin_src clojure
-    (use 'ring.middleware.reload-modified)
-    (require '[immutant.utilites :as util])
-    
-    (def app
-      (wrap-reload-modified #'handler [(app/relative "src")]))
+    (require '[immutant.utilities :as util])
+    (noir.server/load-views (util/app-relative "src/my_project_name/views"))
   #+end_src

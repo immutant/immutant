@@ -38,7 +38,19 @@
     <dependency>
       <groupId>ring</groupId>
       <artifactId>ring-servlet</artifactId>
-      <version>${version.ring-servlet}</version>
+      <version>${version.ring}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>ring</groupId>
+      <artifactId>ring-devel</artifactId>
+      <version>${version.ring}</version>
       <exclusions>
         <exclusion>
           <groupId>org.clojure</groupId>

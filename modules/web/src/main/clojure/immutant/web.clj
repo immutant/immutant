@@ -19,36 +19,50 @@
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
   (:require [immutant.registry     :as reg]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [immutant.utilities :as util]
+            [ring.middleware.reload :as ring])
   (:use immutant.web.core
-        [immutant.try :only [try-defn]]))
+        [immutant.try :only [try-defn try-def]]))
 
 (def reqs '(import '(org.apache.catalina.core ApplicationFilterConfig StandardContext)
                    '(org.apache.catalina.deploy FilterDef FilterMap)
                    org.immutant.web.servlet.RingFilter))
 
-(try-defn reqs start
-  "Registers a Ring handler that will be called when requests are received on the given sub-context-path.
-If no sub-context-path is given, \"/\" is assumed."
-  ([handler]
-     (start "/" handler))
-  ([sub-context-path handler]
+(try-def reqs ^{:arglists '([context? handler & {:keys [reload]}])} start
+  "Registers a Ring handler that will be called when requests are
+   received on the given sub-context-path. If no sub-context-path is
+   given, \"/\" is assumed.
+
+   The following options are supported [default]:
+     :reload    monitors the app's src/ dir for changes [false]"
+  (fn
+    [& args]
+    (let [[sub-context-path args] (if (string? (first args))
+                                    [(first args) (next args)]
+                                    ["/" args])
+          [handler & {:keys [reload]}] args
+          handler (if reload
+                    (ring/wrap-reload
+                     handler
+                     {:dirs [(util/app-relative "src")]})
+                    handler)
+          name (filter-name sub-context-path)
+          sub-context-path (normalize-subcontext-path sub-context-path)
+          filter-def (doto (FilterDef.)
+                       (.setFilterName name)
+                       (.setFilterClass (.getName RingFilter))
+                       (.addInitParameter "sub-context" sub-context-path))
+          filter-map (doto (FilterMap.)
+                       (.addURLPattern sub-context-path)
+                       (.setFilterName name))]
       (log/info "Registering ring handler at sub-context path:" sub-context-path)
-      (let [name (filter-name sub-context-path)
-            sub-context-path (normalize-subcontext-path sub-context-path)
-            filter-def (doto (FilterDef.)
-                         (.setFilterName name)
-                         (.setFilterClass (.getName RingFilter))
-                         (.addInitParameter "sub-context" sub-context-path))
-            filter-map (doto (FilterMap.)
-                         (.addURLPattern sub-context-path)
-                         (.setFilterName name))]
-        (add-servlet-filter! name filter-def filter-map handler)
-        (let [^StandardContext context (reg/fetch "web-context")]
-          (doto context
-            (.addFilterDef filter-def)
-            (.addFilterMap filter-map)
-            (.addApplicationFilterConfig (ApplicationFilterConfig. context filter-def)))))))
+      (add-servlet-filter! name filter-def filter-map handler)
+      (let [^StandardContext context (reg/fetch "web-context")]
+        (doto context
+          (.addFilterDef filter-def)
+          (.addFilterMap filter-map)
+          (.addApplicationFilterConfig (ApplicationFilterConfig. context filter-def)))))))
 
 (try-defn reqs stop
   "Deregisters the Ring handler attached to the given sub-context-path. If no sub-context-path is given,
@@ -64,3 +78,5 @@ If no sub-context-path is given, \"/\" is assumed."
            (.removeFilterDef filter-def)))
        (log/warn "Attempted to deregister ring handler at sub-context path:" sub-context-path ", but none found"))))
  
+(defn foo [& args]
+  )
