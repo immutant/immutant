@@ -33,14 +33,25 @@
 
    Use the [[./apidoc/immutant.messaging-api.html#immutant.messaging/start][immutant.messaging/start]] function to define a messaging
    destination. A simple naming convention designates the destination
-   as either a queue or a topic: if its name begins with =/queue=,
-   it's a queue; if it begins with =/topic=, it's a topic.
+   as either a queue or a topic: if its name matches =#"^.?queue"=,
+   it's a queue; if it matches =#"^.?topic"=, it's a topic. It's common
+   to separate sections of the queue name with =.= or =/=, but is not 
+   required.
 
    #+begin_src clojure
      (require '[immutant.messaging :as msg])
-
-     (msg/start "/queue/work")   ; to start a queue
-     (msg/start "/topic/news")   ; to start a topic
+     
+     ;; to start queues - these are all valid names
+     (msg/start "/queue/work")
+     (msg/start ".queue.play")
+     (msg/start "queue.sing")
+     (msg/start "queuedance")
+     
+     ;; to start topics - these are all valid names
+     (msg/start "/topic/news")
+     (msg/start "topic/infotainment")
+     (msg/start ".topic")
+     (msg/start "topicality")
    #+end_src
 
    You can invoke =start= from anywhere in your application, but
@@ -112,7 +123,7 @@
       ;; A simple string
       (msg/publish "/queue/work" "simple string")
       ;; Notify everyone something interesting just happened
-      (msg/publish "/topic/news" {:event "VISIT" :url "/sales-inquiry"})
+      (msg/publish "topic/news" {:event "VISIT" :url "/sales-inquiry"})
       ;; Move this message to the front of the line
       (msg/publish "/queue/work" some-message :priority :high :ttl 1000)
       ;; Make messages as complex as necessary
@@ -120,7 +131,7 @@
       ;; Make messages consumable by a Ruby app
       (msg/publish "/queue/work" {:a "b" :c [1 2 3 {:foo 42}]} :encoding :json)
       ;; Publish to a remote broker
-      (msg/publish "/queue/remote-work" "a message" :host "foo.example.com" :port 5445)
+      (msg/publish "queue.remote-work" "a message" :host "foo.example.com" :port 5445)
       ;; The received message's metadata => {:foo 42, :bar 1}
       (msg/publish q (with-meta msg {:foo 42 :bar 0}) :properties {:bar 1})
     #+end_src
@@ -198,7 +209,7 @@
         (perform task))
       
       ;; Case-sensitive work queues?
-      (msg/listen "/queue/lower" #(msg/publish "/queue/upper" (.toUpperCase %)))
+      (msg/listen ".queue.lower" #(msg/publish "/queue/upper" (.toUpperCase %)))
       
       ;; Listen to a remote queue
       (msg/listen "queue/remote" #(do-someting %) :host "foo.example.com" :port 5445)
