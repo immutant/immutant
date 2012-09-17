@@ -31,7 +31,7 @@ public class ClassLoaderUtils {
         Module module = unit.getAttachment( Attachments.MODULE );
         
         if (module != null) {
-            return new VFSStrippingClassLoader( module.getClassLoader(), 
+            return new ImmutantClassLoader( module.getClassLoader(), 
                     unit.getAttachment( TmpResourceMountMap.ATTACHMENT_KEY ) );
         } else {
             // this won't happen in production, but helps testing    

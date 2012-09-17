@@ -19,6 +19,7 @@
   "This namespace is solely for use during the application runtime
 bootstrapping process. Applications shouldn't use anything here."
   (:require [clojure.string        :as str]
+            [clojure.java.io       :as io]
             [clojure.tools.logging :as log]
             [immutant.repl         :as repl]
             [immutant.utilities    :as util]
@@ -31,8 +32,17 @@ bootstrapping process. Applications shouldn't use anything here."
     (require namespace)
     (apply (intern namespace function) args)))
 
+(defn ^{:private true} bultitudinize-class-loader []
+   (when-let [p (util/try-resolve 'bultitude.core/ProvidesClasspath)]
+     (log/info
+      "bultitude.core/ProvidesClasspath is available, implementing for ImmutantClassLoader")
+     (extend org.immutant.core.ImmutantClassLoader
+       @p 
+       {:get-classpath #(map io/as-file (.getResourcePaths %))})))
+
 (defn ^{:private true} post-initialize
   [config]
+  (bultitudinize-class-loader)
   (repl/init-repl config))
 
 (defn ^{:internal true} initialize 
@@ -56,3 +66,5 @@ to finalize initialization."
   "Takes the full application config as a data string and makes it available as data under the :config key in the registry."
   [config]
   (registry/put :config (read-string config)))
+
+

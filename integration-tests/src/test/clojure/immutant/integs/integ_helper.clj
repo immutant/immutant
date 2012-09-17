@@ -18,4 +18,4 @@
 (ns immutant.integs.integ-helper)
 
 (def deployment-class-loader-regex
-  #"VFSStrippingClassLoader.*deployment\..*\.clj")
+  #"ImmutantClassLoader.*deployment\..*\.clj")
