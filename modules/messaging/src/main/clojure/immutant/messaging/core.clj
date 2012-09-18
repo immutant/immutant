@@ -25,6 +25,9 @@
 
 ;;; The name of the JBoss connection factory
 (def factory-name "jboss.naming.context.java.ConnectionFactory")
+;;; Default subscriber name, which can't be null, apparently
+(def default-subscriber-name "default")
+
 
 ;;; Thread-local connection set
 (def ^{:private true, :dynamic true} *connections* nil)
@@ -158,7 +161,7 @@
 
 (defn create-consumer
   "Creates a consumer for a session and destination that may be a durable topic subscriber"
-  [session destination {:keys [selector client-id subscriber-name]}]
+  [session destination {:keys [selector client-id subscriber-name] :or {subscriber-name default-subscriber-name}}]
   (if (and client-id (instance? javax.jms.Topic destination))
     (.createDurableSubscriber session destination subscriber-name selector false)
     (.createConsumer session destination selector)))

@@ -186,7 +186,7 @@
   "Used when durable topic subscribers are no longer interested. This
   cleans up server-side state that will be deleted anyway when the
   topic is stopped"
-  [client-id & {:keys [subscriber-name] :as opts}]
+  [client-id & {:keys [subscriber-name] :or {subscriber-name default-subscriber-name} :as opts}]
   (with-connection (assoc opts :client-id client-id)
     (.unsubscribe (session) subscriber-name)))
 
