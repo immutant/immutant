@@ -60,10 +60,10 @@
                       to be set) [nil]
      :password        the password to use to auth the connection (requires :username
                       to be set) [nil]"
-  [dest message & {:as opts}]
+  [name-or-dest message & {:as opts}]
   (with-connection opts
     (let [session (session)
-          destination (destination session dest)
+          destination (create-destination session name-or-dest)
           producer (.createProducer session destination)
           encoded (if (instance? javax.jms.Message message)
                     message
@@ -91,11 +91,11 @@
                  be set) [nil]
      :password   the password to use to auth the connection (requires :username to
                  be set) [nil]"
-  [dest & {:keys [timeout selector decode?] :or {timeout 10000 decode? true} :as opts}]
+  [name-or-dest & {:keys [timeout decode?] :or {timeout 10000 decode? true} :as opts}]
   (with-connection opts
     (let [session (session)
-          destination (destination session dest)
-          consumer (.createConsumer session destination selector)
+          destination (create-destination session name-or-dest)
+          consumer (create-consumer session destination opts)
           encoded (.receive consumer timeout)]
       (when encoded
         (codecs/decode-if decode? encoded)))))
@@ -123,15 +123,13 @@
                    to be set) [nil]
      :password     the password to use to auth the connection (requires :username
                    to be set) [nil]"
-  [dest f & {:keys [concurrency selector decode?] :or {concurrency 1 decode? true} :as opts}]
-  (let [connection (.createXAConnection (connection-factory opts)
-                                        (:username opts)
-                                        (:password opts))]
+  [name-or-dest f & {:keys [concurrency decode?] :or {concurrency 1 decode? true} :as opts}]
+  (let [connection (create-connection opts)]
     (try
       (dotimes [_ concurrency]
-        (let [^javax.jms.Session session (create-session connection)
-              destination (destination session dest)
-              consumer (.createConsumer session destination selector)
+        (let [session (create-session connection)
+              destination (create-destination session name-or-dest)
+              consumer (create-consumer session destination opts)
               handler #(with-transaction session
                          (f (codecs/decode-if decode? %)))]
           (.setMessageListener consumer

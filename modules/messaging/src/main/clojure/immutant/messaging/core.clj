@@ -111,7 +111,7 @@
   (into {} (for [k (enumeration-seq (.getPropertyNames message))]
              [(if keywords (keyword k) k) (.getObjectProperty message k)])))
 
-(defn destination [^Session session name-or-dest]
+(defn create-destination [^Session session name-or-dest]
   (cond
    (isa? (class name-or-dest) Destination) name-or-dest
    (queue-name? name-or-dest) (.createQueue session name-or-dest)
@@ -152,8 +152,13 @@
   "Creates a connection and registers it in the *connections* map"
   [opts]
   (let [conn (.createXAConnection (connection-factory opts) (:username opts) (:password opts))]
-    (set! *connections* (assoc *connections* (connection-key opts) conn))
+    (if *connections* (set! *connections* (assoc *connections* (connection-key opts) conn)))
     conn))
+
+(defn create-consumer
+  "Creates a consumer for a session and destination that may be a durable topic subscriber"
+  [session destination {:keys [selector client-id subscriber-name]}]
+  (.createConsumer session destination selector))
 
 (defn enlist-session
   "Enlist a session in the current transaction, if any"
