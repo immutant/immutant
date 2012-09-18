@@ -48,7 +48,7 @@
   (test-already-running "/topic/foo"))
   
 (deftest bad-destination-name
-  (is (thrown-with-msg? Exception #"names must start with" (start "/bad/name"))))
+  (is (thrown-with-msg? Exception #"names must contain" (start "/bad/name"))))
 
 (deftest request-with-a-topic-should-throw
   (is (thrown? AssertionError (request "/topic/foo" "biscuit"))))
