@@ -95,7 +95,7 @@
 
   It also accepts an optional named argument =:reload= that, when
   true, monitors your application =src/= directory for changes and
-  reloads the corresponding namespace. It's default value is false.
+  reloads the corresponding namespace. Its default value is false.
 
   Let's take a look at =start= in use. For the following example, assume
   the application has a top-level context path of =/my-app=:
