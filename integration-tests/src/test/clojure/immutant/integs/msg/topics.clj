@@ -33,3 +33,16 @@
     (publish gravy "biscuit")
     (is (= 10 (count msgs)))
     (is (every? (partial = "biscuit") msgs))))
+
+(deftest durable-topic-subscriber
+  "First call to receive with a client-id establishes the durable subscriber"
+  (receive gravy :client-id "bacon" :timeout 1)
+  (publish gravy "ham#1")
+  (publish gravy "ham#2")
+  (is (= "ham#1" (receive gravy :client-id "bacon")))
+  (is (= "ham#2" (receive gravy :client-id "bacon")))
+  (unsubscribe "bacon")
+  (publish gravy "ham#3")
+  (is (nil? (receive gravy :client-id "bacon" :timeout 100)))
+  (publish gravy "ham#4")
+  (is (= "ham#4" (receive gravy :client-id "bacon" :timeout 100))))
