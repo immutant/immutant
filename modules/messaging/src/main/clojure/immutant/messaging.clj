@@ -26,13 +26,17 @@
             [immutant.registry         :as reg]))
 
 (defn start
-  "Create a message destination; name should be prefixed with either
-   /queue or /topic"
+  "Create a message destination; name should begin with either 'queue'
+   or 'topic'
+
+   The following options are supported [default]:
+     :durable    whether queue items persist across restarts [false]
+     :selector   A JMS (SQL 92) expression matching message metadata/properties [\"\"]"
   [name & opts]
   (cond
    (queue-name? name) (apply start-queue name opts)
    (topic-name? name) (apply start-topic name opts)
-   :else         (throw (Exception. "Destination names must start with /queue or /topic"))))
+   :else (throw (Exception. "Destination names must contain the word 'queue' or 'topic'"))))
 
 (defn publish
   "Send a message to a destination. dest can either be the name of the
@@ -84,6 +88,7 @@
      :selector   A JMS (SQL 92) expression matching message metadata/properties
      :decode?    if true, the decoded message body is returned. Otherwise, the
                  javax.jms.Message object is returned [true]
+     :client-id  identifies a durable topic subscriber, ignored for queues [nil]
      :host       the remote host to connect to (default is to connect in-vm) [nil]
      :port       the remote port to connect to (requires :host to be set) [nil, or
                  5445 if :host is set]
@@ -116,6 +121,7 @@
      :selector     A JMS (SQL 92) expression matching message metadata/properties
      :decode?      if true, the decoded message body is passed to f. Otherwise, the
                    javax.jms.Message object is passed [true]
+     :client-id    identifies a durable topic subscriber, ignored for queues [nil]
      :host         the remote host to connect to (default is to connect in-vm) [nil]
      :port         the remote port to connect to (requires :host to be set) [nil,
                    or 5445 if :host is set]
@@ -184,8 +190,8 @@
 
 (defn unsubscribe
   "Used when durable topic subscribers are no longer interested. This
-  cleans up server-side state that will be deleted anyway when the
-  topic is stopped"
+   cleans up some server-side state, but since it'll be be deleted
+   anyway when the topic is stopped, it's an optional call"
   [client-id & {:keys [subscriber-name] :or {subscriber-name default-subscriber-name} :as opts}]
   (with-connection (assoc opts :client-id client-id)
     (.unsubscribe (session) subscriber-name)))
