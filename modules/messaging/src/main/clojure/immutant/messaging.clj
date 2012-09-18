@@ -182,6 +182,14 @@
                                     (when % (str " and " %))))
               :decode? false))))
 
+(defn unsubscribe
+  "Used when durable topic subscribers are no longer interested. This
+  cleans up server-side state that will be deleted anyway when the
+  topic is stopped"
+  [client-id & {:keys [subscriber-name] :as opts}]
+  (with-connection (assoc opts :client-id client-id)
+    (.unsubscribe (session) subscriber-name)))
+
 (defn unlisten
   "Pass the result of a call to listen or respond to de-register the handler.
    You only need to do this if you wish to stop the handler's

@@ -152,13 +152,16 @@
   "Creates a connection and registers it in the *connections* map"
   [opts]
   (let [conn (.createXAConnection (connection-factory opts) (:username opts) (:password opts))]
+    (if (:client-id opts) (.setClientID conn (:client-id opts)))
     (if *connections* (set! *connections* (assoc *connections* (connection-key opts) conn)))
     conn))
 
 (defn create-consumer
   "Creates a consumer for a session and destination that may be a durable topic subscriber"
   [session destination {:keys [selector client-id subscriber-name]}]
-  (.createConsumer session destination selector))
+  (if (and client-id (instance? javax.jms.Topic destination))
+    (.createDurableSubscriber session destination subscriber-name selector false)
+    (.createConsumer session destination selector)))
 
 (defn enlist-session
   "Enlist a session in the current transaction, if any"
