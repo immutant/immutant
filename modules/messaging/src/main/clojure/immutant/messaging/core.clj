@@ -132,7 +132,7 @@
       (catch Throwable e
         (log/warn e)))))
 
-(defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
+(defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
     (do (.createQueue manager false name selector durable (into-array String []))
         (at-exit #(stop-destination name)))
