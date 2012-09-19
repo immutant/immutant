@@ -206,8 +206,10 @@
 (defn stop
   "Destroy a message destination. Typically not necessary since it
    will be done for you when your app is undeployed. This will fail
-   with a warning if any handlers are listening"
+   with a warning if any handlers are listening or any messages are
+   yet to be delivered. Returns true on success"
   [name]
-  (if (or (queue-name? name) (topic-name? name))
-    (stop-destination name)
-    (throw (Exception. "Illegal destination name"))))
+  (cond
+   (queue-name? name) (stop-queue name)
+   (topic-name? name) (stop-topic name)
+   :else (throw (Exception. "Illegal destination name"))))

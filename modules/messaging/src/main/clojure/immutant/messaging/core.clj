@@ -122,15 +122,31 @@
    :else (throw (Exception. "Illegal destination name"))))
 
 (defn stop-destination [name]
-  (if-let [manager
-           (lookup/fetch "jboss.messaging.default.jms.manager")]
+  (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
     (try
-      (if (queue-name? name)
-        (.destroyQueue manager name)
-        (.destroyTopic manager name))
-      (log/info "Stopped" name)
+      (let [result (if (queue-name? name)
+                     (.destroyQueue manager name)
+                     (.destroyTopic manager name))]
+        (log/info "Stopped" name)
+        result)
       (catch Throwable e
         (log/warn e)))))
+
+(defn stop-queue [name]
+  (if-let [default (lookup/fetch "jboss.messaging.default")]
+    (if-let [queue (.getResource (.getManagementService default) (str "jms.queue." name))]
+      (if (and (.isDurable queue) (< 0 (.getMessageCount queue)))
+        (log/warn "Won't stop non-empty durable queue:" name)
+        (stop-destination name))
+      (log/warn "No queue found by that name:" name))))
+
+(defn stop-topic [name]
+  (if-let [default (lookup/fetch "jboss.messaging.default")]
+    (if-let [topic (.getResource (.getManagementService default) (str "jms.topic." name))]
+      (if (< 0 (.getMessageCount topic))
+        (log/warn "Won't stop topic with messages for durable subscribers:" name)
+        (stop-destination name))
+      (log/warn "No topic found by that name:" name))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
