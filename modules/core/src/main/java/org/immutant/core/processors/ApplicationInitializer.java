@@ -20,6 +20,7 @@
 package org.immutant.core.processors;
 
 import org.immutant.core.ClojureMetaData;
+import org.immutant.core.Timer;
 import org.immutant.runtime.ClojureRuntime;
 import org.immutant.runtime.ClojureRuntimeService;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
@@ -40,9 +41,12 @@ public class ApplicationInitializer implements DeploymentUnitProcessor {
         }
         
         ClojureRuntime runtime = unit.getAttachment( ClojureRuntimeService.ATTACHMENT_KEY );
-        
+        Timer t = new Timer("setting app config");
         runtime.invoke( "immutant.runtime/set-app-config", unit.getAttachment( ClojureMetaData.FULL_APP_CONFIG ) );
+        t.done();
+        t = new Timer("initializing app");
         runtime.invoke( "immutant.runtime/initialize", metaData.getInitFunction(), metaData.getConfig() );
+        t.done();
     }
 
     @Override

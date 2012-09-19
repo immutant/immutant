@@ -21,6 +21,7 @@ package org.immutant.core.processors;
 
 import org.immutant.core.ClassLoaderUtils;
 import org.immutant.core.ClojureMetaData;
+import org.immutant.core.Timer;
 import org.immutant.core.as.CoreServices;
 import org.immutant.runtime.ClojureRuntime;
 import org.immutant.runtime.ClojureRuntimeService;
@@ -47,7 +48,7 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
         if (!deploymentUnit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
             return;
         }
-        
+       Timer t = new Timer("creating clojure runtime");
        ClassLoader loader = ClassLoaderUtils.getModuleLoader( deploymentUnit );
        
         ClojureRuntime runtime = ClojureRuntime.newRuntime( loader, deploymentUnit.getName() );
@@ -59,6 +60,7 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
         phaseContext.getServiceTarget().addService(  CoreServices.runtime( deploymentUnit ), new ClojureRuntimeService(runtime) )
         .setInitialMode(Mode.ACTIVE)    
         .install();
+        t.done();
     }
 
     @Override

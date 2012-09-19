@@ -34,6 +34,18 @@ import clojure.lang.Var;
 
 public class ClojureRuntimeImpl extends ClojureRuntime {
 
+    public void init() {
+        StackData stackData = preInvoke();
+        try {
+            Var require = RT.var( "clojure.core", "require" );
+            require.invoke( Symbol.create( "immutant.hooks" ) );
+            require.invoke( Symbol.create( "immutant.registry" ) );
+            require.invoke( Symbol.create( "immutant.runtime" ) );
+        } finally {
+            postInvoke(stackData);
+        }
+    }
+
     protected StackData preInvoke() {
         ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader(); 
         Thread.currentThread().setContextClassLoader( this.classLoader );

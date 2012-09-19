@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
+import org.immutant.core.Timer;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -52,6 +53,7 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
             return;
         }
 
+        Timer t = new Timer("parsing deployment descriptor");
         String deploymentName = deploymentUnit.getName();
 
         try {
@@ -90,6 +92,7 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }
+        t.done();
     }
 
     @Override

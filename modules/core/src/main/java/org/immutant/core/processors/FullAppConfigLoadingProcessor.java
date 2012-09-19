@@ -20,10 +20,10 @@
 package org.immutant.core.processors;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import org.immutant.core.ApplicationBootstrapUtils;
 import org.immutant.core.ClojureMetaData;
+import org.immutant.core.Timer;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -46,7 +46,7 @@ public class FullAppConfigLoadingProcessor implements DeploymentUnitProcessor {
         if (metaData == null) {
             return;
         }
-        
+        Timer t = new Timer("reading full app config");
         ResourceRoot resourceRoot = deploymentUnit.getAttachment( Attachments.DEPLOYMENT_ROOT );
         File root;
         File descriptor = deploymentUnit.getAttachment( ClojureMetaData.DESCRIPTOR_FILE );
@@ -58,7 +58,7 @@ public class FullAppConfigLoadingProcessor implements DeploymentUnitProcessor {
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }
-        
+        t.done();
 
     }
 

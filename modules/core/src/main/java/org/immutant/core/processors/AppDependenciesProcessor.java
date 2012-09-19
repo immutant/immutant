@@ -26,6 +26,7 @@ import java.util.List;
 import org.immutant.core.ApplicationBootstrapUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
+import org.immutant.core.Timer;
 import org.immutant.core.TmpResourceMounter;
 import org.immutant.core.as.CoreServices;
 import org.jboss.as.server.deployment.Attachments;
@@ -46,13 +47,14 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         DeploymentUnit unit = phaseContext.getDeploymentUnit();
-
+        
         ClojureMetaData metaData = unit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
         if (metaData == null && 
                 !ArchivedDeploymentMarker.isMarked( unit )) {
             return;
         }
 
+        Timer t = new Timer("processing dependencies");
         TmpResourceMounter mounter = (TmpResourceMounter)unit.getServiceRegistry()
                 .getService( CoreServices.tmpResourceMounter( unit ) ).getValue();
         
@@ -92,7 +94,6 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
                 ModuleRootMarker.mark(childResource);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
             }
-
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }
@@ -102,6 +103,8 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         unit.putAttachment( Attachments.COMPUTE_COMPOSITE_ANNOTATION_INDEX, false );
         // AS let's us disable the index, but then assumes it's always there, so we give it an empty one
         unit.putAttachment( Attachments.COMPOSITE_ANNOTATION_INDEX, new CompositeIndex( Collections.EMPTY_LIST ) );
+        
+        t.done();
     }
 
     @Override

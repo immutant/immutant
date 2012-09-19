@@ -20,6 +20,7 @@
 package org.immutant.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -36,6 +37,21 @@ import clojure.lang.Var;
  */
 public class ApplicationBootstrapUtils {
     
+    @SuppressWarnings("rawtypes")
+    public static void init() {
+        try {
+            inCL( new Callable() {
+                public Object call() throws Exception {
+                    RT.load( "immutant/runtime/bootstrap" );
+
+                    return null;
+                }
+            } );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Parses the given deployment descriptor and returns the resulting Map with all of the keys stringified.
      * See bootstrap.clj.
@@ -44,7 +60,7 @@ public class ApplicationBootstrapUtils {
     public static Map parseDescriptor(final File file) throws Exception {
         return (Map) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "read-and-stringify-descriptor" ).invoke( file ); 
+                return bootstrapVar( "read-and-stringify-descriptor" ).invoke( file );
             }
         } );
     }
@@ -86,7 +102,6 @@ public class ApplicationBootstrapUtils {
     }
     
     private static Var bootstrapVar(String varName) throws Exception {
-        RT.load( "immutant/runtime/bootstrap" ); //FIXME: this doesn't need to be loaded on every call
         return RT.var( "immutant.runtime.bootstrap", varName );
     }
 

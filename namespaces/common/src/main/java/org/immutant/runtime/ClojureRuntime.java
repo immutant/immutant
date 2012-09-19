@@ -32,7 +32,8 @@ public abstract class ClojureRuntime {
 
         runtime.setClassLoader( classLoader );
         runtime.setName( name );
-
+        runtime.init();
+        
         return runtime;
     }
 
@@ -180,6 +181,8 @@ public abstract class ClojureRuntime {
         this.classLoader = classLoader;
     }
 
+    public abstract void init();
+    
     protected ClassLoader classLoader;
     protected String name;
 
