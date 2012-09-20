@@ -16,15 +16,33 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.daemons
-  "Asynchronous services that share the lifecycle of your application"
+  "Asynchronous, highly-available services that share the lifecycle of
+   your application"
   (:require [immutant.registry :as lookup]))
 
-(defn start 
-  "Start a service asynchronously, creating an MBean named by name,
+(defprotocol Daemon
+  "Functions for controlling a long-running service"
+  (start [daemon]
+    "Start the service")
+  (stop [daemon]
+    "Stop the service"))
+
+(defn daemonize
+  "Start a daemon asynchronously, creating an MBean named by name,
    invoking the stop function automatically at undeployment/shutdown.
-   If :singleton is truthy, the service will start on only one node
-   in a cluster"
-  [name start stop & {singleton :singleton :or {singleton true}}]
+   If :singleton is truthy, the service will start on only one node in
+   a cluster"
+  [name daemon & {singleton :singleton :or {singleton true}}]
   (if-let [daemonizer (lookup/fetch "daemonizer")]
-    (.createDaemon daemonizer name start stop (boolean singleton))))
-  
+    (.createDaemon daemonizer name #(start daemon) #(stop daemon) (boolean singleton))))
+
+(defn create [start-fn stop-fn]
+  "Convenience function for creating a Daemon instance"
+  (reify Daemon
+    (start [_] (start-fn))
+    (stop [_] (stop-fn))))
+
+(defn run
+  "Convenient overload of daemonize, encapsulating the creation of a Daemon"
+  [name start-fn stop-fn & opts]
+  (apply daemonize name (create start-fn stop-fn) opts))

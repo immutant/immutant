@@ -18,7 +18,7 @@
                 :loader (partial deref loader)
                 }))
 
-(daemon/start "counter" (:start service) (:stop service))
+(daemon/run "counter" (:start service) (:stop service))
 
 (defn handler [request]
   {:status 200

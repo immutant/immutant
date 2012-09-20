@@ -3,14 +3,22 @@
 * Introduction
 
   Daemons are long-running services sharing the lifecycle of your
-  application.
+  application. Their chief benefit is as a highly available
+  "singleton" service in a cluster of Immutants.
 
 * Starting a Daemon
 
   You can start a daemon at any point in your application, but it's
   typically done in the bootstrap file, =immutant.clj=.
 
-  Daemons are defined via [[./apidoc/immutant.daemons-api.html#immutant.daemons/start][immutant.daemons/start]], which requires
+  The primary abstraction is the =Daemon= protocol, which prescribes
+  two methods: =start= and =stop=. Daemon instances are passed to the
+  [[./apidoc/immutant.daemons-api.html#immutant.daemons/daemonize][immutant.daemons/daemonize]] function along with a name. A JMX MBean
+  is then created and started asynchronously. The stop function is
+  automatically invoked when your application is undeployed.
+
+  A convenience function, [[./apidoc/immutant.daemons-api.html#immutant.daemons/run][immutant.daemons/run]], may be used to
+  encapsulate the creation of a Daemon from two functions. It takes
   three parameters:
 
   - =name= - a name for referencing as a JMX MBean
@@ -31,10 +39,37 @@
   node chosen at random, resulting in a robust, highly-available
   service.
 
-* Example
+* Examples
 
-  The following contrived example shows a simple mechanism for
-  controlling a daemon via a shared atom:
+  The following contrived examples show a simple mechanism for
+  controlling a daemon via a shared atom.
+
+  First, using the Daemon protocol directly:
+
+  #+begin_src clojure
+    (ns example.init
+      (:require [immutant.daemons :as daemon]))
+      
+    ;; Controls the state of our daemon
+    (def done (atom false))
+    
+    ;; An implementation of Daemon
+    (defrecord Service []
+      daemon/Daemon
+      (start [_]
+        (reset! done false)
+        (loop [i 0]
+          (Thread/sleep 1000)
+          (when-not @done
+            (println i)
+            (recur (inc i)))))
+      (stop [_] (reset! done true)))
+    
+    ;; Register the daemon
+    (daemon/daemonize "mydaemon" (Service.) :singleton true)
+  #+end_src
+
+  And alternatively, passing two functions:
 
   #+begin_src clojure
     (ns example.init
@@ -57,5 +92,5 @@
       (reset! done true))
     
     ;; Register the daemon
-    (daemon/start "mydaemon" start stop :singleton false)
+    (daemon/run "mydaemon" start stop :singleton false)
   #+end_src
