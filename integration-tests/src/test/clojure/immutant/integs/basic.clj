@@ -28,11 +28,13 @@
                         }))
 
 (deftest simple "it should work"
+  (Thread/sleep 5000)
   (let [result (client/get "http://localhost:8080/basic-ring")]
     ;(println "RESPONSE" result)
     (is (.startsWith (result :body) "Hello from Immutant!"))))
 
 (deftest app-should-have-its-config
+  (Thread/sleep 5000)
   (let [result (client/get "http://localhost:8080/basic-ring")]
     ;(println "RESPONSE" result)
     (is (.contains (result :body) ":ham :biscuit"))))
