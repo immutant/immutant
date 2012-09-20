@@ -148,7 +148,7 @@
         (stop-destination name))
       (log/warn "No topic found by that name:" name))))
 
-(defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
+(defn start-queue [name & {:keys [durable selector] :or {durable false selector ""}}]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
     (do (.createQueue manager false name selector durable (into-array String []))
         (at-exit #(stop-destination name)))
