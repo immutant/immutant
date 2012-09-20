@@ -20,21 +20,22 @@
         clojure.test)
   (:require [clj-http.client :as client]))
 
-(use-fixtures :once (with-deployment *file*
-                      '{
-                        :root "target/apps/ring/basic-ring/"
-                        :init basic-ring.core/init-web
-                        :context-path "/basic-ring"
-                        }))
+(use-fixtures :once 
+  (with-deployment *file*
+      '{
+        :root "target/apps/ring/basic-ring/"
+        :init basic-ring.core/init-web
+        :context-path "/basic-ring"
+        }))
 
 (deftest simple "it should work"
-  (Thread/sleep 5000)
+  (println "simple:" (java.sql.Timestamp. (.getTime (java.util.Date.))))
   (let [result (client/get "http://localhost:8080/basic-ring")]
     ;(println "RESPONSE" result)
     (is (.startsWith (result :body) "Hello from Immutant!"))))
 
 (deftest app-should-have-its-config
-  (Thread/sleep 5000)
+  (println "ashic:" (java.sql.Timestamp. (.getTime (java.util.Date.))))
   (let [result (client/get "http://localhost:8080/basic-ring")]
     ;(println "RESPONSE" result)
     (is (.contains (result :body) ":ham :biscuit"))))
