@@ -23,7 +23,7 @@
   (:require [clojure.java.io :as io]))
 
 ;; init the global runtime
-(ApplicationBootstrapUtils/init)
+(ApplicationBootstrapUtils/lazyInit)
 
 (deftest all-tests
 
