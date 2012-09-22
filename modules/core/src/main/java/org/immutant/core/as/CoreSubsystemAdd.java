@@ -78,9 +78,10 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
             @Override
             protected void execute(DeploymentProcessorTarget processorTarget) {
                 addDeploymentProcessors( processorTarget );
-                ApplicationBootstrapUtils.init();
             }
         }, OperationContext.Stage.RUNTIME );
+        
+        ApplicationBootstrapUtils.lazyInit();
         
         try {
             addImmutantService( context, verificationHandler, newControllers );

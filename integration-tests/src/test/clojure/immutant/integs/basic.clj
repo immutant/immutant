@@ -29,15 +29,11 @@
         }))
 
 (deftest simple "it should work"
-  (println "simple:" (java.sql.Timestamp. (.getTime (java.util.Date.))))
-  (Thread/sleep 5000)
   (let [result (client/get "http://localhost:8080/basic-ring")]
     ;(println "RESPONSE" result)
     (is (.startsWith (result :body) "Hello from Immutant!"))))
 
 (deftest app-should-have-its-config
-  (println "ashic:" (java.sql.Timestamp. (.getTime (java.util.Date.))))
-  (Thread/sleep 5000)
   (let [result (client/get "http://localhost:8080/basic-ring")]
     ;(println "RESPONSE" result)
     (is (.contains (result :body) ":ham :biscuit"))))

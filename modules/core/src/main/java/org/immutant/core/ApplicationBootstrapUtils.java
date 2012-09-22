@@ -20,7 +20,6 @@
 package org.immutant.core;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -37,16 +36,30 @@ import clojure.lang.Var;
  */
 public class ApplicationBootstrapUtils {
     
+    public static void lazyInit() {
+        (new Thread(new Runnable() {
+            public void run() {
+                init();
+            }
+        })).start();
+    }
+    
     @SuppressWarnings("rawtypes")
-    public static void init() {
+    private static synchronized void init() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
+
         try {
-            inCL( new Callable() {
+            ClassLoaderUtils.callInLoader( 
+             new Callable() {
                 public Object call() throws Exception {
                     RT.load( "immutant/runtime/bootstrap" );
 
                     return null;
                 }
-            } );
+            }, Var.class.getClassLoader() );
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -107,6 +120,9 @@ public class ApplicationBootstrapUtils {
 
     @SuppressWarnings("rawtypes")
     private static Object inCL(Callable body) throws Exception {
+       init();
        return ClassLoaderUtils.callInLoader( body, Var.class.getClassLoader() );
     }
+    
+    private static boolean initialized = false;
 }
