@@ -42,6 +42,12 @@
     (fact "read-project with profiles should ignore the ones defined in :immutant"
       (:egg (read-project app-root [:gravy])) => :sandwich)
 
+    (fact "read-project with profiles should apply them from profiles.clj"
+      (get-in (read-project another-app-root [:ham]) [:immutant :shaq]) => :attaq)
+
+    (fact "read-project without profiles should apply the default profiles profiles.clj"
+      (get-in (read-project another-app-root nil) [:immutant :shaq]) => :oneal)
+    
     (fact "read-and-stringify-full-app-config should work"
       (read-and-stringify-full-app-config nil app-root) => (contains {"ham" "basket"}))
 

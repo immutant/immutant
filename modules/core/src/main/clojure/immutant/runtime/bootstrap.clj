@@ -88,7 +88,7 @@
                      (.getAbsolutePath project-file)
                      normalized-profiles)
             other-profiles (set (get-in project [:immutant :lein-profiles]))]
-        (if (or (seq profiles) (not other-profiles))
+        (if (or (seq profiles) (not (seq other-profiles)))
           project
           (-> project
               (project/unmerge-profiles (set/difference normalized-profiles
