@@ -69,10 +69,12 @@
       (.start))))
 
 (defn clustered-cache
-  [name & {:keys [mode sync] :or {mode :invalidated sync true}}]
-  (if (.isRunning clustered-manager name)
-    (reconfigure name (cache-mode mode sync))
-    (configure name (cache-mode mode sync))))
+  "Defaults to :distributed, with :sync=true"
+  [name & {:keys [mode sync] :or {sync true}}]
+  (let [mode (or mode :distributed)]
+    (if (.isRunning clustered-manager name)
+      (reconfigure name (cache-mode mode sync))
+      (configure name (cache-mode mode sync)))))
 
 (try-defn reqs local-cache
   ([]
@@ -85,14 +87,12 @@
   ([name] (raw-cache name nil))
   ([name mode]
      (cond
-      clustered-manager (clustered-cache name :mode (or mode :invalidated))
+      clustered-manager (clustered-cache name :mode mode)
       local-manager (do
                       (if (and mode (not= mode :local))
                         (log/warn "Invalid mode," mode ", falling back to local"))
                       (local-cache name))
-      :else (do
-              (log/warn "Infinispan not available; falling back to ConcurrentHashMap")
-              (java.util.concurrent.ConcurrentHashMap.)))))
+      :else (log/error "Infinispan not found on the classpath"))))
 
 
 (defn lifespan-params [{:keys [ttl idle units] :or {ttl -1 idle -1 units :seconds}}]
