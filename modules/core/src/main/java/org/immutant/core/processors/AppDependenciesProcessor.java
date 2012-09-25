@@ -86,7 +86,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
             }
 
             //mount the runtime jar
-            String runtimePath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/immutant-runtime.jar";
+            String runtimePath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/immutant-runtime-impl.jar";
             mounter.mount( new File( runtimePath ), false );
             
             for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles() )) {

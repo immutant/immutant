@@ -33,6 +33,11 @@
       (log/warn (.getMessage e))
       false)))
 
+(defmacro try-if [attempt success failure]
+  (if (worked? attempt)
+    `~success
+    `~failure))
+
 (defmacro try-defn
   "Does exactly what defn does assuming eval'ing attempt doesn't throw
    up. Otherwise, a dummy fn logging a warning is defined."

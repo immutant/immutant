@@ -25,6 +25,13 @@
     </dependency>
 
     <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-runtime-api</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.tcrawley</groupId>
       <artifactId>autodoc</artifactId>
       <scope>provided</scope>

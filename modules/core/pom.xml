@@ -36,7 +36,14 @@
 
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-runtime</artifactId>
+      <artifactId>immutant-runtime-api</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-runtime-impl</artifactId>
       <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>

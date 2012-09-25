@@ -8,21 +8,15 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant-runtime</artifactId>
-  <packaging>jar</packaging>
-  <name>Immutant Runtime</name>
+  <artifactId>immutant-runtime-parent</artifactId>
+  <packaging>pom</packaging>
+  <name>Immutant Runtime Parent</name>
   <description />
 
   <dependencies>
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-common</artifactId>
-      <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -37,6 +31,11 @@
     </dependency>
 
   </dependencies>
+
+  <modules>
+    <module>api</module>
+    <module>impl</module>
+  </modules>
 
   <profiles>
     <profile>

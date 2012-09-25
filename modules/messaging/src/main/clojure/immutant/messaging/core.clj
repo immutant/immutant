@@ -16,7 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging.core
-  (:use [immutant.utilities :only (at-exit)])
+  (:use [immutant.utilities :only (at-exit)]
+        [immutant.try       :only (try-if)])
   (:import (javax.jms DeliveryMode Destination Queue Session Topic))
   (:require [immutant.registry          :as lookup]
             [immutant.messaging.hornetq :as hornetq]
@@ -225,6 +226,20 @@
 
 (defmacro with-connection [options & body]
   `(with-connection* ~options (fn [] ~@body)))
+
+(try-if
+ (import 'org.immutant.runtime.ClojureRuntime)
+ 
+   ;; we're in-container
+  (defn ^{:internal true} create-listener [handler]
+    (org.immutant.messaging.MessageListener. (lookup/fetch "clojure-runtime") handler))
+  
+  ;; we're not in-container
+  (defn ^{:internal true} create-listener [handler]
+    (reify javax.jms.MessageListener
+      (onMessage [_ message]
+        (handler message)))))
+
 
 ;; TODO: This is currently unused and, if deemed necessary, could
 ;; probably be better implemented

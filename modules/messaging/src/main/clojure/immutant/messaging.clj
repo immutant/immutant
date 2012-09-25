@@ -139,11 +139,7 @@
               handler #(with-transaction session
                          (f (codecs/decode-if decode? %)))]
           (.setMessageListener consumer
-                               (if-let [runtime (reg/fetch "clojure-runtime")]
-                                 (org.immutant.messaging.MessageListener. runtime handler)
-                                 (reify javax.jms.MessageListener
-                                   (onMessage [_ message]
-                                     (handler message)))))))
+                               (create-listener handler))))
       (at-exit #(.close connection))
       (.start connection)
       connection
