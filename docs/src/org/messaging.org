@@ -101,11 +101,11 @@
 
    If the message has any [[http://clojure.org/metadata][Clojure metadata]] attached, it will be passed
    as [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html][the JMS Message's properties]], the names of which are subject to
-   certain naming restrictions -- they must be valid Java identifiers
-   -- since they may be used as expressions in /selectors/ (see
-   below). It's also possible to pass properties via the =:properties=
-   option, which will override any matching keys in the payload
-   metadata, if present.
+   certain naming restrictions (they must be valid Java identifiers)
+   since they may be used as expressions in /selectors/ (see below).
+   It's also possible to pass properties via the =:properties= option,
+   which will override any matching keys in the payload metadata, if
+   present.
 
    The =publish= function accepts the following options:
 
