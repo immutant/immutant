@@ -17,57 +17,55 @@
 
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-core</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.immutant</groupId>
       <artifactId>immutant-common</artifactId>
       <version>${project.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>immutant-xa</artifactId>
       <version>${project.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.projectodd</groupId>
       <artifactId>polyglot-messaging</artifactId>
       <version>${version.polyglot}</version>
-      <scope>compile</scope>
     </dependency>
-
     <dependency>
       <groupId>org.jboss.spec.javax.jms</groupId>
       <artifactId>jboss-jms-api_1.1_spec</artifactId>
     </dependency>
 
+    <!-- Required for remote access -->
     <dependency>
-      <groupId>org.jboss.logging</groupId>
-      <artifactId>jboss-logging</artifactId>
+      <groupId>org.hornetq</groupId>
+      <artifactId>hornetq-core</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.jboss.as</groupId>
-      <artifactId>jboss-as-jmx</artifactId>
+      <groupId>org.hornetq</groupId>
+      <artifactId>hornetq-jms</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.netty</groupId>
+      <artifactId>netty</artifactId>
       <scope>provided</scope>
     </dependency>
 
+
+    <!-- Required for boilerplate -->
     <dependency>
       <groupId>org.jboss.as</groupId>
-      <artifactId>jboss-as-ee</artifactId>
+      <artifactId>jboss-as-naming</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-core</artifactId>
+      <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
 
-    <dependency>
-      <groupId>org.jboss.as</groupId>
-      <artifactId>jboss-as-messaging</artifactId>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 
   <build>
