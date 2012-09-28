@@ -3,7 +3,7 @@ require 'java'
 require 'rubygems'
 require 'json'
 require File.join( File.dirname( __FILE__ ), '../../../modules/core/target/immutant-core-module.jar' )
-require File.join( File.dirname( __FILE__ ), '../../../modules/core/target/immutant-core-module/polyglot-core.jar' )
+require File.join( File.dirname( __FILE__ ), '../../../modules/core/target/immutant-core-module-module/polyglot-core.jar' )
 
 props = org.projectodd.polyglot.core.util.BuildInfo.new( "org/immutant/immutant.properties" )
 immutant = props.getComponentInfo( 'Immutant' )
