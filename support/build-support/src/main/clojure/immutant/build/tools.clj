@@ -61,6 +61,9 @@
                   [k (apply zfx/xml1-> (cons (xml-zip pom-path) (conj path zfx/text)))])
                 version-paths)))
 
+(defn extract-module-name [dir]
+  (second (re-find #"immutant-(.*)-module-module" (.getName dir))))
+
 (defn init [assembly-root]
   (def root-dir (-> assembly-root .getCanonicalFile .getParentFile .getParentFile))
   (def root-pom (io/file root-dir "pom.xml"))
@@ -83,7 +86,7 @@
 
   (def immutant-modules (reduce (fn [acc file]
                                (assoc acc
-                                 (second (re-find #"immutant-(.*)-module" (.getName file)))
+                                 (extract-module-name file)
                                  file))
                              {}
                              (glob/glob (str (.getAbsolutePath root-dir) "/modules/*/target/*-module"))))
@@ -94,7 +97,7 @@
   (= tag (:tag (zip/node loc))))
 
 (defn install-module [module-dir]
-  (let [name (second (re-find #"immutant-(.*)-module" (.getName module-dir)))
+  (let [name (extract-module-name module-dir)
         dest-dir (io/file jboss-dir (str "modules/org/immutant/" name "/main"))]
     (FileUtils/deleteQuietly dest-dir)
     (FileUtils/copyDirectory module-dir dest-dir)))

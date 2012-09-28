@@ -2,7 +2,7 @@ puts 'building /target/build-metadata.json'
 require 'java'
 require 'rubygems'
 require 'json'
-require File.join( File.dirname( __FILE__ ), '../../../modules/core/target/immutant-core.jar' )
+require File.join( File.dirname( __FILE__ ), '../../../modules/core/target/immutant-core-module.jar' )
 require File.join( File.dirname( __FILE__ ), '../../../modules/core/target/immutant-core-module/polyglot-core.jar' )
 
 props = org.projectodd.polyglot.core.util.BuildInfo.new( "org/immutant/immutant.properties" )

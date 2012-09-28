@@ -8,7 +8,7 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant-messaging</artifactId>
+  <artifactId>immutant-messaging-module</artifactId>
   <packaging>jar</packaging>
   <name>Immutant Messaging Module</name>
   <description>The Immutant caching module.</description>
@@ -22,7 +22,7 @@
     </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-xa</artifactId>
+      <artifactId>immutant-xa-module</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -61,7 +61,7 @@
     </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-core</artifactId>
+      <artifactId>immutant-core-module</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>

@@ -19,32 +19,32 @@
 
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-messaging</artifactId>
+      <artifactId>immutant-messaging-module</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-cache</artifactId>
+      <artifactId>immutant-cache-module</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-daemons</artifactId>
+      <artifactId>immutant-daemons-module</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-jobs</artifactId>
+      <artifactId>immutant-jobs-module</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-web</artifactId>
+      <artifactId>immutant-web-module</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-xa</artifactId>
+      <artifactId>immutant-xa-module</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

@@ -8,7 +8,7 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant-web</artifactId>
+  <artifactId>immutant-web-module</artifactId>
   <packaging>jar</packaging>
   <name>Immutant Web Module</name>
   <description>The Immutant web module.</description>
@@ -17,7 +17,7 @@
 
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-core</artifactId>
+      <artifactId>immutant-core-module</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>

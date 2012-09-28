@@ -8,7 +8,7 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant-cache</artifactId>
+  <artifactId>immutant-cache-module</artifactId>
   <packaging>jar</packaging>
   <name>Immutant Caching Module</name>
   <description>The Immutant caching module.</description>
@@ -30,7 +30,7 @@
 
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-core</artifactId>
+      <artifactId>immutant-core-module</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>

@@ -8,9 +8,9 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant-xa</artifactId>
+  <artifactId>immutant-xa-module</artifactId>
   <packaging>jar</packaging>
-  <name>Immutant Distributed Transaction (XA) Module</name>
+  <name>Immutant XA Module</name>
   <description>The Immutant XA module.</description>
 
 
@@ -60,7 +60,7 @@
 
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-core</artifactId>
+      <artifactId>immutant-core-module</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>

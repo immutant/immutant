@@ -8,7 +8,7 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant-daemons</artifactId>
+  <artifactId>immutant-daemons-module</artifactId>
   <packaging>jar</packaging>
   <name>Immutant Daemons Module</name>
   <description>The Immutant daemons module.</description>
@@ -43,7 +43,7 @@
 
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-core</artifactId>
+      <artifactId>immutant-core-module</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
