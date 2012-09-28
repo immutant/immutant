@@ -163,3 +163,11 @@
     (is (= 0 (count (delete-all c))))
     (is (= 0 (count c)))))
 
+(deftest test-seeding
+  (let [c (cache "foo" :seed {:a 1})
+        d (cache "foo")]
+    (is (= (:a c) (:a d) 1))
+    (put c :b 2)
+    (is (= (:b c) (:b d) 2))
+    (let [e (cache "foo" :seed {})]
+      (is (every? empty? [c d e])))))

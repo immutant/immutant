@@ -69,7 +69,7 @@
     (delete this key)
     this)
   (seed [this base]
-    (put-all (delete-all this) base)
+    (if base (put-all (delete-all this) base))
     this)
 
   Mutable
