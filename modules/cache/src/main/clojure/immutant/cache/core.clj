@@ -20,80 +20,94 @@
   (:require [immutant.registry :as registry]
             [clojure.tools.logging :as log]))
 
-(def reqs '(import '[org.infinispan.config Configuration$CacheMode]
-                   '[org.infinispan.configuration.cache ConfigurationBuilder]
-                   '[org.infinispan.manager DefaultCacheManager]
-                   '[org.infinispan.transaction TransactionMode]
-                   '[org.infinispan.transaction.lookup GenericTransactionManagerLookup]))
+(def reqs '(import '[org.infinispan.configuration.cache ConfigurationBuilder VersioningScheme CacheMode]
+                   '[org.infinispan.transaction TransactionMode LockingMode]
+                   'org.infinispan.manager.DefaultCacheManager
+                   'org.infinispan.transaction.lookup.GenericTransactionManagerLookup
+                   'org.infinispan.util.concurrent.IsolationLevel))
 
-(try-def reqs clustered-manager
-         (registry/fetch "jboss.infinispan.web"))
-(try-def reqs local-manager
-  (delay (DefaultCacheManager.
-           (.. (ConfigurationBuilder.) transaction
-               (transactionManagerLookup (GenericTransactionManagerLookup.))
-               (transactionMode TransactionMode/TRANSACTIONAL)
-               build))))
+(def clustered-manager (registry/fetch "jboss.infinispan.web"))
+(try-def reqs local-manager (delay (DefaultCacheManager.)))
 
 (try-defn reqs cache-mode
-  [kw sync]
-  (cond
-   (= :invalidated kw) (if sync Configuration$CacheMode/INVALIDATION_SYNC Configuration$CacheMode/INVALIDATION_ASYNC)
-   (= :distributed kw) (if sync Configuration$CacheMode/DIST_SYNC Configuration$CacheMode/DIST_ASYNC)
-   (= :replicated kw) (if sync Configuration$CacheMode/REPL_SYNC Configuration$CacheMode/REPL_ASYNC)
-   (= :local kw) Configuration$CacheMode/LOCAL
-   :default (throw (IllegalArgumentException. "Must be one of :distributed, :replicated, :invalidated, or :local"))))
+          [{:keys [mode sync]}]
+          (cond
+           (= :invalidated mode) (if sync CacheMode/INVALIDATION_SYNC CacheMode/INVALIDATION_ASYNC)
+           (= :distributed mode) (if sync CacheMode/DIST_SYNC CacheMode/DIST_ASYNC)
+           (= :replicated mode) (if sync CacheMode/REPL_SYNC CacheMode/REPL_ASYNC)
+           :else CacheMode/LOCAL))
+
+(try-defn reqs set-optimistic-locking!
+          [builder]
+          (.. builder transaction
+              (lockingMode LockingMode/OPTIMISTIC))
+          (.. builder versioning
+              (enabled true)
+              (scheme VersioningScheme/SIMPLE))
+          (.. builder locking
+              (isolationLevel IsolationLevel/REPEATABLE_READ)
+              (writeSkewCheck true))
+          builder)
+          
+(try-defn reqs set-pessimistic-locking!
+          [builder]
+          (.. builder transaction
+              (lockingMode LockingMode/PESSIMISTIC))
+          builder)
+          
+(try-defn reqs build-config
+          [{:keys [locking template] :as opts}]
+          (let [builder (ConfigurationBuilder.)]
+            (if template (.read builder template))
+            (.classLoader builder (.getContextClassLoader (Thread/currentThread)))
+            (.. builder transaction
+                (transactionManagerLookup (GenericTransactionManagerLookup.))
+                (transactionMode TransactionMode/TRANSACTIONAL))
+            (.. builder clustering
+                (cacheMode (cache-mode opts)))
+            (cond
+             (= locking :pessimistic) (set-pessimistic-locking! builder)
+             (= locking :optimistic) (set-optimistic-locking! builder)
+             locking (throw (IllegalArgumentException. (str "Invalid locking mode: " locking))))
+            (.build builder)))
 
 (try-defn reqs reconfigure
-  [^String name ^String mode]
-  (let [cache (.getCache clustered-manager name)
-        config (.getConfiguration cache)
-        current (.getCacheMode config)]
-    (when-not (= mode current)
-      (log/info "Reconfiguring cache" name "from" (str current) "to" (str mode))
-      (.stop cache)
-      (.setCacheMode config mode)
-      (.defineConfiguration clustered-manager name config)
-      (.start cache))
-    cache))
+          [manager name opts]
+          (let [cache (.getCache manager name)]
+            (when-not (= (cache-mode opts) (.. cache getCacheConfiguration clustering cacheMode))
+              (println "JC: why am i reconfiguring?")
+              (log/info "Reconfiguring cache" name)
+              (.stop cache)
+              (.defineConfiguration manager name (build-config opts))
+              (.start cache))
+            cache))
 
 (try-defn reqs configure
-  [^String name ^String mode]
-  (log/info "Configuring cache" (str name) "as" (str mode))
-  (let [config (.clone (.getDefaultConfiguration clustered-manager))]
-    (.setClassLoader config (.getContextClassLoader (Thread/currentThread)))
-    (.setCacheMode config mode)
-    (.setTransactionManagerLookup config (GenericTransactionManagerLookup.))
-    (.defineConfiguration clustered-manager name config)
-    (doto (.getCache clustered-manager name)
-      (.start))))
+          [manager name opts]
+          (log/info "Configuring cache" name)
+          (.defineConfiguration manager name
+                                (build-config (merge {:template (.getDefaultCacheConfiguration manager)} opts)))
+          (doto (.getCache manager name)
+            (.start)))
 
-(defn clustered-cache
-  "Defaults to :distributed, with :sync=true"
-  [name & {:keys [mode sync] :or {sync true}}]
-  (let [mode (or mode :distributed)]
-    (if (.isRunning clustered-manager name)
-      (reconfigure name (cache-mode mode sync))
-      (configure name (cache-mode mode sync)))))
-
-(try-defn reqs local-cache
-  ([]
-     (.getCache @local-manager))
-  ([^String name]
-     (.getCache @local-manager name)))
+(defn configure-cache
+  "Defaults to :distributed, with :sync=true, for a clustered cache"
+  [manager name opts]
+  (let [opts (merge {:mode :distributed, :sync true} opts)]
+    (if (.isRunning manager name)
+      (reconfigure manager name opts)
+      (configure manager name opts))))
 
 (defn raw-cache
   "Returns the raw Infinispan cache, clustered if possible, otherwise local"
-  ([name] (raw-cache name nil))
-  ([name mode]
-     (cond
-      clustered-manager (clustered-cache name :mode mode)
-      local-manager (do
-                      (if (and mode (not= mode :local))
-                        (log/warn "Invalid mode," mode ", falling back to local"))
-                      (local-cache name))
-      :else (log/error "Infinispan not found on the classpath"))))
-
+  [name {:keys [mode] :or {mode :local} :as opts}]
+  (cond
+   clustered-manager (configure-cache clustered-manager name opts)
+   local-manager (do
+                   (if (not= mode :local)
+                     (log/warn "Invalid mode," mode ", falling back to local"))
+                   (configure-cache @local-manager name (assoc opts :mode :local)))
+   :else (log/error "Infinispan not found on the classpath")))
 
 (defn lifespan-params [{:keys [ttl idle units] :or {ttl -1 idle -1 units :seconds}}]
   (let [u (.toUpperCase (name units))

@@ -171,7 +171,7 @@
    default options for the functions of the Mutable protocol. But any
    options passed to those functions take precedence over these."
   [name & {:keys [mode seed] :as options}]
-  (cc/seed (InfinispanCache. (raw-cache name mode) options) seed))
+  (cc/seed (InfinispanCache. (raw-cache name options) options) seed))
 
 (defn memo
   "Memoize a function by associating its arguments with return values
