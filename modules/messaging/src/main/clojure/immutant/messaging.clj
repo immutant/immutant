@@ -204,8 +204,8 @@
    will be done for you when your app is undeployed. This will fail
    with a warning if any handlers are listening or any messages are
    yet to be delivered. Returns true on success"
-  [name]
+  [name & {:keys [force]}]
   (cond
-   (queue-name? name) (stop-queue name)
-   (topic-name? name) (stop-topic name)
+   (queue-name? name) (stop-queue name :force force)
+   (topic-name? name) (stop-topic name :force force)
    :else (throw (Exception. "Illegal destination name"))))
