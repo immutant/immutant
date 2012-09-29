@@ -63,19 +63,26 @@
    Additional options may be passed as in-line keyword arguments. The
    following are supported:
 
-    | Option   | Default    | Description                                                                                                                            |
-    |----------+------------+----------------------------------------------------------------------------------------------------------------------------------------|
-    | =:mode=  | =:local=   | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. Defaults to =:invalidated= if clustered.           |
-    | =:seed=  | =nil=      | A hash of initial entries to replace the existing ones.                                                                                |
-    | =:ttl=   | =-1=       | Time-To-Live. The maximum time the entry will live before being expired. A negative value disables time-to-live expiration.            |
-    | =:idle=  | =-1=       | The time after which an entry will expire if not accessed. A negative value disables idle expiration.                                  |
-    | =:units= | =:seconds= | The units for =:ttl= and =:idle=. One of =:days=, =:hours=, =:minutes=, =:seconds=, =:milliseconds=, =:microseconds= or =:nanoseconds= |
+    | Option     | Default    | Description                                                                                                                            |
+    |------------+------------+----------------------------------------------------------------------------------------------------------------------------------------|
+    | =:mode=    | =:local=   | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. Defaults to =:invalidated= if clustered.           |
+    | =:seed=    | =nil=      | A hash of initial entries to replace the existing ones.                                                                                |
+    | =:locking= | =nil=      | The locking mode within a transaction. One of =:optimistic= or =:pessimistic                                                           |
+    | =:ttl=     | =-1=       | Time-To-Live. The maximum time the entry will live before being expired. A negative value disables time-to-live expiration.            |
+    | =:idle=    | =-1=       | The time after which an entry will expire if not accessed. A negative value disables idle expiration.                                  |
+    | =:units=   | =:seconds= | The units for =:ttl= and =:idle=. One of =:days=, =:hours=, =:minutes=, =:seconds=, =:milliseconds=, =:microseconds= or =:nanoseconds= |
 
    When not clustered, the value of =:mode= is ignored and set to
    =:local=.
 
    Seeding a cache will cause existing entries to be deleted, a
    potentially expensive operation depending on replication mode.
+
+   With an optimistic locking mode, locks are obtained at transaction
+   prepare time and released at commit or rollback. Pessimistic
+   transactions obtain locks on keys at the time the key is written,
+   releasing at commit/rollback. See [[https://docs.jboss.org/author/display/ISPN51/Infinispan%2Btransactions][the Infinispan docs]] for more
+   details.
 
    Some examples are in order.
 

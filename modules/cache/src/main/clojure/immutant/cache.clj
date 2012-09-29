@@ -154,12 +154,14 @@
    following options are supported:
 
    The following options are supported [default]:
-     :mode   Replication mode [:invalidated or :local]
-               :local, :invalidated, :distributed, or :replicated
-     :seed   A hash of initial entries [nil]
-     :ttl    The max time the entry will live before expiry [-1]
-     :idle   The time after which an entry will expire if not accessed [-1]
-     :units  The units for the values of :ttl and :idle [:seconds]
+     :mode     Replication mode [:invalidated or :local]
+                 :local, :invalidated, :distributed, or :replicated
+     :seed     A hash of initial entries [nil]
+     :locking  Infinispan locking schemes [nil]
+                 :optimisitic or :pessimistic
+     :ttl      The max time the entry will live before expiry [-1]
+     :idle     The time after which an entry will expire if not accessed [-1]
+     :units    The units for the values of :ttl and :idle [:seconds]
 
    The replication mode defaults to :invalidated when clustered. When
    not clustered, the value of :mode is ignored, and the cache will
