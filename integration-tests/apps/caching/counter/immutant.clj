@@ -1,14 +1,15 @@
 (ns counter.init
-  (:use [ring.util.response])
-  (:require [immutant.cache :as cache]
-            [immutant.web :as web]))
+  (:use clojure.test)
+  (:require [immutant.web :as web]
+            counter.locking))
 
-(def data (cache/cache "counts" :replicated))
+(defn response [body]
+  {:status 200
+   :headers {"Content-Type" "text/plain"}
+   :body (pr-str body)})
 
-(defn handler [{path-info :path-info}]
-  (let [val (inc (get data path-info -1))]
-    (println "value=" val)
-    (assoc data path-info val)
-    (response (str "value=" val "\n"))))
+(defn handler [request]
+  (response (run-tests 'counter.locking)))
 
 (web/start "/" handler)
+
