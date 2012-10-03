@@ -71,7 +71,8 @@
   (try
     (require (symbol (namespace sym)))
     (resolve sym)
-    (catch java.io.FileNotFoundException _)))
+    (catch java.io.FileNotFoundException _)
+    (catch RuntimeException _)))
 
 (defn try-resolve-any
   "Tries to resolve the given namespace-qualified symbols. Returns the

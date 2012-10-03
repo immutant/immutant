@@ -23,13 +23,13 @@ shouldn't be used in production."
             [immutant.utilities         :as util])
   (:import org.projectodd.polyglot.core.util.ResourceLoaderUtil))
 
-(defn ^{:private true} reset-classloader-resources [resources]
+(defn ^:private reset-classloader-resources [resources]
   (ResourceLoaderUtil/refreshAndRelinkResourceLoaders
    clojure.lang.Var
    (map (fn [r] (ResourceLoaderUtil/createLoaderSpec r)) resources)
    false))
 
-(defn ^{:private true} unmount-resources
+(defn ^:private unmount-resources
   "Attempts to unmount the given resources. Returns a collection of the resources
 that weren't unmounted."
   [resources]
@@ -41,48 +41,67 @@ that weren't unmounted."
             []
             resources)))
 
-(defn ^{:private true} mount-paths
+(defn ^:private mount-paths
   "Mounts the given paths and returns a collection of the resulting resources."
   [paths]
   (let [mounter (reg/fetch "resource-mounter")]
     (map #(.mount mounter %) paths)))
 
-(defn ^{:private true} read-project
+(defn ^:private read-project
   "Reads the lein project in the current app dir."
   []
   (boot/read-project (util/app-root) 
                      (:lein-profiles (reg/fetch :config))))
 
-(let [current-deps (atom nil)]
+(defn ^:private get-dependency-paths [project]
+  (mount-paths
+   (boot/get-dependencies project true)))
 
-  (defn current-dependencies
-    "Returns the set of currently active dependencies as leiningen coordinates."
+(defn ^:private get-project-paths [project]
+  (map #(ResourceLoaderUtil/createResourceRoot % true)
+       (boot/add-default-lein1-paths
+        (util/app-root)
+        (boot/resource-paths-from-project project))))
+
+(defn ^:private get-existing-resources []
+  (remove nil?
+          (map #(.getResource % "/")
+               (ResourceLoaderUtil/getExistingResourceLoaders
+                clojure.lang.Var))))
+
+(let [current-proj (atom nil)]
+
+  (defn current-project
+    "Returns the map representing the currently active leiningen project.
+This will be the last project reloaded by reload-project!, or the map read
+from project.clj if reload-project! has yet to be called."
     []
-    (or @current-deps
-        (reset! current-deps (:dependencies (read-project)))))
-
-  (defn reload-dependencies!
-    "Rereads the dependencies for the current application and resets the application's
-ClassLoader to provide those dependencies. This should never be used in production.
-Only works under Clojure 1.4 or newer. (beta)"
+    (or @current-proj
+        (reset! current-proj (read-project))))
+  
+  (defn reload-project!
+    "Resets the application's class loader to provide the paths and dependencies in the
+from the given project. If no project is provided, the project.clj for the appplication
+is loaded from disk. Returns the project map. This should never be used in production.
+Works only under Clojure 1.4 or newer. (beta)"
     ([]
-       (reload-dependencies! (read-project)))
+       (reload-project! (read-project)))
     ([project]
-       (reset! current-deps (:dependencies project))
-       (let [new-resources (mount-paths
-                            (boot/get-dependencies project true))
+       (reset! current-proj project)
+       (let [new-resources (concat
+                            (get-dependency-paths project)
+                            (get-project-paths project))
              keeper-resources (unmount-resources
-                               (remove nil?
-                                       (map #(.getResource % "/")
-                                            (ResourceLoaderUtil/getExistingResourceLoaders
-                                             clojure.lang.Var))))]
-         (reset-classloader-resources (concat new-resources keeper-resources)))))
+                               (get-existing-resources))]
+         (reset-classloader-resources (concat new-resources keeper-resources)))
+       project)))
 
-  (defn merge-dependencies!
-    "Merges in the given dependencies into the currently active dependency set
-and resets the application's ClassLoader to provide those dependencies. This should never
-be used in production. Only works under Clojure 1.4 or newer. (beta)"
-    [& coords]
-    (reload-dependencies!
-     (assoc (read-project)
-       :dependencies (set (concat (current-dependencies) coords))))))
+(defn merge-dependencies!
+  "Merges in the given dependencies into the currently active project's dependency set
+and resets the application's class loader to provide the paths and dependencies from that
+project (via reload-project!). Returns the project map. This should never be used in production.
+Works only under Clojure 1.4 or newer. (beta)"
+  [& coords]
+  (reload-project!
+   (update-in (current-project) [:dependencies]
+              #(set (concat % coords)))))

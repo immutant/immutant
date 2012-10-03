@@ -35,11 +35,10 @@ import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.as.server.deployment.annotation.CompositeIndex;
-import org.jboss.as.server.deployment.module.ModuleRootMarker;
 import org.jboss.as.server.deployment.module.ResourceRoot;
 import org.jboss.logging.Logger;
-import org.jboss.vfs.VFS;
 import org.projectodd.polyglot.core.as.ArchivedDeploymentMarker;
+import org.projectodd.polyglot.core.util.ResourceLoaderUtil;
 
 public class AppDependenciesProcessor implements DeploymentUnitProcessor {
 
@@ -90,8 +89,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
             mounter.mount( new File( runtimePath ), false );
             
             for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles() )) {
-                final ResourceRoot childResource = new ResourceRoot( VFS.getChild( each ), null );
-                ModuleRootMarker.mark(childResource);
+                final ResourceRoot childResource = ResourceLoaderUtil.createResourceRoot(each, true);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
             }
         } catch (Exception e) {

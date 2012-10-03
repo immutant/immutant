@@ -4,6 +4,8 @@
             [immutant.web.session    :as isession]
             [immutant.repl           :as repl]
             [immutant.registry       :as reg]
+            [immutant.utilities      :as util]
+            [immutant.dev            :as dev]
             [ring.middleware.session :as rsession]
             [clojure.java.io         :as io])
   (:import SomeClass))
@@ -14,7 +16,7 @@
 
 (defn response [body]
   {:status 200
-     :headers {"Content-Type" "text/html"}
+   :headers {"Content-Type" "text/html"}
    :body body})
 (defn handler [request]
   (let [body (str "Hello from Immutant! This is basic-ring <p>a-value:" @a-value
@@ -37,17 +39,22 @@
 (defn java-class-handler [request]
   (response (SomeClass/hello)))
 
+
 (defn dev-handler [request]
-  (use 'immutant.dev)
-  (let [original-deps (eval '(current-dependencies))]
-    (eval '(merge-dependencies! '[clj-rome "0.3.0"] '[org.clojure/data.json "0.1.2"]))
-    (use 'clj-rome.reader)
-    (eval '(merge-dependencies! '[org.yaml/snakeyaml "1.5"]))
-    (response (pr-str {:original original-deps
-                       :added '[[clj-rome "0.3.0"]
-                                [org.clojure/data.json "0.1.2"]
-                                [org.yaml/snakeyaml "1.5"]]
-                       :final (eval '(current-dependencies))}))))
+   (let [original-project (dev/current-project)]
+     (dev/merge-dependencies! '[clj-rome "0.3.0"] '[org.clojure/data.json "0.1.2"])
+     (use 'clj-rome.reader)
+     (dev/merge-dependencies! '[org.yaml/snakeyaml "1.5"])
+     (println (dev/reload-project!
+               (update-in (dev/current-project) [:source-paths]
+                          #(conj % (io/file (util/app-root) "extra")))))
+     (use 'basic-ring.extra)
+     (let [body (pr-str {:original (:dependencies original-project)
+                         :added '[[clj-rome "0.3.0"]
+                                  [org.clojure/data.json "0.1.2"]
+                                  [org.yaml/snakeyaml "1.5"]]
+                         :final (:dependencies (dev/current-project))})]
+       (response body))))
 
 (defn init []
   (println "INIT CALLED"))
@@ -91,6 +98,7 @@
   (init)
   (web/start java-class-handler))
 
+
 (defn init-dev-handler []
-  (init)
-  (web/start dev-handler))
+     (init)
+     (web/start dev-handler))
