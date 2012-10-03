@@ -115,7 +115,6 @@
                          (swap! results conj (:type x)))]
         (println "\n>>>> Testing against" clojure-versions "\n")
         (for-each-version
-         #(with-jboss
-            (partial apply run-tests namespaces))))
+         #(with-jboss (partial apply run-tests namespaces) :lazy)))
       (shutdown-agents)
       (System/exit (if (empty? (filter #{:fail :error} @results)) 0 -1)))))
