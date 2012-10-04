@@ -55,6 +55,8 @@ public class FullAppConfigLoadingProcessor implements DeploymentUnitProcessor {
             metaData.setConfig( ApplicationBootstrapUtils.readFullAppConfig( descriptor, root ) );
            deploymentUnit.putAttachment( ClojureMetaData.FULL_APP_CONFIG, 
                    ApplicationBootstrapUtils.readFullAppConfigAsString( descriptor, root ) );
+           deploymentUnit.putAttachment( ClojureMetaData.LEIN_PROJECT, 
+                   ApplicationBootstrapUtils.readProjectAsString( descriptor, root ) );
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }

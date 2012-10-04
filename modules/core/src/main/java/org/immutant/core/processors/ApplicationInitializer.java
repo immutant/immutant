@@ -42,7 +42,9 @@ public class ApplicationInitializer implements DeploymentUnitProcessor {
         
         ClojureRuntime runtime = unit.getAttachment( ClojureRuntimeService.ATTACHMENT_KEY );
         Timer t = new Timer("setting app config");
-        runtime.invoke( "immutant.runtime/set-app-config", unit.getAttachment( ClojureMetaData.FULL_APP_CONFIG ) );
+        runtime.invoke( "immutant.runtime/set-app-config", 
+                unit.getAttachment( ClojureMetaData.FULL_APP_CONFIG ), 
+                unit.getAttachment( ClojureMetaData.LEIN_PROJECT ) );
         t.done();
         t = new Timer("initializing app");
         runtime.invoke( "immutant.runtime/initialize", metaData.getInitFunction(), metaData.getConfig() );

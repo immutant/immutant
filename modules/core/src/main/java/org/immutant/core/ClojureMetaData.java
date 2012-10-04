@@ -34,6 +34,7 @@ public class ClojureMetaData extends ApplicationMetaData {
     public static final AttachmentKey<ClojureMetaData> ATTACHMENT_KEY = AttachmentKey.create( ClojureMetaData.class );
     public static final AttachmentKey<File> DESCRIPTOR_FILE = AttachmentKey.create( File.class );
     public static final AttachmentKey<String> FULL_APP_CONFIG = AttachmentKey.create( String.class );
+    public static final AttachmentKey<String> LEIN_PROJECT = AttachmentKey.create( String.class );
 
     public ClojureMetaData(String applicationName, Map<String, Object> config) {
         super( applicationName ); 
@@ -95,7 +96,7 @@ public class ClojureMetaData extends ApplicationMetaData {
     }
 
     public Map<String, Object> getConfig() {
-        return config;
+        return this.config;
     }
 
     @SuppressWarnings("unchecked")

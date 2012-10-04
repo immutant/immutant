@@ -107,6 +107,12 @@
                (set/difference other-profiles
                                normalized-profiles))))))))
 
+(defn ^{:internal true} read-project-to-string
+  "Returns the project map as a pr string with metadata so it can be moved across runtimes."
+  [app-root profiles]
+  (binding [*print-meta* true]
+    (pr-str (read-project app-root profiles))))
+
 (defn ^{:internal true} read-full-app-config
   "Returns the full configuration for an app. This consists of the :immutant map
 from project.clj (if any) with the contents of the descriptor map merged onto it (if any). Returns

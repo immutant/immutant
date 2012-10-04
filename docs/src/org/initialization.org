@@ -129,6 +129,15 @@
        (:my-custom-option cfg)) ;; :my-custom-value
    #+end_src
 
+   If you need access to the leiningen project map for the application, it is available
+   from [[./apidoc/immutant.registry-api.html#immutant.registry/fetch][immutant.registry/fetch]] under the =:project= key:
+
+   #+begin_src clojure
+     (require '[immutant.registry :as registry])
+     
+     (registry/fetch :project)
+   #+end_src
+   
 * Files Used In Configuration & Initialization
 
 ** Deployment Descriptor

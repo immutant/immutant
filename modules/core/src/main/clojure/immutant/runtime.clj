@@ -63,8 +63,9 @@ to finalize initialization."
   (post-initialize (into {} config-hash)))
 
 (defn ^{:internal true} set-app-config
-  "Takes the full application config as a data string and makes it available as data under the :config key in the registry."
-  [config]
-  (registry/put :config (read-string config)))
+  "Takes the full application config and project map as data strings and makes them available as data under the :config and :project keys in the registry."
+  [config project]
+  (registry/put :config (read-string config))
+  (registry/put :project (read-string project)))
 
 

@@ -69,32 +69,30 @@ that weren't unmounted."
                (ResourceLoaderUtil/getExistingResourceLoaders
                 clojure.lang.Var))))
 
-(let [current-proj (atom nil)]
-
-  (defn current-project
-    "Returns the map representing the currently active leiningen project.
+(defn current-project
+  "Returns the map representing the currently active leiningen project.
 This will be the last project reloaded by reload-project!, or the map read
-from project.clj if reload-project! has yet to be called."
-    []
-    (or @current-proj
-        (reset! current-proj (read-project))))
-  
-  (defn reload-project!
-    "Resets the application's class loader to provide the paths and dependencies in the
+from project.clj when the application was deployed reload-project! has yet
+ to be called."
+  []
+  (reg/fetch :project))
+
+(defn reload-project!
+  "Resets the application's class loader to provide the paths and dependencies in the
 from the given project. If no project is provided, the project.clj for the appplication
 is loaded from disk. Returns the project map. This should never be used in production.
 Works only under Clojure 1.4 or newer. (beta)"
-    ([]
-       (reload-project! (read-project)))
-    ([project]
-       (reset! current-proj project)
-       (let [new-resources (concat
-                            (get-dependency-paths project)
-                            (get-project-paths project))
-             keeper-resources (unmount-resources
-                               (get-existing-resources))]
-         (reset-classloader-resources (concat new-resources keeper-resources)))
-       project)))
+  ([]
+     (reload-project! (read-project)))
+  ([project]
+     (reg/put :project project)
+     (let [new-resources (concat
+                          (get-dependency-paths project)
+                          (get-project-paths project))
+           keeper-resources (unmount-resources
+                             (get-existing-resources))]
+       (reset-classloader-resources (concat new-resources keeper-resources)))
+     project))
 
 (defn merge-dependencies!
   "Merges in the given dependencies into the currently active project's dependency set

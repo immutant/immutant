@@ -96,6 +96,17 @@ public class ApplicationBootstrapUtils {
         } );
     }
     
+    @SuppressWarnings("rawtypes")
+    public static String readProjectAsString(final File descriptor, final File applicationRoot) throws Exception {
+        final Map config = readFullAppConfig( descriptor, applicationRoot );
+
+        return (String) inCL( new Callable() {
+            public Object call() throws Exception {
+                return bootstrapVar( "read-project-to-string" ).invoke( applicationRoot, config.get( "lein-profiles" ) ); 
+            }
+        } );
+    }
+    
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static List<String> resourceDirs(final File applicationRoot, final List profiles) throws Exception {
         return (List<String>) inCL( new Callable() {
