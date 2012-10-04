@@ -31,7 +31,6 @@
   (require 'leiningen.core.classpath)
   (require 'leiningen.core.project)
   (catch RuntimeException e
-    (println "FUCKTAR")
     (if (and (<= 1 (:major *clojure-version*))
              (> 4 (:minor *clojure-version*)))
       (println "WARNING: immutant.dev requires clojure 1.4 or greater and you've loaded it under clojure 1.3")
