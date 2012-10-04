@@ -20,7 +20,8 @@
 shouldn't be used in production."
   (:require [immutant.runtime.bootstrap :as boot]
             [immutant.registry          :as reg]
-            [immutant.utilities         :as util])
+            [immutant.utilities         :as util]
+            [clojure.java.io            :as io])
   (:import org.projectodd.polyglot.core.util.ResourceLoaderUtil))
 
 (defn ^:private reset-classloader-resources [resources]
@@ -57,11 +58,19 @@ that weren't unmounted."
   (mount-paths
    (boot/get-dependencies project true)))
 
+(defn ^:private absolutize-paths [paths]
+  (map (fn [p]
+         (let [f (io/file p)]
+           (if (.isAbsolute f)
+             (.getAbsolutePath f)
+             (.getAbsolutePath (io/file (util/app-root) f)))))
+       paths))
+
 (defn ^:private get-project-paths [project]
   (map #(ResourceLoaderUtil/createResourceRoot % true)
-       (boot/add-default-lein1-paths
-        (util/app-root)
-        (boot/resource-paths-from-project project))))
+       (->> (boot/resource-paths-from-project project)
+            (boot/add-default-lein1-paths (util/app-root))
+            (absolutize-paths))))
 
 (defn ^:private get-existing-resources []
   (remove nil?

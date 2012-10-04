@@ -47,7 +47,7 @@
      (dev/merge-dependencies! '[org.yaml/snakeyaml "1.5"])
      (println (dev/reload-project!
                (update-in (dev/current-project) [:source-paths]
-                          #(conj % (io/file (util/app-root) "extra")))))
+                          #(conj % "extra"))))
      (use 'basic-ring.extra)
      (let [body (pr-str {:original (:dependencies original-project)
                          :added '[[clj-rome "0.3.0"]

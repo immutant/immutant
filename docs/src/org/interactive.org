@@ -214,7 +214,6 @@
       ;; assuming we have an app loaded that initially only depends on clojure
       ;; (from its project.clj)
       (require '[immutant.dev :as dev]
-               '[immutant.utilities :as util]
                '[clojure.java.io :as io])
       
       (:dependencies (dev/current-project)) ; => #{[org.clojure/clojure "1.4.0"]}
@@ -231,7 +230,7 @@
       
       ;; let's add a path to :source-paths
       (dev/reload-project! ((dev/current-project) [:source-paths]
-                            #(conj % (io/file (util/app-root) "extra"))))
+                            #(conj % "extra")))
       
       (:source-paths (dev/current-project)) ; => [["/path/to/app/root/src", "/path/to/app/root/extra"]]
     #+end_src
