@@ -26,10 +26,13 @@ import java.util.Map;
 import org.jboss.logging.Logger;
 import org.projectodd.polyglot.jobs.BaseJobScheduler;
 import org.quartz.Job;
+import org.quartz.JobKey;
+import static org.quartz.JobKey.*;
 import org.quartz.JobDetail;
 import org.quartz.SchedulerException;
 import org.quartz.spi.JobFactory;
 import org.quartz.spi.TriggerFiredBundle;
+import org.quartz.simpl.SimpleJobFactory;
 
 public class JobScheduler extends BaseJobScheduler implements JobFactory {
 
@@ -43,17 +46,17 @@ public class JobScheduler extends BaseJobScheduler implements JobFactory {
     }
 
     @Override
-    public Job newJob(TriggerFiredBundle bundle) throws SchedulerException {
+    public Job newJob(TriggerFiredBundle bundle, org.quartz.Scheduler ignored) throws SchedulerException {
         JobDetail jobDetail = bundle.getJobDetail();
-
-        return this.jobs.get( jobDetail.getName() );
+        Job result = this.jobs.get( jobDetail.getKey() );
+        return (result==null) ? fallback.newJob(bundle, ignored) : result;
     }
 
-    public void addJob(String jobName, ClojureJob job) {
-        this.jobs.put( jobName, job );
+    public void addJob(String jobName, String groupName, ClojureJob job) {
+        this.jobs.put( jobKey(jobName, groupName), job );
     }
 
-    private Map<String, ClojureJob> jobs = new HashMap<String, ClojureJob>();
-
+    private Map<JobKey, ClojureJob> jobs = new HashMap<JobKey, ClojureJob>();
+    private SimpleJobFactory fallback = new SimpleJobFactory();
     private static final Logger log = Logger.getLogger( "org.immutant.jobs" );
 }

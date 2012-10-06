@@ -72,7 +72,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
             (wait-for-scheduler
              scheduler
              #(.addJob scheduler
-                       name
+                       name (app-name)
                        (ClojureJob. (registry/fetch "clojure-runtime") f)))
             (let [^BaseScheduledJob this this] ;; hack to eliminate reflection
               (proxy-super start)))
