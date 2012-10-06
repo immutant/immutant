@@ -54,6 +54,12 @@ A singleton scheduler will participate in a cluster, and will only execute its j
                                (Thread/sleep 1000)
                                (recur scheduler f (dec attempts))))))
 
+(defn ^:internal quartz-scheduler
+  "Returns the internal quartz scheduler"
+  [singleton]
+  (let [s (scheduler singleton)]
+    (wait-for-scheduler s #(.getScheduler s))))
+
 (try-defn (import org.projectodd.polyglot.jobs.BaseScheduledJob)
   ^{:internal true} create-job
   "Instantiates and starts a job"

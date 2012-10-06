@@ -17,9 +17,9 @@
 
 (ns immutant.jobs
   "Associate recurring jobs with an application using cron-like specifications"
-  (:use [immutant.utilities :only [at-exit]]
-        [immutant.jobs.internal :only [stop-job create-job]])
-  (:require [clojure.tools.logging :as log]))
+  (:use [immutant.utilities :only [at-exit]])
+  (:require [clojure.tools.logging :as log]
+            [immutant.jobs.internal :as internal]))
 
 (def ^:dynamic ^org.quartz.JobExecutionContext *job-execution-context* nil)
 
@@ -30,7 +30,7 @@
   [name]
   (when-let [job (@current-jobs name)]
     (log/info "Unscheduling job" name)
-    (stop-job job)
+    (internal/stop-job job)
     (swap! current-jobs dissoc name)
     true))
 
@@ -42,6 +42,11 @@ Calling this function with the same name as a previously scheduled job will repl
   (log/info "Scheduling job" name "at" spec)
   (letfn [(job [ctx] (binding [*job-execution-context* ctx] (f)))]
     (swap! current-jobs assoc name
-           (create-job job name spec (boolean singleton))))
+           (internal/create-job job name spec (boolean singleton))))
   (at-exit (partial unschedule name))
   nil)
+
+(defn internal-scheduler
+  "Returns the internal Quartz scheduler for use with other libs, e.g. Quartzite"
+  [& {:keys [singleton] :or {singleton true}}]
+  (internal/quartz-scheduler singleton))
