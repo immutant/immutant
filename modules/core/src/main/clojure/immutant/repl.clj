@@ -66,9 +66,10 @@ management interface defined by the AS. Registers an at-exit handler to
 shutdown nrepl on undeploy, and returns a server that can be passed to
 stop-nrepl to shut it down manually."
   ([interface-address port]
-     (log/info "Starting nrepl for" (util/app-name) "at" (str interface-address ":" port))
      (when-let [server ((util/try-resolve 'clojure.tools.nrepl.server/start-server)
                         :port (fix-port port) :host interface-address)]
+       (log/info "Starting nREPL for" (util/app-name)
+                 "at" (str interface-address ":" (-> server deref :ss .getLocalPort)))
        (util/at-exit (partial stop-nrepl server))
        server))
   ([port]
