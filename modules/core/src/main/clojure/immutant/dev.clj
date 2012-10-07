@@ -110,5 +110,6 @@ project (via reload-project!). Returns the project map. This should never be use
 Works only under Clojure 1.4 or newer. (beta)"
   [& coords]
   (reload-project!
-   (update-in (current-project) [:dependencies]
-              #(set (concat % coords)))))
+   (-> (current-project)
+       (update-in [:dependencies] #(set (concat % (remove string? coords))))
+       (update-in [:source-paths] #(concat % (filter string? coords))))))
