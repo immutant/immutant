@@ -21,6 +21,11 @@
             [clojure.string    :as str]
             [clojure.java.io :as io]))
 
+(defn in-immutant?
+  "Returns true if running inside an Immutant container"
+  []
+  (not (nil? (lookup/fetch "housekeeper"))))
+
 (defn app-root
   "Returns a file pointing to the root dir of the application"
   []
