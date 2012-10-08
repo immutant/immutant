@@ -1,13 +1,15 @@
 (ns tx.core
-  (:use clojure.test)
+  (:use clojure.test
+        [immutant.utilities :only [in-immutant?]])
   (:require [immutant.xa :as ixa]
             [immutant.cache :as ic]
             [immutant.messaging :as imsg]
             [clojure.java.jdbc :as sql]))
 
 ;;; Create a JMS queue
-(imsg/start "/queue/test")
-(imsg/start "/queue/remote-test")
+(when (in-immutant?)
+  (imsg/start "/queue/test")
+  (imsg/start "/queue/remote-test"))
 
 ;;; And an Infinispan cache
 (def cache (ic/cache "test"))
