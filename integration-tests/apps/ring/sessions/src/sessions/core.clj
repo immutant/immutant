@@ -8,32 +8,49 @@
     (apply hash-map
            (clojure.string/split query-string #"(&|=)"))))
 
-(defn init []
-  (println "INIT CALLED"))
+(defn respond [session]
+  ;(println "SESSION:" session)
+  {:status 200
+   :headers {"Content-Type" "text/html"}
+   :session session
+   :cookies {"a-cookie" "a cookie value"}
+   :body (with-out-str (pr session))})
 
 (defn handler [request]
-  (let [session (merge (:session request) (query-map (:query-string request)))]
-    (println "SESSION:" session)
-    {:status 200
-     :headers {"Content-Type" "text/html"}
-     :session session
-     :cookies {"a-cookie" "a cookie value"}
-     :body (with-out-str (pr session))}))
+  (respond (merge (:session request) (query-map (:query-string request)))))
 
 (defn init-immutant-session []
-  (init)
   (web/start "/immutant"
              (ring-session/wrap-session
               handler
               {:store (immutant-session/servlet-store)})))
 
 
-(defn init-ring-session []
-  (init)
+(defn init-ring-session [store]
   (web/start "/ring"
              (ring-session/wrap-session
-              handler)))
+              handler
+              {:store store})))
+
+(defn clear-handler
+  [request]
+  (respond nil))
+
+(defn init-ring-clearer [store]
+  (web/start "/clear-ring"
+             (ring-session/wrap-session
+              clear-handler
+              {:store store})))
+
+(defn init-immutant-clearer []
+  (web/start "/clear"
+             (ring-session/wrap-session
+              clear-handler
+              {:store (immutant-session/servlet-store)})))
 
 (defn init-all []
-  (init-ring-session)
-  (init-immutant-session))
+  (let [ring-mem-store (ring.middleware.session.memory/memory-store)]
+    (init-ring-session ring-mem-store)
+    (init-immutant-session)
+    (init-ring-clearer ring-mem-store)
+    (init-immutant-clearer)))

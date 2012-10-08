@@ -17,18 +17,30 @@
 
 (ns immutant.web.session.handler
   (:use [immutant.web.core :only [current-servlet-request]])
-  (:require [immutant.utilities :as util]))
+  (:require [immutant.utilities :as util]
+            [immutant.web.session :as session]))
 
 (def cookie-encoder (util/try-resolve-any
                      'ring.util.codec/form-encode  ;; ring >= 1.1.0
                      'ring.util.codec/url-encode))
 
-(defn remove-ring-session-cookie
-  "Middleware that removes the ring-session cookie if the servlet session is used."
+;; TODO: this probably won't work if there are handlers active on the
+;; same servlet with mixed use of the servlet session. If we move to a
+;; servlet per web/start, this limitation will go away.
+(defn servlet-session-wrapper
+  "Middleware that handles cookie manipulation if the servlet session is used."
   [handler]
   (fn [request]
-    (let [response (handler request)]
-      (if-let [session (.getSession current-servlet-request)]
+    (let [session (.getSession current-servlet-request false)
+          response (handler
+                    (if (session/using-servlet-session? session)
+                      ;; we need to give ring the session id so it can know when
+                      ;; it needs to clear the session
+                      (assoc-in request [:cookies "ring-session" :value] (.getId session))
+                      request))]
+      ;; we can't use the session var above, since one may have been created
+      ;; by the handler call
+      (if-let [session (.getSession current-servlet-request false)]
         (update-in response [:headers "Set-Cookie"]
                    #(filter (fn [^String cookie]
                               (not (.contains cookie

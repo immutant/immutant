@@ -34,12 +34,12 @@
                       (reset! cookies {})
                       (f)))
 
-(defn get-with-cookies [sub-path query-string]
+(defn get-with-cookies [sub-path  & [query-string]]
   (when-let [result (client/get
                      (str "http://localhost:8080/sessions/" sub-path "?" query-string)
                      {:cookies @cookies})]
     ;; (println "RESULT:" result)
-    (if (get-in result [:cookies "JSESSIONID"])
+    (if (some #{"JSESSIONID" "ring-session"} (keys (:cookies result)))
       (reset! cookies (:cookies result)))
     (read-string (:body result))))
 
@@ -49,6 +49,11 @@
        {"ham" "biscuit"}                    ""
        {"ham" "biscuit", "biscuit" "gravy"} "biscuit=gravy"
        {"ham" "biscuit", "biscuit" "gravy"} ""))
+
+(deftest session-clearing-for-immutant-sessions
+  (is (= {"ham" "biscuit"} (get-with-cookies "immutant" "ham=biscuit")))
+  (is (not (seq (get-with-cookies "clear"))))
+  (is (not (seq (get-with-cookies "immutant")))))
 
 (deftest immutant-session-should-only-have-a-jsessionid-cookie
   (get-with-cookies "immutant" "ham=biscuit")
@@ -63,4 +68,9 @@
 
 (deftest ring-session-should-have-a-ring-session-cookie
   (get-with-cookies "ring" "ham=biscuit")
-  (is (= #{"ring-session" "a-cookie" "JSESSIONID"} (set (keys @cookies)))))
+  (is (= #{"ring-session" "a-cookie"} (set (keys @cookies)))))
+
+(deftest session-clearing-for-ring-sessions
+  (is (= {"biscuit" "gravy"} (get-with-cookies "ring" "biscuit=gravy")))
+  (is (not (seq (get-with-cookies "clear-ring"))))
+  (is (not (seq (get-with-cookies "ring")))))

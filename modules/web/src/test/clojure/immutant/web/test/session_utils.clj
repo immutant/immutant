@@ -39,8 +39,11 @@
 (defn create-mock-request []
   (proxy [javax.servlet.http.HttpServletRequest]
       []
-    (getSession []
-      mock-session)))
+    (getSession
+      ([create]
+         mock-session)
+      ([]
+         mock-session))))
 
 (defn session-fixture
   ([f]

@@ -49,3 +49,6 @@
 (deftest write-session-should-return-the-session-id
   (= "an-id"
      (write-session (servlet-store) nil {"ham" "biscuit"})))
+
+(deftest delete-session-should-return-nil
+  (= nil (delete-session (servlet-store) nil)))

@@ -23,6 +23,11 @@
 
 (def ^{:private true} session-key ":immutant.web.session/session-data")
 
+(defn using-servlet-session? [session]
+  "Returns true if the given servlet session is being used to store the ring session."
+  (and session
+       (not (nil? (.getAttribute session session-key)))))
+
 (defn #^HttpSession servlet-session
   "Returns the servlet session for the current request."
   []

@@ -30,8 +30,8 @@
           (util/session-fixture
            session-id
            #(get-in
-             ((remove-ring-session-cookie (partial create-response
-                                                   (#'cookies/write-cookies cookies)))
+             ((servlet-session-wrapper (partial create-response
+                                                (#'cookies/write-cookies cookies)))
               nil)
              [:headers "Set-Cookie"])))
 

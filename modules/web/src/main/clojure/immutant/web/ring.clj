@@ -17,7 +17,7 @@
 
 (ns immutant.web.ring
   (:use [immutant.web.core            :only [get-servlet-filter current-servlet-request]]
-        [immutant.web.session.handler :only [remove-ring-session-cookie]])
+        [immutant.web.session.handler :only [servlet-session-wrapper]])
   (:require [clojure.string    :as string]
             [ring.util.servlet :as servlet])
   (:import (javax.servlet.http HttpServletRequest HttpServletResponse)))
@@ -43,7 +43,7 @@
   (let [{:keys [handler response-filters]} (get-servlet-filter filter-name)]
     (if handler
       (if-let [response-map (binding [current-servlet-request request]
-                              ((remove-ring-session-cookie handler)
+                              ((servlet-session-wrapper handler)
                                (merge (servlet/build-request-map request)
                                       (shuffle-sub-context sub-context
                                                            (.getContextPath request)
