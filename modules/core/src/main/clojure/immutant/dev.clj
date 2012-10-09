@@ -103,13 +103,14 @@ Works only under Clojure 1.4 or newer. (beta)"
        (reset-classloader-resources (concat new-resources keeper-resources)))
      project))
 
-(defn merge-dependencies!
-  "Merges in the given dependencies into the currently active project's dependency set
+(defn add-dependencies!
+  "Adds the given dependencies into the currently active project's dependency set
 and resets the application's class loader to provide the paths and dependencies from that
-project (via reload-project!). Returns the project map. This should never be used in production.
-Works only under Clojure 1.4 or newer. (beta)"
-  [& coords]
+project (via reload-project!). Each dep can either be a lein coordinate ('[foo-bar \"0.1.0\"])
+or a path (as a String) to be added to :source-paths. Returns the project map. This should
+never be used in production. Works only under Clojure 1.4 or newer. (beta)"
+  [& deps]
   (reload-project!
    (-> (current-project)
-       (update-in [:dependencies] #(set (concat % (remove string? coords))))
-       (update-in [:source-paths] #(concat % (filter string? coords))))))
+       (update-in [:dependencies] #(set (concat % (remove string? deps))))
+       (update-in [:source-paths] #(concat % (filter string? deps))))))

@@ -197,14 +197,15 @@
   the [[./apidoc/immutant.dev-api.html][immutant.dev]] namespace. Currently, it provides three functions for 
   reloading, updating, and viewing your application's dependencies in container:
 
-  - [[./apidoc/immutant.dev-api.html#immutant.dev/reload-dependencies!][immutant.dev/reload-project!]] Resets the application's class loader to provide the
+  - [[./apidoc/immutant.dev-api.html#immutant.dev/reload-project!][immutant.dev/reload-project!]] Resets the application's class loader to provide the
     paths and dependencies in the from the given project. If no project is provided, 
     the =project.clj= for the appplication is loaded from disk. Returns the project map.
-  - [[./apidoc/immutant.dev-api.html#immutant.dev/merge-dependencies!][immutant.dev/merge-dependencies!]] Merges in the given dependencies into the currently 
-    active project's dependency set and resets the application's class loader to provide 
-    the paths and dependencies from that project (via reload-project!). Returns the project 
-    map.
-  - [[./apidoc/immutant.dev-api.html#immutant.dev/current-dependencies][immutant.dev/current-project]] Returns the map representing the currently active 
+  - [[./apidoc/immutant.dev-api.html#immutant.dev/add-dependencies!][immutant.dev/add-dependencies!]] Adds the given dependencies into the currently active 
+    project's dependency set and resets the application's class loader to provide the paths
+    and dependencies from that project (via reload-project!). Each dep can either be a lein
+    coordinate ('[foo-bar \"0.1.0\"]) or a path (as a String) to be added to :source-paths. 
+    Returns the project map.
+  - [[./apidoc/immutant.dev-api.html#immutant.dev/current-project][immutant.dev/current-project]] Returns the map representing the currently active 
     leiningen project. This will be the last project reloaded by reload-project!, or the 
     map read from project.clj if reload-project! has yet to be called.
     
@@ -218,21 +219,24 @@
       
       (:dependencies (dev/current-project)) ; => #{[org.clojure/clojure "1.4.0"]}
       
-      ;; let's add two more deps
-      (dev/merge-dependencies! '[dep-1 "1.0.0"] '[dep/two "0.1.0-SNAPSHOT"])
+      ;; let's add more deps
+      (dev/add-dependencies! '[dep-1 "1.0.0"] '[dep/two "0.1.0-SNAPSHOT"] "extra")
       
       (:dependencies (dev/current-project)) ; => #{[org.clojure/clojure "1.4.0"] [dep-1 "1.0.0"] [dep/two "0.1.0-SNAPSHOT"]}
+      
+      (:source-paths (dev/current-project)) ; => [["/path/to/app/root/src", "/path/to/app/root/extra"]]
       
       ;; now let's reset the deps to those specified in project.clj
       (dev/reload-dependencies!)
       
       (:dependencies (dev/current-project)) ; => #{[org.clojure/clojure "1.4.0"]}
       
-      ;; let's add a path to :source-paths
+      ;; let's add a path to :source-paths directly
       (dev/reload-project! ((dev/current-project) [:source-paths]
-                            #(conj % "extra")))
+                            #(conj % "something")))
       
-      (:source-paths (dev/current-project)) ; => [["/path/to/app/root/src", "/path/to/app/root/extra"]]
+      (:source-paths (dev/current-project)) ; => [["/path/to/app/root/src", "/path/to/app/root/something"]]
+      
     #+end_src
   
   Note that the =immutant.dev= namespace *can only be loaded within applications

@@ -42,12 +42,9 @@
 
 (defn dev-handler [request]
    (let [original-project (dev/current-project)]
-     (dev/merge-dependencies! '[clj-rome "0.3.0"] '[org.clojure/data.json "0.1.2"])
+     (dev/add-dependencies! '[clj-rome "0.3.0"] '[org.clojure/data.json "0.1.2"])
      (use 'clj-rome.reader)
-     (dev/merge-dependencies! '[org.yaml/snakeyaml "1.5"])
-     (println (dev/reload-project!
-               (update-in (dev/current-project) [:source-paths]
-                          #(conj % "extra"))))
+     (dev/add-dependencies! '[org.yaml/snakeyaml "1.5"] "extra")
      (use 'basic-ring.extra)
      (let [body (pr-str {:original (:dependencies original-project)
                          :added '[[clj-rome "0.3.0"]

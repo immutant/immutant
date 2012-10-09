@@ -30,7 +30,7 @@
                         :context-path "/dev"
                         }))
 
-(deftest merge-dependencies!
+(deftest add-dependencies!
   (if (run-these-tests?)
     (let [result (client/get "http://localhost:8080/dev")
           body (read-string (:body result))]
