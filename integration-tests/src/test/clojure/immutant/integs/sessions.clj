@@ -55,9 +55,9 @@
   (is (not (seq (get-with-cookies "clear"))))
   (is (not (seq (get-with-cookies "immutant")))))
 
-(deftest immutant-session-should-only-have-a-jsessionid-cookie
-  (get-with-cookies "immutant" "ham=biscuit")
-  (is (= #{"JSESSIONID" "a-cookie"} (set (keys @cookies)))))
+(deftest immutant-session-should-also-have-a-ring-session-cookie
+   (get-with-cookies "immutant" "ham=biscuit")
+   (is (= #{"JSESSIONID" "a-cookie" "ring-session"} (set (keys @cookies)))))
 
 (deftest basic-ring-session-test
   (are [expected query-string] (= expected (get-with-cookies "ring" query-string))
