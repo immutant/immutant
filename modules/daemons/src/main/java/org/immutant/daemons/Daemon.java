@@ -97,6 +97,14 @@ public class Daemon implements DaemonMBean, Service<Daemon> {
         return "STOPPED";
     }
 
+    public void setStartFunction(Runnable startFunction) {
+        this.startFunction = startFunction;
+    }
+
+    public void setStopFunction(Runnable stopFunction) {
+        this.stopFunction = stopFunction;
+    }
+
     private int THREAD_TIMEOUT = 20000;
     private Thread thread;
     private ClassLoader classLoader;

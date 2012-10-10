@@ -38,3 +38,9 @@
     ;;(println "RESPONSE" result)
     (is (re-seq deployment-class-loader-regex (:loader body)))))
 
+(deftest daemons-should-be-reloadable
+  (let [result (client/get "http://localhost:8080/daemons?reload=1")
+        body (read-string (:body result))]
+    ;;(println "RESPONSE" result)
+    (is (= (:value body) "another-service"))))
+
