@@ -21,7 +21,6 @@ package org.immutant.web.ring.processors;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,8 +42,6 @@ import org.jboss.as.web.deployment.WarMetaData;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 import org.jboss.metadata.javaee.spec.EmptyMetaData;
-import org.jboss.metadata.javaee.spec.ParamValueMetaData;
-import org.jboss.metadata.web.jboss.JBossServletMetaData;
 import org.jboss.metadata.web.jboss.JBossServletsMetaData;
 import org.jboss.metadata.web.jboss.JBossWebMetaData;
 import org.jboss.metadata.web.spec.MimeMappingMetaData;
@@ -52,8 +49,6 @@ import org.jboss.metadata.web.spec.ServletMappingMetaData;
 import org.jboss.metadata.web.spec.WebFragmentMetaData;
 import org.jboss.metadata.web.spec.WebMetaData;
 import org.jboss.msc.service.ServiceName;
-import org.projectodd.polyglot.web.servlet.FiveHundredServlet;
-import org.projectodd.polyglot.web.servlet.StaticResourceServlet;
 
 /**
  * <pre>
@@ -66,14 +61,6 @@ import org.projectodd.polyglot.web.servlet.StaticResourceServlet;
  * Java servlet filters to delegate to the Rack application
  */
 public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
-
-    public static final String RING_FILTER_NAME = "immutant.ring";
-
-    public static final String STATIC_RESROUCE_SERVLET_NAME = "immutant.static";
-    public static final String STATIC_RESOURCE_SERVLET_CLASS_NAME = StaticResourceServlet.class.getName();
-
-    public static final String FIVE_HUNDRED_SERVLET_NAME = "immutant.500";
-    public static final String FIVE_HUNDRED_SERVLET_CLASS_NAME = FiveHundredServlet.class.getName();
 
     public RingWebApplicationInstaller() {
     }
@@ -103,8 +90,6 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
         DeploymentTypeMarker.setType( DeploymentType.WAR, unit );
         
         setUpMimeTypes( jbossWebMetaData );
-        setUpStaticResourceServlet( ringMetaData, jbossWebMetaData );
-        ensureSomeServlet( ringMetaData, jbossWebMetaData );
 
         jbossWebMetaData.setContextRoot( ringMetaData.getContextPath() );
         jbossWebMetaData.setVirtualHosts( ringMetaData.getHosts() );    
@@ -177,58 +162,6 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
         unit.putAttachment( TldsMetaData.ATTACHMENT_KEY, tldsMetaData );
     }
 
-    protected void setUpStaticResourceServlet(RingMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
-        JBossServletsMetaData servlets = jbossWebMetaData.getServlets();
-        if (servlets == null) {
-            servlets = new JBossServletsMetaData();
-            jbossWebMetaData.setServlets( servlets );
-        }
-
-        List<ServletMappingMetaData> servletMappings = jbossWebMetaData.getServletMappings();
-        if (servletMappings == null) {
-            servletMappings = new ArrayList<ServletMappingMetaData>();
-            jbossWebMetaData.setServletMappings( servletMappings );
-        }
-
-        if (ringAppMetaData.getStaticPathPrefix() != null) {
-            JBossServletMetaData staticServlet = new JBossServletMetaData();
-            staticServlet.setServletClass( STATIC_RESOURCE_SERVLET_CLASS_NAME );
-            staticServlet.setServletName( STATIC_RESROUCE_SERVLET_NAME );
-            staticServlet.setId( STATIC_RESROUCE_SERVLET_NAME );
-
-            ParamValueMetaData resourceRootParam = new ParamValueMetaData();
-            resourceRootParam.setParamName( "resource.root" );
-            resourceRootParam.setParamValue( ringAppMetaData.getStaticPathPrefix() );
-            staticServlet.setInitParam( Collections.singletonList( resourceRootParam ) );
-            servlets.add( staticServlet );
-
-            ServletMappingMetaData staticMapping = new ServletMappingMetaData();
-            staticMapping.setServletName( STATIC_RESROUCE_SERVLET_NAME );
-            staticMapping.setUrlPatterns( Collections.singletonList( "/*" ) );
-
-            servletMappings.add( staticMapping );
-        }
-    }
-    
-    protected void ensureSomeServlet(RingMetaData ringAppMetaData, JBossWebMetaData jbossWebMetaData) {
-        JBossServletsMetaData servlets = jbossWebMetaData.getServlets();
-
-        if (servlets.isEmpty()) {
-            JBossServletMetaData fiveHundredServlet = new JBossServletMetaData();
-            fiveHundredServlet.setServletClass( FIVE_HUNDRED_SERVLET_CLASS_NAME );
-            fiveHundredServlet.setServletName( FIVE_HUNDRED_SERVLET_NAME );
-            fiveHundredServlet.setId( FIVE_HUNDRED_SERVLET_NAME );
-            servlets.add( fiveHundredServlet );
-
-            ServletMappingMetaData fiveHundredMapping = new ServletMappingMetaData();
-            fiveHundredMapping.setServletName( FIVE_HUNDRED_SERVLET_NAME );
-            fiveHundredMapping.setUrlPatterns( Collections.singletonList( "/*" ) );
-
-            List<ServletMappingMetaData> servletMappings = jbossWebMetaData.getServletMappings();
-            servletMappings.add( fiveHundredMapping );
-        }
-    }
-    
     protected MimeMappingMetaData createMimeMapping(String extension, String mimeType) {
         MimeMappingMetaData mapping = new MimeMappingMetaData();
         mapping.setExtension(extension);

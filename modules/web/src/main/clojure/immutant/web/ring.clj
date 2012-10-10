@@ -16,7 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.web.ring
-  (:use [immutant.web.core            :only [get-servlet-filter current-servlet-request]])
+  (:use immutant.web.core)
   (:require [clojure.string    :as string]
             [ring.util.servlet :as servlet])
   (:import (javax.servlet.http HttpServletRequest HttpServletResponse)))
@@ -32,14 +32,15 @@
                (str (if (and (not (empty? prefix))
                              (= "/" context)) "" context) prefix))
      :path-info (ensure-slash
-                 (string/replace path-info (re-pattern (str "^" prefix)) ""))}))
+                 (if path-info
+                   (string/replace path-info (re-pattern (str "^" prefix)) "")
+                   ""))}))
 
-(defn handle-request [filter-name
-                      sub-context
+(defn handle-request [servlet-name
                       ^HttpServletRequest request
                       ^HttpServletResponse response]
   (.setCharacterEncoding response "UTF-8")
-  (let [{:keys [handler response-filters]} (get-servlet-filter filter-name)]
+  (let [{:keys [handler sub-context]} (get-servlet-info servlet-name)]
     (if handler
       (if-let [response-map (binding [current-servlet-request request]
                               (handler
@@ -49,5 +50,5 @@
                                                            (.getPathInfo request)))))]
         (servlet/update-servlet-response response response-map)
         (throw (NullPointerException. "Handler returned nil.")))
-      (throw (IllegalArgumentException. (str "No handler function found for " filter-name))))))
+      (throw (IllegalArgumentException. (str "No handler function found for " servlet-name))))))
 

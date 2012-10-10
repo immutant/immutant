@@ -22,14 +22,14 @@ package org.immutant.web.ring.processors;
 import org.immutant.runtime.ClojureRuntime;
 import org.immutant.runtime.ClojureRuntimeService;
 import org.immutant.web.ring.RingMetaData;
-import org.immutant.web.servlet.RingFilter;
+import org.immutant.web.servlet.RingServlet;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.as.web.deployment.ServletContextAttribute;
 
-public class RingFilterClojureRuntimeInstaller implements DeploymentUnitProcessor {
+public class RingServletClojureRuntimeInstaller implements DeploymentUnitProcessor {
 
     
     @Override
@@ -41,7 +41,7 @@ public class RingFilterClojureRuntimeInstaller implements DeploymentUnitProcesso
         }
         
         ClojureRuntime runtime = unit.getAttachment( ClojureRuntimeService.ATTACHMENT_KEY );
-        ServletContextAttribute runtimeAttr = new ServletContextAttribute( RingFilter.CLOJURE_RUNTIME, runtime );
+        ServletContextAttribute runtimeAttr = new ServletContextAttribute( RingServlet.CLOJURE_RUNTIME, runtime );
         unit.addToAttachmentList( ServletContextAttribute.ATTACHMENT_KEY, runtimeAttr );
     }
     

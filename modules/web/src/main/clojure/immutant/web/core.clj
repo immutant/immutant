@@ -16,26 +16,27 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.web.core
-  (:require [immutant.utilities :as util]))
+  (:require
+   [immutant.registry  :as reg]
+   [immutant.utilities :as util])
+  (use [immutant.try :only [try-defn try-def]]))
 
 (def ^{:dynamic true} ^javax.servlet.http.HttpServletRequest current-servlet-request nil)
 
-(def ^{:private true} servlet-filters (atom {}))
+(def ^{:private true} servlet-info (atom {}))
 
-(defn get-servlet-filter [name]
-  (@servlet-filters name))
+(defn get-servlet-info [name]
+  (@servlet-info name))
 
-(defn add-servlet-filter! [name filter-def filter-map handler]
-  (swap! servlet-filters
-         assoc
-         name {:filter-def filter-def :filter-map filter-map :handler handler}))
+(defn store-servlet-info! [name info]
+  (swap! servlet-info assoc name info))
 
-(defn remove-servlet-filter! [name]
-  (when-let [filter (@servlet-filters name)]
-    (swap! servlet-filters dissoc name)
-    filter))
+(defn remove-servlet-info! [name]
+  (when-let [info (@servlet-info name)]
+    (swap! servlet-info dissoc name)
+    info))
 
-(defn filter-name [path]
+(defn servlet-name [path]
   (str "immutant.ring." (util/app-name) "." path))
 
 (defn normalize-subcontext-path 
@@ -49,3 +50,67 @@
       #"^(/[^*]+)*/$"   (recur (str p "*"))   ;; postfix with *
       (throw (IllegalArgumentException.
               (str "The context path \"" path "\" is invalid. It should be \"/\", \"/foo\", \"/foo/\", \"foo/\", or \"foo\""))))))
+
+;; We have a race condition at deployment - the context isn't init'ed enough for
+;; us to install servlets from clojure, and won't be until after the deployment
+;; finishes. So we do context operations in a future that waits for the context
+;; to become ready.
+(defmacro when-context-initialized [context & body]
+  `(future
+     (loop [count# 10000]
+       (if (.isInitialized ~context)
+         (do
+           ~@body)
+         (do
+           (Thread/sleep 1)
+           (if (= 0 count#)
+             (throw (RuntimeException. "Giving up waiting for web-context to initialize"))
+             (recur (dec count#))))))))
+
+(defn virtual-hosts []
+  (let [vh (or (:virtual-host (reg/fetch :config)) ["default-host"])]
+    (if (coll? vh)
+      vh
+      [vh])))
+
+(def reqs '(import '(org.apache.catalina.core StandardContext)))
+
+(try-defn reqs install-servlet [servlet-class sub-context-path]
+  (let [context (reg/fetch "web-context")
+        name (servlet-name sub-context-path)
+        wrapper (.createWrapper context)
+        mapper (-> (reg/fetch "jboss.web")
+                   (.getService)
+                   (.getMapper))]
+    (when-context-initialized
+     context
+     (doto wrapper
+       (.setName name)
+       (.setServletClass servlet-class)
+       (.setEnabled true)
+       (.setDynamic true)
+       (.setLoadOnStartup -1))
+     (doto context
+       (.addChild wrapper)
+       (.addServletMapping sub-context-path name))
+     (doseq [host (virtual-hosts)]
+       (.addWrapper mapper host (.getPath context) sub-context-path wrapper)))
+    wrapper))
+
+(try-defn reqs remove-servlet [sub-context-path wrapper]
+  (let [context (reg/fetch "web-context")
+        mapper (-> (reg/fetch "jboss.web")
+                   (.getService)
+                   (.getMapper))]
+    (when-context-initialized
+     context
+     (.removeServletMapping context sub-context-path)
+     (if wrapper (.removeChild context wrapper))
+     (doseq [host (virtual-hosts)]
+       (try
+         (.removeWrapper mapper host (.getPath context) sub-context-path)
+         (catch Exception _)))))
+  nil)
+
+
+
