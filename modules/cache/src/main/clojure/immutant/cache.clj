@@ -127,11 +127,14 @@
   ;; We assume value is a delay, which we can't serialize and don't
   ;; want to force yet
   (miss [this key value]
-    (swap! delayed assoc (vec key) (delay (cc/miss cache (vec key) @value) @value))
+    (swap! delayed
+           (fn [m k v] (if (contains? m k) m (assoc m k v)))
+           (vec key)
+           (delay (cc/miss cache (vec key) @value) @value))
     this)
   (lookup [_ key]
     (when-let [value (get @delayed (vec key))]
-      (deref value)
+      (force value)
       (swap! delayed dissoc (vec key)))
     ;; Callers expect to deref the returned value
     (reify
