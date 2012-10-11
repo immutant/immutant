@@ -60,35 +60,6 @@ A singleton scheduler will participate in a cluster, and will only execute its j
   (let [s (scheduler singleton)]
     (wait-for-scheduler s #(.getScheduler s))))
 
-(try-defn (import org.projectodd.polyglot.jobs.BaseScheduledJob)
-  ^{:internal true} create-job
-  "Instantiates and starts a job"
-  [f name spec singleton]
-  (let [scheduler (scheduler singleton)]
-    (doto
-        (proxy [BaseScheduledJob ScheduledJobMBean]
-            [ClojureJob (app-name) name "" spec singleton]
-          (start []
-            (wait-for-scheduler
-             scheduler
-             #(.addJob scheduler
-                       name (app-name)
-                       (ClojureJob. (registry/fetch "clojure-runtime") f)))
-            (let [^BaseScheduledJob this this] ;; hack to eliminate reflection
-              (proxy-super start)))
-          (getScheduler []
-            (.getScheduler scheduler)))
-      .start)))
-
-(defn ^{:internal true} stop-job
-  "Stops (unschedules) a job, removing it from the scheduler."
-  [job]
-  (if-not (.isShutdown (.getScheduler job))
-    (.stop job)))
-
-;; we don't currently register an mbean for each job, since we can't
-;; yet easily unregister the mbean
-;; ignore reflection here for now, since we don't even use it yet
 (try-defn (import org.immutant.jobs.as.JobsServices) register-job-mbean [name job]
   (.installMBean
    (job-schedulizer)
@@ -98,3 +69,34 @@ A singleton scheduler will participate in a cluster, and will only execute its j
               (aset 1 name)))
    "immutant.jobs"
    job))
+
+(try-defn (import org.projectodd.polyglot.jobs.BaseScheduledJob)
+  ^{:internal true} create-job
+  "Instantiates and starts a job"
+  [f name spec singleton]
+  (let [scheduler (scheduler singleton)
+        job
+        (doto
+            (proxy [BaseScheduledJob ScheduledJobMBean]
+                [ClojureJob (app-name) name "" spec singleton]
+              (start []
+                (wait-for-scheduler
+                 scheduler
+                 #(.addJob scheduler
+                           name (app-name)
+                           (ClojureJob. (registry/fetch "clojure-runtime") f)))
+                (let [^BaseScheduledJob this this] ;; hack to eliminate reflection
+                  (proxy-super start)))
+              (getScheduler []
+                (.getScheduler scheduler)))
+          .start)]
+    (register-job-mbean name job)
+    job))
+
+(defn ^{:internal true} stop-job
+  "Stops (unschedules) a job, removing it from the scheduler."
+  [job]
+  (if-not (.isShutdown (.getScheduler job))
+    (.stop job)))
+
+
