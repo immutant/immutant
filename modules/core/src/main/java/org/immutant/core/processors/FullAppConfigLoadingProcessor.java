@@ -42,10 +42,11 @@ public class FullAppConfigLoadingProcessor implements DeploymentUnitProcessor {
         DeploymentUnit deploymentUnit = phaseContext.getDeploymentUnit();
 
         ClojureMetaData metaData = deploymentUnit.getAttachment( ClojureMetaData.ATTACHMENT_KEY );
-        
+
         if (metaData == null) {
             return;
         }
+
         Timer t = new Timer("reading full app config");
         ResourceRoot resourceRoot = deploymentUnit.getAttachment( Attachments.DEPLOYMENT_ROOT );
         File root;
@@ -53,10 +54,10 @@ public class FullAppConfigLoadingProcessor implements DeploymentUnitProcessor {
         try {
             root = resourceRoot.getRoot().getPhysicalFile();
             metaData.setConfig( ApplicationBootstrapUtils.readFullAppConfig( descriptor, root ) );
-           deploymentUnit.putAttachment( ClojureMetaData.FULL_APP_CONFIG, 
-                   ApplicationBootstrapUtils.readFullAppConfigAsString( descriptor, root ) );
-           deploymentUnit.putAttachment( ClojureMetaData.LEIN_PROJECT, 
-                   ApplicationBootstrapUtils.readProjectAsString( descriptor, root ) );
+            deploymentUnit.putAttachment( ClojureMetaData.FULL_APP_CONFIG, 
+                    ApplicationBootstrapUtils.readFullAppConfigAsString( descriptor, root ) );
+            deploymentUnit.putAttachment( ClojureMetaData.LEIN_PROJECT, 
+                    ApplicationBootstrapUtils.readProjectAsString( descriptor, root ) );
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }
