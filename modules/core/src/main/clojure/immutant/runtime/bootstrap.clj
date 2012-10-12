@@ -118,9 +118,9 @@ from project.clj (if any) with the contents of the descriptor map merged onto it
 nil if neither are available."
   [descriptor-file app-root]
   (let [from-descriptor (and descriptor-file
-                          (read-descriptor descriptor-file))
+                             (read-descriptor descriptor-file))
         from-project (:immutant (read-project app-root (:lein-profiles from-descriptor)))]
-    (merge from-project from-descriptor)))
+    (merge {} from-project from-descriptor)))
 
 (defn ^{:internal true} read-and-stringify-full-app-config
   "Loads the full app config and stringifies the keys."
