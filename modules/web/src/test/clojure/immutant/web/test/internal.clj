@@ -15,8 +15,8 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.web.test.core
-  (:use immutant.web.core)
+(ns immutant.web.test.internal
+  (:use immutant.web.internal)
   (:use clojure.test)
   (:use immutant.test.helpers))
 

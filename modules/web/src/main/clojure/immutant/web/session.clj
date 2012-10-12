@@ -17,7 +17,7 @@
 
 (ns immutant.web.session
   (:use ring.middleware.session.store
-        [immutant.web.core :only [current-servlet-request]])
+        [immutant.web.internal :only [current-servlet-request]])
   (:require [ring.middleware.session :as ring-session])
   (:import javax.servlet.http.HttpSession))
 

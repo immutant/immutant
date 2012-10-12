@@ -16,7 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.web.ring
-  (:use immutant.web.core)
+  (:use immutant.web.internal)
   (:require [clojure.string    :as string]
             [ring.util.servlet :as servlet])
   (:import (javax.servlet.http HttpServletRequest HttpServletResponse)))

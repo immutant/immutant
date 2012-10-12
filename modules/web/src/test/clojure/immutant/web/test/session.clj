@@ -19,7 +19,7 @@
   (:use immutant.web.session
         clojure.test
         immutant.test.helpers
-        immutant.web.core
+        immutant.web.internal
         ring.middleware.session.store)
   (:require [immutant.web.test.session-utils :as util]))
 

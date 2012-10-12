@@ -22,7 +22,7 @@
             [clojure.tools.logging :as log]
             [immutant.utilities :as util]
             [ring.middleware.reload :as ring])
-  (:use immutant.web.core))
+  (:use immutant.web.internal))
 
 
 

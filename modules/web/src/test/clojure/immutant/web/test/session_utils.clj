@@ -16,7 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.web.test.session-utils
-  (:require [immutant.web.core :as core]))
+  (:require [immutant.web.internal :as webint]))
 
 (defn create-mock-session [session-id]
   (let [store (java.util.Hashtable.)]
@@ -50,5 +50,5 @@
      (session-fixture "an-id" f))
   ([session-id f]
      (binding [mock-session (create-mock-session session-id)
-               core/current-servlet-request (create-mock-request)]
+               webint/current-servlet-request (create-mock-request)]
        (f))))
