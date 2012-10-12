@@ -45,7 +45,7 @@
   In case you need it, the [[http://quartz-scheduler.org/api/1.8.5/org/quartz/JobExecutionContext.html][org.quartz.JobExecutionContext]] instance is
   bound to =immutant.jobs/*job-execution-context*= before invoking
   your job function.
-
+ 
 ** Cron Syntax
    :PROPERTIES:
    :CUSTOM_ID: jobs-cron-syntax
@@ -72,6 +72,11 @@
   both is contradictory.
 
   See the [[http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06][Quartz cron specification]] for additional details.
+
+** Job MBeans
+   
+   Each job scheduled gets its own mbean under the =immutant.jobs= namespace. This mbean can be used
+   to stop, start, and reschedule the job.
 
 * Unscheduling Jobs
   
