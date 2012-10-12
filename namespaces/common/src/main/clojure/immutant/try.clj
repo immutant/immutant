@@ -45,9 +45,7 @@
   (let [fname (str *ns* "/" name)]      ; capture the ns-qualified name
     (if (worked? attempt)
       `(defn ~name ~@rest)
-      `(defn ~name [& args#]
-         (log/warn (str "The function, " ~fname ", is limited when run outside of Immutant"))
-         nil))))
+      `(defn ~name [& args#]))))
 
 (defmacro try-def
   "Does exactly what def does assuming eval'ing attempt doesn't throw
