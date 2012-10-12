@@ -189,6 +189,6 @@
                                                     :lein-profiles [:cheese]})
       
       (fact "should work with no descriptor and no project"
-        (read-full-app-config nil non-project-root) => nil))))
+        (read-full-app-config nil non-project-root) => {}))))
 
 
