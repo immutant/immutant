@@ -225,6 +225,16 @@
 (defn fix-extensions [loc]
   (add-extensions (append-system-properties loc)))
 
+(defn fix-extension [loc]
+  (if (= "org.jboss.as.pojo" (-> loc zip/node :attrs :module))
+    (zip/remove loc)
+    loc))
+
+(defn fix-subsystem [loc]
+  (if (re-find #"pojo" (-> loc zip/node :attrs :xmlns))
+    (zip/remove loc)
+    loc))
+
 (defn prepare-zip
   [file]
   (zip/xml-zip (xml/parse file)))
@@ -235,6 +245,8 @@
     (recur (zip/next
             (cond
              (looking-at? :extensions loc) (fix-extensions loc)
+             (looking-at? :extension loc) (fix-extension loc)
+             (looking-at? :subsystem loc) (fix-subsystem loc)
              (looking-at? :profile loc) (fix-profile loc)
              (looking-at? :periodic-rotating-file-handler loc) (add-logger-levels loc)
              (looking-at? :virtual-server loc) (set-welcome-root loc)
