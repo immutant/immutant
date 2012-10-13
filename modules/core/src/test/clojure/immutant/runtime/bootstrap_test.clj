@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.runtime.test.bootstrap
+(ns immutant.runtime.bootstrap-test
   (:use immutant.runtime.bootstrap
         clojure.test
         midje.sweet
@@ -60,22 +60,6 @@
                        ["resources" "target/native" "src" "classes" "target/classes"])]
         (resource-paths app-root nil) => (just paths :in-any-order)))
     
-    (fact "lib-dir should work"
-      (lib-dir {:root app-root}) => (io/file app-root "lib"))
-    
-    (facts "bundled-jars"
-      (let [jar-set (bundled-jars {:root app-root})]
-        (fact "should include the jars"
-          jar-set => (contains (set (map #(io/file (io/resource %))
-                                         ["project-root/lib/some.jar"
-                                          "project-root/lib/some-other.jar"])) :gaps-ok))
-        
-        (fact "shouldn't include non jars"
-          jar-set =not=> (contains (io/file (io/resource "project-root/lib/some.txt"))))
-        
-        (fact "shouldn't include dev jars"
-          jar-set =not=> (io/file (io/resource "project-root/lib/dev/invalid.jar")))))
-       
     (facts "get-dependencies"
       (let [deps (get-dependencies app-root nil true)]
 
@@ -110,22 +94,6 @@
       (resource-paths app-root nil) => (just (map #(.getAbsolutePath (io/file app-root %))
                                                   ["resources" "native" "src" "classes"])
                                              :in-any-order))
-
-    (fact "lib-dir should work"
-      (lib-dir {:root app-root}) => (io/file app-root "lib"))
-
-
-    (facts "bundled-jars"
-      (let [jar-set (bundled-jars {:root app-root})]
-        (fact "should include the jars"
-          jar-set => (contains (set (map #(io/file (io/resource %))
-                                         ["non-project-root/lib/some.jar"
-                                          "non-project-root/lib/some-other.jar"])) :gaps-ok))
-        
-        (fact "shouldn't include non jars"
-          jar-set =not=> (contains (io/file (io/resource "non-project-root/lib/some.txt"))))
-        (fact "shouldn't include dev jars"
-          jar-set =not=> (io/file (io/resource "non-project-root/lib/dev/invalid.jar")))))
     
     (fact "get-dependencies should return deps from lib"
       (get-dependencies app-root nil true) =>
@@ -139,18 +107,6 @@
        (io/file (io/resource "non-project-root/lib/tools.logging-0.2.3.jar"))
        :in-any-order)))
 
-  (tabular
-   (fact "normalize-profiles"
-     (normalize-profiles ?given) => ?expected)
-   ?expected    ?given
-   #{:default}  nil
-   #{:default}  []
-   #{:foo}      [:foo]
-   #{:foo}      [":foo"]
-   #{:foo}      ["foo"]
-   #{:foo :bar} [:foo :bar]
-   #{:foo :bar} [":foo" :bar])
-  
   (facts "resolve-dependencies"
     (let [project (read-project (io/file (io/resource "project-root")) nil)
           expected-deps (aether/dependency-files

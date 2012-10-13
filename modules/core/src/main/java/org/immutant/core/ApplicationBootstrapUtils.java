@@ -46,11 +46,11 @@ public class ApplicationBootstrapUtils {
     
     @SuppressWarnings("rawtypes")
     private static synchronized void init() {
-        if (initialized) {
+        if (loader != null) {
             return;
         }
-        initialized = true;
-
+        loader = Var.class.getClassLoader();
+        
         try {
             ClassLoaderUtils.callInLoader( 
              new Callable() {
@@ -59,7 +59,7 @@ public class ApplicationBootstrapUtils {
 
                     return null;
                 }
-            }, Var.class.getClassLoader() );
+            }, loader );
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -73,7 +73,7 @@ public class ApplicationBootstrapUtils {
     public static Map parseDescriptor(final File file) throws Exception {
         return (Map) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "read-and-stringify-descriptor" ).invoke( file );
+                return bootstrapVar( "util", "read-and-stringify-descriptor" ).invoke( file );
             }
         } );
     }
@@ -97,14 +97,19 @@ public class ApplicationBootstrapUtils {
     }
     
     @SuppressWarnings("rawtypes")
+    public static String readProjectAsString(final File applicationRoot, final List profiles) throws Exception {
+        return (String) inCL( new Callable() {
+            public Object call() throws Exception {
+                return bootstrapVar( "read-project-to-string" ).invoke( applicationRoot, profiles ); 
+            }
+        } );
+    }
+    
+    @SuppressWarnings("rawtypes")
     public static String readProjectAsString(final File descriptor, final File applicationRoot) throws Exception {
         final Map config = readFullAppConfig( descriptor, applicationRoot );
 
-        return (String) inCL( new Callable() {
-            public Object call() throws Exception {
-                return bootstrapVar( "read-project-to-string" ).invoke( applicationRoot, config.get( "lein-profiles" ) ); 
-            }
-        } );
+        return readProjectAsString( applicationRoot, (List)config.get( "lein-profiles" ) );
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -125,15 +130,28 @@ public class ApplicationBootstrapUtils {
         } );
     }
     
+    @SuppressWarnings({ "rawtypes" })
+    public static String getDependenciesAsString(final String projectAsString, final boolean resolveDeps) throws Exception {
+        return (String) inCL( new Callable() {
+            public Object call() throws Exception {
+                return bootstrapVar( "get-dependencies-from-project-string-as-string" ).invoke( projectAsString, resolveDeps ); 
+            }
+        } );
+    }
+    
+    private static Var bootstrapVar(String ns, String varName) throws Exception {
+        return RT.var( "immutant.runtime." + ns, varName );
+    }
+    
     private static Var bootstrapVar(String varName) throws Exception {
-        return RT.var( "immutant.runtime.bootstrap", varName );
+        return bootstrapVar( "bootstrap", varName );
     }
 
     @SuppressWarnings("rawtypes")
     private static Object inCL(Callable body) throws Exception {
        init();
-       return ClassLoaderUtils.callInLoader( body, Var.class.getClassLoader() );
+       return ClassLoaderUtils.callInLoader( body, loader );
     }
     
-    private static boolean initialized = false;
+    private static ClassLoader loader;
 }

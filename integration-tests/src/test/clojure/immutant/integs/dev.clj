@@ -20,9 +20,6 @@
         clojure.test)
   (:require [clj-http.client :as client]))
 
-(defn run-these-tests? []
-  (<= 4 (:minor immutant.integs/*current-clojure-version*)))
-
 (use-fixtures :once (with-deployment *file*
                       '{
                         :root "target/apps/ring/basic-ring/"
@@ -31,11 +28,8 @@
                         }))
 
 (deftest add-dependencies!
-  (if (run-these-tests?)
-    (let [result (client/get "http://localhost:8080/dev")
-          body (read-string (:body result))]
-      ;; (println result)
-      (is (= (:final body)
-             (set (concat (:original body) (:added body))))))
-    (println "Skipping dev tests for" (:full immutant.integs/*current-clojure-version*)
-             "since the dev ns only works in clojure >= 1.4.0")))
+  (let [result (client/get "http://localhost:8080/dev")
+        body (read-string (:body result))]
+    ;; (println result)
+    (is (= (:final body)
+           (set (concat (:original body) (:added body)))))))

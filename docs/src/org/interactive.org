@@ -239,7 +239,5 @@
       
     #+end_src
   
-  Note that the =immutant.dev= namespace *can only be loaded within applications
-  that are using Clojure 1.4.0 or newer*.
 
 

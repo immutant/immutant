@@ -1,1 +1,1 @@
-(reset! immutant.test.runtime/a-value "immutant.clj")
+(reset! immutant.runtime-test/a-value "immutant.clj")

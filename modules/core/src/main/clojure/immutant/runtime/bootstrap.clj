@@ -16,75 +16,14 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.runtime.bootstrap
-  "Functions used in app bootstrapping."
-  (:require [clojure.java.io       :as io]
-            [clojure.walk          :as walk]
-            [clojure.set           :as set]
-            [clojure.string        :as str]
-            [clojure.tools.logging :as log]
-            [cemerick.pomegranate  :as pomegranate]
-            [immutant.utilities    :as util])
-  (:import [java.io File FilenameFilter]
-           java.util.ArrayList
-           org.sonatype.aether.resolution.DependencyResolutionException))
-(try
-  (require 'leiningen.core.classpath)
-  (require 'leiningen.core.project)
-  (catch RuntimeException e
-    (if (and (<= 1 (:major *clojure-version*))
-             (> 4 (:minor *clojure-version*)))
-      (println "WARNING: immutant.dev requires clojure 1.4 or greater and you've loaded it under clojure 1.3")
-      (throw e))))
-
-
-(defn ^{:private true} stringify-symbol
-  "Turns a symbol into a namspace/name string."
-  [sym]
-  (if (symbol? sym)
-    (str (namespace sym) "/" (name sym))
-    sym))
-
-(defn ^{:private true} updatifier
-  "Generates a function to update map values with a given function with an optional path."
-  [key f]
-  (fn
-    ([m]
-       (update-in m [key] f))
-    ([m path]
-       (update-in m (conj path key) f))))
-
-(def ^{:private true
-       :doc "Turns the :init value into a string so we can use it in another runtime."}
-  stringify-init-symbol
-  (updatifier "init" stringify-symbol))
-
-(def ^{:private true
-       :doc "Turns the :lein-profiles values into strings so we can use them in another runtime."}
-  stringify-lein-profiles
-  (updatifier "lein-profiles" #(map str %)))
-
-(defn ^{:internal true} read-descriptor
-  "Reads a deployment descriptor and returns the resulting map."
-  [^File file]
-  (read-string (slurp (.getAbsolutePath file))))
-
-(defn ^{:internal true} read-and-stringify-descriptor
-  "Reads a deployment descriptor and returns the resulting stringified map."
-  [^File file]
-  (-> (read-descriptor file)
-      walk/stringify-keys 
-      stringify-init-symbol
-      stringify-lein-profiles))
-
-(defn ^{:private true
-        :testable true}
-  normalize-profiles [profiles]
-  (set (if (seq profiles)
-         (map #(if (keyword? %)
-                 %
-                 (keyword (str/replace % ":" "")))
-              profiles)
-         [:default])))
+  "Functions used in app bootstrapping. Should not be used in an app runtime."
+  (:require [clojure.java.io          :as io]
+            [clojure.walk             :as walk]
+            [clojure.set              :as set]
+            [clojure.tools.logging    :as log]
+            [leiningen.core.classpath :as classpath]
+            [leiningen.core.project   :as project])
+  (:use immutant.runtime.util))
 
 (defn ^{:internal true} read-project
   "Reads a leiningen project.clj file in the given root dir."
@@ -92,25 +31,24 @@
   (let [project-file (io/file app-root "project.clj")]
     (when (.exists project-file)
       (let [normalized-profiles (normalize-profiles profiles)
-            project ((util/try-resolve 'leiningen.core.project/read)
+            project (project/read
                      (.getAbsolutePath project-file)
                      normalized-profiles)
             other-profiles (set (get-in project [:immutant :lein-profiles]))]
         (if (or (seq profiles) (not (seq other-profiles)))
           project
           (-> project
-              ((util/try-resolve 'leiningen.core.project/unmerge-profiles)
+              (project/unmerge-profiles
                (set/difference normalized-profiles
                                other-profiles))
-              ((util/try-resolve 'leiningen.core.project/merge-profiles)
+              (project/merge-profiles
                (set/difference other-profiles
                                normalized-profiles))))))))
 
 (defn ^{:internal true} read-project-to-string
   "Returns the project map as a pr string with metadata so it can be moved across runtimes."
   [app-root profiles]
-  (binding [*print-meta* true]
-    (pr-str (read-project app-root profiles))))
+  (pr-str-with-meta (read-project app-root profiles)))
 
 (defn ^{:internal true} read-full-app-config
   "Returns the full configuration for an app. This consists of the :immutant map
@@ -140,44 +78,13 @@ nil if neither are available."
 to gracefully handle missing dependencies."
   [project]
   (when project
-    ((util/try-resolve 'leiningen.core.project/load-certificates) project)
+    (project/load-certificates project)
     (try
-      ((util/try-resolve 'leiningen.core.classpath/resolve-dependencies) :dependencies project)
+      (classpath/resolve-dependencies :dependencies project)
       (catch clojure.lang.ExceptionInfo e
         (log/error "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
         nil))))
 
-(defn ^{:internal true} lib-dir
-  "Resolve the library dir for the application."
-  [^File project]
-  (io/file (:library-path project
-                          (io/file (:root project) "lib"))))
-
-(defn ^{:internal true} resource-paths-from-project
-  "Resolves the resource paths (in the AS7 usage of the term) for a leiningen application. Handles
-lein1/lein2 differences for project keys that changed from strings to vectors."
-  [project]
-  (remove nil?
-          (flatten
-           (map project [:compile-path   ;; lein1 and 2
-                         :resources-path ;; lein1
-                         :resource-paths ;; lein2
-                         :source-path    ;; lein1
-                         :source-paths   ;; lein2
-                         :native-path    ;; lein2
-                         ]))))
-
-(defn ^{:private true} resource-paths-for-projectless-app
-  "Resolves the resource paths (in the AS7 usage of the term) for a non-leiningen application."
-  [app-root]
-  (map #(.getAbsolutePath (io/file app-root %))
-       ["src" "resources" "classes" "native"]))
-
-(defn ^{:internal true} add-default-lein1-paths
-  "lein1 assumes classes/, 2 assumes target/classes/, so getting it from the project will return the wrong default for lein1 projects."
-  [app-root paths]
-  (conj paths
-        (.getAbsolutePath (io/file app-root "classes"))))
 
 (defn ^{:internal true} resource-paths
   "Resolves the resource paths (in the AS7 usage of the term) for an application."
@@ -186,16 +93,6 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
     (add-default-lein1-paths app-root
                              (resource-paths-from-project project))
     (resource-paths-for-projectless-app app-root)))
-
-(defn ^{:internal true} bundled-jars
-  "Returns a set of any jars that are bundled in the application's lib-dir."
-  [project]
-  (let [^File lib-dir (lib-dir project)]
-    (set
-     (if (.isDirectory lib-dir)
-       (.listFiles lib-dir (proxy [FilenameFilter] []
-                             (accept [_ ^String file-name]
-                               (.endsWith file-name ".jar"))))))))
 
 (defn ^{:internal true} get-dependencies
   "Resolves the dependencies for an application. It concats bundled jars with any aether resolved
@@ -207,9 +104,15 @@ resolved via aether and only bundled jars are returned."
                        resolve-deps?))
   ([project resolve-deps?]
      (let [bundled (bundled-jars project)
-           bundled-jar-names (map (fn [^File f] (.getName f)) bundled)]
+           bundled-jar-names (map (fn [f] (.getName f)) bundled)]
        (concat
         bundled
         (when resolve-deps?
-          (filter (fn [^File f] (not (some #{(.getName f)} bundled-jar-names)))
+          (filter (fn [f] (not (some #{(.getName f)} bundled-jar-names)))
                   (resolve-dependencies project)))))))
+
+(defn ^:internal get-dependencies-from-project-string-as-string
+  [project-as-string resolve-deps?]
+  (pr-str-with-meta
+    (map #(.getAbsolutePath %)
+         (get-dependencies (read-string project-as-string) resolve-deps?))))

@@ -18,11 +18,12 @@
 (ns immutant.dev
   "Functions useful for repl based development inside an Immutant container. They
 shouldn't be used in production."
-  (:require [immutant.runtime.bootstrap :as boot]
-            [immutant.registry          :as reg]
+  (:require [immutant.registry          :as reg]
             [immutant.utilities         :as util]
+            [immutant.runtime.util      :as runtime]
             [clojure.java.io            :as io])
-  (:import org.projectodd.polyglot.core.util.ResourceLoaderUtil))
+  (:import org.immutant.core.ApplicationBootstrapUtils
+           org.projectodd.polyglot.core.util.ResourceLoaderUtil))
 
 (defn ^:private reset-classloader-resources [resources]
   (ResourceLoaderUtil/refreshAndRelinkResourceLoaders
@@ -46,17 +47,22 @@ that weren't unmounted."
   "Mounts the given paths and returns a collection of the resulting resources."
   [paths]
   (let [mounter (reg/fetch "resource-mounter")]
-    (map #(.mount mounter %) paths)))
+    (map #(.mount mounter (io/file %)) paths)))
 
 (defn ^:private read-project
   "Reads the lein project in the current app dir."
   []
-  (boot/read-project (util/app-root) 
-                     (:lein-profiles (reg/fetch :config))))
+  (read-string
+   (ApplicationBootstrapUtils/readProjectAsString
+    (util/app-root) 
+    (map str (:lein-profiles (reg/fetch :config))))))
 
 (defn ^:private get-dependency-paths [project]
   (mount-paths
-   (boot/get-dependencies project true)))
+   (read-string
+    (ApplicationBootstrapUtils/getDependenciesAsString
+     (runtime/pr-str-with-meta project)
+     true))))
 
 (defn ^:private absolutize-paths [paths]
   (map (fn [p]
@@ -68,8 +74,8 @@ that weren't unmounted."
 
 (defn ^:private get-project-paths [project]
   (map #(ResourceLoaderUtil/createResourceRoot % true)
-       (->> (boot/resource-paths-from-project project)
-            (boot/add-default-lein1-paths (util/app-root))
+       (->> (runtime/resource-paths-from-project project)
+            (runtime/add-default-lein1-paths (util/app-root))
             (absolutize-paths))))
 
 (defn ^:private get-existing-resources []
@@ -90,7 +96,7 @@ from project.clj when the application was deployed reload-project! has yet
   "Resets the application's class loader to provide the paths and dependencies in the
 from the given project. If no project is provided, the project.clj for the appplication
 is loaded from disk. Returns the project map. This should never be used in production.
-Works only under Clojure 1.4 or newer. (beta)"
+(beta)"
   ([]
      (reload-project! (read-project)))
   ([project]
@@ -108,7 +114,7 @@ Works only under Clojure 1.4 or newer. (beta)"
 and resets the application's class loader to provide the paths and dependencies from that
 project (via reload-project!). Each dep can either be a lein coordinate ('[foo-bar \"0.1.0\"])
 or a path (as a String) to be added to :source-paths. Returns the project map. This should
-never be used in production. Works only under Clojure 1.4 or newer. (beta)"
+never be used in production. (beta)"
   [& deps]
   (reload-project!
    (-> (current-project)

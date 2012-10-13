@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.test.runtime
+(ns immutant.runtime-test
   (:use immutant.runtime)
   (:use clojure.test)
   (:use immutant.test.helpers)
@@ -36,11 +36,11 @@
   ([arg] (reset! a-value arg)))
 
 (deftest require-and-invoke-should-call-the-given-function
-  (require-and-invoke "immutant.test.runtime/update-a-value")
+  (require-and-invoke "immutant.runtime-test/update-a-value")
   (is (= "biscuit" @a-value)))
 
 (deftest require-and-invoke-should-call-the-given-function-with-args
-  (require-and-invoke "immutant.test.runtime/update-a-value" ["gravy"])
+  (require-and-invoke "immutant.runtime-test/update-a-value" ["gravy"])
   (is (= "gravy" @a-value)))
 
 (deftest initialize-without-an-init-fn-should-load-config
@@ -50,12 +50,12 @@
 
 (deftest initialize-with-an-init-fn-should-not-load-config
   (registry/put "app-root" (io/file (io/resource "project-root")))
-  (initialize "immutant.test.runtime/do-nothing" nil)
+  (initialize "immutant.runtime-test/do-nothing" nil)
   (is-not (= "immutant.clj" @a-value)))
 
 (deftest initialize-with-an-init-fn-should-call-the-init-fn
   (registry/put "app-root" (io/file (io/resource "project-root")))
-  (initialize "immutant.test.runtime/update-a-value" nil)
+  (initialize "immutant.runtime-test/update-a-value" nil)
   (is (= "biscuit" @a-value)))
 
 (deftest initialize-with-no-init-fn-and-no-config-should-do-nothing
