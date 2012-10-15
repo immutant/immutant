@@ -14,12 +14,13 @@
   <description />
 
   <modules>
+    <module>cache</module>
     <module>core</module>
     <module>daemons</module>
     <module>jobs</module>
     <module>messaging</module>
+    <module>stomp</module>
     <module>web</module>
-    <module>cache</module>
     <module>xa</module>
   </modules>
 
