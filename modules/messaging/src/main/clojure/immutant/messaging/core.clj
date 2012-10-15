@@ -157,14 +157,14 @@
 
 (defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
-    (do (.createQueue manager false name selector durable (into-array String []))
-        (at-exit #(stop-destination name)))
+    (if (.createQueue manager false name selector durable (into-array String []))
+      (at-exit #(stop-destination name)))
     (throw (Exception. (str "Unable to start queue, " name)))))
 
 (defn start-topic [name & opts]
   (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
-    (do (.createTopic manager false name (into-array String []))
-        (at-exit #(stop-destination name)))
+    (if (.createTopic manager false name (into-array String []))
+      (at-exit #(stop-destination name)))
     (throw (Exception. (str "Unable to start topic, " name)))))
 
 (defn create-session [^javax.jms.XAConnection connection]
