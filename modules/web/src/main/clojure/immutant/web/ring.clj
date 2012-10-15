@@ -21,21 +21,6 @@
             [ring.util.servlet :as servlet])
   (:import (javax.servlet.http HttpServletRequest HttpServletResponse)))
 
-(defn- ensure-slash [^String s]
-  (if (.startsWith s "/")
-    s
-    (str "/" s)))
-
-(defn shuffle-sub-context [sub-context context path-info]
-  (let [prefix (string/replace sub-context #"/\*$" "")]
-    {:context (ensure-slash
-               (str (if (and (not (empty? prefix))
-                             (= "/" context)) "" context) prefix))
-     :path-info (ensure-slash
-                 (if path-info
-                   (string/replace path-info (re-pattern (str "^" prefix)) "")
-                   ""))}))
-
 (defn handle-request [servlet-name
                       ^HttpServletRequest request
                       ^HttpServletResponse response]
@@ -44,10 +29,10 @@
     (if handler
       (if-let [response-map (binding [current-servlet-request request]
                               (handler
-                               (merge (servlet/build-request-map request)
-                                      (shuffle-sub-context sub-context
-                                                           (.getContextPath request)
-                                                           (.getPathInfo request)))))]
+                               (assoc (servlet/build-request-map request)
+                                 :context (str (.getContextPath request)
+                                               (.getServletPath request))
+                                 :path-info (.getPathInfo request))))]
         (servlet/update-servlet-response response response-map)
         (throw (NullPointerException. "Handler returned nil.")))
       (throw (IllegalArgumentException. (str "No handler function found for " servlet-name))))))
