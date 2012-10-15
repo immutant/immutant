@@ -22,8 +22,8 @@
 
 (def dummies { "jboss.messaging.default.jms.manager"
                (proxy [org.hornetq.jms.server.JMSServerManager][]
-                 (createQueue [& _] false)
-                 (createTopic [& _] false))
+                 (createQueue [& _] true)
+                 (createTopic [& _] true))
                "housekeeper" nil})
 
 (defn test-already-running [destination]
