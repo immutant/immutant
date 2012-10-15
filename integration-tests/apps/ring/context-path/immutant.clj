@@ -3,3 +3,5 @@
   (:use context-path.core))
 
 (web/start "/" handler)
+
+(web/start "/ham" handler)

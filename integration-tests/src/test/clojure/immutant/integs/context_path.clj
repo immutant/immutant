@@ -38,7 +38,11 @@
      (let [[result body] (get "/context-from-project/foo/bar")]
        (is (= "context-path" (:app body)))
        (is (= "/context-from-project" (:context body)))
-       (is (= "/foo/bar" (:path-info body)))))))
+       (is (= "/foo/bar" (:path-info body))))
+     (let [[result body] (get "/context-from-project/ham")]
+       (is (= "context-path" (:app body)))
+       (is (= "/context-from-project/ham" (:context body)))
+       (is (= nil (:path-info body)))))))
 
 (deftest overriding-context-path-via-descriptor
   ((with-deployment "context_path.clj"
@@ -64,4 +68,8 @@
      (let [[result body] (get "/foo")]
        (is (= "context-path" (:app body)))
        (is (= "" (:context body)))
-       (is (= "/foo" (:path-info body)))))))
+       (is (= "/foo" (:path-info body))))
+     (let [[result body] (get "/ham")]
+       (is (= "context-path" (:app body)))
+       (is (= "/ham" (:context body)))
+       (is (= nil (:path-info body)))))))
