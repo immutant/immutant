@@ -67,7 +67,7 @@
     |------------+------------+----------------------------------------------------------------------------------------------------------------------------------------|
     | =:mode=    | =:local=   | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. Defaults to =:invalidated= if clustered.           |
     | =:seed=    | =nil=      | A hash of initial entries to replace the existing ones.                                                                                |
-    | =:locking= | =nil=      | The locking mode within a transaction. One of =:optimistic= or =:pessimistic                                                           |
+    | =:locking= | =nil=      | The locking mode within a transaction. One of =:optimistic= or =:pessimistic=                                                          |
     | =:ttl=     | =-1=       | Time-To-Live. The maximum time the entry will live before being expired. A negative value disables time-to-live expiration.            |
     | =:idle=    | =-1=       | The time after which an entry will expire if not accessed. A negative value disables idle expiration.                                  |
     | =:units=   | =:seconds= | The units for =:ttl= and =:idle=. One of =:days=, =:hours=, =:minutes=, =:seconds=, =:milliseconds=, =:microseconds= or =:nanoseconds= |
