@@ -197,7 +197,7 @@
    You only need to do this if you wish to stop the handler's
    destination before your app is undeployed."
   [^javax.jms.XAConnection listener]
-  (.close listener))
+  (and listener (.close listener)))
 
 (defn stop
   "Destroy a message destination. Typically not necessary since it
