@@ -42,7 +42,7 @@
     </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-messaging</artifactId>
+      <artifactId>immutant-messaging-module</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
