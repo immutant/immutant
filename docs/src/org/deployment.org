@@ -42,6 +42,9 @@
   This generates and deploys a /deployment descriptor/ that refers to the location
   of the application on disk. See the [[#deployment-descriptor][descriptor]] section below for more details.
 
+  The =lein-immutant= plugin provides additional deploy options - see [[https://github.com/immutant/lein-immutant#lein-immutant][its README]]
+  for details.
+
 * Archive-based Deployment
   :PROPERTIES:
   :CUSTOM_ID: deployment-archive
@@ -91,6 +94,9 @@
   In addition to deploying an =.ima= directly, you can also manually deploy a 
   deployment descriptor that refers to the location of the archive. See the
   [[#deployment-descriptor][descriptor]] section below for more details.
+
+  The =lein-immutant= plugin provides additional archive and deploy options - see 
+  [[https://github.com/immutant/lein-immutant#lein-immutant][its README]] for details.
 
 * Deployment Descriptor
   :PROPERTIES:
