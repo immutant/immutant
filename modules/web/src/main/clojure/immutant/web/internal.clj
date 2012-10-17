@@ -56,7 +56,7 @@
 ;; finishes. So we register a listener to do the work when the context becomes
 ;; available.
 (defmacro when-context-available [context & body]
-  `(if (.getConfigured ~context)
+  `(if (.getAvailable ~context)
      (do
        ~@body)
      (.addPropertyChangeListener
