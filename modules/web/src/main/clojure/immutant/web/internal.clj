@@ -53,19 +53,20 @@
 
 ;; We have a race condition at deployment - the context isn't init'ed enough for
 ;; us to install servlets from clojure, and won't be until after the deployment
-;; finishes. So we do context operations in a future that waits for the context
-;; to become ready.
-(defmacro when-context-initialized [context & body]
-  `(future
-     (loop [count# 10000]
-       (if (.isInitialized ~context)
-         (do
-           ~@body)
-         (do
-           (Thread/sleep 1)
-           (if (= 0 count#)
-             (throw (RuntimeException. "Giving up waiting for web-context to initialize"))
-             (recur (dec count#))))))))
+;; finishes. So we register a listener to do the work when the context becomes
+;; available.
+(defmacro when-context-available [context & body]
+  `(if (.getConfigured ~context)
+     (do
+       ~@body)
+     (.addPropertyChangeListener
+       ~context
+       (proxy [java.beans.PropertyChangeListener] []
+         (propertyChange [evt#]
+           (when (and (= "available" (.getPropertyName evt#))
+                      (.getNewValue evt#)
+                      (not (.getOldValue evt#)))
+             ~@body))))))
 
 (defn virtual-hosts []
   (let [vh (or (:virtual-host (reg/fetch :config)) ["default-host"])]
@@ -82,7 +83,7 @@
         mapper (-> (reg/fetch "jboss.web")
                    (.getService)
                    (.getMapper))]
-    (when-context-initialized
+    (when-context-available
      context
      (doto wrapper
        (.setName name)
@@ -102,7 +103,7 @@
         mapper (-> (reg/fetch "jboss.web")
                    (.getService)
                    (.getMapper))]
-    (when-context-initialized
+    (when-context-available
      context
      (.removeServletMapping context sub-context-path)
      (if wrapper (.removeChild context wrapper))
