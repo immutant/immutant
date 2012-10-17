@@ -60,13 +60,13 @@
       local-connection-factory)))
 
 (defn queue-name? [^String name]
-  (not (nil? (re-find #"^.?queue" name))))
+  (.contains name "queue"))
 
 (defn queue? [queue]
   (or (isa? (class queue) Queue) (queue-name? queue)))
 
 (defn topic-name? [^String name]
-  (not (nil? (re-find #"^.?topic" name))))
+  (.contains name "topic"))
 
 (defn topic? [topic]
   (or (isa? (class topic) Topic) (topic-name? topic)))

@@ -109,14 +109,15 @@
        ".queuebar"   true
        ".queue/foo"  true
        ".queue.ham"  true
-       "..queue"     false
-       "..queuebar"  false
-       "..queue/foo" false
-       "..queue.ham" false
+       "..queue"     true
+       "..queuebar"  true
+       "..queue/foo" true
+       "..queue.ham" true
        "queue"       true
        "queuebar"    true
        "queue/foo"   true
-       "queue.ham"   true))
+       "queue.ham"   true
+       "que"         false))
 
 (deftest topic-names
   (are [name q?] (= q? (topic-name? name))
@@ -128,11 +129,12 @@
        ".topicbar"   true
        ".topic/foo"  true
        ".topic.ham"  true
-       "..topic"     false
-       "..topicbar"  false
-       "..topic/foo" false
-       "..topic.ham" false
+       "..topic"     true
+       "..topicbar"  true
+       "..topic/foo" true
+       "..topic.ham" true
        "topic"       true
        "topicbar"    true
        "topic/foo"   true
-       "topic.ham"   true))
+       "topic.ham"   true
+       "top"         false))
