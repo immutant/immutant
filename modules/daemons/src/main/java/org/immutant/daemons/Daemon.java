@@ -86,17 +86,6 @@ public class Daemon implements DaemonMBean, Service<Daemon> {
         return (this.thread != null);
     }
 
-    public boolean isStopped() {
-        return !isStarted();
-    }
-
-    public String getStatus() throws Exception {
-        if (isStarted()) {
-            return "STARTED";
-        }
-        return "STOPPED";
-    }
-
     public void setStartFunction(Runnable startFunction) {
         this.startFunction = startFunction;
     }

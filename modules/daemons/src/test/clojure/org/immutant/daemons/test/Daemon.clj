@@ -61,21 +61,15 @@
 
 (deftest it-should-be-started-after-start
   (start-daemon)
-  (is (.isStarted *daemon*))
-  (is-not (.isStopped *daemon*))
-  (is (= "STARTED" (.getStatus *daemon*))))
+  (is (.isStarted *daemon*)))
 
 (deftest it-should-be-stopped-after-stop
   (start-daemon)
   (.stop *daemon*)
-  (is (.isStopped *daemon*))
-  (is-not (.isStarted *daemon*))
-  (is (= "STOPPED" (.getStatus *daemon*))))
+  (is-not (.isStarted *daemon*)))
 
 (deftest it-should-not-be-stopped-after-stop-if-no-stop-function-provided
   (binding [*daemon* (Daemon. loader start nil)]
     (start-daemon)
     (.stop *daemon*)
-    (is-not (.isStopped *daemon*))
-    (is (.isStarted *daemon*))
-    (is (= "STARTED" (.getStatus *daemon*)))))
+    (is (.isStarted *daemon*))))
