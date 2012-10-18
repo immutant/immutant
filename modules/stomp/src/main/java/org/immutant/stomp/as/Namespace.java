@@ -26,12 +26,12 @@ public enum Namespace {
     // must be first
     UNKNOWN(null),
 
-    TORQUEBOX_STOMP_1_0("urn:jboss:domain:torquebox-stomp:1.0");
+    IMMUTANT_STOMP_1_0("urn:jboss:domain:immutant-stomp:1.0");
 
     /**
      * The current namespace version.
      */
-    public static final Namespace CURRENT = TORQUEBOX_STOMP_1_0;
+    public static final Namespace CURRENT = IMMUTANT_STOMP_1_0;
 
     private final String name;
 

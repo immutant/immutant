@@ -22,11 +22,15 @@ package org.immutant.stomp.as;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceName;
 
+
 public class StompServices extends org.projectodd.polyglot.stomp.as.StompServices {
     
-    public static ServiceName stompletComponentResolver(DeploymentUnit unit, String name) {
-        return stomplet( unit, name ).append( "component-resolver" );
-    }
+    public static final ServiceName IMMUTANT = ServiceName.of( "immutant" );
+    public static final ServiceName STOMPLETIZER = IMMUTANT.append( "stompletizer" );
     
+    public static ServiceName stompletizer(DeploymentUnit unit) {
+        return unit.getServiceName().append( STOMPLETIZER );
+    }
+ 
 
 }

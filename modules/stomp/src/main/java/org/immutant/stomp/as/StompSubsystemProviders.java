@@ -44,7 +44,7 @@ public class StompSubsystemProviders {
             final ResourceBundle bundle = getResourceBundle(locale);
 
             final ModelNode subsystem = new ModelNode();
-            subsystem.get(DESCRIPTION).set(bundle.getString("torquebox-stomp"));
+            subsystem.get(DESCRIPTION).set(bundle.getString("immutant-stomp"));
             subsystem.get(HEAD_COMMENT_ALLOWED).set(true);
             subsystem.get(TAIL_COMMENT_ALLOWED).set(true);
             subsystem.get(NAMESPACE).set(Namespace.CURRENT.getUriString());
@@ -60,7 +60,7 @@ public class StompSubsystemProviders {
             final ModelNode operation = new ModelNode();
 
             operation.get(OPERATION_NAME).set(ADD);
-            operation.get(DESCRIPTION).set(bundle.getString("torquebox-stomp.add"));
+            operation.get(DESCRIPTION).set(bundle.getString("immutant-stomp.add"));
             operation.get(REQUEST_PROPERTIES).setEmptyObject();
             operation.get(REPLY_PROPERTIES).setEmptyObject();
 

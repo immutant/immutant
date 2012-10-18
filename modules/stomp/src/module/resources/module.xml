@@ -22,7 +22,7 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<module xmlns="urn:jboss:module:1.0" name="org.torquebox.stomp">
+<module xmlns="urn:jboss:module:1.0" name="org.immutant.stomp">
 
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
@@ -46,8 +46,8 @@
         <module name="org.jboss.logging"/>
         <module name="org.jboss.vfs"/>
         <module name="org.projectodd.polyglot.stomp"/>
-        <module name="org.torquebox.core"/>
-        <module name="org.torquebox.web"/>
+        <module name="org.immutant.core"/>
+        <module name="org.immutant.web"/>
     </dependencies>
 </module>
 

@@ -19,32 +19,26 @@
 
 package org.immutant.stomp.processors;
 
+import org.immutant.core.processors.RegisteringProcessor;
+import org.immutant.stomp.Stompletizer;
+import org.immutant.stomp.as.StompServices;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
-import org.jboss.as.server.deployment.DeploymentUnitProcessor;
-import org.torquebox.core.runtime.RubyRuntimeMetaData;
+import org.jboss.msc.service.ServiceController.Mode;
 
-public class StompletLoadPathProcessor implements DeploymentUnitProcessor {
 
-    @Override
-    public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
-        DeploymentUnit unit = phaseContext.getDeploymentUnit();
-        RubyRuntimeMetaData runtimeMetaData = unit.getAttachment( RubyRuntimeMetaData.ATTACHMENT_KEY );
+public class StompletizerInstaller extends RegisteringProcessor {
+
+    public RegistryEntry registryEntry(DeploymentPhaseContext context) {
+        DeploymentUnit unit = context.getDeploymentUnit();
+                
+        Stompletizer service = new Stompletizer(unit);
+                
+        context.getServiceTarget().addService(StompServices.stompletizer( unit ), service)
+            .setInitialMode(Mode.ACTIVE)
+            .install();
         
-        if (runtimeMetaData != null) {
-            try {
-                runtimeMetaData.appendLoadPath( "app/stomplets" );
-                runtimeMetaData.appendLoadPath( "stomplets" );
-            } catch (Exception e) {
-                throw new DeploymentUnitProcessingException( e );
-            }
-        }
-    }
-
-    @Override
-    public void undeploy(DeploymentUnit context) {
-
+        return new RegistryEntry( "stompletizer", service );
     }
 
 }

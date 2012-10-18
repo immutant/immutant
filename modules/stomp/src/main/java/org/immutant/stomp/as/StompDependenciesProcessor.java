@@ -19,6 +19,7 @@
 
 package org.immutant.stomp.as;
 
+import org.immutant.core.ClojureMetaData;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -29,11 +30,10 @@ import org.jboss.as.server.deployment.module.ModuleSpecification;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleIdentifier;
 import org.jboss.modules.ModuleLoader;
-import org.torquebox.core.app.RubyAppMetaData;
 
 public class StompDependenciesProcessor implements DeploymentUnitProcessor {
     
-    private static ModuleIdentifier TORQUEBOX_STOMP_ID = ModuleIdentifier.create("org.immutant.stomp");
+    private static ModuleIdentifier IMMUTANT_STOMP_ID = ModuleIdentifier.create("org.immutant.stomp");
 
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
@@ -42,8 +42,8 @@ public class StompDependenciesProcessor implements DeploymentUnitProcessor {
         final ModuleSpecification moduleSpecification = unit.getAttachment( Attachments.MODULE_SPECIFICATION );
         final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
-        if (unit.hasAttachment( RubyAppMetaData.ATTACHMENT_KEY )) {
-            addDependency( moduleSpecification, moduleLoader, TORQUEBOX_STOMP_ID );
+        if (unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
+            addDependency( moduleSpecification, moduleLoader, IMMUTANT_STOMP_ID );
             addDependency( moduleSpecification, moduleLoader,
                     org.projectodd.polyglot.stomp.as.StompServices.MODULE_IDENTIFIER );
         }

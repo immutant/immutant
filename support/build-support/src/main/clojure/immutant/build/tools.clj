@@ -91,7 +91,8 @@
                              {}
                              (glob/glob (str (.getAbsolutePath root-dir) "/modules/*/target/*-module"))))
   (def polyglot-modules
-    ["hasingleton"]))
+    ["hasingleton"
+     "stomp"]))
 
 (defn looking-at? [tag loc]
   (= tag (:tag (zip/node loc))))
@@ -129,16 +130,25 @@
   (add-polyglot-extensions
    (reduce (partial add-extension "org.immutant.") loc (keys immutant-modules))))
 
-(defn add-subsystem [prefix loc name]
-  (let [module-name (str "urn:jboss:domain:" prefix name ":1.0")]
-    (zip/append-child loc {:tag :subsystem :attrs {:xmlns module-name}})))
+(defn find-subsystem-file [group name file-name]
+  (some #(if (.exists %) %)
+        [(io/file build-dir (str "immutant/jboss/modules/org/projectodd/" group
+                                 "/" name "/main/subsystem/" file-name))
+         (io/file root-dir (str "modules/" name "/src/subsystem/" file-name))]))
+
+(defn add-subsystem [group loc name]
+  (let [custom-subsystem-file (find-subsystem-file group name "subsystem.xml")
+        tag (if custom-subsystem-file
+              (xml/parse custom-subsystem-file)
+              {:tag :subsystem :attrs {:xmlns (str "urn:jboss:domain:" group "-" name ":1.0")}})]
+    (zip/append-child loc tag)))
 
 (defn add-polyglot-subsystems [loc]
-  (reduce (partial add-subsystem "polyglot-") loc polyglot-modules))
+  (reduce (partial add-subsystem "polyglot") loc polyglot-modules))
 
 (defn add-subsystems [loc]
   (add-polyglot-subsystems
-   (reduce (partial add-subsystem "immutant-") loc (keys immutant-modules))))
+   (reduce (partial add-subsystem "immutant") loc (keys immutant-modules))))
 
 (defn fix-profile [loc]
   (let [name (get-in (zip/node loc) [:attrs :name])]
@@ -148,14 +158,29 @@
                         (zip/edit loc assoc-in [:attrs :name] "default")
                         loc)))))
 
-(defn fix-socket-binding-group [loc]
-  (if (looking-at? :socket-binding-groups (zip/up loc))
-    (let [name (get-in (zip/node loc) [:attrs :name])]
-      (cond
-       (= "standard-sockets" name) (zip/remove loc)
-       (= "full-ha-sockets" name) (zip/edit loc assoc-in [:attrs :name] "standard-sockets")
-       :else loc))
+(defn add-socket-binding [loc [group name]]
+  (if-let [f (find-subsystem-file group name "socket-binding.conf")]
+    (let [[binding-group port-name port] (str/split (str/trim (slurp f)) #":")]
+      (if (= binding-group (get-in (zip/node loc) [:attrs :name]))
+        (zip/append-child loc {:tag :socket-binding :attrs {:name port-name :port port}})
+        loc))
     loc))
+
+(defn add-socket-bindings [loc]
+  (reduce add-socket-binding loc (concat (map (partial vector "immutant")
+                                              (keys immutant-modules))
+                                         (map (partial vector "polyglot")
+                                              polyglot-modules))))
+
+(defn fix-socket-binding-group [loc]
+  (add-socket-bindings
+   (if (looking-at? :socket-binding-groups (zip/up loc))
+     (let [name (get-in (zip/node loc) [:attrs :name])]
+       (cond
+         (= "standard-sockets" name) (zip/remove loc)
+         (= "full-ha-sockets" name) (zip/edit loc assoc-in [:attrs :name] "standard-sockets")
+         :else loc))
+     loc)))
 
 (defn server-element [name offset]
   {:tag :server

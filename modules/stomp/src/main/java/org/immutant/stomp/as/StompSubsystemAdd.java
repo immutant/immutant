@@ -22,39 +22,27 @@ package org.immutant.stomp.as;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
-import static org.projectodd.polyglot.core.processors.RootedDeploymentProcessor.rootSafe;
 
 import java.util.List;
 
-import javax.transaction.TransactionManager;
-
-import org.immutant.stomp.component.processors.StompletComponentResolverInstaller;
-import org.immutant.stomp.processors.StompYamlParsingProcessor;
-import org.immutant.stomp.processors.StompletInstaller;
-import org.immutant.stomp.processors.StompletLoadPathProcessor;
-import org.immutant.stomp.processors.StompletsRuntimePoolProcessor;
+import org.immutant.stomp.processors.StompApplicationRecognizer;
+import org.immutant.stomp.processors.StompletizerInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.ServiceVerificationHandler;
-import org.jboss.as.network.SocketBinding;
 import org.jboss.as.server.AbstractDeploymentChainStep;
 import org.jboss.as.server.DeploymentProcessorTarget;
 import org.jboss.as.server.deployment.Phase;
-import org.jboss.as.txn.service.TxnServices;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceController;
-import org.jboss.msc.service.ServiceController.Mode;
-import org.projectodd.polyglot.stomp.StompletServerService;
 import org.projectodd.polyglot.stomp.processors.StompApplicationDefaultsProcessor;
-import org.projectodd.stilts.stomplet.server.StompletServer;
 
 public class StompSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     @Override
     protected void populateModel(ModelNode operation, ModelNode subModel) {
-        subModel.get( "socket-binding" ).set( operation.get( "socket-binding" ) );
     }
 
     @Override
@@ -72,13 +60,12 @@ public class StompSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
    
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
-        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.PARSE, 31, rootSafe( new StompYamlParsingProcessor() ) );
-        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.PARSE, 1032, rootSafe( new StompApplicationDefaultsProcessor( true ) ) );
-        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.CONFIGURE_MODULE, 0, rootSafe( new StompletLoadPathProcessor() ) );
-        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.CONFIGURE_MODULE, 100, rootSafe( new StompletsRuntimePoolProcessor() ) );
-        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 5, rootSafe( new StompDependenciesProcessor() ) );
-        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 120, rootSafe( new StompletComponentResolverInstaller() ) );
-        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.INSTALL, 101, rootSafe( new StompletInstaller() ) );
+        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.PARSE, 0, new StompApplicationRecognizer() );
+        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.PARSE, 1032, new StompApplicationDefaultsProcessor( true ) );
+        
+        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 5, new StompDependenciesProcessor() );
+        
+        processorTarget.addDeploymentProcessor( StompExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, new StompletizerInstaller() );
     }
 
     static ModelNode createOperation(ModelNode address) {
