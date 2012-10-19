@@ -37,8 +37,6 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
-import org.projectodd.polyglot.messaging.destinations.processors.QueueInstaller;
-import org.projectodd.polyglot.messaging.destinations.processors.TopicInstaller;
 import org.projectodd.polyglot.messaging.processors.ApplicationNamingContextBindingProcessor;
 
 class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {
@@ -60,7 +58,6 @@ class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {
             }
         }, OperationContext.Stage.RUNTIME );
 
-        addMessagingServices( context, verificationHandler, newControllers );
     }
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
@@ -70,13 +67,6 @@ class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     }
 
-    protected void addMessagingServices(final OperationContext context, ServiceVerificationHandler verificationHandler,
-            List<ServiceController<?>> newControllers) {
-//        addRubyConnectionFactory( context, verificationHandler, newControllers );
-//        addRubyXaConnectionFactory( context, verificationHandler, newControllers );
-    }
-
- 
     protected ServiceName getJMSConnectionFactoryServiceName() {
         return ContextNames.JAVA_CONTEXT_SERVICE_NAME.append( "ConnectionFactory" );
     }
