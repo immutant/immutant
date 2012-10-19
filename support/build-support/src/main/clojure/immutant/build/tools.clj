@@ -212,6 +212,14 @@
 (defn disable-hq-security [loc]
   (zip/append-child loc {:tag :security-enabled :content ["false"]}))
 
+(defn enable-hq-jmx [loc]
+  (zip/append-child loc {:tag :jmx-management-enabled :content ["true"]}))
+
+(defn update-hq-server [loc]
+  (-> loc
+      disable-hq-security
+      enable-hq-jmx))
+
 (defn disable-flow-control
   "Assumes loc is :jms-connection-factories and its first child is the in-vm one"
   [loc]
@@ -257,7 +265,7 @@
              (looking-at? :http-interface loc) (disable-security loc)
              (looking-at? :max-size-bytes loc) (zip/edit loc assoc :content ["20971520"])
              (looking-at? :address-full-policy loc) (zip/edit loc assoc :content ["PAGE"])
-             (looking-at? :hornetq-server loc) (disable-hq-security loc)
+             (looking-at? :hornetq-server loc) (update-hq-server loc)
              (looking-at? :jms-connection-factories loc) (disable-flow-control loc)
              (looking-at? :servers loc) (replace-servers loc)
              (looking-at? :server-groups loc) (replace-server-groups loc)
