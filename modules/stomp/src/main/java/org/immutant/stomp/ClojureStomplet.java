@@ -36,12 +36,10 @@ import org.projectodd.stilts.stomplet.container.SimpleStompletContainer;
 
 public class ClojureStomplet implements Stomplet, Service<Stomplet> {
 
-    public ClojureStomplet(ClojureRuntime runtime, String route, Object messageHandler, Object subscribeHandler, Object unsubscribeHandler) {
+    public ClojureStomplet(ClojureRuntime runtime, String route, Object handler) {
         this.runtime = runtime;
         this.route = route;
-        this.messageHandler = messageHandler;
-        this.subscribeHandler = subscribeHandler;
-        this.unsubscribeHandler = unsubscribeHandler;
+        this.handler = handler;
     }
 
     @Override
@@ -57,10 +55,8 @@ public class ClojureStomplet implements Stomplet, Service<Stomplet> {
     }
 
     @Override
-    public void onMessage(StompMessage arg0, StompSession arg1)
-            throws StompException {
-        // TODO Auto-generated method stub
-        
+    public void onMessage(StompMessage message, StompSession session) throws StompException {
+        this.runtime.invoke( this.handler, "message", message, session ); 
     }
 
     @Override
@@ -106,7 +102,7 @@ public class ClojureStomplet implements Stomplet, Service<Stomplet> {
     
     private ClojureRuntime runtime;
     private String route;
-    private Object messageHandler;
+    private Object handler;
     private Object subscribeHandler;
     private Object unsubscribeHandler;
     
