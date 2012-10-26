@@ -296,6 +296,18 @@
         <version>${version.leiningen}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.clojure</groupId>
+        <artifactId>tools.nrepl</artifactId>
+        <version>${version.nrepl}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>clojure-complete</groupId>
+        <artifactId>clojure-complete</artifactId>
+        <version>${version.clojure-complete}</version>
+      </dependency>
+
       <!-- we explicitly bring this in here to workaround a transitive
            dep issue with pomegranate. -->
       <dependency>
@@ -321,6 +333,7 @@
     <version.clojure.core.memoize>0.5.2</version.clojure.core.memoize>
     <version.clojure.java.jdbc>0.2.3</version.clojure.java.jdbc>
     <version.clojure-maven-plugin>1.3.8</version.clojure-maven-plugin>
+    <version.clojure-complete>0.2.2</version.clojure-complete>
     <version.ring>1.1.5</version.ring>
 
     <version.swank-clojure>1.4.2</version.swank-clojure>

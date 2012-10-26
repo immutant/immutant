@@ -37,6 +37,7 @@
         <resource-root path="swank-clojure.jar"/>
         <resource-root path="clj-stacktrace.jar"/>
         <resource-root path="tools.nrepl.jar"/>
+        <resource-root path="clojure-complete.jar"/>
         <resource-root path="aether-impl.jar"/>
         <resource-root path="aether-spi.jar"/>
         <resource-root path="aether-util.jar"/>

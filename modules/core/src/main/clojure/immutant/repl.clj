@@ -25,6 +25,14 @@
     (Integer. port)
     port))
 
+(defn ^:private nrepl-init-handler
+  "Provides an init point for new nrepl connections."
+  [h]
+  (fn [{:keys [op transport] :as msg}]
+    (when (= op "clone")
+      (require 'clj-stacktrace.repl 'complete.core))
+    (h msg)))
+
 ;; We have to bind the repl * vars under 1.2.1, otherwise swank fails to start,
 ;; and with-bindings NPE's, so we roll our own
 (defmacro with-base-repl-bindings [& body]
@@ -66,7 +74,14 @@ management interface defined by the AS. Registers an at-exit handler to
 shutdown nrepl on undeploy, and returns a server that can be passed to
 stop-nrepl to shut it down manually."
   ([interface-address port]
+     ;; add the needed metadata for an nrepl middleware, but only do it if
+     ;; nrepl is going to be used to avoid loading nrepl at deploy for every app
+     (when-not (::descriptor (meta #'nrepl-init-handler))
+       ((util/try-resolve 'clojure.tools.nrepl.middleware/set-descriptor!)
+        #'nrepl-init-handler {}))
+     
      (when-let [server ((util/try-resolve 'clojure.tools.nrepl.server/start-server)
+                        :handler ((util/try-resolve 'clojure.tools.nrepl.server/default-handler) #'nrepl-init-handler)
                         :port (fix-port port) :host interface-address)]
        (log/info "Starting nREPL for" (util/app-name)
                  "at" (str interface-address ":" (-> server deref :ss .getLocalPort)))

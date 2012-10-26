@@ -69,10 +69,15 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.nrepl</artifactId>
-      <version>${version.nrepl}</version>
       <scope>compile</scope>
     </dependency>
     
+    <dependency>
+      <groupId>clojure-complete</groupId>
+      <artifactId>clojure-complete</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
     <dependency>
       <groupId>leiningen-core</groupId>
       <artifactId>leiningen-core</artifactId>
