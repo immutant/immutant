@@ -337,7 +337,7 @@
     <version.ring>1.1.5</version.ring>
 
     <version.swank-clojure>1.4.2</version.swank-clojure>
-    <version.nrepl>0.2.0-beta9</version.nrepl>
+    <version.nrepl>0.2.0-RC1</version.nrepl>
     <version.wagon>2.2</version.wagon>
 
     <version.commons-io>2.0.1</version.commons-io>
