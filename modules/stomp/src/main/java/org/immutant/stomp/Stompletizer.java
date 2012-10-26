@@ -33,11 +33,11 @@ public class Stompletizer extends AtRuntimeInstaller<Stompletizer> {
         super( unit );
     }
 
-    public ClojureStomplet createStomplet(final String route, Object messageHandler, Object subscribeHandler, Object unsubscribeHandler) {
+    public ClojureStomplet createStomplet(final String route, Object handler) {
         ClojureRuntime runtime = getUnit().getAttachment( ClojureRuntimeService.ATTACHMENT_KEY );
         
         final ServiceName serviceName = StompServices.stomplet( getUnit(), route );
-        final ClojureStomplet stomplet = new ClojureStomplet( runtime, route, messageHandler, subscribeHandler, unsubscribeHandler );
+        final ClojureStomplet stomplet = new ClojureStomplet( runtime, route, handler );
         
         replaceService( serviceName, new Runnable() {
             public void run() {

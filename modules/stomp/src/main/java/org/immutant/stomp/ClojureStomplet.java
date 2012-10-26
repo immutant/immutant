@@ -26,6 +26,7 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.projectodd.stilts.MessageSink;
 import org.projectodd.stilts.stomp.StompException;
 import org.projectodd.stilts.stomp.StompMessage;
 import org.projectodd.stilts.stomp.spi.StompSession;
@@ -56,19 +57,21 @@ public class ClojureStomplet implements Stomplet, Service<Stomplet> {
 
     @Override
     public void onMessage(StompMessage message, StompSession session) throws StompException {
-        this.runtime.invoke( this.handler, "message", message, session ); 
+        invokeHandler( "message", session, message );
     }
 
     @Override
-    public void onSubscribe(Subscriber arg0) throws StompException {
-        // TODO Auto-generated method stub
-        
+    public void onSubscribe(Subscriber subscriber) throws StompException {
+        invokeHandler( "subscribe", subscriber.getSession(), subscriber );
     }
 
     @Override
-    public void onUnsubscribe(Subscriber arg0) throws StompException {
-        // TODO Auto-generated method stub
-        
+    public void onUnsubscribe(Subscriber subscriber) throws StompException {
+        invokeHandler( "unsubscribe", subscriber.getSession(), subscriber );
+    }
+    
+    private void invokeHandler(String op, StompSession session, Object payload) {
+        this.runtime.invoke( this.handler, op, session, payload );     
     }
     
     @Override
@@ -99,13 +102,11 @@ public class ClojureStomplet implements Stomplet, Service<Stomplet> {
     public Injector<SimpleStompletContainer> getStompletContainerInjector() {
         return this.containerInjector;
     }
-    
+
     private ClojureRuntime runtime;
     private String route;
     private Object handler;
-    private Object subscribeHandler;
-    private Object unsubscribeHandler;
-    
+        
     private InjectedValue<SimpleStompletContainer> containerInjector = new InjectedValue<SimpleStompletContainer>();
 
     

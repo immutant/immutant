@@ -35,11 +35,15 @@ public class StompMetaData extends StompApplicationMetaData {
     public StompMetaData(ClojureMetaData appMetaData) {
         this.appMetaData = appMetaData;
         final Object host = this.appMetaData.get( "virtual-host" );
-        if (host instanceof List) {
-            addHosts( (List)host );
-        } else {
-            addHost( (String)host );
+        if (host != null) {
+            if (host instanceof List) {
+                addHosts( (List)host );
+            } else {
+                addHost( (String)host );
+            }
         }
+        
+        setContextPath( appMetaData.getString( "context-path" ) );
     }
 
     @Override
@@ -48,20 +52,11 @@ public class StompMetaData extends StompApplicationMetaData {
         unit.putAttachment( ATTACHMENT_KEY, this );
     }
     
-    @Override       
-    public String getContextPath() {
-        if (this.contextPath == null) {
-            this.contextPath = this.appMetaData.getString( "context-path" );
-        }
-        return this.contextPath;
-    }
-
+    
     public String toString() {
-        return "[StompMetaData:" + System.identityHashCode( this ) + "\n  host=" + this.hosts + "\n  context=" + this.contextPath + "]";
+        return "[StompMetaData:" + System.identityHashCode( this ) + "\n  host=" + getHosts() + "\n  context=" + getContextPath() + "]";
     }
 
     
     private ClojureMetaData appMetaData;
-    private List<String> hosts = new ArrayList<String>();
-    private String contextPath;
 }

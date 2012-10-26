@@ -41,6 +41,7 @@ public class StompApplicationRecognizer extends FileLocatingProcessor {
         if (appMetaData != null) {
             //FIXME: for now, we assume everything is a stomp app
             StompMetaData stompMetaData = new StompMetaData( appMetaData );
+            stompMetaData.setForceDeployContainer( true );
             stompMetaData.attachTo( unit );
         }       
     }

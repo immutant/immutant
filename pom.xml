@@ -175,6 +175,16 @@
 
   <dependencyManagement>
     <dependencies>
+
+      <!-- Because AS7 integrates Stilts and is behind-the-times, 
+           we must re-manage is back to a useful version. -->
+    
+      <dependency>
+        <groupId>org.projectodd.stilts</groupId>
+        <artifactId>stilts-stomplet-server-core</artifactId>
+        <version>${version.org.projectodd.stilts}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.projectodd</groupId>
         <artifactId>polyglot</artifactId>
@@ -322,6 +332,7 @@
     <version.clojure.java.jdbc>0.2.3</version.clojure.java.jdbc>
     <version.clojure-maven-plugin>1.3.8</version.clojure-maven-plugin>
     <version.ring>1.1.5</version.ring>
+    <version.org.projectodd.stilts>0.1.29-SNAPSHOT</version.org.projectodd.stilts>
 
     <version.swank-clojure>1.4.2</version.swank-clojure>
     <version.nrepl>0.2.0-beta9</version.nrepl>
