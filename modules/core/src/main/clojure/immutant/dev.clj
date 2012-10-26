@@ -120,3 +120,10 @@ never be used in production. (beta)"
    (-> (current-project)
        (update-in [:dependencies] #(set (concat % (remove string? deps))))
        (update-in [:source-paths] #(concat % (filter string? deps))))))
+
+(defn remove-lib
+  "Borrowed from tools.namespace"
+  [lib]
+  (remove-ns lib)
+  (dosync (alter @#'clojure.core/*loaded-libs* disj lib)))
+
