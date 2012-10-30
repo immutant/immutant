@@ -19,11 +19,18 @@
 
 package org.immutant.messaging;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jboss.as.server.deployment.DeploymentUnit;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.Mode;
+import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
 import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
 import org.projectodd.polyglot.messaging.destinations.QueueMetaData;
 import org.projectodd.polyglot.messaging.destinations.TopicMetaData;
+import org.projectodd.polyglot.messaging.destinations.processors.Destroyable;
 import org.projectodd.polyglot.messaging.destinations.processors.QueueInstaller;
 import org.projectodd.polyglot.messaging.destinations.processors.TopicInstaller;
 
@@ -40,14 +47,38 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
         metaData.setSelector( selector );
         metaData.setBindName( DestinationUtils.cleanServiceName( queueName ) );
         
-        QueueInstaller.deploy( getTarget(), metaData );
+        this.destinations.put( queueName, QueueInstaller.deploy( getTarget(), metaData ) );
     }
-    
     
     public void createTopic(String topicName) {
         TopicMetaData metaData = new TopicMetaData( topicName );
         metaData.setBindName( DestinationUtils.cleanServiceName( topicName ) ); 
         
-        TopicInstaller.deploy( getTarget(), metaData );
+        this.destinations.put( topicName, TopicInstaller.deploy( getTarget(), metaData ) );
     }
+    
+    @SuppressWarnings("rawtypes")
+    public boolean deleteDestination(String name) {
+        boolean success = false;
+        
+        ServiceName serviceName = this.destinations.get( name );
+        if (serviceName != null) {
+            ServiceController dest = getUnit().getServiceRegistry().getService( serviceName );
+            if (dest != null) {
+                Object service = dest.getService();
+                //force it to destroy, even if it's durable
+                if (service instanceof Destroyable) {
+                    ((Destroyable)service).setShouldDestroy( true );
+                }
+                dest.setMode( Mode.REMOVE );
+                success = true;
+            }
+                    
+            this.destinations.remove( name );
+        }
+        
+        return success;
+    }
+    
+    private Map<String, ServiceName> destinations = new HashMap<String, ServiceName>();
 }

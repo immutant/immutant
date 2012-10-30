@@ -129,15 +129,18 @@
    :else (throw (Exception. "Illegal destination name"))))
 
 (defn stop-destination [name]
-  (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
-    (try
-      (let [result (if (queue-name? name)
-                     (.destroyQueue manager name)
-                     (.destroyTopic manager name))]
-        (log/info "Stopped" name)
-        result)
-      (catch Throwable e
-        (log/warn e)))))
+  (let [izer (lookup/fetch "destinationizer")
+        manager (lookup/fetch "jboss.messaging.default.jms.manager")
+        removed? (and izer (.deleteDestination izer (destination-name name)))]
+    (if (and (not removed?) manager)
+      (try
+        (let [result (if (queue-name? name)
+                       (.destroyQueue manager name)
+                       (.destroyTopic manager name))]
+          (log/info "Stopped" name)
+          result)
+        (catch Throwable e
+          (log/warn e))))))
 
 (defn stop-queue [name & {:keys [force]}]
   (if force
