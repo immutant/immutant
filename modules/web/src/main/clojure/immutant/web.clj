@@ -18,13 +18,11 @@
 (ns immutant.web
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
-  (:require [immutant.registry     :as reg]
-            [clojure.tools.logging :as log]
-            [immutant.utilities :as util]
+  (:require [immutant.registry      :as reg]
+            [clojure.tools.logging  :as log]
+            [immutant.utilities     :as util]
             [ring.middleware.reload :as ring])
   (:use immutant.web.internal))
-
-
 
 (def  ^{:arglists '([context? handler & {:keys [reload]}])} start
   "Registers a Ring handler that will be called when requests are
@@ -44,14 +42,24 @@
                      handler
                      {:dirs [(util/app-relative "src")]})
                     handler)
-          sub-context-path (normalize-subcontext-path sub-context-path)]
-      (log/info "Registering ring handler at sub-context path:" sub-context-path)
-      (store-servlet-info! (servlet-name sub-context-path)
-                           {:wrapper (install-servlet "org.immutant.web.servlet.RingServlet"
-                                                      sub-context-path)
-                            :sub-context sub-context-path
-                            :handler handler})
+          sub-context-path (normalize-subcontext-path sub-context-path)
+          servlet-name (servlet-name sub-context-path)]
+      (if-let [existing-info (get-servlet-info servlet-name)]
+        (do
+          (log/info "Updating ring handler at sub-context path:" sub-context-path)
+          (store-servlet-info!
+           servlet-name
+           (assoc existing-info :handler handler)))
+        (do
+          (log/info "Registering ring handler at sub-context path:" sub-context-path)
+          (store-servlet-info!
+           servlet-name
+           {:wrapper (install-servlet "org.immutant.web.servlet.RingServlet"
+                                      sub-context-path)
+            :sub-context sub-context-path
+            :handler handler})))
       nil)))
+
 
 (defn stop
   "Deregisters the Ring handler attached to the given sub-context-path. If no sub-context-path is given,
@@ -65,4 +73,6 @@
            (log/info "Deregistering ring handler at sub-context path:" sub-context-path)
            (remove-servlet sub-context-path (:wrapper info)))
          (log/warn "Attempted to deregister ring handler at sub-context path:" sub-context-path ", but none found")))))
+
+
 
