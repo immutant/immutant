@@ -130,22 +130,37 @@
      :password     the password to use to auth the connection (requires :username
                    to be set) [nil]"
   [name-or-dest f & {:keys [concurrency decode?] :or {concurrency 1 decode? true} :as opts}]
-  (let [connection (create-connection opts)]
-    (try
-      (dotimes [_ concurrency]
-        (let [session (create-session connection)
-              destination (create-destination session name-or-dest)
-              consumer (create-consumer session destination opts)
-              handler #(with-transaction session
-                         (f (codecs/decode-if decode? %)))]
-          (.setMessageListener consumer
-                               (create-listener handler))))
-      (at-exit #(.close connection))
-      (.start connection)
-      connection
-      (catch Throwable e
-        (.close connection)
-        (throw e)))))
+  (let [connection (create-connection opts)
+        setup-fn (fn []
+                   (let [session (create-session connection)
+                         destination (create-destination session name-or-dest)]
+                     {"session" session
+                      "consumer" (create-consumer session destination opts)
+                      "handler" #(with-transaction session
+                                   (f (codecs/decode-if decode? %)))}))]
+    (if-let [izer (reg/fetch "message-processor-groupizer")]
+      
+      ;; in-container
+      (.createGroup izer
+                    (destination-name name-or-dest)
+                    false ;; TODO: singleton
+                    concurrency
+                    (not (nil? (:client-id opts)))
+                    (.toString f)
+                    connection
+                    setup-fn)
+      
+      ;; out of container
+      (let [settings (setup-fn)]
+        (try
+          (.setMessageListener (settings "consumer")
+                               (create-listener (settings "handler")))
+          (at-exit #(.close connection))
+          (.start connection)
+          connection
+          (catch Throwable e
+            (.close connection)
+            (throw e)))))))
 
 (defn request
   "Send a message to queue and return a delay that will retrieve the response.
@@ -196,7 +211,7 @@
   "Pass the result of a call to listen or respond to de-register the handler.
    You only need to do this if you wish to stop the handler's
    destination before your app is undeployed."
-  [^javax.jms.XAConnection listener]
+  [listener]
   (and listener (.close listener)))
 
 (defn stop

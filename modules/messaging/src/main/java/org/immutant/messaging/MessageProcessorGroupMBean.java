@@ -19,22 +19,7 @@
 
 package org.immutant.messaging;
 
-import javax.jms.Message;
 
-import org.immutant.runtime.ClojureRuntime;
+public interface MessageProcessorGroupMBean extends org.projectodd.polyglot.messaging.MessageProcessorGroupMBean {
 
-public class MessageListener implements javax.jms.MessageListener {
-    
-    public MessageListener(ClojureRuntime runtime, Object handler) {
-        this.runtime = runtime;
-        this.fn = handler;
-    }
-    
-    @Override
-    public void onMessage(Message message) {
-       this.runtime.invoke( this.fn, message );
-    }
-    
-    private ClojureRuntime runtime;
-    private Object fn;
 }

@@ -71,6 +71,12 @@
 (defn topic? [topic]
   (or (isa? (class topic) Topic) (topic-name? topic)))
 
+(defn destination-name [name-or-dest]
+  (condp instance? name-or-dest
+    String          name-or-dest
+    javax.jms.Queue (.getQueueName name-or-dest)
+    javax.jms.Topic (.getTopicName name-or-dest)))
+
 (defn wash-publish-options
   "Wash publish options relative to default values from a producer"
   [opts ^javax.jms.MessageProducer producer]
@@ -156,16 +162,28 @@
         (log/warn "No management interface found for topic:" name)))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
-  (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
-    (if (.createQueue manager false name selector durable (into-array String []))
-      (at-exit #(stop-destination name)))
-    (throw (Exception. (str "Unable to start queue, " name)))))
+  (if-let [izer (lookup/fetch "destinationizer")]
+    
+    ;; in-container
+    (.createQueue izer name durable selector)
+
+    ;; outside container
+    (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
+      (if (.createQueue manager false name selector durable (into-array String []))
+        (at-exit #(stop-destination name)))
+      (throw (Exception. (str "Unable to start queue, " name))))))
 
 (defn start-topic [name & opts]
-  (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
-    (if (.createTopic manager false name (into-array String []))
-      (at-exit #(stop-destination name)))
-    (throw (Exception. (str "Unable to start topic, " name)))))
+  (if-let [izer (lookup/fetch "destinationizer")]
+
+    ;; in-container
+    (.createTopic izer name)
+
+    ;; outside container
+    (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
+      (if (.createTopic manager false name (into-array String []))
+        (at-exit #(stop-destination name)))
+      (throw (Exception. (str "Unable to start topic, " name))))))
 
 (defn create-session [^javax.jms.XAConnection connection]
   (if (lookup/fetch factory-name)
@@ -233,18 +251,12 @@
 (defmacro with-connection [options & body]
   `(with-connection* ~options (fn [] ~@body)))
 
-(try-if
- (import 'org.immutant.runtime.ClojureRuntime)
- 
-   ;; we're in-container
-  (defn ^{:internal true} create-listener [handler]
-    (org.immutant.messaging.MessageListener. (lookup/fetch "clojure-runtime") handler))
-  
-  ;; we're not in-container
-  (defn ^{:internal true} create-listener [handler]
-    (reify javax.jms.MessageListener
-      (onMessage [_ message]
-        (handler message)))))
+
+;; only used outside of the container
+(defn ^{:internal true} create-listener [handler]
+  (reify javax.jms.MessageListener
+    (onMessage [_ message]
+      (handler message))))
 
 
 ;; TODO: This is currently unused and, if deemed necessary, could

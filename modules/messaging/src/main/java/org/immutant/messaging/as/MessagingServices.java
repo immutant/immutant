@@ -29,18 +29,19 @@ public class MessagingServices {
     }
 
     public static final ServiceName MESSAGING = CoreServices.IMMUTANT.append( "messaging" );
-//    public static final ServiceName RUBY_CONNECTION_FACTORY = MESSAGING.append(  "ruby-connection-factory" );
-//    public static final ServiceName RUBY_XA_CONNECTION_FACTORY = MESSAGING.append(  "ruby-xa-connection-factory" );
-//    
-    public static final ServiceName WEBSOCKETS = MESSAGING.append( "websockets" );
-    public static final ServiceName WEBSOCKETS_SERVER = WEBSOCKETS.append(  "server" );
-
+    public static final ServiceName DESTINATIONIZER = MESSAGING.append( "destinationizer" );    
+    public static final ServiceName MESSAGE_PROCESSOR_GROUPIZER = MESSAGING.append( "message-processor-groupizer" );    
+    
+    public static ServiceName destinationInator(DeploymentUnit unit) {
+        return unit.getServiceName().append( DESTINATIONIZER );
+    }
+    
+    public static ServiceName messageProcessorGroupInator(DeploymentUnit unit) {
+        return unit.getServiceName().append( MESSAGE_PROCESSOR_GROUPIZER );
+    }
+    
     public static ServiceName messageProcessor(DeploymentUnit unit, String processorName) {
         return unit.getServiceName().append( MESSAGING ).append(  processorName );
-    }
-
-    public static ServiceName webSocketProcessor(DeploymentUnit unit) {
-        return unit.getServiceName().append( WEBSOCKETS ).append(  "processor"  );
     }
     
 }

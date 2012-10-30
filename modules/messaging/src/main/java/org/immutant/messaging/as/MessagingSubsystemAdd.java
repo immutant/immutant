@@ -25,6 +25,8 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 
 import java.util.List;
 
+import org.immutant.messaging.processors.DestinationizerInstaller;
+import org.immutant.messaging.processors.MessageProcessorGroupizerInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -36,7 +38,9 @@ import org.jboss.as.server.deployment.Phase;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
+import org.projectodd.polyglot.messaging.destinations.processors.HornetQStartupPoolService;
 import org.projectodd.polyglot.messaging.processors.ApplicationNamingContextBindingProcessor;
 
 class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {
@@ -58,15 +62,30 @@ class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {
             }
         }, OperationContext.Stage.RUNTIME );
 
+        addHornetQStartupPoolService( context, verificationHandler, newControllers );
     }
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
 
         processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 3, new MessagingDependenciesProcessor() );
+
         processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 11, new ApplicationNamingContextBindingProcessor() );
+        processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, new DestinationizerInstaller() );
+        processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 201, new MessageProcessorGroupizerInstaller() );
 
     }
 
+    protected void addHornetQStartupPoolService(final OperationContext context, ServiceVerificationHandler verificationHandler,
+            List<ServiceController<?>> newControllers) {
+        final ServiceName hornetQServiceName = org.jboss.as.messaging.MessagingServices.getHornetQServiceName( "default" );
+        final ServiceName serviceName = HornetQStartupPoolService.getServiceName( hornetQServiceName );
+        HornetQStartupPoolService service = new HornetQStartupPoolService();
+        newControllers.add( context.getServiceTarget().addService( serviceName, service )
+                .addListener( verificationHandler )
+                .setInitialMode( Mode.ON_DEMAND )
+                .install() );
+    }
+    
     protected ServiceName getJMSConnectionFactoryServiceName() {
         return ContextNames.JAVA_CONTEXT_SERVICE_NAME.append( "ConnectionFactory" );
     }
