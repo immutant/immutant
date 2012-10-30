@@ -26,6 +26,7 @@ import javax.jms.XAConnection;
 
 import org.immutant.runtime.ClojureRuntime;
 import org.jboss.msc.inject.Injector;
+import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceRegistry;
@@ -66,9 +67,13 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
     }
     
     //convenience method so it's closeable like a consumer
+    @SuppressWarnings("rawtypes")
     @Override
     public void close() {
-        getServiceRegistry().getService( getBaseServiceName() ).setMode( Mode.REMOVE );
+        ServiceController service = getServiceRegistry().getService( getBaseServiceName() );
+        if (service != null) {
+            service.setMode( Mode.REMOVE );
+        }
     }
     
     public Injector<ClojureRuntime> getClojureRuntimeInjector() {
