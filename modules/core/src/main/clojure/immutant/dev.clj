@@ -18,10 +18,11 @@
 (ns immutant.dev
   "Functions useful for repl based development inside an Immutant container. They
 shouldn't be used in production."
-  (:require [immutant.registry          :as reg]
-            [immutant.utilities         :as util]
-            [immutant.runtime.util      :as runtime]
-            [clojure.java.io            :as io])
+  (:require [immutant.registry     :as reg]
+            [immutant.utilities    :as util]
+            [immutant.try          :as try]
+            [immutant.runtime.util :as runtime]
+            [clojure.java.io       :as io])
   (:import org.immutant.core.ApplicationBootstrapUtils
            org.projectodd.polyglot.core.util.ResourceLoaderUtil))
 
@@ -92,11 +93,28 @@ from project.clj when the application was deployed reload-project! has yet
   []
   (reg/fetch :project))
 
+
+(defonce ^:private original-default-data-readers (if-let [d (util/try-resolve 'clojure.core/default-data-readers)] @d))
+
+(defn ^:private load-data-readers []
+  ;; The deps may have brought in data readers, so we load them.
+  ;; Since *data-readers* is already bound, altering its root binding won't help,
+  ;; so we instead muck with default-data-readers. From a functionality pov, it
+  ;; should work the same for the user.
+
+  ;; we have to do all the try-resolve muck so this will load under 1.3, but
+  ;; there's probably a better way to do it
+  (if original-default-data-readers
+    (alter-var-root (util/try-resolve 'clojure.core/default-data-readers)
+                    (fn [_]
+                      (reduce (util/try-resolve 'clojure.core/load-data-reader-file)
+                              original-default-data-readers
+                              ((util/try-resolve 'clojure.core/data-reader-urls)))))))
+
 (defn reload-project!
   "Resets the application's class loader to provide the paths and dependencies in the
 from the given project. If no project is provided, the project.clj for the appplication
-is loaded from disk. Returns the project map. This should never be used in production.
-(beta)"
+is loaded from disk. Returns the project map. This should never be used in production. (beta)"
   ([]
      (reload-project! (read-project)))
   ([project]
@@ -107,6 +125,7 @@ is loaded from disk. Returns the project map. This should never be used in produ
            keeper-resources (unmount-resources
                              (get-existing-resources))]
        (reset-classloader-resources (concat new-resources keeper-resources)))
+     (load-data-readers)
      project))
 
 (defn add-dependencies!
