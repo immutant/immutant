@@ -24,6 +24,7 @@ import java.io.Closeable;
 import javax.jms.JMSException;
 import javax.jms.XAConnection;
 
+import org.immutant.core.ServiceUpListener;
 import org.immutant.runtime.ClojureRuntime;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceController;
@@ -40,12 +41,20 @@ import org.projectodd.polyglot.messaging.MessageProcessorService;
 public class MessageProcessorGroup extends BaseMessageProcessorGroup implements Closeable, MessageProcessorGroupMBean {
 
     public MessageProcessorGroup(ServiceRegistry registry, ServiceName baseServiceName,
-            String destinationName, XAConnection connection, Object setupHandler ) {
+            String destinationName, XAConnection connection, Object setupHandler, Object afterStartCallback) {
         super( registry, baseServiceName, destinationName, MessageProcessor.class );
-        this.setupHandler = setupHandler;
         this.connection = connection;
+        this.setupHandler = setupHandler;
+        this.afterStartCallback = afterStartCallback;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public void start(StartContext context) throws StartException {
+        context.getController().addListener( new ServiceUpListener( this.clojureRuntimeInjector.getValue(), this.afterStartCallback ) );
+        super.start( context );    
+    }
+    
     @Override
     protected BaseMessageProcessor instantiateProcessor() {
         return new MessageProcessor( this.clojureRuntimeInjector.getValue() );
@@ -82,4 +91,5 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
     
     private final InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
     private Object setupHandler;
+    private Object afterStartCallback;
 }

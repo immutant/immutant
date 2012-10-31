@@ -23,7 +23,8 @@
         [immutant.try :only (try-defn)]
         [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]
-            [immutant.registry         :as reg]))
+            [immutant.registry         :as reg]
+            [clojure.tools.logging     :as log]))
 
 (defn start
   "Create a message destination; name should begin with either 'queue'
@@ -141,14 +142,19 @@
     (if-let [izer (reg/fetch "message-processor-groupizer")]
       
       ;; in-container
-      (.createGroup izer
-                    (destination-name name-or-dest)
-                    false ;; TODO: singleton
-                    concurrency
-                    (not (nil? (:client-id opts)))
-                    (.toString f)
-                    connection
-                    setup-fn)
+      (let [p (promise)
+            dest-name (destination-name name-or-dest)]
+        (.createGroup izer
+                      dest-name
+                      false ;; TODO: singleton
+                      concurrency
+                      (not (nil? (:client-id opts)))
+                      (.toString f)
+                      connection
+                      setup-fn
+                      #(deliver p true))
+        (when-not (deref p 5000 nil)
+          (log/error "Failed to setup listener for" dest-name)))
       
       ;; out of container
       (let [settings (setup-fn)]
