@@ -142,9 +142,9 @@
     (if-let [izer (reg/fetch "message-processor-groupizer")]
       
       ;; in-container
-      (let [p (promise)
-            dest-name (destination-name name-or-dest)]
-        (.createGroup izer
+      (let [complete (promise)
+            dest-name (destination-name name-or-dest)
+            group (.createGroup izer
                       dest-name
                       false ;; TODO: singleton
                       concurrency
@@ -152,8 +152,9 @@
                       (.toString f)
                       connection
                       setup-fn
-                      #(deliver p true))
-        (when-not (deref p 5000 nil)
+                      #(deliver complete true))]
+        (if (deref complete 5000 nil)
+          group
           (log/error "Failed to setup listener for" dest-name)))
       
       ;; out of container
