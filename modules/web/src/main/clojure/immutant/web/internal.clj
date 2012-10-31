@@ -17,8 +17,10 @@
 
 (ns immutant.web.internal
   (:require
-   [immutant.registry  :as reg]
-   [immutant.utilities :as util])
+   [immutant.registry     :as reg]
+   [immutant.utilities    :as util]
+   [clojure.tools.logging :as log])
+  
   (use [immutant.try :only [try-defn try-def]]))
 
 (def ^{:dynamic true} ^javax.servlet.http.HttpServletRequest current-servlet-request nil)
@@ -82,7 +84,8 @@
         wrapper (.createWrapper context)
         mapper (-> (reg/fetch "jboss.web")
                    (.getService)
-                   (.getMapper))]
+                   (.getMapper))
+        complete (promise)]
     (when-context-available
      context
      (doto wrapper
@@ -95,8 +98,11 @@
        (.addChild wrapper)
        (.addServletMapping sub-context-path name))
      (doseq [host (virtual-hosts)]
-       (.addWrapper mapper host (.getPath context) sub-context-path wrapper)))
-    wrapper))
+       (.addWrapper mapper host (.getPath context) sub-context-path wrapper))
+     (deliver complete true))
+    (if (deref complete 5000 nil)
+      wrapper
+      (log/error "Failed to install servlet for" context))))
 
 (try-defn reqs remove-servlet [sub-context-path wrapper]
   (let [context (reg/fetch "web-context")
