@@ -208,6 +208,10 @@
     (.createDurableSubscriber session destination subscriber-name selector false)
     (.createConsumer session destination selector)))
 
+(defn destination-exists?
+  ([connection name-or-dest]
+     (create-destination (create-session connection) name-or-dest)))
+
 (defn enlist-session
   "Enlist a session in the current transaction, if any"
   [^javax.jms.XASession session]
