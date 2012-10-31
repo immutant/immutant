@@ -45,4 +45,5 @@
   (publish gravy "ham#3")
   (is (nil? (receive gravy :client-id "bacon" :timeout 100)))
   (publish gravy "ham#4")
-  (is (= "ham#4" (receive gravy :client-id "bacon" :timeout 100))))
+  (is (= "ham#4" (receive gravy :client-id "bacon" :timeout 100)))
+  (unsubscribe "bacon"))
