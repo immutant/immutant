@@ -19,12 +19,10 @@
 
 package org.immutant.messaging;
 
-import java.io.Closeable;
-
 import javax.jms.JMSException;
 import javax.jms.XAConnection;
 
-import org.immutant.core.ServiceUpListener;
+import org.immutant.core.SimpleServiceStateListener;
 import org.immutant.runtime.ClojureRuntime;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceController;
@@ -38,7 +36,7 @@ import org.projectodd.polyglot.messaging.BaseMessageProcessor;
 import org.projectodd.polyglot.messaging.BaseMessageProcessorGroup;
 import org.projectodd.polyglot.messaging.MessageProcessorService;
 
-public class MessageProcessorGroup extends BaseMessageProcessorGroup implements Closeable, MessageProcessorGroupMBean {
+public class MessageProcessorGroup extends BaseMessageProcessorGroup implements MessageProcessorGroupMBean {
 
     public MessageProcessorGroup(ServiceRegistry registry, ServiceName baseServiceName,
             String destinationName, XAConnection connection, Object setupHandler, Object afterStartCallback) {
@@ -51,7 +49,7 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
     @SuppressWarnings("unchecked")
     @Override
     public void start(StartContext context) throws StartException {
-        context.getController().addListener( new ServiceUpListener( this.clojureRuntimeInjector.getValue(), this.afterStartCallback ) );
+        context.getController().addListener( new SimpleServiceStateListener( this.clojureRuntimeInjector.getValue(), this.afterStartCallback ) );
         super.start( context );    
     }
     
@@ -74,13 +72,12 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
         return new ClojureMessageProcessorService( this, processor, this.clojureRuntimeInjector.getValue(),
                 this.setupHandler );
     }
-    
-    //convenience method so it's closeable like a consumer
-    @SuppressWarnings("rawtypes")
-    @Override
-    public void close() {
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void remove(Object callback) {
         ServiceController service = getServiceRegistry().getService( getBaseServiceName() );
         if (service != null) {
+            service.addListener( new SimpleServiceStateListener( this.clojureRuntimeInjector.getValue(), callback ) );
             service.setMode( Mode.REMOVE );
         }
     }

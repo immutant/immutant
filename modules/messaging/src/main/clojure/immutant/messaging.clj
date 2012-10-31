@@ -145,15 +145,15 @@
       (let [complete (promise)
             dest-name (destination-name name-or-dest)
             group (.createGroup izer
-                      dest-name
-                      false ;; TODO: singleton
-                      concurrency
-                      (not (nil? (:client-id opts)))
-                      (.toString f)
-                      connection
-                      setup-fn
-                      #(deliver complete true))]
-        (if (deref complete 5000 nil)
+                                dest-name
+                                false ;; TODO: singleton
+                                concurrency
+                                (not (nil? (:client-id opts)))
+                                (.toString f)
+                                connection
+                                setup-fn
+                                #(deliver complete %))]
+        (if (= "up" (deref complete 5000 nil))
           group
           (log/error "Failed to setup listener for" dest-name)))
       
@@ -219,7 +219,13 @@
    You only need to do this if you wish to stop the handler's
    destination before your app is undeployed."
   [listener]
-  (and listener (.close listener)))
+  (when listener
+    (if (instance? java.io.Closeable listener)
+      (.close listener)
+      (let [complete (promise)]
+        (.remove listener #(deliver complete %))
+        (when-not (= "removed" (deref complete 5000 nil))
+          (log/error "Failed to remove listener" listener))))))
 
 (defn stop
   "Destroy a message destination. Typically not necessary since it

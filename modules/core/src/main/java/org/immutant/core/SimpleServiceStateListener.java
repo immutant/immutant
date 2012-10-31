@@ -25,17 +25,28 @@ import org.jboss.msc.service.ServiceController.Transition;
 import org.jboss.msc.service.ServiceListener;
 
 @SuppressWarnings("rawtypes")
-public class ServiceUpListener implements ServiceListener {
+public class SimpleServiceStateListener implements ServiceListener {
 
-    public ServiceUpListener(ClojureRuntime runtime, Object callback) {
+    public SimpleServiceStateListener(ClojureRuntime runtime, Object callback) {
         this.runtime = runtime;
         this.callback = callback;
     }
     
     @Override
-    public void transition(ServiceController controller, Transition transition) { 
-        if (transition == Transition.STARTING_to_UP) {
-            this.runtime.invoke( this.callback );
+    public void transition(ServiceController controller, Transition transition) {
+        String state = null;
+        
+        switch(transition) {
+        case STARTING_to_UP:
+            state = "up";
+            break;
+        case REMOVING_to_REMOVED:
+            state = "removed";
+            break;
+        }
+        
+        if (state != null) {
+            this.runtime.invoke( this.callback, state );
         }
     }
     
