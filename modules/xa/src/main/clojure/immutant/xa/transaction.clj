@@ -26,10 +26,10 @@
   (log/info "Using proper version of java.jdbc to set transaction strategy")
   (try
     (require 'immutant.xa.jdbc-2)
-    (log/warn "Patching java.jdbc 0.2.x to set transaction strategy")
+    (log/debug "Patching java.jdbc 0.2.x to set transaction strategy")
     (catch Throwable e
       (require 'immutant.xa.jdbc-1)
-      (log/warn "Patching java.jdbc 0.1.x to set transaction strategy"))))
+      (log/debug "Patching java.jdbc 0.1.x to set transaction strategy"))))
 
 (def ^javax.transaction.TransactionManager
   manager (lookup/fetch "jboss.txn.TransactionManager"))
