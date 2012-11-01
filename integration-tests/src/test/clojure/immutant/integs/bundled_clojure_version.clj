@@ -29,5 +29,5 @@
 
 (deftest verify-clojure-version
   (let [result (client/get "http://localhost:8080/basic-ring")]
-    (println "RESPONSE:" (result :body))
+    ;;(println "RESPONSE:" (result :body))
     (is (.contains (result :body) (str "version:" (:full immutant.integs/*current-clojure-version*))))))

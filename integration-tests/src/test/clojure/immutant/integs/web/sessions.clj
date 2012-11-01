@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.sessions
+(ns immutant.integs.web.sessions
   (:use [fntest.core])
   (:use clojure.test)
   (:require [clj-http.client :as client]))

@@ -15,19 +15,17 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.noir
-  (:use [fntest.core])
-  (:use clojure.test)
-  (:require [clj-http.client :as client]))
+(ns immutant.integs.tx.tx
+  (:use fntest.core
+        clojure.test)
+  (:require [immutant.in-container :as ic]))
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "target/apps/ring/noir-app/"
-                       :context-path "/noir-app"
+                       :root "target/apps/tx/"
                        }))
 
-(deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/noir-app/welcome")]
-    ;; (println "RESPONSE" result)
-    (is (.contains (result :body) "Welcome to noir-app, jim"))))
+(deftest verify-in-container-tests
+  (ic/run-in-container-tests
+   (str "http://localhost:8080/tx?dbs=" (System/getProperty "databases"))))
 

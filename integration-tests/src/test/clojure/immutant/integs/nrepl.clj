@@ -31,6 +31,6 @@
   (with-open [conn (repl/connect :port 4321)]
     (let [response (repl/message (repl/client conn 120000)
                                  {:op :eval :code "(str \"it works!\")"})]
-      (println "RESPONSE" response)
+      ;;(println "RESPONSE" response)
       (is (= "it works!" (first (repl/response-values response)))))))
 

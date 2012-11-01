@@ -15,16 +15,18 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.xa-old-jdbc
+(ns immutant.integs.tx.xa
   (:use [fntest.core])
   (:use clojure.test)
   (:require [clj-http.client :as client]))
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "target/apps/xa-old-jdbc/"
+                       :root "target/apps/xa/"
                        }))
 
 (deftest simple "it should work"
-  (is (= "success" (:body (client/get "http://localhost:8080/xa_old_jdbc/thing")))))
+  (is (= "apple" (:body (client/get "http://localhost:8080/xa/thing?id=1"))))
+  (is (= "peach" (:body (client/get "http://localhost:8080/xa/thing?id=2"))))
+  (is (= "grape" (:body (client/get "http://localhost:8080/xa/thing?id=3")))))
 

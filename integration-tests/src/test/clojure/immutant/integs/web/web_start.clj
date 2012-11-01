@@ -15,18 +15,30 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.default-context-path
+(ns immutant.integs.web.web-start
   (:use [fntest.core])
   (:use clojure.test)
   (:require [clj-http.client :as client]))
 
-(use-fixtures :once (with-deployment *file*
+(use-fixtures :each (with-deployment *file*
                       '{
                         :root "target/apps/ring/basic-ring/"
-                        :init basic-ring.core/init-web
+                        :init basic-ring.core/init-web-start-testing
+                        :context-path "/basic-ring"
                         }))
 
-(deftest the-app-should-be-available-at "/default_context_path"
+(deftest web-start "should work"
   (is (.startsWith
-       ((client/get "http://localhost:8080/default_context_path") :body)
+       ((client/get "http://localhost:8080/basic-ring/starter") :body)
        "Hello from Immutant!")))
+
+(deftest web-stop "should work"
+  (client/get "http://localhost:8080/basic-ring/starter")
+  (is (.startsWith
+       ((client/get "http://localhost:8080/basic-ring/stopper") :body)
+       "Hello from Immutant!"))
+  (is (= 404
+         (:status (client/get "http://localhost:8080/basic-ring/stopper" {:throw-exceptions false}))))
+  (is (= 404
+         (:status (client/get "http://localhost:8080/basic-ring/starter" {:throw-exceptions false})))))
+
