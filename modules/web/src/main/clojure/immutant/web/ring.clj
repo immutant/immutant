@@ -32,7 +32,7 @@
                                (assoc (servlet/build-request-map request)
                                  :context (str (.getContextPath request)
                                                (.getServletPath request))
-                                 :path-info (.getPathInfo request))))]
+                                 :path-info (or (.getPathInfo request) "/"))))]
         (servlet/update-servlet-response response response-map)
         (throw (NullPointerException. "Handler returned nil.")))
       (throw (IllegalArgumentException. (str "No handler function found for " servlet-name))))))

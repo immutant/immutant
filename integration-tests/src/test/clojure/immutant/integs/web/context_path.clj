@@ -18,6 +18,7 @@
 (ns immutant.integs.web.context-path
   (:refer-clojure :exclude [get])
   (:use fntest.core
+        clojure.template
         clojure.test
         [slingshot.slingshot :only [try+]])
   (:require [clj-http.client :as client]))
@@ -28,22 +29,23 @@
   (let [result (client/get (str "http://localhost:8080" path))]
     [result (read-string (:body result))]))
 
+(defn verify [path context path-info]
+  (let [[result body] (get path)]
+    (is (= "context-path" (:app body)))
+    ;(println "context - path:" path "ex:" context "act:" (:context body))
+    (is (= context (:context body)))
+    ;(println "pathinfo - path:" path "ex:" path-info "act:" (:path-info body))
+    (is (= path-info (:path-info body)))))
+
 (deftest using-the-context-path-from-project-clj
   ((with-deployment "context_path.clj"
      {:root "target/apps/ring/context-path/"})
    (fn []
-     (let [[result body] (get "/context-from-project")]
-       (is (= "context-path" (:app body)))
-       (is (= "/context-from-project" (:context body)))
-       (is (= "/" (:path-info body))))
-     (let [[result body] (get "/context-from-project/foo/bar")]
-       (is (= "context-path" (:app body)))
-       (is (= "/context-from-project" (:context body)))
-       (is (= "/foo/bar" (:path-info body))))
-     (let [[result body] (get "/context-from-project/ham")]
-       (is (= "context-path" (:app body)))
-       (is (= "/context-from-project/ham" (:context body)))
-       (is (= nil (:path-info body)))))))
+     (do-template
+      [path context path-info] (verify path context path-info)
+      "/context-from-project"         "/context-from-project" "/"
+      "/context-from-project/foo/bar" "/context-from-project" "/foo/bar"
+      "/context-from-project/bar"     "/context-from-project" "/bar"))))
 
 (deftest overriding-context-path-via-descriptor
   ((with-deployment "context_path.clj"
@@ -62,15 +64,37 @@
      {:root "target/apps/ring/context-path/"
       :context-path "/"})
    (fn []
-     (let [[result body] (get "")]
-       (is (= "context-path" (:app body)))
-       (is (= "" (:context body)))
-       (is (= "/" (:path-info body))))
-     (let [[result body] (get "/foo")]
-       (is (= "context-path" (:app body)))
-       (is (= "" (:context body)))
-       (is (= "/foo" (:path-info body))))
-     (let [[result body] (get "/ham")]
-       (is (= "context-path" (:app body)))
-       (is (= "/ham" (:context body)))
-       (is (= nil (:path-info body)))))))
+     (do-template
+      [path context path-info] (verify path context path-info)
+      ""                    ""               "/"
+      "/"                   ""               "/"
+      "/foo"                ""               "/foo"
+      "/foo/"               ""               "/foo/"
+      "/subcontext"         "/subcontext"    "/"
+      "/subcontext/"        "/subcontext"    "/"
+      "/subcontext/foo"     "/subcontext"    "/foo"
+      "/subcontext/foo/"    "/subcontext"    "/foo/"
+      "/subcontext/x2"      "/subcontext/x2" "/"
+      "/subcontext/x2/"     "/subcontext/x2" "/"
+      "/subcontext/x2/foo"  "/subcontext/x2" "/foo"
+      "/subcontext/x2/foo/" "/subcontext/x2" "/foo/"))))
+
+(deftest at-a-non-root-context
+  ((with-deployment "context_path.clj"
+     {:root "target/apps/ring/context-path/"
+      :context-path "/nr"})
+   (fn []
+     (do-template
+      [path context path-info] (verify path context path-info)
+      "/nr"                    "/nr"               "/"
+      "/nr/"                   "/nr"               "/"
+      "/nr/foo"                "/nr"               "/foo"
+      "/nr/foo/"               "/nr"               "/foo/"
+      "/nr/subcontext"         "/nr/subcontext"    "/"
+      "/nr/subcontext/"        "/nr/subcontext"    "/"
+      "/nr/subcontext/foo"     "/nr/subcontext"    "/foo"
+      "/nr/subcontext/foo/"    "/nr/subcontext"    "/foo/"
+      "/nr/subcontext/x2"      "/nr/subcontext/x2" "/"
+      "/nr/subcontext/x2/"     "/nr/subcontext/x2" "/"
+      "/nr/subcontext/x2/foo"  "/nr/subcontext/x2" "/foo"
+      "/nr/subcontext/x2/foo/" "/nr/subcontext/x2" "/foo/"))))

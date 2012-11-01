@@ -4,4 +4,6 @@
 
 (web/start "/" handler)
 
-(web/start "/ham" handler)
+(web/start "/subcontext" handler)
+
+(web/start "/subcontext/x2" handler)
