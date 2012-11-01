@@ -42,7 +42,7 @@
      {:root "target/apps/ring/context-path/"})
    (fn []
      (do-template
-      [path context path-info] (verify path context path-info)
+      [path                           context                 path-info] (verify path context path-info)
       "/context-from-project"         "/context-from-project" "/"
       "/context-from-project/foo/bar" "/context-from-project" "/foo/bar"
       "/context-from-project/bar"     "/context-from-project" "/bar"))))
@@ -65,7 +65,7 @@
       :context-path "/"})
    (fn []
      (do-template
-      [path context path-info] (verify path context path-info)
+      [path                 context          path-info] (verify path context path-info)
       ""                    ""               "/"
       "/"                   ""               "/"
       "/foo"                ""               "/foo"
@@ -85,7 +85,7 @@
       :context-path "/nr"})
    (fn []
      (do-template
-      [path context path-info] (verify path context path-info)
+      [path                    context             path-info] (verify path context path-info)
       "/nr"                    "/nr"               "/"
       "/nr/"                   "/nr"               "/"
       "/nr/foo"                "/nr"               "/foo"
