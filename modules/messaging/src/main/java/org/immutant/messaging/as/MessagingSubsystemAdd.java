@@ -40,7 +40,7 @@ import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
-import org.projectodd.polyglot.messaging.destinations.processors.HornetQStartupPoolService;
+import org.projectodd.polyglot.messaging.destinations.HornetQStartupPoolService;
 import org.projectodd.polyglot.messaging.processors.ApplicationNamingContextBindingProcessor;
 
 class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {

@@ -15,16 +15,16 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.caching
+(ns immutant.integs.msg.in-container
   (:use fntest.core
         clojure.test)
   (:require [immutant.in-container :as ic]))
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "target/apps/caching/counter/"
+                       :root "target/apps/messaging/in_container/"
                        }))
 
 (deftest verify-in-container-tests
-  (ic/run-in-container-tests "http://localhost:8080/caching"))
+  (ic/run-in-container-tests "http://localhost:8080/in_container"))
 

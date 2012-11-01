@@ -131,7 +131,12 @@
 (defn stop-destination [name]
   (let [izer (lookup/fetch "destinationizer")
         manager (lookup/fetch "jboss.messaging.default.jms.manager")
-        removed? (and izer (.deleteDestination izer (destination-name name)))]
+        removed? (when izer
+                   (let [complete (promise)]
+                     (and (.destroyDestination izer
+                                               (destination-name name)
+                                               #(deliver complete %))
+                          (= "removed" (deref complete 5000 nil)))))]
     (if (and (not removed?) manager)
       (try
         (let [result (if (queue-name? name)
@@ -140,7 +145,8 @@
           (log/info "Stopped" name)
           result)
         (catch Throwable e
-          (log/warn e))))))
+          (log/warn e)))
+      removed?)))
 
 (defn stop-queue [name & {:keys [force]}]
   (if force
@@ -149,7 +155,7 @@
       (if-let [queue (.getResource (.getManagementService default) (str "jms.queue." name))]
         (cond
          (and (.isDurable queue) (< 0 (.getMessageCount queue))) (log/warn "Won't stop non-empty durable queue:" name)
-         (< 0 (.getConsumerCount queue)) (throw (Exception. "Can't stop queue with active consumers"))
+         (< 0 (.getConsumerCount queue)) (throw (IllegalStateException. "Can't stop queue with active consumers"))
          :else (stop-destination name))
         (log/warn "No management interface found for queue:" name)))))
 
@@ -158,35 +164,42 @@
     (stop-destination name)
     (if-let [default (lookup/fetch "jboss.messaging.default")]
       (if-let [topic (.getResource (.getManagementService default) (str "jms.topic." name))]
-        (cond
-         (< 0 (.getMessageCount topic)) (log/warn "Won't stop topic with messages for durable subscribers:" name)
-         (< 0 (.getSubscriptionCount topic)) (throw (Exception. "Can't stop topic with active subscribers"))
-         :else (stop-destination name))
+        (condp > 0
+          (.getMessageCount topic) (log/warn "Won't stop topic with messages for durable subscribers:" name)
+          (.getSubscriptionCount topic) (throw (IllegalStateException. "Can't stop topic with active subscribers"))
+          (stop-destination name))
         (log/warn "No management interface found for topic:" name)))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
   (if-let [izer (lookup/fetch "destinationizer")]
     
     ;; in-container
-    (.createQueue izer name durable selector)
+    (let [complete (promise)]
+      (.createQueue izer name durable selector #(deliver complete %))
+      (if-not (= "up" (deref complete 5000 nil))
+        (throw (Exception. (str "Unable to start queue: " name)))))
+
 
     ;; outside container
     (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
       (if (.createQueue manager false name selector durable (into-array String []))
         (at-exit #(stop-destination name)))
-      (throw (Exception. (str "Unable to start queue, " name))))))
+      (throw (Exception. (str "Unable to start queue: " name))))))
 
 (defn start-topic [name & opts]
   (if-let [izer (lookup/fetch "destinationizer")]
 
     ;; in-container
-    (.createTopic izer name)
+    (let [complete (promise)]
+      (.createTopic izer name #(deliver complete %))
+      (if-not (= "up" (deref complete 5000 nil))
+        (throw (Exception. (str "Unable to start topic: " name)))))
 
     ;; outside container
     (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
       (if (.createTopic manager false name (into-array String []))
         (at-exit #(stop-destination name)))
-      (throw (Exception. (str "Unable to start topic, " name))))))
+      (throw (Exception. (str "Unable to start topic: " name))))))
 
 (defn create-session [^javax.jms.XAConnection connection]
   (if (lookup/fetch factory-name)
@@ -210,7 +223,8 @@
 
 (defn destination-exists?
   ([connection name-or-dest]
-     (create-destination (create-session connection) name-or-dest)))
+     (with-open [session (create-session connection)]
+       (create-destination session name-or-dest))))
 
 (defn enlist-session
   "Enlist a session in the current transaction, if any"

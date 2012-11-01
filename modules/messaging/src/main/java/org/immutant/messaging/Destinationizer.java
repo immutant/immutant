@@ -22,15 +22,16 @@ package org.immutant.messaging;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.immutant.core.SimpleServiceStateListener;
+import org.immutant.runtime.ClojureRuntime;
 import org.jboss.as.server.deployment.DeploymentUnit;
+import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
-import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
-import org.projectodd.polyglot.messaging.destinations.QueueMetaData;
-import org.projectodd.polyglot.messaging.destinations.TopicMetaData;
-import org.projectodd.polyglot.messaging.destinations.processors.Destroyable;
+import org.projectodd.polyglot.messaging.destinations.Destroyable;
 import org.projectodd.polyglot.messaging.destinations.processors.QueueInstaller;
 import org.projectodd.polyglot.messaging.destinations.processors.TopicInstaller;
 
@@ -41,26 +42,27 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
         super( unit );
     }
 
-    public void createQueue(String queueName, boolean durable, String selector) {
-        QueueMetaData metaData = new QueueMetaData( queueName );
-        metaData.setDurable( durable );
-        metaData.setSelector( selector );
-        metaData.setBindName( DestinationUtils.cleanServiceName( queueName ) );
-        
-        this.destinations.put( queueName, QueueInstaller.deploy( getTarget(), metaData ) );
+    public void createQueue(String queueName, boolean durable, String selector, Object callback) {
+        QueueService service = new QueueService( queueName, selector, durable, 
+                                                 this.clojureRuntimeInjector.getValue(),
+                                                 callback );
+                
+        this.destinations.put( queueName, 
+                               QueueInstaller.deploy( getTarget(), service, queueName ) );
     }
     
-    public void createTopic(String topicName) {
-        TopicMetaData metaData = new TopicMetaData( topicName );
-        metaData.setBindName( DestinationUtils.cleanServiceName( topicName ) ); 
+    public void createTopic(String topicName, Object callback) {
+        TopicService service = new TopicService( topicName, 
+                                                 this.clojureRuntimeInjector.getValue(),
+                                                 callback );
         
-        this.destinations.put( topicName, TopicInstaller.deploy( getTarget(), metaData ) );
+        this.destinations.put( topicName, 
+                               TopicInstaller.deploy( getTarget(), service, topicName ) );
     }
     
-    @SuppressWarnings("rawtypes")
-    public boolean deleteDestination(String name) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public boolean destroyDestination(String name, Object callback) {
         boolean success = false;
-        
         ServiceName serviceName = this.destinations.get( name );
         if (serviceName != null) {
             ServiceController dest = getUnit().getServiceRegistry().getService( serviceName );
@@ -70,9 +72,11 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
                 if (service instanceof Destroyable) {
                     ((Destroyable)service).setShouldDestroy( true );
                 }
+                dest.addListener( new SimpleServiceStateListener( this.clojureRuntimeInjector.getValue(),
+                                                                  callback ) );
                 dest.setMode( Mode.REMOVE );
                 success = true;
-            }
+            } 
                     
             this.destinations.remove( name );
         }
@@ -80,5 +84,10 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
         return success;
     }
     
+    public Injector<ClojureRuntime> getClojureRuntimeInjector() {
+        return clojureRuntimeInjector;
+    }
+    
+    private final InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
     private Map<String, ServiceName> destinations = new HashMap<String, ServiceName>();
 }

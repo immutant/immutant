@@ -139,6 +139,7 @@
                       "consumer" (create-consumer session destination opts)
                       "handler" #(with-transaction session
                                    (f (codecs/decode-if decode? %)))}))]
+    (at-exit #(.close connection))
     (if-let [izer (reg/fetch "message-processor-groupizer")]
       
       ;; in-container
@@ -163,7 +164,6 @@
         (try
           (.setMessageListener (settings "consumer")
                                (create-listener (settings "handler")))
-          (at-exit #(.close connection))
           (.start connection)
           connection
           (catch Throwable e
