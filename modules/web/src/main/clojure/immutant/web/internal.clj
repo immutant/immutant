@@ -61,14 +61,16 @@
   `(if (.getAvailable ~context)
      (do
        ~@body)
-     (.addPropertyChangeListener
-       ~context
-       (proxy [java.beans.PropertyChangeListener] []
-         (propertyChange [evt#]
-           (when (and (= "available" (.getPropertyName evt#))
-                      (.getNewValue evt#)
-                      (not (.getOldValue evt#)))
-             ~@body))))))
+     (do
+       (.addPropertyChangeListener
+        ~context
+        (proxy [java.beans.PropertyChangeListener] []
+          (propertyChange [evt#]
+            (when (and (= "available" (.getPropertyName evt#))
+                       (.getNewValue evt#)
+                       (not (.getOldValue evt#)))
+              ~@body))))
+       nil)))
 
 (defn virtual-hosts []
   (let [vh (or (:virtual-host (reg/fetch :config)) ["default-host"])]
@@ -86,23 +88,25 @@
                    (.getService)
                    (.getMapper))
         complete (promise)]
-    (when-context-available
-     context
-     (doto wrapper
-       (.setName name)
-       (.setServletClass servlet-class)
-       (.setEnabled true)
-       (.setDynamic true)
-       (.setLoadOnStartup -1))
-     (doto context
-       (.addChild wrapper)
-       (.addServletMapping sub-context-path name))
-     (doseq [host (virtual-hosts)]
-       (.addWrapper mapper host (.getPath context) sub-context-path wrapper))
-     (deliver complete true))
-    (if (deref complete 5000 nil)
-      wrapper
-      (log/error "Failed to install servlet for" context))))
+    (if (and
+         (when-context-available
+          context
+          (doto wrapper
+            (.setName name)
+            (.setServletClass servlet-class)
+            (.setEnabled true)
+            (.setDynamic true)
+            (.setLoadOnStartup -1))
+          (doto context
+            (.addChild wrapper)
+            (.addServletMapping sub-context-path name))
+          (doseq [host (virtual-hosts)]
+            (.addWrapper mapper host (.getPath context) sub-context-path wrapper))
+          (deliver complete true)
+          true)
+         (not (deref complete 5000 nil)))
+      (log/error "Failed to install servlet for" sub-context-path)
+      wrapper)))
 
 (try-defn reqs remove-servlet [sub-context-path wrapper]
   (let [context (reg/fetch "web-context")
