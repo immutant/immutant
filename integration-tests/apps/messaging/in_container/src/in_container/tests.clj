@@ -1,6 +1,7 @@
 (ns in-container.tests
   (:use clojure.test)
-  (:require [immutant.messaging :as msg])
+  (:require [immutant.messaging :as msg]
+            [immutant.registry  :as reg])
   (:import javax.jms.JMSException))
 
 (deftest listen-on-a-queue-should-raise-for-non-existent-destinations
@@ -48,3 +49,19 @@
     (msg/start topic)
     (msg/unlisten (msg/listen topic (constantly nil)))
     (is (= true (msg/stop topic)))))
+
+(deftest force-stop-on-a-queue-should-remove-listeners
+  (let [queue "queue.force"
+        izer (reg/fetch "message-processor-groupizer")]
+    (msg/start queue)
+    (msg/listen queue (constantly nil))
+    (msg/stop queue :force true)
+    (is (not (seq (.installedGroupsFor izer queue))))))
+
+(deftest force-stop-on-a-topic-should-remove-listeners
+  (let [topic "topic.force"
+        izer (reg/fetch "message-processor-groupizer")]
+    (msg/start topic)
+    (msg/listen topic (constantly nil))
+    (msg/stop topic :force true)
+    (is (not (seq (.installedGroupsFor izer topic))))))

@@ -34,7 +34,7 @@ public class MessageProcessorGroupizerInstaller extends RegisteringProcessor {
                 
         MessageProcessorGroupizer service = new MessageProcessorGroupizer(unit);
                 
-        context.getServiceTarget().addService(MessagingServices.messageProcessorGroupInator( unit ), service)
+        context.getServiceTarget().addService(MessagingServices.messageProcessorGroupizer( unit ), service)
             .setInitialMode(Mode.ACTIVE)
             .install();
         

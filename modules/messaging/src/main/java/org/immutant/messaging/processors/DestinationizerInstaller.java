@@ -22,6 +22,7 @@ package org.immutant.messaging.processors;
 import org.immutant.core.as.CoreServices;
 import org.immutant.core.processors.RegisteringProcessor;
 import org.immutant.messaging.Destinationizer;
+import org.immutant.messaging.MessageProcessorGroupizer;
 import org.immutant.messaging.as.MessagingServices;
 import org.immutant.runtime.ClojureRuntime;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
@@ -36,10 +37,13 @@ public class DestinationizerInstaller extends RegisteringProcessor {
                 
         Destinationizer service = new Destinationizer(unit);
                 
-        context.getServiceTarget().addService(MessagingServices.destinationInator( unit ), service)
+        context.getServiceTarget().addService(MessagingServices.destinationizer( unit ), service)
             .addDependency( CoreServices.runtime( context.getDeploymentUnit() ), 
                             ClojureRuntime.class,
                             service.getClojureRuntimeInjector()  )
+            .addDependency( MessagingServices.messageProcessorGroupizer( context.getDeploymentUnit() ),
+                            MessageProcessorGroupizer.class,
+                            service.getMessageProcessorGroupizerInjector() )
             .setInitialMode(Mode.ACTIVE)
             .install();
         

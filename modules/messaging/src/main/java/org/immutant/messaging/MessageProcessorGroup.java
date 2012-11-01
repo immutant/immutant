@@ -77,9 +77,15 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
     public void remove(Object callback) {
         ServiceController service = getServiceRegistry().getService( getBaseServiceName() );
         if (service != null) {
-            service.addListener( new SimpleServiceStateListener( this.clojureRuntimeInjector.getValue(), callback ) );
+            if (callback != null) {
+                service.addListener( new SimpleServiceStateListener( this.clojureRuntimeInjector.getValue(), callback ) );
+            }
             service.setMode( Mode.REMOVE );
         }
+    }
+    
+    public void remove() {
+        remove( null );
     }
     
     public Injector<ClojureRuntime> getClojureRuntimeInjector() {

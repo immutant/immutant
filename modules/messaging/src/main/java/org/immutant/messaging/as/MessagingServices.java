@@ -32,11 +32,11 @@ public class MessagingServices {
     public static final ServiceName DESTINATIONIZER = MESSAGING.append( "destinationizer" );    
     public static final ServiceName MESSAGE_PROCESSOR_GROUPIZER = MESSAGING.append( "message-processor-groupizer" );    
     
-    public static ServiceName destinationInator(DeploymentUnit unit) {
+    public static ServiceName destinationizer(DeploymentUnit unit) {
         return unit.getServiceName().append( DESTINATIONIZER );
     }
     
-    public static ServiceName messageProcessorGroupInator(DeploymentUnit unit) {
+    public static ServiceName messageProcessorGroupizer(DeploymentUnit unit) {
         return unit.getServiceName().append( MESSAGE_PROCESSOR_GROUPIZER );
     }
     

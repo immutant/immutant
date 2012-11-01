@@ -63,6 +63,9 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public boolean destroyDestination(String name, Object callback) {
         boolean success = false;
+        
+        this.messageProcessorGroupizerInjector.getValue().removeGroupsFor( name );
+        
         ServiceName serviceName = this.destinations.get( name );
         if (serviceName != null) {
             ServiceController dest = getUnit().getServiceRegistry().getService( serviceName );
@@ -85,9 +88,14 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
     }
     
     public Injector<ClojureRuntime> getClojureRuntimeInjector() {
-        return clojureRuntimeInjector;
+        return this.clojureRuntimeInjector;
+    }
+    
+    public Injector<MessageProcessorGroupizer> getMessageProcessorGroupizerInjector() {
+        return this.messageProcessorGroupizerInjector;
     }
     
     private final InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
+    private final InjectedValue<MessageProcessorGroupizer> messageProcessorGroupizerInjector = new InjectedValue<MessageProcessorGroupizer>();
     private Map<String, ServiceName> destinations = new HashMap<String, ServiceName>();
 }
