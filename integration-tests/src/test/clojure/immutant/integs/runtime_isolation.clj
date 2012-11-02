@@ -16,9 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.runtime-isolation
-  (:use [fntest.core])
-  (:use clojure.test)
-  (:require [clj-http.client :as client]))
+  (:use fntest.core
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :each (with-deployment *file*
                       '{
@@ -28,9 +28,7 @@
                         }))
 
 (deftest verify-atom-is-the-default-value
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    (is (.contains (result :body) "a-value:default"))))
+  (= "default" (:a-value (get-as-data "/basic-ring"))))
 
 (deftest verify-atom-is-still-the-default-value-on-subsequent-deploy
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    (is (.contains (result :body) "a-value:default"))))
+  (= "default" (:a-value (get-as-data "/basic-ring"))))

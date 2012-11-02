@@ -14,7 +14,7 @@
    :headers {"Content-Type" "text/html"}
    :session session
    :cookies {"a-cookie" "a cookie value"}
-   :body (with-out-str (pr session))})
+   :body (pr-str session)})
 
 (defn handler [request]
   (respond (merge (:session request) (query-map (:query-string request)))))

@@ -16,9 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.web.default-context-path
-  (:use [fntest.core])
-  (:use clojure.test)
-  (:require [clj-http.client :as client]))
+  (:use fntest.core
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
                       '{
@@ -27,6 +27,4 @@
                         }))
 
 (deftest the-app-should-be-available-at "/default_context_path"
-  (is (.startsWith
-       ((client/get "http://localhost:8080/default_context_path") :body)
-       "Hello from Immutant!")))
+  (is (= :basic-ring (:app (get-as-data "/default_context_path")))))

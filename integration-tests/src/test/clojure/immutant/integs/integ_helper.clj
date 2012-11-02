@@ -15,7 +15,18 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.integ-helper)
+(ns immutant.integs.integ-helper
+  (:require [clj-http.client :as client]))
 
 (def deployment-class-loader-regex
   #"ImmutantClassLoader.*deployment\..*\.clj")
+
+(defn get-as-data* [path & [opts]]
+  (let [result (client/get (str "http://localhost:8080" path) opts)]
+    ;;(println "RESPONSE" result)
+    {:result result
+     :body (if (seq (:body result))
+             (read-string (:body result)))}))
+
+(defn get-as-data [path]
+  (:body (get-as-data* path)))

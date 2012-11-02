@@ -17,8 +17,8 @@
 
 (ns immutant.integs.basic
   (:use fntest.core
-        clojure.test)
-  (:require [clj-http.client :as client]))
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once 
   (with-deployment *file*
@@ -29,13 +29,10 @@
         }))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    ;(println "RESPONSE" result)
-    (is (.startsWith (result :body) "Hello from Immutant!"))))
+  (is (= :basic-ring (:app (get-as-data "/basic-ring")))))
 
 (deftest app-should-have-its-config
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    ;(println "RESPONSE" result)
-    (is (.contains (result :body) ":ham :biscuit"))))
+  (is (= :biscuit
+         (-> (get-as-data "/basic-ring") :config :ham))))
 
 

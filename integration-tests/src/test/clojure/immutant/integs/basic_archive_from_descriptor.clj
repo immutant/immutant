@@ -17,8 +17,8 @@
 
 (ns immutant.integs.basic-archive-from-descriptor
   (:use fntest.core
-        clojure.test)
-  (:require [clj-http.client :as client]))
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
                       {:root (str (System/getProperty "user.dir") "/apps/ring/basic-ring.ima")
@@ -26,6 +26,5 @@
                       ))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/basic-archive")]
-    (is (.startsWith (result :body) "Hello from Immutant!"))))
+  (is (= :basic-ring (:app (get-as-data "/basic-archive")))))
 

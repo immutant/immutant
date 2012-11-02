@@ -17,14 +17,13 @@
 
 (ns immutant.integs.basic-archive
   (:use fntest.core
-        clojure.test)
-  (:require [clj-http.client :as client]
-            [clojure.java.io :as io]))
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]])
+  (:require [clojure.java.io :as io]))
 
 (use-fixtures :once (with-deployment "basic-ring.ima"
                       (io/file (System/getProperty "user.dir") "apps/ring/basic-ring.ima")))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    (is (.startsWith (result :body) "Hello from Immutant!"))))
+  (is (= :basic-ring (:app (get-as-data "/basic-ring")))))
 

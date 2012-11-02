@@ -16,9 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.web.sessions
-  (:use [fntest.core])
-  (:use clojure.test)
-  (:require [clj-http.client :as client]))
+  (:use fntest.core
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data get-as-data*]]))
 
 
 (def cookies (atom {}))
@@ -35,13 +35,13 @@
                       (f)))
 
 (defn get-with-cookies [sub-path  & [query-string]]
-  (when-let [result (client/get
-                     (str "http://localhost:8080/sessions/" sub-path "?" query-string)
-                     {:cookies @cookies})]
+  (let [{:keys [result body]} (get-as-data*
+                               (str "/sessions/" sub-path "?" query-string)
+                               {:cookies @cookies})]
     ;; (println "RESULT:" result)
     (if (some #{"JSESSIONID" "ring-session"} (keys (:cookies result)))
       (reset! cookies (:cookies result)))
-    (read-string (:body result))))
+    body))
 
 (deftest basic-immutant-session-test
   (are [expected query-string] (= expected (get-with-cookies "immutant" query-string))

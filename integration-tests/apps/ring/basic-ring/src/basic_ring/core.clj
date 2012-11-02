@@ -17,24 +17,27 @@
 (defn response [body]
   {:status 200
    :headers {"Content-Type" "text/html"}
-   :body body})
+   :body (pr-str body)})
+
 (defn handler [request]
-  (let [body (str "Hello from Immutant! This is basic-ring <p>a-value:" @a-value
-                  "</p><p>version:" (clojure-version) "</p><p>"
-                  (pr-str (reg/fetch :config)) "</p>")]
+  (let [body {:a-value @a-value
+              :clojure-version (clojure-version)
+              :config (reg/fetch :config)
+              :app :basic-ring
+              :handler :handler}]
     (reset! a-value "not-default")
     (response body)))
 
 (defn another-handler [request]
   (reset! a-value "another-handler")
-  (handler request))
+  (response (assoc (read-string (:body (handler request))) :handler :another-handler)))
 
 (defn resource-handler [request]
   (let [res (io/as-file (io/resource "a-resource"))]
-    (response (slurp res))))
+    (response (.trim (slurp res)))))
 
 (defn request-echo-handler [request]
-  (response (prn-str (assoc request :body "<body>")))) ;; body is a inputstream, chuck it for now
+  (response (assoc request :body "<body>"))) ;; body is a inputstream, chuck it for now
 
 (defn java-class-handler [request]
   (response (SomeClass/hello)))
@@ -46,12 +49,11 @@
      (use 'clj-http.client)
      (dev/add-dependencies! '[org.yaml/snakeyaml "1.5"] "extra")
      (use 'basic-ring.extra)
-     (let [body (pr-str {:original (:dependencies original-project)
-                         :added '[[clj-http "0.5.5"]
-                                  [org.clojure/data.json "0.1.2"]
-                                  [org.yaml/snakeyaml "1.5"]]
-                         :final (:dependencies (dev/current-project))})]
-       (response body))))
+     (response  {:original (:dependencies original-project)
+                 :added '[[clj-http "0.5.5"]
+                          [org.clojure/data.json "0.1.2"]
+                          [org.yaml/snakeyaml "1.5"]]
+                 :final (:dependencies (dev/current-project))})))
 
 (defn init []
   (println "INIT CALLED"))

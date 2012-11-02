@@ -16,9 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.tx.xa-old-jdbc
-  (:use [fntest.core])
-  (:use clojure.test)
-  (:require [clj-http.client :as client]))
+  (:use fntest.core
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -26,5 +26,5 @@
                        }))
 
 (deftest simple "it should work"
-  (is (= "success" (:body (client/get "http://localhost:8080/xa_old_jdbc/thing")))))
+  (is (= "success" (get-as-data "/xa_old_jdbc/thing"))))
 

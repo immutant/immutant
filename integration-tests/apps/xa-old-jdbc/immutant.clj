@@ -24,5 +24,5 @@
 (defn handler [req]
   {:status 200
    :headers {"Content-Type" "text/plain"}
-   :body (read)})
+   :body (pr-str (read))})
 (web/start "/thing" handler)

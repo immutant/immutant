@@ -17,8 +17,8 @@
 
 (ns immutant.integs.bundled-clojure-version
   (:use fntest.core
-        clojure.test)
-  (:require [clj-http.client :as client]))
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
                       '{
@@ -28,6 +28,5 @@
                         }))
 
 (deftest verify-clojure-version
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    ;;(println "RESPONSE:" (result :body))
-    (is (.contains (result :body) (str "version:" (:full immutant.integs/*current-clojure-version*))))))
+  (is (= (:full immutant.integs/*current-clojure-version*)
+         (:clojure-version (get-as-data "/basic-ring")))))

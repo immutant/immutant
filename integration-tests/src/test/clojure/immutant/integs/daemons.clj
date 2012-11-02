@@ -27,20 +27,13 @@
                        }))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/daemons")
-        body (read-string (:body result))]
-    ;;(println "RESPONSE" result)
-    (is (> (:value body) 0))))
+  (is (< 0 (:value (get-as-data "/daemons")))))
 
 (deftest the-daemon-should-be-using-the-deployment-classloader
-  (let [result (client/get "http://localhost:8080/daemons")
-        body (read-string (:body result))]
-    ;;(println "RESPONSE" result)
-    (is (re-seq deployment-class-loader-regex (:loader body)))))
+  (is (re-find deployment-class-loader-regex
+               (:loader (get-as-data "/daemons")))))
 
 (deftest daemons-should-be-reloadable
-  (let [result (client/get "http://localhost:8080/daemons?reload=1")
-        body (read-string (:body result))]
-    ;;(println "RESPONSE" result)
-    (is (= (:value body) "another-service"))))
+  (is (= "another-service"
+         (:value (get-as-data "/daemons?reload=1")))))
 

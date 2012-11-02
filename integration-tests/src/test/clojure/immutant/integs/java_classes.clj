@@ -17,8 +17,8 @@
 
 (ns immutant.integs.java-classes
   (:use fntest.core
-        clojure.test)
-  (:require [clj-http.client :as client]))
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
                       '{
@@ -28,7 +28,5 @@
                         }))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/java-class")]
-    ;;(println "RESPONSE" result)
-    (is (.startsWith (result :body) "Hello from Java"))))
+  (is (= "Hello from Java" (get-as-data "/java-class"))))
 

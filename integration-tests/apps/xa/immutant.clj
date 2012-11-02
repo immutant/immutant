@@ -31,5 +31,5 @@
 (defn handler [{params :params}]
   {:status 200
    :headers {"Content-Type" "text/plain"}
-   :body (str (find-thing (params "id")))})
+   :body (pr-str (find-thing (params "id")))})
 (web/start "/thing" (wrap-params handler))

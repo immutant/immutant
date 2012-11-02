@@ -16,21 +16,14 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.web.context-path
-  (:refer-clojure :exclude [get])
   (:use fntest.core
         clojure.template
         clojure.test
-        [slingshot.slingshot :only [try+]])
+        [immutant.integs.integ-helper :only [get-as-data get-as-data*]])
   (:require [clj-http.client :as client]))
 
-(use-fixtures :once )
-
-(defn get [path]
-  (let [result (client/get (str "http://localhost:8080" path))]
-    [result (read-string (:body result))]))
-
 (defn verify [path context path-info]
-  (let [[result body] (get path)]
+  (let [{:keys [result body]} (get-as-data* path)]
     (is (= "context-path" (:app body)))
     ;(println "context - path:" path "ex:" context "act:" (:context body))
     (is (= context (:context body)))
@@ -52,12 +45,11 @@
      {:root "target/apps/ring/context-path/"
       :context-path "/context-from-descriptor"})
    (fn []
-     (let [[result body] (get "/context-from-descriptor")]
-       (is (= "context-path" (:app body))))
-     (try+
-       (get "/context-from-project")
-       (catch Object _
-         (is (= 404 (get-in &throw-context [:object :status]))))))))
+     (is (= "context-path" (:app (get-as-data "/context-from-descriptor"))))
+     (is (= 404
+            (-> (get-as-data* "/context-from-project" {:throw-exceptions false})
+                :result
+                :status))))))
 
 (deftest at-the-root-context
   ((with-deployment "context_path.clj"

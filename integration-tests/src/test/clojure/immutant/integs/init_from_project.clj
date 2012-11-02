@@ -17,8 +17,8 @@
 
 (ns immutant.integs.init-from-project
   (:use fntest.core
-        clojure.test)
-  (:require [clj-http.client :as client]))
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
                       '{
@@ -27,7 +27,5 @@
                         }))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/init-from-project")]
-    ;(println "RESPONSE" result)
-    (is (= (result :body) "init-from-project"))))
+  (is (= "init-from-project" (get-as-data "/init-from-project") )))
 

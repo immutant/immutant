@@ -16,9 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.web.web-start
-  (:use [fntest.core])
-  (:use clojure.test)
-  (:require [clj-http.client :as client]))
+  (:use fntest.core
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data get-as-data*]]))
 
 (use-fixtures :each (with-deployment *file*
                       '{
@@ -28,17 +28,12 @@
                         }))
 
 (deftest web-start "should work"
-  (is (.startsWith
-       ((client/get "http://localhost:8080/basic-ring/starter") :body)
-       "Hello from Immutant!")))
+  (is (= :basic-ring (:app (get-as-data "/basic-ring/starter")))))
 
 (deftest web-stop "should work"
-  (client/get "http://localhost:8080/basic-ring/starter")
-  (is (.startsWith
-       ((client/get "http://localhost:8080/basic-ring/stopper") :body)
-       "Hello from Immutant!"))
-  (is (= 404
-         (:status (client/get "http://localhost:8080/basic-ring/stopper" {:throw-exceptions false}))))
-  (is (= 404
-         (:status (client/get "http://localhost:8080/basic-ring/starter" {:throw-exceptions false})))))
+  (is (= :basic-ring (:app (get-as-data "/basic-ring/starter"))))
+  (is (= :basic-ring (:app (get-as-data "/basic-ring/stopper"))))
+  (is (= 404 (-> (get-as-data* "/basic-ring/stopper" {:throw-exceptions false}) :result :status)))
+  (is (= 404 (-> (get-as-data* "/basic-ring/starter" {:throw-exceptions false}) :result :status))))
+
 

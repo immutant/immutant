@@ -16,9 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.basic-with-immutant-clj
-  (:use [fntest.core])
-  (:use clojure.test)
-  (:require [clj-http.client :as client]))
+  (:use fntest.core
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -27,7 +27,5 @@
                        }))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    ;(println "RESPONSE" result)
-    (is (.contains (result :body) "another-handler"))))
+  (is (= :another-handler (:handler (get-as-data "/basic-ring")))))
 

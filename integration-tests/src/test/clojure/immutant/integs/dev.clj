@@ -17,8 +17,8 @@
 
 (ns immutant.integs.dev
   (:use fntest.core
-        clojure.test)
-  (:require [clj-http.client :as client]))
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
                       '{
@@ -28,8 +28,6 @@
                         }))
 
 (deftest add-dependencies!
-  (let [result (client/get "http://localhost:8080/dev")
-        body (read-string (:body result))]
-    ;; (println result)
-    (is (= (:final body)
-           (set (concat (:original body) (:added body)))))))
+  (let [result (get-as-data "/dev")]
+    (is (= (:final result)
+           (set (concat (:original result) (:added result)))))))

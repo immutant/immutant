@@ -18,8 +18,7 @@
 (ns immutant.integs.jobs
   (:use fntest.core
         clojure.test
-        immutant.integs.integ-helper)
-  (:require [clj-http.client :as client]))
+        immutant.integs.integ-helper))
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -30,9 +29,7 @@
   ([]
      (get-values ""))
   ([query]
-     (let [result (client/get (str "http://localhost:8080/jobs?" query))]
-       ;;(println "RESPONSE" result)
-       (read-string (:body result)))))
+     (get-as-data (str "/jobs?" query))))
 
 (deftest simple "it should work"
   (let [initial-value (:a-value (get-values))]
@@ -49,5 +46,5 @@
   (is (= (:another-value (get-values)) "rescheduled")))
 
 (deftest a-job-should-be-using-the-deployment-classloader
-  (is (re-seq deployment-class-loader-regex
+  (is (re-find deployment-class-loader-regex
               (:loader (get-values)))))

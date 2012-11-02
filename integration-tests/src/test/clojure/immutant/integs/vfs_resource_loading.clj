@@ -17,8 +17,8 @@
 
 (ns immutant.integs.vfs-resource-loading
   (:use fntest.core
-        clojure.test)
-  (:require [clj-http.client :as client]))
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
                       '{
@@ -28,5 +28,4 @@
                         }))
 
 (deftest test-vfs-resource-loading
-  (let [result (client/get "http://localhost:8080/basic-ring")]
-    (is (= (.trim (result :body)) "success!"))))
+  (is (= "success!" (get-as-data "/basic-ring"))))
