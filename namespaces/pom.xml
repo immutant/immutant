@@ -13,8 +13,14 @@
   <name>Immutant Namespaces Parent</name>
 
   <modules>
+    <module>cache</module>
     <module>common</module>
+    <module>daemons</module>
     <module>immutant</module>
+    <module>jobs</module>
+    <module>messaging</module>
+    <module>web</module>
+    <module>xa</module>
   </modules>
 
   <dependencies>
@@ -26,7 +32,7 @@
     </dependency>
   </dependencies>
 
-  <build> 
+  <build>
     <plugins>
       <plugin>
         <groupId>com.theoryinpractise</groupId>
@@ -58,7 +64,9 @@
           </execution>
         </executions>
       </plugin>
+
     </plugins>
-  </build> 
+
+  </build>
 
 </project>

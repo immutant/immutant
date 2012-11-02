@@ -50,6 +50,18 @@
       <scope>compile</scope>
     </dependency>
 
+    <dependency>
+      <groupId>leiningen-core</groupId>
+      <artifactId>leiningen-core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>leiningen</groupId>
+      <artifactId>leiningen</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
   </dependencies>
 
   <build>

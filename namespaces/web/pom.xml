@@ -8,45 +8,56 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant</artifactId>
-  <packaging>jar</packaging>
-  <name>Aggregate Immutant Module</name>
-  <description>An aggregate lib that pulls in all of the public Immutant libs.</description>
+  <artifactId>immutant-web</artifactId>
+  <packaging>pom</packaging>
+  <name>Public Immutant Web Namespace</name>
+  <description>The Immutant web module.</description>
 
   <dependencies>
 
-    <!-- The only dependencies here should be immutant ones! -->
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectodd</groupId>
+      <artifactId>polyglot-web</artifactId>
+      <version>${version.polyglot}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>ring</groupId>
+      <artifactId>ring-servlet</artifactId>
+      <version>${version.ring}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>ring</groupId>
+      <artifactId>ring-devel</artifactId>
+      <version>${version.ring}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-messaging</artifactId>
+      <artifactId>immutant-web-module</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-cache</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-daemons</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-jobs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-web</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-xa</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+
   </dependencies>
 
   <build>
@@ -60,9 +71,13 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version}
-                    :description "${project.description}"</args>
+                    :root-jar    "../../modules/web/target/immutant-web-module.jar"
+                    :description "${project.description}"
+                    :exclude     {ring/ring-servlet [org.clojure/clojure]
+                                  ring/ring-devel [org.clojure/clojure]}</args>
             </configuration>
           </execution>
+
         </executions>
       </plugin>
 

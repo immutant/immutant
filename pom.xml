@@ -308,13 +308,20 @@
         <version>${version.clojure-complete}</version>
       </dependency>
 
-      <!-- we explicitly bring this in here to workaround a transitive
-           dep issue with pomegranate. -->
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>data.json</artifactId>
+      <version>${version.data.json}</version>
+    </dependency>
+
+      <!-- we explicitly bring these in here to workaround 
+           pomegranate's deps colliding with those of maven. -->
       <dependency>
         <groupId>org.apache.maven.wagon</groupId>
         <artifactId>wagon-provider-api</artifactId>
-        <version>${version.wagon}</version>
+        <version>${version.wagon-provider-api}</version>
       </dependency>
+
     </dependencies>
   </dependencyManagement>
 
@@ -338,7 +345,7 @@
 
     <version.swank-clojure>1.4.2</version.swank-clojure>
     <version.nrepl>0.2.0-RC1</version.nrepl>
-    <version.wagon>2.2</version.wagon>
+    <version.wagon-provider-api>2.2</version.wagon-provider-api>
 
     <version.commons-io>2.0.1</version.commons-io>
     <version.clj-glob>1.0.0</version.clj-glob>

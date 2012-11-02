@@ -8,38 +8,16 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant</artifactId>
-  <packaging>jar</packaging>
-  <name>Aggregate Immutant Module</name>
-  <description>An aggregate lib that pulls in all of the public Immutant libs.</description>
+  <artifactId>immutant-messaging</artifactId>
+  <packaging>pom</packaging>
+  <name>Public Immutant Messaging Namespace</name>
+  <description>The Immutant messaging module.</description>
 
   <dependencies>
 
-    <!-- The only dependencies here should be immutant ones! -->
-
     <dependency>
       <groupId>org.immutant</groupId>
-      <artifactId>immutant-messaging</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-cache</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-daemons</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-jobs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-web</artifactId>
+      <artifactId>immutant-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -47,6 +25,22 @@
       <artifactId>immutant-xa</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.projectodd</groupId>
+      <artifactId>polyglot-messaging</artifactId>
+      <version>${version.polyglot}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.spec.javax.jms</groupId>
+      <artifactId>jboss-jms-api_1.1_spec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-messaging-module</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -60,9 +54,11 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version}
+                    :root-jar    "../../modules/messaging/target/immutant-messaging-module.jar"
                     :description "${project.description}"</args>
             </configuration>
           </execution>
+
         </executions>
       </plugin>
 

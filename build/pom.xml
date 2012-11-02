@@ -31,7 +31,6 @@
 
   <modules>
     <module>assembly</module>
-    <module>clojars</module>
   </modules>
 
   <profiles>

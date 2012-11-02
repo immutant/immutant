@@ -87,15 +87,6 @@
             <goal>test</goal>
           </goals>
           </execution>
-
-          <execution>
-            <id>generate-clojars-project</id>
-            <configuration>
-              <args>${project.artifactId} ${project.version}
-              :description "${project.description}"</args>
-            </configuration>
-          </execution>
-
         </executions>
       </plugin>
 

@@ -8,49 +8,51 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant</artifactId>
-  <packaging>jar</packaging>
-  <name>Aggregate Immutant Module</name>
-  <description>An aggregate lib that pulls in all of the public Immutant libs.</description>
+  <artifactId>immutant-cache</artifactId>
+  <packaging>pom</packaging>
+  <name>Public Immutant Cache Namespace</name>
+  <description>The Immutant cache module.</description>
 
   <dependencies>
 
-    <!-- The only dependencies here should be immutant ones! -->
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>core.cache</artifactId>
+      <version>${version.clojure.core.cache}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>core.memoize</artifactId>
+      <version>${version.clojure.core.memoize}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-cache-module</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-messaging</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-cache</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-daemons</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-jobs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-web</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-xa</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <build>
-    <plugins> 
+    <plugins>
 
       <plugin>
         <groupId>com.theoryinpractise</groupId>
@@ -60,9 +62,13 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version}
-                    :description "${project.description}"</args>
+                    :root-jar    "../../modules/cache/target/immutant-cache-module.jar"
+                    :description "${project.description}"
+                    :exclude     {org.clojure/core.cache [org.clojure/clojure]
+                                  org.clojure/core.memoize [org.clojure/clojure]}</args>
             </configuration>
           </execution>
+
         </executions>
       </plugin>
 

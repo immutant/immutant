@@ -112,16 +112,6 @@
               <goal>test</goal>
             </goals>
           </execution>
-
-          <execution>
-            <id>generate-clojars-project</id>
-            <configuration>
-              <args>${project.artifactId} ${project.version} 
-              :description "${project.description}"
-              :exclude {org.clojure/core.cache [org.clojure/clojure]
-                        org.clojure/core.memoize [org.clojure/clojure]}</args>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
 

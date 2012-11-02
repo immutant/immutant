@@ -10,14 +10,13 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>immutant-common</artifactId>
   <packaging>jar</packaging>
-  <name>Immutant Common Module</name>
+  <name>Immutant Common Namespace</name>
   <description>Common utilities and functions used by all the Immutant namespaces.</description>
 
   <dependencies>
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>data.json</artifactId>
-      <version>${version.data.json}</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
@@ -80,6 +79,26 @@
             <configuration>
               <args>${project.artifactId} ${project.version}
                     :description "${project.description}"</args>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>install-ns-artifact-locally</id>
+            <phase>install</phase>
+            <goals>
+              <goal>install-file</goal>
+            </goals>
+            <configuration>
+              <groupId>org.immutant</groupId>
+              <artifactId>${project.artifactId}</artifactId>
+              <file>${project.basedir}/target/${project.artifactId}-${project.version}.jar</file>
+              <pomFile>${project.basedir}/target/pom.xml</pomFile>
             </configuration>
           </execution>
         </executions>

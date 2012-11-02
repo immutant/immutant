@@ -108,16 +108,6 @@
               <goal>test</goal>
             </goals>
           </execution>
-
-          <execution>
-            <id>generate-clojars-project</id>
-            <configuration>
-              <args>${project.artifactId} ${project.version} 
-              :description "${project.description}"
-              :exclude {ring/ring-servlet [org.clojure/clojure]}</args>
-            </configuration>
-          </execution>
-
         </executions>
       </plugin>
 

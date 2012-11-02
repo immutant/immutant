@@ -27,7 +27,6 @@
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="polyglot-messaging.jar"/>
-        <resource-root path="data.json.jar"/>
     </resources>
 
     <dependencies>

@@ -8,45 +8,30 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>immutant</artifactId>
-  <packaging>jar</packaging>
-  <name>Aggregate Immutant Module</name>
-  <description>An aggregate lib that pulls in all of the public Immutant libs.</description>
+  <artifactId>immutant-jobs</artifactId>
+  <packaging>pom</packaging>
+  <name>Public Immutant Jobs Namespace</name>
+  <description>The Immutant jobs module.</description>
 
   <dependencies>
 
-    <!-- The only dependencies here should be immutant ones! -->
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectodd</groupId>
+      <artifactId>polyglot-jobs</artifactId>
+      <version>${version.polyglot}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-jobs-module</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-messaging</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-cache</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-daemons</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-jobs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-web</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-xa</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <build>
@@ -60,9 +45,11 @@
             <id>generate-clojars-project</id>
             <configuration>
               <args>${project.artifactId} ${project.version}
+                    :root-jar    "../../modules/jobs/target/immutant-jobs-module.jar"
                     :description "${project.description}"</args>
             </configuration>
           </execution>
+
         </executions>
       </plugin>
 
