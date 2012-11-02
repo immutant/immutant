@@ -59,6 +59,10 @@
   (let [project-file (io/file dir "project.clj")
         short-project-name (strip-module-suffix project-name)
         deps (->> (read-deps "target/deps.txt")
+                  ;; common has to be included here, but has to be 'provided' in the AS
+                  (map (fn [d] (if (= "immutant-common" (:name d))
+                                 (assoc d :scope "compile")
+                                 d)))
                   (filter #(= "compile" (:scope %)))
                   (map (fn [d] [(symbol (:group d) (:name d))
                                 (:version d)]))
