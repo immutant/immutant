@@ -64,6 +64,10 @@
                                  (assoc d :scope "compile")
                                  d)))
                   (filter #(= "compile" (:scope %)))
+                  ;; any module deps should instead be the public artifacts
+                  (map (fn [d] (if-let [matches (re-find #"(immutant-.*)-module" (:name d))]
+                                 (assoc d :name (last matches))
+                                 d)))
                   (map (fn [d] [(symbol (:group d) (:name d))
                                 (:version d)]))
                   (apply-exclusions (:exclude opts)))
