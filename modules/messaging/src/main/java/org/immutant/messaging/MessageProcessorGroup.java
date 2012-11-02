@@ -41,7 +41,8 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
     public MessageProcessorGroup(ServiceRegistry registry, ServiceName baseServiceName,
             String destinationName, XAConnection connection, Object setupHandler, Object afterStartCallback) {
         super( registry, baseServiceName, destinationName, MessageProcessor.class );
-        this.connection = connection;
+        setStartAsynchronously( false );
+        setConnection( connection );
         this.setupHandler = setupHandler;
         this.afterStartCallback = afterStartCallback;
     }
