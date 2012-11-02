@@ -78,6 +78,16 @@
                             (web/stop "/stopper")
                             (web/stop "/starter")
                             (handler r)))
+               (handler r)))
+  (web/start "/restarter"
+             (fn [r]
+               (web/start "/restarter"
+                          (fn [r]
+                            (-> (handler r)
+                                :body
+                                read-string
+                                (assoc :restarted true)
+                                response)))
                (handler r))))
 
 (defn init-resources []

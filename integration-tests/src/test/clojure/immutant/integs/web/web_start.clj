@@ -36,4 +36,6 @@
   (is (= 404 (-> (get-as-data* "/basic-ring/stopper" {:throw-exceptions false}) :result :status)))
   (is (= 404 (-> (get-as-data* "/basic-ring/starter" {:throw-exceptions false}) :result :status))))
 
-
+(deftest web-start-should-be-idempotent
+  (is (nil? (:restarted (get-as-data "/basic-ring/restarter"))))
+  (is (:restarted (get-as-data "/basic-ring/restarter"))))
