@@ -160,15 +160,16 @@
             (log/error "Failed to setup listener for" dest-name))))
       
       ;; out of container
-      (let [settings (setup-fn)]
-        (try
-          (.setMessageListener (settings "consumer")
-                               (create-listener (settings "handler")))
-          (.start connection)
-          connection
-          (catch Throwable e
-            (.close connection)
-            (throw e)))))))
+      (try
+        (dotimes [_ concurrency]
+          (let [settings (setup-fn)]
+            (.setMessageListener (settings "consumer")
+                                 (create-listener (settings "handler")))))
+        (.start connection)
+        connection
+        (catch Throwable e
+          (.close connection)
+          (throw e))))))
 
 (defn request
   "Send a message to queue and return a delay that will retrieve the response.
