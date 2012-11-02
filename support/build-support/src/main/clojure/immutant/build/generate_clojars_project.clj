@@ -79,11 +79,23 @@
     (let [src-jar (io/file root-jar)
           dest-jar (io/file dir (str project-name "-" version ".jar"))]
       (println "Copying" (.getAbsolutePath src-jar) "to" (.getAbsolutePath dest-jar))
-      (io/copy src-jar dest-jar))
-    project-file))
+      (io/copy src-jar dest-jar)
+      {:name project-name
+       :project-file project-file
+       :jar-file dest-jar})))
 
-(defn generate-pom [project-file]
-  (pom/pom (project/read (.getAbsolutePath project-file))))
+(defn generate-pom [{:keys [project-file] :as build-data}]
+  (assoc build-data :pom-file
+         (io/file (pom/pom (project/read (.getAbsolutePath project-file))))))
+
+(defn copy-to-parent [build-data]
+  (let [target (io/file "../target/namespaces/" (:name build-data))]
+    (.mkdirs target)
+    (doseq [f (filter (partial instance? java.io.File)
+                      (vals build-data))]
+      (let [dest (io/file target (.getName f))]
+        (println "Copying" (.getAbsolutePath f) "to" (.getAbsolutePath dest))
+        (io/copy f dest)))))
 
 (defn -main
   ([]
@@ -99,4 +111,5 @@
             project-name
             (str/trim version)
             opts)
-           generate-pom))))
+           generate-pom
+           copy-to-parent))))
