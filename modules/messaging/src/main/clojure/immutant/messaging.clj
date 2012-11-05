@@ -23,7 +23,7 @@
         [immutant.try :only (try-defn)]
         [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]
-            [immutant.registry         :as reg]
+            [immutant.registry         :as registry]
             [clojure.tools.logging     :as log]))
 
 (defn start
@@ -140,7 +140,7 @@
                       "handler" #(with-transaction session
                                    (f (codecs/decode-if decode? %)))}))]
     (at-exit #(.close connection))
-    (if-let [izer (reg/fetch "message-processor-groupizer")]
+    (if-let [izer (registry/get "message-processor-groupizer")]
       
       ;; in-container
       (when (destination-exists? connection name-or-dest)

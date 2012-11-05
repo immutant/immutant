@@ -16,7 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.registry
-  (:use [immutant.try :only [try-defn]]))
+  (:use [immutant.try :only [try-defn]])
+  (:refer-clojure :exclude (get)))
 
 (def ^{:private true} registry (atom {}))
 (def ^{:private true} msc-registry (atom nil))
@@ -25,23 +26,20 @@
   (reset! msc-registry v))
 
 (try-defn
- (import '(org.jboss.msc.service ServiceController ServiceName))
- ^{:private true} get-from-msc [name get-container?]
+ (import 'org.jboss.msc.service.ServiceName)
+ ^{:private true} get-from-msc [name]
  (if @msc-registry
    (let [key (if (string? name) (ServiceName/parse name) name)
-         ^ServiceController value (.getService @msc-registry key)]
-     (and value
-          (if get-container?
-            value
-            (.getValue value))))))
+         controller (.getService @msc-registry key)]
+     (and controller (.getValue controller)))))
   
-(defn put [k v]
+(defn put
+  [k v]
   (swap! registry assoc k v)
   v)
 
-(defn fetch
-  ([name]
-     (fetch name false))
-  ([name get-container?]
-     (or (get @registry name) (get-from-msc name get-container?))))
+(defn get
+  [name]
+  (or (clojure.core/get @registry name) (get-from-msc name)))
 
+(def ^{:doc "Deprecated; use get instead"} fetch #'get)

@@ -17,24 +17,24 @@
 
 (ns immutant.utilities
   "Various utility functions."
-  (:require [immutant.registry :as lookup]
+  (:require [immutant.registry :as registry]
             [clojure.string    :as str]
             [clojure.java.io :as io]))
 
 (defn in-immutant?
   "Returns true if running inside an Immutant container"
   []
-  (not (nil? (lookup/fetch "housekeeper"))))
+  (not (nil? (registry/get "housekeeper"))))
 
 (defn app-root
   "Returns a file pointing to the root dir of the application"
   []
-  (lookup/fetch "app-root"))
+  (registry/get "app-root"))
 
 (defn app-name
   "Returns the internal name for the app as Immutant sees it"
   []
-  (lookup/fetch "app-name"))
+  (registry/get "app-name"))
 
 (defn app-relative
   "Returns a file relative to app-root"
@@ -46,7 +46,7 @@
    Used internally to shutdown various services, but can be used by
    application code as well."
   [f]
-  (if-let [closer (lookup/fetch "housekeeper")]
+  (if-let [closer (registry/get "housekeeper")]
     (.atExit closer f)
     (println "WARN: Unable to register at-exit handler with housekeeper")))
 
@@ -54,7 +54,7 @@
 (defn ^{:private true} lookup-interface-address
   "Looks up the ip address from the proper service for the given name."
   [name]
-  (-> (lookup/fetch (str "jboss.network." name))
+  (-> (registry/get (str "jboss.network." name))
       .getAddress
       .getHostAddress))
 

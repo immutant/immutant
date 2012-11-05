@@ -19,7 +19,7 @@
   (:use [immutant.utilities :only (at-exit)]
         [immutant.try       :only (try-if)])
   (:import (javax.jms DeliveryMode Destination Queue Session Topic))
-  (:require [immutant.registry          :as lookup]
+  (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]
             [immutant.xa.transaction    :as tx]
             [clojure.tools.logging      :as log]))
@@ -45,7 +45,7 @@
 
 ;; ignore reflection here since it only occurs once at compile time
 (let [local-connection-factory
-      (if-let [reference-factory (lookup/fetch factory-name)]
+      (if-let [reference-factory (registry/get factory-name)]
         (let [reference (.getReference reference-factory)]
           (try
             (.getInstance reference)
@@ -129,8 +129,8 @@
    :else (throw (Exception. "Illegal destination name"))))
 
 (defn stop-destination [name]
-  (let [izer (lookup/fetch "destinationizer")
-        manager (lookup/fetch "jboss.messaging.default.jms.manager")
+  (let [izer (registry/get "destinationizer")
+        manager (registry/get "jboss.messaging.default.jms.manager")
         removed? (when izer
                    (let [complete (promise)]
                      (and (.destroyDestination izer
@@ -151,7 +151,7 @@
 (defn stop-queue [name & {:keys [force]}]
   (if force
     (stop-destination name)
-    (if-let [default (lookup/fetch "jboss.messaging.default")]
+    (if-let [default (registry/get "jboss.messaging.default")]
       (if-let [queue (.getResource (.getManagementService default) (str "jms.queue." name))]
         (cond
          (and (.isDurable queue) (< 0 (.getMessageCount queue))) (log/warn "Won't stop non-empty durable queue:" name)
@@ -162,7 +162,7 @@
 (defn stop-topic [name & {:keys [force]}]
   (if force
     (stop-destination name)
-    (if-let [default (lookup/fetch "jboss.messaging.default")]
+    (if-let [default (registry/get "jboss.messaging.default")]
       (if-let [topic (.getResource (.getManagementService default) (str "jms.topic." name))]
         (condp > 0
           (.getMessageCount topic) (log/warn "Won't stop topic with messages for durable subscribers:" name)
@@ -171,7 +171,7 @@
         (log/warn "No management interface found for topic:" name)))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
-  (if-let [izer (lookup/fetch "destinationizer")]
+  (if-let [izer (registry/get "destinationizer")]
     
     ;; in-container
     (let [complete (promise)]
@@ -181,13 +181,13 @@
 
 
     ;; outside container
-    (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
+    (if-let [manager (registry/get "jboss.messaging.default.jms.manager")]
       (if (.createQueue manager false name selector durable (into-array String []))
         (at-exit #(stop-destination name)))
       (throw (Exception. (str "Unable to start queue: " name))))))
 
 (defn start-topic [name & opts]
-  (if-let [izer (lookup/fetch "destinationizer")]
+  (if-let [izer (registry/get "destinationizer")]
 
     ;; in-container
     (let [complete (promise)]
@@ -196,13 +196,13 @@
         (throw (Exception. (str "Unable to start topic: " name)))))
 
     ;; outside container
-    (if-let [manager (lookup/fetch "jboss.messaging.default.jms.manager")]
+    (if-let [manager (registry/get "jboss.messaging.default.jms.manager")]
       (if (.createTopic manager false name (into-array String []))
         (at-exit #(stop-destination name)))
       (throw (Exception. (str "Unable to start topic: " name))))))
 
 (defn create-session [^javax.jms.XAConnection connection]
-  (if (lookup/fetch factory-name)
+  (if (registry/get factory-name)
     (.createXASession connection)
     (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
 

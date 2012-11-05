@@ -118,24 +118,24 @@
    configuration. In addition to the above options, you can put any values you need 
    into the configuration within the deployment descriptor or the =:immutant= map of 
    =project.clj=. This full configuration (including the above options) is available
-   to your application by passing the =:config= key to [[./apidoc/immutant.registry-api.html#immutant.registry/fetch][immutant.registry/fetch]]:
+   to your application by passing the =:config= key to [[./apidoc/immutant.registry-api.html#immutant.registry/get][immutant.registry/get]]:
 
    #+begin_src clojure
      (require '[immutant.registry :as registry])
      
-     (let [cfg (registry/fetch :config)]
+     (let [cfg (registry/get :config)]
        (:root cfg)              ;; "/the/path/to/my/app"
        (:init cfg)              ;; my.app/init
        (:my-custom-option cfg)) ;; :my-custom-value
    #+end_src
 
    If you need access to the leiningen project map for the application, it is available
-   from [[./apidoc/immutant.registry-api.html#immutant.registry/fetch][immutant.registry/fetch]] under the =:project= key:
+   from [[./apidoc/immutant.registry-api.html#immutant.registry/get][immutant.registry/get]] under the =:project= key:
 
    #+begin_src clojure
      (require '[immutant.registry :as registry])
      
-     (registry/fetch :project)
+     (registry/get :project)
    #+end_src
    
 * Files Used In Configuration & Initialization

@@ -18,7 +18,7 @@
 (ns test.immutant.messaging
   (:use immutant.messaging
         clojure.test)
-  (:require [immutant.registry :as lookup]))
+  (:require [immutant.registry :as registry]))
 
 (def dummies { "jboss.messaging.default.jms.manager"
                (proxy [org.hornetq.jms.server.JMSServerManager][]
@@ -28,7 +28,7 @@
 
 (defn test-already-running [destination]
   (let [names (atom (keys dummies))]
-    (with-redefs [lookup/fetch (fn [k]
+    (with-redefs [registry/get (fn [k]
                                  (swap! names (partial remove #(= % k)))
                                  (dummies k))]
       (is (not (empty? @names)))
