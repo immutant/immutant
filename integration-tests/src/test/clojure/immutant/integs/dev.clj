@@ -27,7 +27,12 @@
                         :context-path "/dev"
                         }))
 
-(deftest add-dependencies!
+(deftest dev-ns-functions
   (let [result (get-as-data "/dev")]
-    (is (= (:final result)
-           (set (concat (:original result) (:added result)))))))
+    (testing "add-dependencies"
+      (is (= (:final result)
+             (set (concat (:original result) (:added result))))))
+
+    (when (not= "1.3.0" (:full immutant.integs/*current-clojure-version*))
+      (testing "data-readers are re-read"
+        (is (= "something" (:with-data-reader result)))))))

@@ -114,7 +114,9 @@ from project.clj when the application was deployed reload-project! has yet
 (defn reload-project!
   "Resets the application's class loader to provide the paths and dependencies in the
 from the given project. If no project is provided, the project.clj for the appplication
-is loaded from disk. Returns the project map. This should never be used in production. (beta)"
+is loaded from disk. If used under clojure > 1.3.0, this will also make any new data
+readers from the dependencies available. Returns the project map. This should never
+be used in production. (beta)"
   ([]
      (reload-project! (read-project)))
   ([project]
