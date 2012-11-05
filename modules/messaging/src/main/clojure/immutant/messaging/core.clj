@@ -16,9 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging.core
-  (:use [immutant.utilities :only (at-exit)]
-        [immutant.try       :only (try-if)])
-  (:import (javax.jms DeliveryMode Destination Queue Session Topic))
+  (:use [immutant.utilities :only (at-exit)])
+  (:import (javax.jms DeliveryMode Destination JMSException Queue Session Topic))
   (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]
             [immutant.xa.transaction    :as tx]
@@ -76,6 +75,9 @@
     String          name-or-dest
     javax.jms.Queue (.getQueueName name-or-dest)
     javax.jms.Topic (.getTopicName name-or-dest)))
+
+(defn jms-name [dest-name]
+  (str "jms." (if (queue? dest-name) "queue." "topic.") dest-name))
 
 (defn wash-publish-options
   "Wash publish options relative to default values from a producer"
@@ -152,7 +154,7 @@
   (if force
     (stop-destination name)
     (if-let [default (registry/get "jboss.messaging.default")]
-      (if-let [queue (.getResource (.getManagementService default) (str "jms.queue." name))]
+      (if-let [queue (.getResource (.getManagementService default) (jms-name name))]
         (cond
          (and (.isDurable queue) (< 0 (.getMessageCount queue))) (log/warn "Won't stop non-empty durable queue:" name)
          (< 0 (.getConsumerCount queue)) (throw (IllegalStateException. "Can't stop queue with active consumers"))
@@ -163,7 +165,7 @@
   (if force
     (stop-destination name)
     (if-let [default (registry/get "jboss.messaging.default")]
-      (if-let [topic (.getResource (.getManagementService default) (str "jms.topic." name))]
+      (if-let [topic (.getResource (.getManagementService default) (jms-name name))]
         (condp > 0
           (.getMessageCount topic) (log/warn "Won't stop topic with messages for durable subscribers:" name)
           (.getSubscriptionCount topic) (throw (IllegalStateException. "Can't stop topic with active subscribers"))
@@ -172,34 +174,23 @@
 
 (defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
   (if-let [izer (registry/get "destinationizer")]
-    
-    ;; in-container
-    (let [complete (promise)]
-      (.createQueue izer name durable selector #(deliver complete %))
-      (if-not (= "up" (deref complete 5000 nil))
-        (throw (Exception. (str "Unable to start queue: " name)))))
-
-
-    ;; outside container
-    (if-let [manager (registry/get "jboss.messaging.default.jms.manager")]
-      (if (.createQueue manager false name selector durable (into-array String []))
-        (at-exit #(stop-destination name)))
-      (throw (Exception. (str "Unable to start queue: " name))))))
+    (let [complete (promise)
+          service-created (.createQueue izer name durable selector #(deliver complete %))]
+      (if service-created
+        (when (not= "up" (deref complete 5000 nil))
+          (throw (Exception. (str "Unable to start queue: " name))))
+        (log/info "Queue already exists:" name)))
+    (throw (Exception. (str "Unable to start queue: " name)))))
 
 (defn start-topic [name & opts]
   (if-let [izer (registry/get "destinationizer")]
-
-    ;; in-container
-    (let [complete (promise)]
-      (.createTopic izer name #(deliver complete %))
-      (if-not (= "up" (deref complete 5000 nil))
-        (throw (Exception. (str "Unable to start topic: " name)))))
-
-    ;; outside container
-    (if-let [manager (registry/get "jboss.messaging.default.jms.manager")]
-      (if (.createTopic manager false name (into-array String []))
-        (at-exit #(stop-destination name)))
-      (throw (Exception. (str "Unable to start topic: " name))))))
+    (let [complete (promise)
+          service-created (.createTopic izer name #(deliver complete %))]
+      (if service-created
+        (when (not= "up" (deref complete 5000 nil))
+          (throw (Exception. (str "Unable to start topic: " name))))
+        (log/info "Topic already exists:" name)))
+    (throw (Exception. (str "Unable to start topic: " name)))))
 
 (defn create-session [^javax.jms.XAConnection connection]
   (if (registry/get factory-name)
@@ -222,9 +213,11 @@
     (.createConsumer session destination selector)))
 
 (defn destination-exists?
-  ([connection name-or-dest]
-     (with-open [session (create-session connection)]
-       (create-destination session name-or-dest))))
+  [connection name-or-dest]
+  (try
+    (with-open [session (create-session connection)]
+      (create-destination session name-or-dest))
+    (catch JMSException _)))
 
 (defn enlist-session
   "Enlist a session in the current transaction, if any"
@@ -278,7 +271,6 @@
   (reify javax.jms.MessageListener
     (onMessage [_ message]
       (handler message))))
-
 
 ;; TODO: This is currently unused and, if deemed necessary, could
 ;; probably be better implemented

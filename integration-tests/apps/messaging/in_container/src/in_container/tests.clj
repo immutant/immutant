@@ -1,15 +1,14 @@
 (ns in-container.tests
   (:use clojure.test)
   (:require [immutant.messaging :as msg]
-            [immutant.registry  :as reg])
-  (:import javax.jms.JMSException))
+            [immutant.registry  :as reg]))
 
 (deftest listen-on-a-queue-should-raise-for-non-existent-destinations
-  (is (thrown? JMSException
+  (is (thrown? IllegalStateException
                (msg/listen "a.non-existent.queue" (constantly nil)))))
 
 (deftest listen-on-a-topic-should-raise-for-non-existent-destinations
-  (is (thrown? JMSException
+  (is (thrown? IllegalStateException
                (msg/listen "a.non-existent.topic" (constantly nil)))))
 
 (deftest queue-start-should-be-synchronous
@@ -28,15 +27,36 @@
   (let [queue "queue.stop.sync"]
     (msg/start queue)
     (msg/stop queue)
-    (is (thrown? JMSException
+    (is (thrown? IllegalStateException
                  (msg/listen queue (constantly true))))))
 
 (deftest topic-stop-should-be-synchronous
   (let [topic "topic.stop.sync"]
     (msg/start topic)
     (msg/stop topic)
-    (is (thrown? JMSException
+    (is (thrown? IllegalStateException
                  (msg/listen topic (constantly true))))))
+
+(deftest queue-start-should-be-idempotent
+  (let [queue "queue.id"]
+    (msg/start queue)
+    (try
+      (msg/start queue)
+      (is true)
+      (catch Exception e
+          (.printStackTrace e)
+          (is false)))))
+
+
+(deftest topic-start-should-be-idempotent
+  (let [topic "topic.id"]
+    (msg/start topic)
+    (try
+      (msg/start topic)
+      (is true)
+      (catch Exception e
+          (.printStackTrace e)
+          (is false)))))
 
 (deftest unlisten-on-a-queue-should-be-synchronous
   (let [queue "queue.ham"]

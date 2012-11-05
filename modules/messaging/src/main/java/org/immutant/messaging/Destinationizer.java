@@ -42,22 +42,34 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
         super( unit );
     }
 
-    public void createQueue(String queueName, boolean durable, String selector, Object callback) {
+    public boolean createQueue(String queueName, boolean durable, String selector, Object callback) {
+        if (this.destinations.containsKey( queueName )) {
+            return false;
+        } 
+        
         QueueService service = new QueueService( queueName, selector, durable, 
                                                  this.clojureRuntimeInjector.getValue(),
                                                  callback );
-                
+                    
         this.destinations.put( queueName, 
                                QueueInstaller.deploy( getTarget(), service, queueName ) );
+        
+        return true;
     }
     
-    public void createTopic(String topicName, Object callback) {
+    public boolean createTopic(String topicName, Object callback) {
+        if (this.destinations.containsKey( topicName )) {
+            return false;
+        } 
+        
         TopicService service = new TopicService( topicName, 
                                                  this.clojureRuntimeInjector.getValue(),
                                                  callback );
         
         this.destinations.put( topicName, 
                                TopicInstaller.deploy( getTarget(), service, topicName ) );
+        
+        return true;
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })

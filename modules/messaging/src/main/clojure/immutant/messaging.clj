@@ -132,6 +132,7 @@
                    to be set) [nil]"
   [name-or-dest f & {:keys [concurrency decode?] :or {concurrency 1 decode? true} :as opts}]
   (let [connection (create-connection opts)
+        dest-name (destination-name name-or-dest)
         setup-fn (fn []
                    (let [session (create-session connection)
                          destination (create-destination session name-or-dest)]
@@ -143,9 +144,8 @@
     (if-let [izer (registry/get "message-processor-groupizer")]
       
       ;; in-container
-      (when (destination-exists? connection name-or-dest)
+      (if (destination-exists? connection dest-name)
         (let [complete (promise)
-              dest-name (destination-name name-or-dest)
               group (.createGroup izer
                                   dest-name
                                   false ;; TODO: singleton
@@ -157,7 +157,8 @@
                                   #(deliver complete %))]
           (if (= "up" (deref complete 5000 nil))
             group
-            (log/error "Failed to setup listener for" dest-name))))
+            (log/error "Failed to setup listener for" dest-name)))
+        (throw (IllegalStateException. (str "Destination " dest-name " does not exist."))))
       
       ;; out of container
       (try
