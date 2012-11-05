@@ -115,7 +115,7 @@
     ;; receives at /my-app/somewhere/*.
     (web/start "/somewhere" my-other-handler)
     
-    ;; In development mode, you want to see your changes immediately
+    ;; When you are developing, you want to see your changes immediately
     (web/start your-handler :reload true)
   #+end_src
 
