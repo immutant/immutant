@@ -23,7 +23,7 @@
   (:import [org.immutant.jobs ClojureJob ScheduledJobMBean]))
 
 (defn ^{:private true} job-schedulizer  []
-  (registry/fetch "job-schedulizer"))
+  (registry/get "job-schedulizer"))
 
 (defn ^{:internal true} create-scheduler
   "Creates a scheduler for the current application.
@@ -36,7 +36,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
   "Retrieves the appropriate scheduler, creating it if necessary"
   [singleton]
   (let [name (str (if singleton "singleton-" "") "job-scheduler")]
-    (if-let [scheduler (registry/fetch name)]
+    (if-let [scheduler (registry/get name)]
       scheduler
       (registry/put name (create-scheduler singleton)))))
 
@@ -84,7 +84,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
                  scheduler
                  #(.addJob scheduler
                            name (app-name)
-                           (ClojureJob. (registry/fetch "clojure-runtime") f)))
+                           (ClojureJob. (registry/get "clojure-runtime") f)))
                 (let [^BaseScheduledJob this this] ;; hack to eliminate reflection
                   (proxy-super start)))
               (getScheduler []

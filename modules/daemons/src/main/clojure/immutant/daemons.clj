@@ -18,7 +18,7 @@
 (ns immutant.daemons
   "Asynchronous, highly-available services that share the lifecycle of
    your application"
-  (:require [immutant.registry :as lookup]))
+  (:require [immutant.registry :as registry]))
 
 (defprotocol Daemon
   "Functions for controlling a long-running service"
@@ -33,7 +33,7 @@
    If :singleton is truthy, the service will start on only one node in
    a cluster"
   [name daemon & {singleton :singleton :or {singleton true}}]
-  (if-let [daemonizer (lookup/fetch "daemonizer")]
+  (if-let [daemonizer (registry/get "daemonizer")]
     (.createDaemon daemonizer name #(start daemon) #(stop daemon) (boolean singleton))))
 
 (defn create [start-fn stop-fn]

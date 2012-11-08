@@ -3,7 +3,7 @@
             [immutant.web            :as web]
             [immutant.web.session    :as isession]
             [immutant.repl           :as repl]
-            [immutant.registry       :as reg]
+            [immutant.registry       :as registry]
             [immutant.utilities      :as util]
             [immutant.dev            :as dev]
             [ring.middleware.session :as rsession]
@@ -22,7 +22,7 @@
 (defn handler [request]
   (let [body {:a-value @a-value
               :clojure-version (clojure-version)
-              :config (reg/fetch :config)
+              :config (registry/get :config)
               :app :basic-ring
               :handler :handler}]
     (reset! a-value "not-default")

@@ -18,7 +18,7 @@
 (ns immutant.web
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
-  (:require [immutant.registry      :as reg]
+  (:require [immutant.registry      :as registry]
             [clojure.tools.logging  :as log]
             [immutant.utilities     :as util]
             [ring.middleware.reload :as ring])

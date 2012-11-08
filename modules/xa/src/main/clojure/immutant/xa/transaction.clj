@@ -18,7 +18,7 @@
 (ns immutant.xa.transaction
   "Fine-grained XA transactional control"
   (:use [immutant.try :only [try-defn]])
-  (:require [immutant.registry :as lookup]
+  (:require [immutant.registry :as registry]
             [clojure.tools.logging :as log]
             clojure.java.jdbc))
 
@@ -32,7 +32,7 @@
       (log/debug "Patching java.jdbc 0.1.x to set transaction strategy"))))
 
 (def ^javax.transaction.TransactionManager
-  manager (lookup/fetch "jboss.txn.TransactionManager"))
+  manager (registry/get "jboss.txn.TransactionManager"))
 
 (defn available?
   "Returns true if a TransactionManager is available to manage XA transactions"
@@ -67,7 +67,7 @@
  [f]
  (.registerSynchronization (current)
                            (Synchronization.
-                            (lookup/fetch "clojure-runtime")
+                            (registry/get "clojure-runtime")
                             f)))
 
 (defn no-tx-strategy

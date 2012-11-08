@@ -26,7 +26,7 @@
                    'org.infinispan.transaction.lookup.GenericTransactionManagerLookup
                    'org.infinispan.util.concurrent.IsolationLevel))
 
-(def clustered-manager (registry/fetch "jboss.infinispan.web"))
+(def clustered-manager (registry/get "jboss.infinispan.web"))
 (try-def reqs local-manager (delay (DefaultCacheManager.)))
 
 (try-defn reqs cache-mode

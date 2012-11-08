@@ -30,12 +30,12 @@
 (deffact "non-singleton scheduler lookup should do the right thing"
   (scheduler false) => :scheduler
   (provided
-    (registry/fetch "job-scheduler") => :scheduler))
+    (registry/get "job-scheduler") => :scheduler))
 
 (deffact "singleton scheduler lookup should do the right thing"
   (scheduler true) => :scheduler
   (provided
-    (registry/fetch "singleton-job-scheduler") => :scheduler))
+    (registry/get "singleton-job-scheduler") => :scheduler))
 
 (deffact "scheduler creation should occur if the scheduler is not available"
   (scheduler true) => :scheduler

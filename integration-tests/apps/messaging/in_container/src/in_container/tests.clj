@@ -1,7 +1,7 @@
 (ns in-container.tests
   (:use clojure.test)
   (:require [immutant.messaging :as msg]
-            [immutant.registry  :as reg]))
+            [immutant.registry  :as registry]))
 
 (deftest listen-on-a-queue-should-raise-for-non-existent-destinations
   (is (thrown? IllegalStateException
@@ -72,7 +72,7 @@
 
 (deftest force-stop-on-a-queue-should-remove-listeners
   (let [queue "queue.force"
-        izer (reg/fetch "message-processor-groupizer")]
+        izer (registry/get "message-processor-groupizer")]
     (msg/start queue)
     (msg/listen queue (constantly nil))
     (msg/stop queue :force true)
@@ -80,7 +80,7 @@
 
 (deftest force-stop-on-a-topic-should-remove-listeners
   (let [topic "topic.force"
-        izer (reg/fetch "message-processor-groupizer")]
+        izer (registry/get "message-processor-groupizer")]
     (msg/start topic)
     (msg/listen topic (constantly nil))
     (msg/stop topic :force true)

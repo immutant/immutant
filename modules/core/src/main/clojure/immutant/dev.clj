@@ -18,7 +18,7 @@
 (ns immutant.dev
   "Functions useful for repl based development inside an Immutant container. They
 shouldn't be used in production."
-  (:require [immutant.registry     :as reg]
+  (:require [immutant.registry     :as registry]
             [immutant.utilities    :as util]
             [immutant.try          :as try]
             [immutant.runtime.util :as runtime]
@@ -36,7 +36,7 @@ shouldn't be used in production."
   "Attempts to unmount the given resources. Returns a collection of the resources
 that weren't unmounted."
   [resources]
-  (let [mounter (reg/fetch "resource-mounter")]
+  (let [mounter (registry/get "resource-mounter")]
     (reduce (fn [acc resource]
               (if (and resource (.unmount mounter (.getURL resource)))
                 acc
@@ -47,7 +47,7 @@ that weren't unmounted."
 (defn ^:private mount-paths
   "Mounts the given paths and returns a collection of the resulting resources."
   [paths]
-  (let [mounter (reg/fetch "resource-mounter")]
+  (let [mounter (registry/get "resource-mounter")]
     (map #(.mount mounter (io/file %)) paths)))
 
 (defn ^:private read-project
@@ -56,7 +56,7 @@ that weren't unmounted."
   (read-string
    (ApplicationBootstrapUtils/readProjectAsString
     (util/app-root) 
-    (map str (:lein-profiles (reg/fetch :config))))))
+    (map str (:lein-profiles (registry/get :config))))))
 
 (defn ^:private get-dependency-paths [project]
   (mount-paths
@@ -91,7 +91,7 @@ This will be the last project reloaded by reload-project!, or the map read
 from project.clj when the application was deployed reload-project! has yet
  to be called."
   []
-  (reg/fetch :project))
+  (registry/get :project))
 
 
 (defonce ^:private original-default-data-readers (if-let [d (util/try-resolve 'clojure.core/default-data-readers)] @d))
@@ -120,7 +120,7 @@ be used in production. (beta)"
   ([]
      (reload-project! (read-project)))
   ([project]
-     (reg/put :project project)
+     (registry/put :project project)
      (let [new-resources (concat
                           (get-dependency-paths project)
                           (get-project-paths project))

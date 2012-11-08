@@ -17,7 +17,7 @@
 
 (ns immutant.web.internal
   (:require
-   [immutant.registry     :as reg]
+   [immutant.registry     :as registry]
    [immutant.utilities    :as util]
    [clojure.tools.logging :as log])
   
@@ -73,7 +73,7 @@
        nil)))
 
 (defn virtual-hosts []
-  (let [vh (or (:virtual-host (reg/fetch :config)) ["default-host"])]
+  (let [vh (or (:virtual-host (registry/get :config)) ["default-host"])]
     (if (coll? vh)
       vh
       [vh])))
@@ -81,10 +81,10 @@
 (def reqs '(import '(org.apache.catalina.core StandardContext)))
 
 (try-defn reqs install-servlet [servlet-class sub-context-path]
-  (let [context (reg/fetch "web-context")
+  (let [context (registry/get "web-context")
         name (servlet-name sub-context-path)
         wrapper (.createWrapper context)
-        mapper (-> (reg/fetch "jboss.web")
+        mapper (-> (registry/get "jboss.web")
                    (.getService)
                    (.getMapper))
         complete (promise)]
@@ -109,8 +109,8 @@
       wrapper)))
 
 (try-defn reqs remove-servlet [sub-context-path wrapper]
-  (let [context (reg/fetch "web-context")
-        mapper (-> (reg/fetch "jboss.web")
+  (let [context (registry/get "web-context")
+        mapper (-> (registry/get "jboss.web")
                    (.getService)
                    (.getMapper))]
     (when-context-available
