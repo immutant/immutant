@@ -184,7 +184,7 @@
 
   But certain libraries require actual filesystem paths to directories
   at runtime, so you need to be able to determine the path to the 
-  application root. You can do so via the [[./apidoc/immutant.utilities.html#immutant.utilities/app-relative][immutant.utilities/app-relative]] 
+  application root. You can do so via the [[./apidoc/immutant.util.html#immutant.util/app-relative][immutant.util/app-relative]] 
   function.
 
 ** An example
@@ -200,6 +200,6 @@
   But this *will* work on Immutant, because it returns an absolute path:
 
   #+begin_src clojure
-    (require '[immutant.utilities :as util])
+    (require '[immutant.util :as util])
     (noir.server/load-views (util/app-relative "src/my_project_name/views"))
   #+end_src

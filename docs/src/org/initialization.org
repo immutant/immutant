@@ -191,7 +191,7 @@
                  [immutant.messaging :as messaging]
                  [immutant.web       :as web]
                  [immutant.repl      :as repl]
-                 [immutant.utilities :as util]
+                 [immutant.util      :as util]
                  [noir.server        :as server]
                  [my-app.core        :as core]))
      
