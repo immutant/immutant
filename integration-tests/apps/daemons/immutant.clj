@@ -23,12 +23,12 @@
                        :value (constantly "another-service")
                        :loader (constantly "who cares?")})
 
-(daemon/run "counter" (:start service) (:stop service))
+(daemon/daemonize "counter" (:start service) (:stop service))
 
 (defn handler [request]
   (let [s (if (re-find #"reload" (or (:query-string request) ""))
             (do
-              (daemon/run "counter" (:start another-service) (:stop another-service))
+              (daemon/daemonize "counter" (:start another-service) (:stop another-service))
               another-service)
             service)]
     {:status 200

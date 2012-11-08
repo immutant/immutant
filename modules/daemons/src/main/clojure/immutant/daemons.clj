@@ -27,7 +27,7 @@
   (stop [daemon]
     "Stop the service"))
 
-(defn daemonize
+(defn create
   "Start a daemon asynchronously, creating an MBean named by name,
    invoking the stop function automatically at undeployment/shutdown.
    If :singleton is truthy, the service will start on only one node in
@@ -36,13 +36,11 @@
   (if-let [daemonizer (registry/get "daemonizer")]
     (.createDaemon daemonizer name #(start daemon) #(stop daemon) (boolean singleton))))
 
-(defn create [start-fn stop-fn]
-  "Convenience function for creating a Daemon instance"
-  (reify Daemon
-    (start [_] (start-fn))
-    (stop [_] (stop-fn))))
-
-(defn run
-  "Convenient overload of daemonize, encapsulating the creation of a Daemon"
+(defn daemonize
+  "Convenience function for creating a daemon from a name and
+  start/stop functions"
   [name start-fn stop-fn & opts]
-  (apply daemonize name (create start-fn stop-fn) opts))
+  (let [daemon (reify Daemon
+                 (start [_] (start-fn))
+                 (stop [_] (stop-fn)))]
+    (apply create name daemon opts)))

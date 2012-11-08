@@ -13,11 +13,11 @@
 
   The primary abstraction is the =Daemon= protocol, which prescribes
   two methods: =start= and =stop=. Daemon instances are passed to the
-  [[./apidoc/immutant.daemons-api.html#immutant.daemons/daemonize][immutant.daemons/daemonize]] function along with a name. A JMX MBean
+  [[./apidoc/immutant.daemons-api.html#immutant.daemons/create][immutant.daemons/create]] function along with a name. A JMX MBean
   is then created and started asynchronously. The stop function is
   automatically invoked when your application is undeployed.
 
-  A convenience function, [[./apidoc/immutant.daemons-api.html#immutant.daemons/run][immutant.daemons/run]], may be used to
+  A convenience function, [[./apidoc/immutant.daemons-api.html#immutant.daemons/daemonize][immutant.daemons/daemonize]], may be used to
   encapsulate the creation of a Daemon from two functions. It takes
   three parameters:
 
@@ -66,7 +66,7 @@
       (stop [_] (reset! done true)))
     
     ;; Register the daemon
-    (daemon/daemonize "mydaemon" (Service.) :singleton true)
+    (daemon/create "mydaemon" (Service.) :singleton true)
   #+end_src
 
   And alternatively, passing two functions:
@@ -92,5 +92,5 @@
       (reset! done true))
     
     ;; Register the daemon
-    (daemon/run "mydaemon" start stop :singleton false)
+    (daemon/daemonize "mydaemon" start stop :singleton false)
   #+end_src

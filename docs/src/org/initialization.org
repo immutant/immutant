@@ -208,7 +208,7 @@
      (jobs/schedule "my-job" "*/5 * * * * ?" core/process-tps-reports)
      
      ;; start a daemon
-     (deamons/start "my-daemon" core/daemon-start core/daemon-stop)
+     (deamons/daemonize "my-daemon" core/daemon-start core/daemon-stop)
      
      ;; create a queue
      (messaging/start "/queue/foo")
