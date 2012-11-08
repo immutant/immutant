@@ -1,6 +1,6 @@
 (ns noir-app.init
   (:require [immutant.web :as web]
-            [immutant.utilities :as util]
+            [immutant.util :as util]
             [noir.server :as server]
             [lobos.config]))
 

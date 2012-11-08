@@ -19,10 +19,11 @@
   (:use [clojure.test]
         [fntest.core]
         [clojure.tools.namespace :only (find-namespaces-in-dir)])
-  (:require [clojure.java.io             :as io]
-            [clojure.string              :as string]
-            [clojure.walk                :as walk]
-            [cemerick.pomegranate.aether :as aether]))
+  (:require [clojure.java.io               :as io]
+            [clojure.string                :as string]
+            [clojure.walk                  :as walk]
+            [cemerick.pomegranate.aether   :as aether]
+            [immutant.deploy-tools.archive :as archive]))
 
 (def ^{:dynamic true} *current-clojure-version* nil)
 

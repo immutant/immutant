@@ -18,8 +18,8 @@
 (ns immutant.xa
   "Distributed XA transactional support"
   (:import javax.naming.InitialContext)
-  (:require [immutant.registry :as registry]
-            [immutant.utilities :as util]
+  (:require [immutant.registry       :as registry]
+            [immutant.util           :as util]
             [immutant.xa.transaction :as tx]))
 
 (defn datasource

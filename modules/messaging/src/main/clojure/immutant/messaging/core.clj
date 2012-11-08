@@ -16,7 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging.core
-  (:use [immutant.utilities :only (at-exit)])
+  (:use [immutant.util :only (at-exit)])
   (:import (javax.jms DeliveryMode Destination JMSException Queue Session Topic))
   (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]

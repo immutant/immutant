@@ -1,6 +1,6 @@
 (ns tx.core
   (:use clojure.test
-        [immutant.utilities :only [in-immutant?]])
+        [immutant.util :only [in-immutant?]])
   (:require [immutant.xa :as ixa]
             [immutant.cache :as ic]
             [immutant.messaging :as imsg]

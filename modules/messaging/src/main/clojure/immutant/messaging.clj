@@ -19,7 +19,7 @@
   "Easily publish and receive messages containing any type of nested
    data structure to dynamically-created topics and queues. Message
    distribution is automatically load-balanced when clustered."
-  (:use [immutant.utilities :only (at-exit mapply)]
+  (:use [immutant.util :only (at-exit mapply)]
         [immutant.try :only (try-defn)]
         [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]

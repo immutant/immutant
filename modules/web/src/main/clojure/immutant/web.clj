@@ -20,7 +20,7 @@
    at unique context paths"
   (:require [immutant.registry      :as registry]
             [clojure.tools.logging  :as log]
-            [immutant.utilities     :as util]
+            [immutant.util          :as util]
             [ring.middleware.reload :as ring])
   (:use immutant.web.internal))
 

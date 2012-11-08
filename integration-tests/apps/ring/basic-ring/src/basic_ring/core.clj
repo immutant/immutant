@@ -4,7 +4,7 @@
             [immutant.web.session    :as isession]
             [immutant.repl           :as repl]
             [immutant.registry       :as registry]
-            [immutant.utilities      :as util]
+            [immutant.util      :as util]
             [immutant.dev            :as dev]
             [ring.middleware.session :as rsession]
             [clojure.java.io         :as io])

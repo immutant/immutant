@@ -18,7 +18,7 @@
 (ns test.immutant.jobs
   (:use immutant.jobs
         immutant.jobs.internal
-        [immutant.utilities :only [at-exit]]
+        [immutant.util :only [at-exit]]
         immutant.test.helpers
         clojure.test
         midje.sweet))

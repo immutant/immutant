@@ -16,5 +16,6 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.test.registry
+  (:refer-clojure :exclude [get])
   (:use immutant.registry)
   (:use clojure.test))

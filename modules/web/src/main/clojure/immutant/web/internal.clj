@@ -18,7 +18,7 @@
 (ns immutant.web.internal
   (:require
    [immutant.registry     :as registry]
-   [immutant.utilities    :as util]
+   [immutant.util         :as util]
    [clojure.tools.logging :as log])
   
   (use [immutant.try :only [try-defn try-def]]))

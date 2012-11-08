@@ -19,7 +19,7 @@
   "Functions useful for repl based development inside an Immutant container. They
 shouldn't be used in production."
   (:require [immutant.registry     :as registry]
-            [immutant.utilities    :as util]
+            [immutant.util         :as util]
             [immutant.try          :as try]
             [immutant.runtime.util :as runtime]
             [clojure.java.io       :as io])

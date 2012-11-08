@@ -15,8 +15,8 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.test.utilities
-  (:use immutant.utilities)
+(ns immutant.test.util
+  (:use immutant.util)
   (:use clojure.test))
 
 (deftest outside-immutant

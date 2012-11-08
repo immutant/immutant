@@ -22,7 +22,7 @@ bootstrapping process. Applications shouldn't use anything here."
             [clojure.java.io       :as io]
             [clojure.tools.logging :as log]
             [immutant.repl         :as repl]
-            [immutant.utilities    :as util]
+            [immutant.util         :as util]
             [immutant.registry     :as registry]))
 
 (defn ^{:internal true} require-and-invoke 

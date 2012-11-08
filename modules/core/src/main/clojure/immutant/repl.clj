@@ -17,8 +17,8 @@
 
 (ns immutant.repl
   "Provides tools for starting swank and nrepl servers."
-  (:require [immutant.utilities         :as util]
-            [clojure.tools.logging      :as log]))
+  (:require [immutant.util         :as util]
+            [clojure.tools.logging :as log]))
 
 (defn ^{:private true} fix-port [port]
   (if (= String (class port))

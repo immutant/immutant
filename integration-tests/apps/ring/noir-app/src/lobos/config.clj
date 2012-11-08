@@ -1,5 +1,5 @@
 (ns lobos.config
-  (:require [immutant.utilities :as util])
+  (:require [immutant.util :as util])
   (:use [lobos [connectivity :only [open-global]]
          [core :only [migrate]]
          [migration :only [*src-directory*]]]))
