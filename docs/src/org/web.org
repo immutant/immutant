@@ -118,8 +118,10 @@
     ;; receives at /my-app/somewhere/*.
     (web/start "/somewhere" my-other-handler)
     
-    ;; When you are developing, you want to see your changes immediately
-    (web/start your-handler :reload true)
+    ;; When you are developing, you want to see your changes immediately,
+    ;; so pass the var quoted handler symbol so it can be reloaded,
+    ;; and set :reload
+    (web/start #'your-handler :reload true)
   #+end_src
 
   You can deregister a registered handler at any time. Immutant will deregister
