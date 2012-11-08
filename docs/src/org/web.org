@@ -66,6 +66,9 @@
    requests to the handler, and allows you to have multiple webapps within
    a single application.
 
+   See below for an [[#web-context-path-example][example]] demonstrating how the context path, sub-context path,
+   and path info all work together.
+
 * Virtual Host
   :PROPERTIES:
   :CUSTOM_ID: web-virtual-host
@@ -142,6 +145,66 @@
     ;; deregisters the handler attached to the /somewhere sub-context
     (web/stop "/somewhere")
   #+end_src
+
+* Context/Sub-Context Path Example
+  :PROPERTIES:
+  :CUSTOM_ID: web-context-path-example
+  :END:
+
+  Now that we've introduced registering ring handlers, we can give an example
+  that makes it clear how the context and sub-context paths work, and how 
+  the path info gets set.
+
+  First, we'll set the context path for the entire application in our 
+  =project.clj=:
+   
+   #+begin_src clojure
+     (defproject someapp "0.1.0-SNAPSHOT"
+       :dependencies [[org.clojure/clojure "1.4.0"]]
+       
+       :immutant {:init someapp.core/start
+                  :context-path "/foo"})
+   #+end_src
+
+   Now we'll register two ring handlers with different sub-contexts, both
+   of which will be available under the parent context we set in =project.clj=:
+
+   #+begin_src clojure
+     (ns someapp.core
+       (:require [immutant.web :as web]))
+     
+     (defn make-handler  [sub-context]
+       (fn [{:keys [context path-info] :as request}]
+         {:status 200
+          :content-type "text/plain"
+          :body (pr-str {:mounted-sub-context sub-context
+                         :request-context context
+                         :request-path-info path-info})}))
+     
+     (defn start []
+       ;; responds to /foo/
+       (web/start "/" (make-handler "/"))
+       ;; responds to /foo/bar/
+       (web/start "/bar" (make-handler "/bar")))
+   #+end_src
+
+   When we deploy the app to Immutant, we can see how it sets the =:context= and 
+   =:path-info= keys in the request map:
+
+   #+begin_src sh
+     $ curl http://localhost:8080/foo/baz
+     {:mounted-sub-context "/", :request-context "/foo", :request-path-info "/baz"}
+     $ curl http://localhost:8080/foo/baz/sheep
+     {:mounted-sub-context "/", :request-context "/foo", :request-path-info "/baz/sheep"}
+     $ curl http://localhost:8080/foo/bar/baz
+     {:mounted-sub-context "/bar", :request-context "/foo/bar", :request-path-info "/baz"}
+     $ curl http://localhost:8080/foo/bar/baz/sheep
+     {:mounted-sub-context "/bar", :request-context "/foo/bar", :request-path-info "/baz/sheep"}
+     $ curl http://localhost:8080/foo/bar
+     {:mounted-sub-context "/bar", :request-context "/foo/bar", :request-path-info "/"}
+     $ curl http://localhost:8080/foo/
+     {:mounted-sub-context "/", :request-context "/foo", :request-path-info "/"}
+   #+end_src
   
 * Sessions
 
