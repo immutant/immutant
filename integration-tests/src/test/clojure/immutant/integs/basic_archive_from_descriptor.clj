@@ -21,7 +21,7 @@
         [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
-                      {:root (str (System/getProperty "user.dir") "/apps/ring/basic-ring.ima")
+                      {:root (str (System/getProperty "user.dir") "/target/apps/basic-ring.ima")
                        :context-path "/basic-archive"}
                       ))
 

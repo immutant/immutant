@@ -22,7 +22,7 @@
   (:require [clojure.java.io :as io]))
 
 (use-fixtures :once (with-deployment "basic-ring.ima"
-                      (io/file (System/getProperty "user.dir") "apps/ring/basic-ring.ima")))
+                      (io/file (System/getProperty "user.dir") "target/apps/basic-ring.ima")))
 
 (deftest simple "it should work"
   (is (= :basic-ring (:app (get-as-data "/basic-ring")))))

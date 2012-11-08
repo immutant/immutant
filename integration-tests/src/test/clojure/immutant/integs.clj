@@ -23,6 +23,7 @@
             [clojure.string                :as string]
             [clojure.walk                  :as walk]
             [cemerick.pomegranate.aether   :as aether]
+            [leiningen.core.project        :as project]
             [immutant.deploy-tools.archive :as archive]))
 
 (def ^{:dynamic true} *current-clojure-version* nil)
@@ -103,9 +104,18 @@
                 (symbol (str "immutant.integs." (name ns)))))
            (string/split value #",")))))
 
+(defn generate-archives [dest-dir & app-dirs]
+  (doseq [app app-dirs]
+    (println "Generating archive for" app)
+    (archive/create (project/read (str app "/project.clj"))
+                    (io/file app)
+                    (io/file dest-dir)
+                    {})))
+
 (let [integs (io/file (.getParentFile (io/file *file*)) "integs")
       namespaces (or (ns-from-property) (find-namespaces-in-dir integs))]
-  (println "Testing namespaces:" namespaces)
+  (generate-archives "target/apps" "apps/ring/basic-ring")
+  (println "\nTesting namespaces:" namespaces)
   (apply require namespaces)
   (when-not *compile-files*
     (let [results (atom [])

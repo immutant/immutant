@@ -35,6 +35,11 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>deploy-tools</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.nrepl</artifactId>
       <version>${version.nrepl}</version>
