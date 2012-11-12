@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-Dir["target/*"].each do |dir|
+Dir["target/namespaces/*"].each do |dir|
   if File.directory?(dir) 
     puts "Processing #{dir}..."
     Dir.chdir(dir) do
