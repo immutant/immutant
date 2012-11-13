@@ -123,6 +123,15 @@
   deploy and undeploy as many applications as your RAM will allow to a
   single Immutant instance.
 
+  Out of the box, Immutant is only accessible from localhost. To access it from
+  other machines pass the -b parameter to bind to a real IP address or any available
+  IP address:
+
+  #+begin_src sh
+    $ lein immutant run -b 10.100.10.25
+    $ lein immutant run -b 0.0.0.0
+  #+end_src
+
   It's also possible to run Immutant in "clustered" mode. Doing so in
   a network with multicast enabled causes Immutants to discover each
   other and, for example, easily distribute work via a message queue
