@@ -4,7 +4,7 @@
             [noir.server :as server]
             [lobos.config]))
 
-(server/load-views (util/app-relative "src/noir_app/views"))
+(server/load-views-ns 'noir-app.views)
 (web/start "/" (server/gen-handler {:mode :dev :ns 'noir-app}))
 
  
