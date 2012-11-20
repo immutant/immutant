@@ -22,7 +22,7 @@
             [clojure.string           :as str])
   (:import [java.io File FilenameFilter]))
 
-(defn ^:internal stringify-symbol
+(defn ^{:internal true} stringify-symbol
   "Turns a symbol into a namespace/name string."
   [sym]
   (if (symbol? sym)
@@ -48,16 +48,16 @@
   stringify-lein-profiles
   (updatifier "lein-profiles" #(map str %)))
 
-(defn ^:internal pr-str-with-meta [x]
+(defn ^{:internal true} pr-str-with-meta [x]
    (binding [*print-meta* true]
      (pr-str x)))
 
-(defn ^:internal read-descriptor
+(defn ^{:internal true} read-descriptor
   "Reads a deployment descriptor and returns the resulting map."
   [^File file]
   (read-string (slurp (.getAbsolutePath file))))
 
-(defn ^:internal read-and-stringify-descriptor
+(defn ^{:internal true} read-and-stringify-descriptor
   "Reads a deployment descriptor and returns the resulting stringified map."
   [^File file]
   (-> (read-descriptor file)
@@ -65,7 +65,7 @@
       stringify-init-symbol
       stringify-lein-profiles))
 
-(defn ^:internal normalize-profiles [profiles]
+(defn ^{:internal true} normalize-profiles [profiles]
   (set (if (seq profiles)
          (map #(if (keyword? %)
                  %
@@ -73,13 +73,13 @@
               profiles)
          [:default])))
 
-(defn ^:internal lib-dir
+(defn ^{:internal true} lib-dir
   "Resolve the library dir for the application."
   [^File project]
   (io/file (:library-path project
                           (io/file (:root project) "lib"))))
 
-(defn ^:internal resource-paths-from-project
+(defn ^{:internal true} resource-paths-from-project
   "Resolves the resource paths (in the AS7 usage of the term) for a leiningen application. Handles
 lein1/lein2 differences for project keys that changed from strings to vectors."
   [project]
@@ -93,19 +93,19 @@ lein1/lein2 differences for project keys that changed from strings to vectors."
                          :native-path    ;; lein2
                          ]))))
 
-(defn ^:internal resource-paths-for-projectless-app
+(defn ^{:internal true} resource-paths-for-projectless-app
   "Resolves the resource paths (in the AS7 usage of the term) for a non-leiningen application."
   [app-root]
   (map #(.getAbsolutePath (io/file app-root %))
        ["src" "resources" "classes" "native"]))
 
-(defn ^:internal add-default-lein1-paths
+(defn ^{:internal true} add-default-lein1-paths
   "lein1 assumes classes/, 2 assumes target/classes/, so getting it from the project will return the wrong default for lein1 projects."
   [app-root paths]
   (conj paths
         (.getAbsolutePath (io/file app-root "classes"))))
 
-(defn ^:internal bundled-jars
+(defn ^{:internal true} bundled-jars
   "Returns a set of any jars that are bundled in the application's lib-dir."
   [project]
   (let [^File lib-dir (lib-dir project)]

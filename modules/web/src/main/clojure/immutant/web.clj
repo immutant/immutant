@@ -24,14 +24,15 @@
             [ring.middleware.reload :as ring])
   (:use immutant.web.internal))
 
-(def  ^{:arglists '([context? handler & {:keys [reload]}])} start
-  "Registers a Ring handler that will be called when requests are
+(def
+  ^{:arglists '([context? handler & {:keys [reload]}])
+    :doc "Registers a Ring handler that will be called when requests are
    received on the given sub-context-path. If no sub-context-path is
    given, \"/\" is assumed.
 
    The following options are supported [default]:
-     :reload    monitors the app's src/ dir for changes [false]"
-  (fn
+     :reload    monitors the app's src/ dir for changes [false]"}
+  start (fn
     [& args]
     (let [[sub-context-path args] (if (string? (first args))
                                     [(first args) (next args)]
