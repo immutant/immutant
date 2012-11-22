@@ -85,6 +85,12 @@
     </dependency>
 
     <dependency>
+      <groupId>dynapath</groupId>
+      <artifactId>dynapath</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.jboss.as</groupId>
       <artifactId>jboss-as-web</artifactId>
       <scope>provided</scope>

@@ -33,6 +33,7 @@
         <resource-root path="polyglot-core-extensions.jar"/>
         <resource-root path="tools.logging.jar"/>
         <resource-root path="data.json.jar"/>
+        <resource-root path="dynapath.jar"/>
         <resource-root path="leiningen-core.jar"/>
         <resource-root path="pomegranate.jar"/>
         <resource-root path="swank-clojure.jar"/>
