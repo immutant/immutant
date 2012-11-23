@@ -4,10 +4,11 @@
             [immutant.web.session    :as isession]
             [immutant.repl           :as repl]
             [immutant.registry       :as registry]
-            [immutant.util      :as util]
+            [immutant.util           :as util]
             [immutant.dev            :as dev]
             [ring.middleware.session :as rsession]
-            [clojure.java.io         :as io])
+            [clojure.java.io         :as io]
+            [ham.biscuit             :as hb])
   (:import SomeClass))
 
 (def a-value (atom "default"))
@@ -24,7 +25,8 @@
               :clojure-version (clojure-version)
               :config (registry/get :config)
               :app :basic-ring
-              :handler :handler}]
+              :handler :handler
+              :ham-biscuit-location hb/location}]
     (reset! a-value "not-default")
     (response body)))
 
@@ -108,7 +110,6 @@
 (defn init-java-class []
   (init)
   (web/start java-class-handler))
-
 
 (defn init-dev-handler []
      (init)

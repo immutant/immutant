@@ -35,4 +35,8 @@
   (is (= :biscuit
          (-> (get-as-data "/basic-ring") :config :ham))))
 
+(deftest classpath-precedence
+  (is (= :src
+         (:ham-biscuit-location (get-as-data "/basic-ring")))))
+
 
