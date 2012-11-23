@@ -1,4 +1,4 @@
-(ns context-path.init
+(ns immutant.init
   (:require [immutant.web :as web])
   (:use context-path.core))
 

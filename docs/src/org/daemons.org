@@ -8,9 +8,6 @@
 
 * Starting a Daemon
 
-  You can start a daemon at any point in your application, but it's
-  typically done in the bootstrap file, =immutant.clj=.
-
   The primary abstraction is the =Daemon= protocol, which prescribes
   two methods: =start= and =stop=. Daemon instances are passed to the
   [[./apidoc/immutant.daemons-api.html#immutant.daemons/create][immutant.daemons/create]] function along with a name. A JMX MBean

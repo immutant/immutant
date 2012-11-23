@@ -1,4 +1,4 @@
-(ns messaging.concurrency.init
+(ns immutant.init
   (:require [immutant.messaging :as msg]))
 
 (defn handler [m]

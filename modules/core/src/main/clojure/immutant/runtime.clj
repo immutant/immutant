@@ -42,27 +42,28 @@ bootstrapping process. Applications shouldn't use anything here."
 
 (defn ^{:internal true} initialize 
   "Attempts to initialize the app by calling an init-fn (if given) or, lacking that,
-tries to load an immutant.clj from the app-root. In either case, post-initialize is called
-to finalize initialization."
+tries to load the immutant.init namespace. In either case,
+post-initialize is called to finalize initialization."
   [init-fn config-hash]
 
   (dynapathize-class-loader)
   
-  (let [init-file (util/app-relative "immutant.clj")
-        init-file-exists (.exists init-file)]
-    (if init-fn
-      (do
-        (if init-file-exists
-          (log/warn "immutant.clj found in" (util/app-name) ", but you specified an :init fn; ignoring immutant.clj"))
-        (require-and-invoke init-fn))
-      (if init-file-exists
-        (load-file (.getAbsolutePath init-file))
-        (log/warn "no immutant.clj found in" (util/app-name) "and you specified no init fn; no app initialization will be performed"))))
-
+  (if init-fn
+    (do
+      (log/info "Initializing " (util/app-name) "via" init-fn)
+      (require-and-invoke init-fn))
+    (try (println "ns") (require 'immutant.init)
+         (catch java.io.FileNotFoundException _
+           (log/warn "No :init fn or immutant.init namespace found for"
+                     (util/app-name)
+                     "- no initialization will be performed"))))
+  
   (repl/init-repl (into {} config-hash)))
 
 (defn ^{:internal true} set-app-config
-  "Takes the full application config and project map as data strings and makes them available as data under the :config and :project keys in the registry."
+  "Takes the full application config and project map as data strings
+and makes them available as data under the :config and :project keys
+in the registry."
   [config project]
   (registry/put :config (read-string config))
   (registry/put :project (read-string project)))

@@ -1,4 +1,4 @@
-(ns tx.init
+(ns immutant.init
   (:use clojure.test)
   (:use ring.middleware.params)
   (:require [immutant.web :as web]

@@ -1,4 +1,4 @@
-(ns in-container.init
+(ns immutant.init
   (:use clojure.test)
   (:require [immutant.web :as web]
             in-container.tests))

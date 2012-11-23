@@ -1,4 +1,4 @@
-(ns xa.init
+(ns immutant.init
   (:require [immutant.xa :as xa]
             [immutant.web :as web]
             [clojure.java.jdbc :as sql]

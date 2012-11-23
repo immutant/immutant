@@ -7,7 +7,7 @@
 
   - the [[./deployment.html#deployment-descriptor][deployment descriptor]] (if used)
   - the Leiningen [[#initialization-project-clj][project.clj]] (if present at the application root)
-  - an [[#initialization-immutant-clj][immutant.clj]] file (if present at the application root)
+  - the [[#initialization-immutant-init][immutant.init]] namespace (if present beneath =src/=)
 
   Each of these files have the opportunity to contribute to the configuration
   or initialization of the application.
@@ -17,25 +17,26 @@
   When an Immutant detects a Clojure deployment (either a [[./deployment.html#deployment-descriptor][deployment descriptor]]
   or an [[./deployment.html#deployment-archive][Immutant archive]]), it begins the application initialization process:
 
-  1. If the deployment is a descriptor file, this file is loaded in a global
-     Clojure runtime to parse the map from the file. The =:root= entry from
-     that map is then used to determine the actual root of the application,
-     and can refer to the application directory or the path to an Immutant
-     archive. Any additional configuration information from the descriptor
-     is stored for later merging with data from other configuration sources.
+  1. If the deployment is a descriptor file, this file is loaded in a
+     global Clojure runtime to parse the map from the file. The
+     =:root= entry from that map is then used to determine the actual
+     root of the application, and can refer to the application
+     directory or the path to an Immutant archive. Any additional
+     configuration information from the descriptor is stored for later
+     merging with data from other configuration sources.
 
   2. If the deployment is an archive, or the =:root= from the descriptor
      points to an archive, the archive is expanded on disk to a temporary
      directory. 
 
-  3. Once the application root has been determined, Immutant looks for a
-     [[http://leiningen.org/][Leiningen]] =project.clj= in the root. If present, the project file
-     is loaded and if an =:immutant= key is preset in the resulting
-     =project=, it is merged with the configuration data from the
-     descriptor with the configuration from the descriptor taking
-     precedence. Leiningen is then
-     used to resolve the dependencies present in the =project= via 
-     Maven (this behavior can be overridden - see [[#initialization-configuration][:resolve-dependencies]]). 
+  3. Once the application root has been determined, Immutant looks for
+     a [[http://leiningen.org/][Leiningen]] =project.clj= in the root. If present, the project
+     file is loaded and if an =:immutant= key is preset in the
+     resulting =project=, it is merged with the configuration data
+     from the descriptor with the configuration from the descriptor
+     taking precedence. Leiningen is then used to resolve the
+     dependencies present in the =project= via Maven (this behavior
+     can be overridden - see [[#initialization-configuration][:resolve-dependencies]]).
 
   4. If a =lib/= directory is present in the application root, any jars
      within it are merged with the dependencies calculated in the previous
@@ -47,12 +48,12 @@
      for the application. Runtimes in Immutant are isolated from each other,
      and can each load their own versions of Clojure or any other jar.
 
-  6. If an initialization function was specified in either the descriptor
-     or the =:immutant= hash in the project (via the =:init= key), it is
-     loaded and invoked within the application's runtime (see [[#initialization-configuration][:init]] 
-     for more details). If no init function was specified, Immutant looks 
-     in the application root for a file named =immutant.clj= and loads
-     that file. See [[#initialization-immutant-clj][immutant.clj]] for more information on using this 
+  6. If an initialization function was specified in either the
+     descriptor or the =:immutant= map in the project (via the
+     =:init= key), it is loaded and invoked within the application's
+     runtime (see [[#initialization-configuration][:init]] for more details). If no init function was
+     specified, Immutant will attempt to load an =immutant.init=
+     namespace. See [[#initialization-immutant-init][immutant.init]] for more information on using this
      initialization method. At this point, the application is fully
      initialized.
 
@@ -81,15 +82,15 @@
     =project.clj=. If no profiles are specified, only the =:default= profile is 
     loaded.
 
-  - =:swank-port= & =:nrepl-port= - Immutant can provide a per-application repl,
-    either via [[https://github.com/technomancy/swank-clojure][Swank]] or [[https://github.com/clojure/tools.nrepl][nREPL]]. Immutant will automatically start a repl for
-    you if you specify an unused port using either =:swank-port= or =:nrepl-port=.
-    See [[./interactive.html][Interactive Development]] for more details.
+  - =:swank-port= & =:nrepl-port= - Immutant can provide a
+    per-application repl, either via [[https://github.com/technomancy/swank-clojure][Swank]] or [[https://github.com/clojure/tools.nrepl][nREPL]]. Immutant will
+    automatically start a repl for you if you specify an unused port
+    using either =:swank-port= or =:nrepl-port=.  See [[./interactive.html][Interactive Development]] 
+    for more details.
 
-  - =:init= - specifies a function to call to initialize your application. This
-    can be used as an alternative to an [[#initialization-immutant-clj][immutant.clj]] file. It can be either a
-    namespace qualified symbol (=my.app/do-something=) or string 
-    ("my.app/do-something"). 
+  - =:init= - optionally specifies a function to call to initialize your
+    application. It can be either a namespace qualified symbol
+    (=my.app/do-something=) or a string ("my.app/do-something").
 
   - =:context-path= - overrides the default web context path that is generated
     based on the deployment name. See [[./web.html#web-context-path][Web - Context Paths]] for more details.
@@ -174,18 +175,18 @@
                             :nrepl-port 4112})
    #+end_src
 
-** immutant.clj
+** immutant.init
   :PROPERTIES:
-  :CUSTOM_ID: initialization-immutant-clj
+  :CUSTOM_ID: initialization-immutant-init
   :END:
 
-   =immutant.clj= provides an alternate initialization mechanism to the [[#initialization-configuration][:init]] 
-   function. If no =:init= function is specified, Immutant will load =immutant.clj= 
-   if present at the application root. Typically, this file is used to start
-   Immutant specific services, like so:
+   =immutant.init= provides an alternate initialization mechanism to
+   the [[#initialization-configuration][:init]] function. If no =:init= function is specified, Immutant
+   will attempt to load the =immutant.init= namespace. Typically, this
+   namespace is used to start Immutant-specific services, like so:
 
    #+begin_src clojure
-     (ns my-app.init
+     (ns immutant.init
        (:require [immutant.daemons   :as daemons]
                  [immutant.jobs      :as jobs]
                  [immutant.messaging :as messaging]

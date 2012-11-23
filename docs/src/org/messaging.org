@@ -69,8 +69,9 @@
      (msg/start "topicality")
    #+end_src
 
-   You can invoke =start= from anywhere in your application, but
-   typically it's done in the [[./initialization.html#initialization-immutant-clj][immutant.clj]] initialization file.
+   Job scheduling is dynamic, and can occur anywhere in your
+   application code.  You can invoke =start= anytime during the
+   lifecycle of your application.
 
    While =start= has a complement, [[./apidoc/immutant.messaging-api.html#immutant.messaging/stop][immutant.messaging/stop]], you needn't 
    call it directly. It will be invoked when your application is

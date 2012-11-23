@@ -1,4 +1,4 @@
-(ns jobs.init
+(ns immutant.init
   (:require [immutant.web :as web])
   (:require [immutant.jobs :as job]))
 

@@ -1,4 +1,4 @@
-(ns counter.init
+(ns immutant.init
   (:use clojure.test)
   (:require [immutant.web :as web]
             counter.locking))

@@ -1,4 +1,4 @@
-(ns xa.init
+(ns immutant.init
   (:use ring.middleware.params)
   (:require [immutant.xa :as xa]
             [immutant.web :as web]

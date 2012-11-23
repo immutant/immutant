@@ -36,11 +36,11 @@
     |------------+---------+------------------------------------------------------------------------------------------------------------------------------------------|
     | :singleton | /true/  | Marks the job as a *singleton* in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node. |
 
-  Job scheduling is dynamic, and can occur anywhere in your application code. 
-  Jobs that share the lifecycle of your application are idiomatically placed in [[./initialization.html#initialization-immutant-clj][immutant.clj]].
+  Job scheduling is dynamic, and can occur anytime during your
+  application's lifecycle.
 
-  You can safely call =schedule= multiple times with the same job name - the named job will be
-  rescheduled.
+  You can safely call =schedule= multiple times with the same job
+  name - the named job will be rescheduled.
 
   In case you need it, the [[http://quartz-scheduler.org/api/1.8.5/org/quartz/JobExecutionContext.html][org.quartz.JobExecutionContext]] instance is
   bound to =immutant.jobs/*job-execution-context*= before invoking

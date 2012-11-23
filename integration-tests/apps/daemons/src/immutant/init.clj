@@ -1,4 +1,4 @@
-(ns daemons.init
+(ns immutant.init
   (:require [immutant.web :as web])
   (:require [immutant.daemons :as daemon]))
 

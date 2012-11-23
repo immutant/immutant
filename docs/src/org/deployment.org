@@ -68,9 +68,9 @@
   
   1. The application's dependencies are resolved into the local maven repository
   2. Those resolved dependencies are copied to =lib/= at the root of the project
-  3. The =lib/= dir is zipped up along with the =src/=, =resources/=, =target/native=, 
-     =classes=, and =target/classes= dirs, as well
-     as the =project.clj= and =immutant.clj= if present at the project root.
+  3. The =lib/= dir is zipped up along with the =src/=, =resources/=,
+     =target/native=, =classes=, and =target/classes= dirs, as well as
+     the =project.clj=.
 
   The archive process honors the =:library-path=, =:source-path(s)=, =:resources-path(s)=
   =:native-path=, and =:compile-path= options of =project.clj=, allowing you to 

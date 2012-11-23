@@ -35,8 +35,7 @@
   ([dir]
      (find-app-dirs [] dir))
   ([app-dirs dir]
-     (if (or (.exists (io/file dir "src"))
-             (.exists (io/file dir "immutant.clj")))
+     (if (.exists (io/file dir "src"))
        (conj app-dirs dir)
        (reduce find-app-dirs app-dirs (.listFiles dir)))))
 

@@ -16,13 +16,17 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.runtime-test
-  (:use immutant.runtime)
-  (:use clojure.test)
-  (:use immutant.test.helpers)
-  (:require [immutant.registry :as registry])
-  (:require [clojure.java.io :as io]))
+  (:use immutant.runtime
+        clojure.test
+        immutant.test.helpers)
+  (:require [immutant.registry :as registry]
+            [clojure.java.io   :as io]
+            [dynapath.util     :as dp]))
 
 (def a-value (atom "ham"))
+
+(defn add-url [url]
+  (dp/add-classpath-url (clojure.lang.RT/baseLoader) url))
 
 (use-fixtures :each
               (fn [f]
@@ -43,23 +47,22 @@
   (require-and-invoke "immutant.runtime-test/update-a-value" ["gravy"])
   (is (= "gravy" @a-value)))
 
-(deftest initialize-without-an-init-fn-should-load-config
-  (registry/put "app-root" (io/file (io/resource "project-root")))
+(deftest initialize-without-an-init-fn-should-load-init-ns
+  (add-url (io/resource "project-root/src/"))
   (initialize nil nil)
-  (is (= "immutant.clj" @a-value)))
+  (is (= "immutant.init" @a-value)))
 
-(deftest initialize-with-an-init-fn-should-not-load-config
-  (registry/put "app-root" (io/file (io/resource "project-root")))
+(deftest initialize-with-an-init-fn-should-not-load-init-ns
+  (add-url (io/resource "project-root/src/"))
   (initialize "immutant.runtime-test/do-nothing" nil)
-  (is-not (= "immutant.clj" @a-value)))
+  (is-not (= "immutant.init" @a-value)))
 
 (deftest initialize-with-an-init-fn-should-call-the-init-fn
-  (registry/put "app-root" (io/file (io/resource "project-root")))
+  (add-url (io/resource "project-root/src/"))
   (initialize "immutant.runtime-test/update-a-value" nil)
   (is (= "biscuit" @a-value)))
 
-(deftest initialize-with-no-init-fn-and-no-config-should-do-nothing
-  (registry/put "app-root" (io/file (System/getProperty "java.io.tmpdir")))
+(deftest initialize-with-no-init-fn-and-no-init-ns-should-do-nothing
   (initialize nil nil)
   (is (= "ham" @a-value)))
 
