@@ -85,7 +85,7 @@
     </dependency>
 
     <dependency>
-      <groupId>dynapath</groupId>
+      <groupId>org.tcrawley</groupId>
       <artifactId>dynapath</artifactId>
       <scope>compile</scope>
     </dependency>

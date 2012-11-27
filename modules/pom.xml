@@ -53,7 +53,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>dynapath</groupId>
+      <groupId>org.tcrawley</groupId>
       <artifactId>dynapath</artifactId>
       <scope>test</scope>
     </dependency>

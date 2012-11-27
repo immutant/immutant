@@ -285,7 +285,7 @@
       </dependency>
 
       <dependency>
-        <groupId>dynapath</groupId>
+        <groupId>org.tcrawley</groupId>
         <artifactId>dynapath</artifactId>
         <version>${version.dynapath}</version>
       </dependency>
@@ -300,12 +300,6 @@
         <groupId>leiningen</groupId>
         <artifactId>leiningen</artifactId>
         <version>${version.leiningen}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>dynapath</groupId>
-        <artifactId>dynapath</artifactId>
-        <version>${version.dynapath}</version>
       </dependency>
 
       <dependency>
@@ -360,7 +354,7 @@
     <version.clojure-maven-plugin>1.3.8</version.clojure-maven-plugin>
     <version.clojure-complete>0.2.2</version.clojure-complete>
     <version.ring>1.1.5</version.ring>
-    <version.dynapath>0.2.0</version.dynapath>
+    <version.dynapath>0.2.1</version.dynapath>
     <version.swank-clojure>1.4.2</version.swank-clojure>
     <version.nrepl>0.2.0-RC1</version.nrepl>
     <version.wagon-provider-api>2.2</version.wagon-provider-api>
