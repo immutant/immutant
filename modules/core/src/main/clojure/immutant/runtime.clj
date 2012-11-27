@@ -52,11 +52,15 @@ post-initialize is called to finalize initialization."
     (do
       (log/info "Initializing " (util/app-name) "via" init-fn)
       (require-and-invoke init-fn))
-    (try (println "ns") (require 'immutant.init)
-         (catch java.io.FileNotFoundException _
-           (log/warn "No :init fn or immutant.init namespace found for"
-                     (util/app-name)
-                     "- no initialization will be performed"))))
+    (try (require 'immutant.init)
+         (catch java.io.FileNotFoundException e
+           ;; make sure it's a failure to find immutant.init, and not
+           ;; something within init throwing a FNFE
+           (if (re-find #"immmutant/init" (.getMessage e))
+             (log/warn "No :init fn or immutant.init namespace found for"
+                       (util/app-name)
+                       "- no initialization will be performed")
+             (throw e)))))
   
   (repl/init-repl (into {} config-hash)))
 
