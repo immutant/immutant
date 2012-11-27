@@ -60,14 +60,15 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         File root = metaData.getRoot();
         
         try {
-            List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, 
-                    metaData.resolveDependencies(),
-                    metaData.getLeinProfiles() );
 
             for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles() )) {
                 final ResourceRoot childResource = ResourceLoaderUtil.createResourceRoot(each, true);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
             }
+            
+            List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, 
+                                                                                   metaData.resolveDependencies(),
+                                                                                   metaData.getLeinProfiles() );
             
             boolean clojureProvided = false;
 
