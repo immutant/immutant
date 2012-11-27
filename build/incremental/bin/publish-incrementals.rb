@@ -29,17 +29,17 @@ class Publisher
 
   def dav_mkdir_p(url)
     puts "mkdir #{url}"
-    @dav.mkcol( url )
+    puts @dav.mkcol( url )
   end
 
   def dav_put(url, file, remember = true)
     puts "put #{url}"
-    @dav.put( url, file )
+    puts @dav.put( url, file )
     @published_artifacts << url if remember
   end
 
   def dav_rm_rf(url)
-    @dav.delete( url )
+    puts @dav.delete( url )
   end
 
   def dav_remote_cp_r(src, dest)
