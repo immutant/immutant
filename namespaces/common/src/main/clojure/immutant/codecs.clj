@@ -29,6 +29,12 @@
     (binding [*print-dup* true]
       (pr data))))
 
+(defmethod encode :edn [data & _]
+  "Stringify an edn data structure"
+  (with-out-str
+    (binding [*print-dup* true]
+      (pr data))))
+
 (defmethod encode :json [data _]
   "Stringify a json data structure"
    (json/json-str data))
@@ -44,6 +50,10 @@
 
 (defmethod decode :clojure [data & _]
   "Turn a string into a clojure data structure"
+  (and data (read-string data)))
+
+(defmethod decode :edn [data & _]
+  "Turn a string into an edn data structure"
   (and data (read-string data)))
 
 (defmethod decode :json [data _]

@@ -63,11 +63,26 @@
 (deftest clojure-date-inside-vector
   (test-codec [(java.util.Date.)] :clojure))
 
+(deftest edn-string
+  (test-codec "a simple text message" :edn))
+
+(deftest edn-date
+  (test-codec (java.util.Date.) :edn))
+
+(deftest edn-date-inside-hash
+  (test-codec {:date (java.util.Date.)} :edn))
+
+(deftest edn-date-inside-vector
+  (test-codec [(java.util.Date.)] :edn))
+
 (deftest json-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
 
 (deftest clojure-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
+
+(deftest edn-complex-hash
+  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
 
 (deftest complex-json-encoding
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}
@@ -86,6 +101,11 @@
 (deftest clojure-as-bytes
   (let [message (doto (bytes-message "\"ham biscuit\"")
                   (.setStringProperty encoding-header-name "clojure"))]
+    (is (= "ham biscuit" (decode message)))))
+
+(deftest edn-as-bytes
+  (let [message (doto (bytes-message "\"ham biscuit\"")
+                  (.setStringProperty encoding-header-name "edn"))]
     (is (= "ham biscuit" (decode message)))))
 
 (deftest json-as-bytes

@@ -57,6 +57,12 @@
    (.createTextMessage session (core/encode message))
    :clojure))
 
+(defmethod encode :edn [^javax.jms.Session session message options]
+  "Stringify an edn data structure"
+  (set-encoding
+   (.createTextMessage session (core/encode message :edn))
+   :edn))
+
 (defmethod encode :json [^javax.jms.Session session message options]
   "Stringify a json data structure"
   (set-encoding
@@ -76,6 +82,10 @@
 (defmethod decode :clojure [message]
   "Turn a string into a clojure data structure"
   (core/decode (message-text message)))
+
+(defmethod decode :edn [message]
+  "Turn a string into an edn data structure"
+  (core/decode (message-text message :edn)))
 
 (defmethod decode :json [message]
   "Turn a string into a json data structure"

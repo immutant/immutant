@@ -20,7 +20,8 @@
   (:use [clojure.test]))
 
 (defn test-codec [object encoding]
-  (is (= object (decode (encode object encoding) encoding))))
+  (let [encoded (encode object encoding)]
+    (is (= object (decode encoded encoding)))))
 
 (deftest json-string
   (test-codec "a random text message" :json))
@@ -37,11 +38,26 @@
 (deftest clojure-date-inside-vector
   (test-codec [(java.util.Date.)] :clojure))
 
+(deftest edn-string
+  (test-codec "a simple text message" :edn))
+
+(deftest edn-date
+  (test-codec (java.util.Date.) :edn))
+
+(deftest edn-date-inside-hash
+  (test-codec {:date (java.util.Date.)} :edn))
+
+(deftest edn-date-inside-vector
+  (test-codec [(java.util.Date.)] :edn))
+
 (deftest json-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
 
 (deftest clojure-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
+
+(deftest edn-complex-hash
+  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
 
 (deftest complex-json-encoding
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}
@@ -55,6 +71,7 @@
   (are [x] (nil? x)
        (decode nil)
        (decode nil :clojure)
+       (decode nil :edn)
        (decode nil :json)
        (decode nil :text)))
 
