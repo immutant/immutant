@@ -85,7 +85,7 @@
 
 (defmethod decode :edn [message]
   "Turn a string into an edn data structure"
-  (core/decode (message-text message :edn)))
+  (core/decode (message-text message) :edn))
 
 (defmethod decode :json [message]
   "Turn a string into a json data structure"
