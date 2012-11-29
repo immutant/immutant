@@ -103,8 +103,8 @@ class Publisher
     end
   end
 
-  def verify_distribution( latest? = false )
-    base_url = latest? ? latest_base_url : build_base_url 
+  def verify_distribution( latest = false )
+    base_url = latest ? latest_base_url : build_base_url 
     DIST_FILES.each do |f|
       status, message = @dav.curl( "-I", base_url + "/#{File.basename( file )}" )
       raise Exception.new( "Release verification failed for " +
