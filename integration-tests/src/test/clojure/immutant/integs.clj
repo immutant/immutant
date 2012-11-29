@@ -75,7 +75,7 @@
             (io/copy clojure-jar (io/file lib-dir (.getName clojure-jar))))))
       (throw (Exception. (str "Failed to resolve clojure " version))))))
 
-(defn for-each-version
+(defn for-each-version*
   "Invokes the given fn with the integ apps set to use each clojure version."
   [f]
   (doseq [version clojure-versions]
@@ -84,14 +84,19 @@
       (println "\n>>>>" (str \[ (.toString (java.util.Date.)) \])
                "Running integs with clojure" version )
       (binding [*current-clojure-version*
-                (let [v (re-find #"(\d+)\.(\d+)\.(\d+)" version)]
+                (let [v (re-find #"(\d+)\.(\d+)\.(\d+)(-.*)?" version)]
                   (zipmap [:full :major :minor :incremental]
-                          (conj (map #(Integer/parseInt %) (rest v)) (first v))))]
+                          (conj (map #(try (Integer/parseInt %)
+                                           (catch NumberFormatException _ %)) (rest v))
+                                (first v))))]
         (time (f)))
       (println "\n<<<<" (str \[ (.toString (java.util.Date.)) \])
                "Finished integs with clojure"
                version "\n")
       (finally (remove-clojure-jars)))))
+
+(defmacro for-each-version [& body]
+  `(for-each-version* (fn [] ~@body)))
 
 (defn ns-from-property []
   "Gets the namespace to test from the system property 'ns'"
@@ -115,7 +120,6 @@
       namespaces (or (ns-from-property) (find-namespaces-in-dir integs))]
   (generate-archives "target/apps" "apps/ring/basic-ring")
   (println "\nTesting namespaces:" namespaces)
-  (apply require namespaces)
   (when-not *compile-files*
     (let [results (atom [])
           report-orig report]
@@ -125,6 +129,7 @@
                          (swap! results conj (:type x)))]
         (println "\n>>>> Testing against" clojure-versions "\n")
         (for-each-version
-         #(with-jboss (partial apply run-tests namespaces) :lazy)))
+         (apply require namespaces)
+         (with-jboss (partial apply run-tests namespaces) :lazy)))
       (shutdown-agents)
       (System/exit (if (empty? (filter #{:fail :error} @results)) 0 -1)))))
