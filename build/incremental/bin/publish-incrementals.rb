@@ -11,6 +11,16 @@ class Publisher
 
   BASE_URL = 'https://repository-projectodd.forge.cloudbees.com/incremental/immutant'
 
+  DIST_FILES = ['/../../dist/target/immutant-dist-bin.zip',
+                '/../../dist/target/immutant-dist-modules.zip',
+                '/../../dist/target/build-metadata.json',
+                '/../../assembly/target/stage/immutant/jboss/standalone/configuration/standalone.xml'].inject([]) do |acc, f|
+    file = File.dirname(__FILE__) + f
+    acc << file
+    sha1 = file + ".sha1"
+    acc << sha1 if File.exists?( sha1 )
+  end
+  
   attr_accessor :build_number
 
   def initialize(credentials_path, build_number)
@@ -67,9 +77,11 @@ class Publisher
   def publish_all()
     dav_mkdir_p( build_base_url )
     publish_distribution()
+    verify_distribution()
     publish_documentation()
     publish_artifact_list()
     copy_to_latest()
+    verify_distribution( :latest )
   end
 
   def copy_to_latest()
@@ -86,16 +98,17 @@ class Publisher
   end
 
   def publish_distribution()
-    [
-     '/../../dist/target/immutant-dist-bin.zip',
-     '/../../dist/target/immutant-dist-modules.zip',
-     '/../../dist/target/build-metadata.json',
-     '/../../assembly/target/stage/immutant/jboss/standalone/configuration/standalone.xml'
-    ].each do |f|
-      file = File.dirname(__FILE__) + f
+    DIST_FILES.each do |f|
       dav_put( build_base_url + "/#{File.basename( file )}", file )
-      sha1 = file + ".sha1"
-      dav_put( build_base_url + "/#{File.basename( sha1 )}", sha1 ) if File.exists?( sha1 )
+    end
+  end
+
+  def verify_distribution( latest? = false )
+    base_url = latest? ? latest_base_url : build_base_url 
+    DIST_FILES.each do |f|
+      status, message = @dav.curl( "-I", base_url + "/#{File.basename( file )}" )
+      raise Exception.new( "Release verification failed for " +
+                           "#{File.basename( file )} - #{status} : #{message}" ) if status != 200
     end
   end
 
