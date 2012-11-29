@@ -20,6 +20,7 @@
 package org.immutant.core.processors;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 
@@ -86,14 +87,11 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
                         ", Using built-in clojure.jar (v" + immutant.getClojureVersion() + ")" );
 
                 // borrow the shipped clojure.jar
-                String jarPath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/clojure.jar";
-                mounter.mount( new File( jarPath ), false );
+                mounter.mount( findInModulePath( "org/immutant/core/main/clojure.jar" ), false );
             }
 
             //mount the runtime jar
-            String runtimePath = System.getProperty( "jboss.home.dir" ) + "/modules/org/immutant/core/main/immutant-runtime-impl.jar";
-            mounter.mount( new File( runtimePath ), false );
-            
+            mounter.mount( findInModulePath( "org/immutant/core/main/immutant-runtime-impl.jar" ), false );
            
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
@@ -111,6 +109,17 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
     @Override
     public void undeploy(DeploymentUnit unit) {
        
+    }
+
+    File findInModulePath(String name) throws FileNotFoundException {
+        String[] dirs = System.getProperty("module.path").split(":");
+        for (String dir : dirs) {
+            File result = new File(dir, name);
+            if (result.exists()) {
+                return result;
+            }
+        }
+        throw new FileNotFoundException(name + " not found in module.path");
     }
 
     private static final Logger log = Logger.getLogger( "org.immutant.core" );
