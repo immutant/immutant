@@ -56,7 +56,7 @@ post-initialize is called to finalize initialization."
          (catch java.io.FileNotFoundException e
            ;; make sure it's a failure to find immutant.init, and not
            ;; something within init throwing a FNFE
-           (if (re-find #"immmutant/init" (.getMessage e))
+           (if (re-find #"immutant/init" (.getMessage e))
              (log/warn "No :init fn or immutant.init namespace found for"
                        (util/app-name)
                        "- no initialization will be performed")
