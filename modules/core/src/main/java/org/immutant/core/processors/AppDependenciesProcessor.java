@@ -74,7 +74,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
             boolean clojureProvided = false;
 
             for (File each : dependencyJars) {
-                if (each.getName().matches( "^clojure(-\\d.\\d.\\d)?\\.jar$" )) {
+                if (each.getName().matches( "^clojure(-\\d.\\d.\\d)?.*\\.jar$" )) {
                     clojureProvided = true;
                 }
                 mounter.mount( each );
