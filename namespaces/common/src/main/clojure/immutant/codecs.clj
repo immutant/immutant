@@ -25,15 +25,12 @@
 
 (defmethod encode :clojure [data & _]
   "Stringify a clojure data structure"
-  (with-out-str
-    (binding [*print-dup* true]
-      (pr data))))
+  (binding [*print-dup* true]
+    (pr-str data)))
 
 (defmethod encode :edn [data & _]
   "Stringify an edn data structure"
-  (with-out-str
-    (binding [*print-dup* true]
-      (pr data))))
+  (pr-str data))
 
 (defmethod encode :json [data _]
   "Stringify a json data structure"
