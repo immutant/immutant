@@ -23,7 +23,7 @@
 (use-fixtures :once (with-deployment *file*
                       '{
                         :root "target/apps/ring/basic-ring/"
-                        :init basic-ring.core/init-web
+                        :init 'basic-ring.core/init-web
                         :context-path "/basic-ring"
                         }))
 

@@ -24,14 +24,14 @@
               (with-deployments {"vhost-app1"
                                  '{
                                    :root "target/apps/ring/basic-ring/"
-                                   :init basic-ring.core/init-web
+                                   :init 'basic-ring.core/init-web
                                    :context-path "/basic-ring"
                                    :virtual-host "integ-app1.torquebox.org"
                                    }
                                  "vhost-app2"
                                  '{
                                    :root "target/apps/ring/basic-ring/"
-                                   :init basic-ring.core/init-web
+                                   :init 'basic-ring.core/init-web
                                    :context-path "/basic-ring"
                                    :virtual-host ["integ-app2.torquebox.org"
                                                   "integ-app3.torquebox.org"]

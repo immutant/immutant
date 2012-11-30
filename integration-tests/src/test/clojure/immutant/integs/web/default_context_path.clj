@@ -23,7 +23,7 @@
 (use-fixtures :once (with-deployment *file*
                       '{
                         :root "target/apps/ring/basic-ring/"
-                        :init basic-ring.core/init-web
+                        :init 'basic-ring.core/init-web
                         }))
 
 (deftest the-app-should-be-available-at "/default_context_path"

@@ -23,7 +23,7 @@
 (use-fixtures :once (with-deployment *file*
                       '{
                         :root "target/apps/ring/basic-ring/"
-                        :init basic-ring.core/init-java-class
+                        :init 'basic-ring.core/init-java-class
                         :context-path "/java-class"
                         }))
 
