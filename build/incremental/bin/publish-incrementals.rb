@@ -99,14 +99,14 @@ class Publisher
   end
 
   def publish_distribution()
-    DIST_FILES.each do |f|
+    DIST_FILES.each do |file|
       dav_put( build_base_url + "/#{File.basename( file )}", file )
     end
   end
 
   def verify_distribution( latest = false )
     base_url = latest ? latest_base_url : build_base_url 
-    DIST_FILES.each do |f|
+    DIST_FILES.each do |file|
       status, message = @dav.curl( "-I", base_url + "/#{File.basename( file )}" )
       raise Exception.new( "Release verification failed for " +
                            "#{File.basename( file )} - #{status} : #{message}" ) if status != 200
