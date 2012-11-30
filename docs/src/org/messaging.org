@@ -81,6 +81,25 @@
    =stop= will silently fail if the endpoint is in use by any other
    application.
 
+** Accessing Destinations via JMX
+
+   Messaging destinations have MBeans exposed via JMX. From there, you
+   can see message counts, list & remove messages, and perform other
+   operations. Two different MBeans are provided for each destination,
+   each with slightly different operations. One is a JMS MBean, and
+   the other is HornetQ specific.
+   
+   For a given destination name (=queue.example= in this case), you
+   can access the MBeans with the following addresses:
+
+   #+begin_src text
+   # to access the JMS MBean
+   org.hornetq:module=JMS,type=Queue,name="queue.example"
+     
+   # to access the HornetQ MBean
+   org.hornetq:module=Core,type=Queue,address="jms.queue.queue.example",name="jms.queue.queue.example"
+   #+end_src
+
 * Messages
 
   The unit of communication within a messaging system is a message.  A
