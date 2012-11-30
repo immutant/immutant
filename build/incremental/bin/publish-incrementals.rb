@@ -19,6 +19,7 @@ class Publisher
     acc << file
     sha1 = file + ".sha1"
     acc << sha1 if File.exists?( sha1 )
+    acc
   end
   
   attr_accessor :build_number
