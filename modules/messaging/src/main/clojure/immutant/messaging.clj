@@ -175,16 +175,6 @@
           (.close connection)
           (throw e))))))
 
-(defn pipeline [opts-or-fn & fns]
-  (let [[opts fns] (if (fn? opts-or-fn)
-                     [opts-or-fn fns]
-                     [nil (cons opts-or-fn fns)])
-        queue-name (str "queue.pipeline-" (java.util.UUID/randomUUID))]
-    (start queue-name)
-    
-    
-    ))
-
 (defn request
   "Send a message to queue and return a delay that will retrieve the response.
    Implements the request-response pattern, and is used in conjunction
@@ -211,11 +201,11 @@
    same options as listen."
   [queue f & {:keys [decode?] :or {decode? true} :as opts}]
   {:pre [(queue? queue)]}
-  (letfn [(respond* [^javax.jms.Message msg]
-            (publish (.getJMSDestination msg)
-                     (f (codecs/decode-if decode? msg))
-                     :correlation-id (.getJMSMessageID msg)
-                     :encoding (codecs/get-encoding msg)))]
+  (let-fn [(respond* [^javax.jms.Message msg]
+                     (publish (.getJMSDestination msg)
+                              (f (codecs/decode-if decode? msg))
+                              :correlation-id (.getJMSMessageID msg)
+                              :encoding (codecs/get-encoding msg)))]
     (mapply listen queue respond*
             (assoc (update-in opts [:selector]
                               #(str "synchronous = 'true'"
