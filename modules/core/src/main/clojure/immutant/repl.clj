@@ -65,7 +65,7 @@ undeploy."
   "Stops the given nrepl server."
   [server]
   (log/info "Stopping nrepl for" (util/app-name))
-  (.close (:ss @server)))
+  (.close server))
 
 (defn start-nrepl
   "Starts an nrepl server on the given port. If an interface-address is
