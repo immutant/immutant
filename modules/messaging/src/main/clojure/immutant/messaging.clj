@@ -201,11 +201,11 @@
    same options as listen."
   [queue f & {:keys [decode?] :or {decode? true} :as opts}]
   {:pre [(queue? queue)]}
-  (let-fn [(respond* [^javax.jms.Message msg]
-                     (publish (.getJMSDestination msg)
-                              (f (codecs/decode-if decode? msg))
-                              :correlation-id (.getJMSMessageID msg)
-                              :encoding (codecs/get-encoding msg)))]
+  (letfn [(respond* [^javax.jms.Message msg]
+            (publish (.getJMSDestination msg)
+                     (f (codecs/decode-if decode? msg))
+                     :correlation-id (.getJMSMessageID msg)
+                     :encoding (codecs/get-encoding msg)))]
     (mapply listen queue respond*
             (assoc (update-in opts [:selector]
                               #(str "synchronous = 'true'"
