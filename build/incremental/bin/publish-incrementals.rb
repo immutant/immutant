@@ -109,7 +109,7 @@ class Publisher
     DIST_FILES.each do |file|
       status, message = @dav.curl( "-I", base_url + "/#{File.basename( file )}" )
       raise Exception.new( "Release verification failed for " +
-                           "#{File.basename( file )} - #{status} : #{message}" ) if status != 200
+                           "#{File.basename( file )} - #{status} : #{message}" ) if status.to_i != 200
     end
   end
 
