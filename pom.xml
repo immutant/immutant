@@ -334,6 +334,12 @@
         <version>${version.wagon-provider-api}</version>
       </dependency>
 
+      <dependency>
+        <!-- pending the release of http://dev.clojure.org/jira/browse/JMX-11 -->
+        <groupId>org.clojars.tcrawley</groupId>
+        <artifactId>java.jmx</artifactId>
+        <version>${version.clojure.java.jmx}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -351,6 +357,7 @@
     <version.clojure.core.cache>0.6.1</version.clojure.core.cache>
     <version.clojure.core.memoize>0.5.2</version.clojure.core.memoize>
     <version.clojure.java.jdbc>0.2.3</version.clojure.java.jdbc>
+    <version.clojure.java.jmx>0.3.0-SNAPSHOT</version.clojure.java.jmx>
     <version.clojure-maven-plugin>1.3.8</version.clojure-maven-plugin>
     <version.clojure-complete>0.2.2</version.clojure-complete>
     <version.ring>1.1.5</version.ring>
@@ -367,7 +374,7 @@
     <version.leiningen>2.0.0-preview10</version.leiningen>
     <version.deploy-tools>0.9.2</version.deploy-tools>
     <version.autodoc>0.9.2</version.autodoc>
-
+    
     <warn-on-reflection>false</warn-on-reflection>
   </properties>
 
