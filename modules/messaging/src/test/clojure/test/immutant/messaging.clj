@@ -20,16 +20,23 @@
         clojure.test)
   (:require [immutant.registry :as registry]))
 
-(def dummies { "destinationizer"
-               (proxy [org.immutant.messaging.Destinationizer] [nil]
-                 (createQueue [& _] false)
-                 (createTopic [& _] false))})
+(def created-dests (atom #{}))
+
+(def mock-registry
+  {"destinationizer"
+   (proxy [org.immutant.messaging.Destinationizer] [nil]
+     (createQueue [name & _]
+       (swap! created-dests conj name)
+        false)
+     (createTopic [name & _]
+       (swap! created-dests conj name)
+       false))})
 
 (defn test-already-running [destination]
-  (let [names (atom (keys dummies))]
+  (let [names (atom (keys mock-registry))]
     (with-redefs [registry/get (fn [k]
                                  (swap! names (partial remove #(= % k)))
-                                 (dummies k))]
+                                 (mock-registry k))]
       (is (not (empty? @names)))
       (is (= nil (start destination)))
       (is (empty? @names)))))
@@ -54,3 +61,15 @@
 
 (deftest respond-with-a-topic-should-throw
   (is (thrown? AssertionError (respond "/topic/foo" str))))
+
+(defn test-as-fn [dest]
+  (reset! created-dests #{})
+  (with-redefs [registry/get #(mock-registry %)]
+    (start dest))
+  (is (some #{(str dest)} @created-dests)))
+
+(deftest bad-destination-name-as-queue
+  (test-as-fn (as-queue "/bad/name")))
+
+(deftest bad-destination-name-as-topic
+  (test-as-fn (as-topic "/bad/name")))

@@ -16,11 +16,12 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.msg.topics
-  (:use fntest.core)
-  (:use clojure.test)
-  (:use immutant.messaging))
+  (:use fntest.core
+        clojure.test
+        immutant.messaging))
 
 (def gravy "/topic/gravy")
+(def oddball (as-topic "oddball"))
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -47,3 +48,9 @@
   (publish gravy "ham#4")
   (is (= "ham#4" (receive gravy :client-id "bacon" :timeout 100)))
   (unsubscribe "bacon"))
+
+(deftest publish-and-receive-using-as-topic
+  (let [result (future (receive oddball))]
+    (Thread/sleep 1000)
+    (publish oddball "ahoy")
+    (is (= "ahoy" @result))))

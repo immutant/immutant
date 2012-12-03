@@ -24,30 +24,48 @@
         [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]
             [immutant.registry         :as registry]
-            [clojure.tools.logging     :as log]))
+            [clojure.tools.logging     :as log])
+  (:import [immutant.messaging.core QueueMarker TopicMarker]))
+
+(defn as-queue
+  "Marks the given queue name as a queue. Useful for working with queues that
+   don't follow the Immutant convention of containing \"queue\" in the name.
+   The result can be passed to any immutant.messaging functions that take a
+   queue name."
+  [^String name]
+  (QueueMarker. name))
+
+(defn as-topic
+  "Marks the given topic name as a topic. Useful for working with topics that
+   don't follow the Immutant convention of containing \"topic\" in the name.
+   The result can be passed to any immutant.messaging functions that take a
+   topic name."
+  [^String name]
+  (TopicMarker. name))
 
 (defn start
   "Create a message destination; name should begin with either 'queue'
-   or 'topic'
+   or 'topic', or be the result of calling as-queue or as-topic.
 
    The following options are supported [default]:
      :durable    whether queue items persist across restarts [false]
      :selector   A JMS (SQL 92) expression matching message metadata/properties [\"\"]"
   [name & opts]
   (cond
-   (queue-name? name) (apply start-queue name opts)
-   (topic-name? name) (apply start-topic name opts)
-   :else (throw (Exception. "Destination names must contain the word 'queue' or 'topic'"))))
+   (queue-name? name) (apply start-queue (.toString name) opts)
+   (topic-name? name) (apply start-topic (.toString name) opts)
+   :else (throw (destination-name-error name))))
 
 (defn publish
   "Send a message to a destination. dest can either be the name of the
-   destination or a javax.jms.Destination. If the message is a
-   javax.jms.Message, then the message is sent without modification.
-   If the message contains metadata, it will be transferred as JMS
-   properties and reconstituted upon receipt. Metadata keys must be
-   valid Java identifiers (because they can be used in selectors) and
-   can be overridden using the :properties option. Returns the JMS
-   message object that was published.
+   destination, a javax.jms.Destination, or the result of as-queue or
+   as-topic. If the message is a javax.jms.Message, then the message
+   is sent without modification.  If the message contains metadata, it
+   will be transferred as JMS properties and reconstituted upon
+   receipt. Metadata keys must be valid Java identifiers (because they
+   can be used in selectors) and can be overridden using
+   the :properties option. Returns the JMS message object that was
+   published.
 
    The following options are supported [default]:
      :encoding        :clojure :json or :text [:clojure]
@@ -65,10 +83,10 @@
                       to be set) [nil]
      :password        the password to use to auth the connection (requires :username
                       to be set) [nil]"
-  [name-or-dest message & {:as opts}]
+  [dest message & {:as opts}]
   (with-connection opts
     (let [session (session)
-          destination (create-destination session name-or-dest)
+          destination (create-destination session dest)
           producer (.createProducer session destination)
           encoded (if (instance? javax.jms.Message message)
                     message
@@ -82,7 +100,8 @@
 
 (defn receive
   "Receive a message from a destination. dest can either be the name
-   of the destination or a javax.jms.Destination.
+   of the destination, a javax.jms.Destination, or the result of
+   as-queue or as-topic.
 
    The following options are supported [default]:
      :timeout    time in ms, after which nil is returned [10000]
@@ -97,10 +116,10 @@
                  be set) [nil]
      :password   the password to use to auth the connection (requires :username to
                  be set) [nil]"
-  [name-or-dest & {:keys [timeout decode?] :or {timeout 10000 decode? true} :as opts}]
+  [dest & {:keys [timeout decode?] :or {timeout 10000 decode? true} :as opts}]
   (with-connection opts
     (let [session (session)
-          destination (create-destination session name-or-dest)
+          destination (create-destination session dest)
           consumer (create-consumer session destination opts)
           encoded (.receive consumer timeout)]
       (when encoded
@@ -108,14 +127,14 @@
 
 (defn message-seq
   "A lazy sequence of messages received from a destination. Accepts
-   same options as receive"
+   same options as receive."
   [dest & opts]
   (lazy-seq (cons (apply receive dest opts) (message-seq dest))))
 
 (defn listen
   "The handler function, f, will receive each message sent to dest.
-   dest can either be the name of the destination or a
-   javax.jms.Destination.
+   dest can either be the name of the destination, a
+   javax.jms.Destination, or the result of as-queue or as-topic.
 
    The following options are supported [default]:
      :concurrency  the number of threads handling messages [1]
@@ -133,12 +152,12 @@
                    to be set) [nil]
      :password     the password to use to auth the connection (requires :username
                    to be set) [nil]"
-  [name-or-dest f & {:keys [concurrency decode?] :or {concurrency 1 decode? true} :as opts}]
+  [dest f & {:keys [concurrency decode?] :or {concurrency 1 decode? true} :as opts}]
   (let [connection (create-connection opts)
-        dest-name (destination-name name-or-dest)
+        dest-name (destination-name dest)
         setup-fn (fn []
                    (let [session (create-session connection)
-                         destination (create-destination session name-or-dest)]
+                         destination (create-destination session dest)]
                      {"session" session
                       "consumer" (create-consumer session destination opts)
                       "handler" #(with-transaction session
@@ -147,7 +166,7 @@
     (if-let [izer (registry/get "message-processor-groupizer")]
       
       ;; in-container
-      (if (destination-exists? connection dest-name)
+      (if (destination-exists? connection dest)
         (let [complete (promise)
               group (.createGroup izer
                                   dest-name
@@ -179,7 +198,7 @@
   "Send a message to queue and return a delay that will retrieve the response.
    Implements the request-response pattern, and is used in conjunction
    with respond. The queue parameter can either be the name of a
-   queue or an actual javax.jms.Queue.
+   queue, an actual javax.jms.Queue, or the result of as-queue.
 
    It takes the same options as publish, and one more [default]:
      :timeout  time in ms for the delayed receive to wait once it it is
@@ -197,8 +216,8 @@
 (defn respond
   "Listen for messages on queue sent by the request function and
    respond with the result of applying f to the message. queue can
-   either be the name of the queue or a javax.jms.Queue. Accepts the
-   same options as listen."
+   either be the name of the queue, a javax.jms.Queue, or the result
+   of as-queue. Accepts the same options as listen."
   [queue f & {:keys [decode?] :or {decode? true} :as opts}]
   {:pre [(queue? queue)]}
   (letfn [(respond* [^javax.jms.Message msg]
@@ -243,4 +262,4 @@
   (cond
    (queue-name? name) (stop-queue name :force force)
    (topic-name? name) (stop-topic name :force force)
-   :else (throw (Exception. "Illegal destination name"))))
+   :else (throw (destination-name-error name))))

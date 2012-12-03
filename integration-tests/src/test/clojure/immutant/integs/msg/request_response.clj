@@ -16,12 +16,13 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.msg.request-response
-  (:use fntest.core)
-  (:use clojure.test)
-  (:use immutant.messaging))
+  (:use fntest.core
+        clojure.test
+        immutant.messaging))
 
 (def ham-queue "/queue/ham")
 (def biscuit-queue "/queue/biscuit")
+(def oddball-queue (as-queue "oddball"))
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -38,3 +39,6 @@
   (is (= "ham" @(request biscuit-queue "HAM"
                          :timeout 2000
                          :properties {"worker" "lower"}))))
+
+(deftest request-and-respond-with-as-queue-should-both-work
+  (is (= "BISCUIT" @(request oddball-queue "biscuit" :timeout 2000))))

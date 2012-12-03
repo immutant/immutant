@@ -2,6 +2,7 @@
   (:require [immutant.messaging :as msg]))
 
 (msg/start "/topic/gravy")
+(msg/start (msg/as-topic "oddball"))
 
 (let [p (promise)
       l (msg/listen "/topic/gravy" (fn [v] (deliver p v)))]

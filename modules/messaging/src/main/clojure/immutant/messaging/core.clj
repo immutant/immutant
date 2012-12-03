@@ -42,7 +42,6 @@
 (defn ^{:private true} connection-key [opts]
   (map #(% opts) [:host :port :username :password]))
 
-;; ignore reflection here since it only occurs once at compile time
 (let [local-connection-factory
       (if-let [reference-factory (registry/get factory-name)]
         (let [reference (.getReference reference-factory)]
@@ -58,26 +57,46 @@
       (hornetq/connection-factory opts)
       local-connection-factory)))
 
-(defn queue-name? [^String name]
-  (.contains name "queue"))
+(defrecord QueueMarker [name]
+  Object
+  (toString [_] name))
+
+(defrecord TopicMarker [name]
+  Object
+  (toString [_] name))
+
+(defn destination-name-error [name]
+  (IllegalArgumentException.
+   (str \' name \'
+        " is ambiguous. Destination names must contain 'queue' or 'topic',"
+        " or be wrapped in a call to as-queue or as-topic.")))
+
+(defn queue-name? [name]
+  (or (instance? QueueMarker name)
+      (and (instance? String name) 
+           (.contains name "queue"))))
 
 (defn queue? [queue]
-  (or (isa? (class queue) Queue) (queue-name? queue)))
+  (or (instance? Queue queue)
+      (queue-name? queue)))
 
-(defn topic-name? [^String name]
-  (.contains name "topic"))
+(defn topic-name? [name]
+  (or (instance? TopicMarker name)
+      (and (instance? String name) 
+           (.contains name "topic"))))
 
 (defn topic? [topic]
-  (or (isa? (class topic) Topic) (topic-name? topic)))
+  (or (instance? Topic topic)
+      (topic-name? topic)))
 
 (defn destination-name [name-or-dest]
   (condp instance? name-or-dest
-    String          name-or-dest
     javax.jms.Queue (.getQueueName name-or-dest)
-    javax.jms.Topic (.getTopicName name-or-dest)))
+    javax.jms.Topic (.getTopicName name-or-dest)
+    (str name-or-dest)))
 
 (defn jms-name [dest-name]
-  (str "jms." (if (queue? dest-name) "queue." "topic.") dest-name))
+  (str "jms." (if (queue-name? dest-name) "queue." "topic.") dest-name))
 
 (defn wash-publish-options
   "Wash publish options relative to default values from a producer"
@@ -123,12 +142,12 @@
   (into {} (for [k (enumeration-seq (.getPropertyNames message))]
              [(if keywords (keyword k) k) (.getObjectProperty message k)])))
 
-(defn create-destination [^Session session name-or-dest]
+(defn create-destination [^Session session dest]
   (cond
-   (isa? (class name-or-dest) Destination) name-or-dest
-   (queue-name? name-or-dest) (.createQueue session name-or-dest)
-   (topic-name? name-or-dest) (.createTopic session name-or-dest)
-   :else (throw (Exception. "Illegal destination name"))))
+   (instance? Destination dest) dest
+   (queue-name? dest)           (.createQueue session (str dest))
+   (topic-name? dest)           (.createTopic session (str dest))
+   :else (throw (destination-name-error dest))))
 
 (defn stop-destination [name]
   (let [izer (registry/get "destinationizer")
@@ -142,8 +161,8 @@
     (if (and (not removed?) manager)
       (try
         (let [result (if (queue-name? name)
-                       (.destroyQueue manager name)
-                       (.destroyTopic manager name))]
+                       (.destroyQueue manager (str name))
+                       (.destroyTopic manager (str name)))]
           (log/info "Stopped" name)
           result)
         (catch Throwable e
@@ -159,7 +178,7 @@
          (and (.isDurable queue) (< 0 (.getMessageCount queue))) (log/warn "Won't stop non-empty durable queue:" name)
          (< 0 (.getConsumerCount queue)) (throw (IllegalStateException. "Can't stop queue with active consumers"))
          :else (stop-destination name))
-        (log/warn "No management interface found for queue:" name)))))
+        (log/warn "Stop failed - no management interface found for queue:" name)))))
 
 (defn stop-topic [name & {:keys [force]}]
   (if force
@@ -170,7 +189,7 @@
           (.getMessageCount topic) (log/warn "Won't stop topic with messages for durable subscribers:" name)
           (.getSubscriptionCount topic) (throw (IllegalStateException. "Can't stop topic with active subscribers"))
           (stop-destination name))
-        (log/warn "No management interface found for topic:" name)))))
+        (log/warn "Stop failed - no management interface found for topic:" name)))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
   (if-let [izer (registry/get "destinationizer")]
@@ -272,20 +291,3 @@
     (onMessage [_ message]
       (handler message))))
 
-;; TODO: This is currently unused and, if deemed necessary, could
-;; probably be better implemented
-(defn wait-for-destination 
-  "Ignore exceptions, retrying until destination completely starts up"
-  [f & [count]]
-  (let [attempts (or count 30)
-        retry #(do (Thread/sleep 1000) (wait-for-destination f (dec attempts)))]
-    (try
-      (f)
-      (catch javax.jms.JMSException e            ;; clojure 1.2, 1.4
-        (if (> attempts 0) (retry) (throw e)))
-      (catch RuntimeException e                  ;; clojure 1.3
-        (if (and (instance? javax.jms.JMSException (.getCause e)) (> attempts 0))
-          (retry)
-          (throw e)))
-      (catch javax.naming.NameNotFoundException e
-        (if (> attempts 0) (retry) (throw e))))))

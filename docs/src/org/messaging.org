@@ -48,10 +48,15 @@
 
    Use the [[./apidoc/immutant.messaging-api.html#immutant.messaging/start][immutant.messaging/start]] function to define a messaging
    destination. A simple naming convention designates the destination
-   as either a queue or a topic: if its name matches =#"^.?queue"=,
-   it's a queue; if it matches =#"^.?topic"=, it's a topic. It's common
-   to separate sections of the queue name with =.= or =/=, but is not 
-   required.
+   as either a queue or a topic: if its name contains "queue",
+   it's a queue; if it contains "topic", it's a topic. If you
+   need to use queue or topic names that don't match the above
+   convention, you can wrap the name in a call to
+   [[./apidoc/immutant.messaging-api.html#immutant.messaging/as-queue][immutant.messaging/as-queue]] or [[./apidoc/immutant.messaging-api.html#immutant.messaging/as-topic][immutant.messaging/as-topic]]
+   respectively. If you do wrap a destination name, you'll need to
+   pass the wrapped version to any =immutant.messaging= function that
+   takes a destination name. It's common to separate sections of the
+   destination name with =.= or =/=, but is not required.
 
    #+begin_src clojure
      (require '[immutant.messaging :as msg])
@@ -60,13 +65,22 @@
      (msg/start "/queue/work")
      (msg/start ".queue.play")
      (msg/start "queue.sing")
-     (msg/start "queuedance")
+     (msg/start "dancequeued")
+     
+     ;; wrap an ambiguous queue name in as-queue
+     (msg/start (msg/as-queue "no-q-word"))
      
      ;; to start topics - these are all valid names
      (msg/start "/topic/news")
      (msg/start "topic/infotainment")
      (msg/start ".topic")
      (msg/start "topicality")
+     (msg/start "topicality")
+     (msg/start "some.kinda.topic")
+     
+     ;; wrap an ambiguous topic name in as-topic
+     (msg/start (msg/as-topic "no-t-word"))
+     
    #+end_src
 
    Job scheduling is dynamic, and can occur anywhere in your

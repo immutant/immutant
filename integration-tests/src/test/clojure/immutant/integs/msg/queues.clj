@@ -22,6 +22,8 @@
 
 (def ham-queue "/queue/ham")
 (def biscuit-queue ".queue.biscuit")
+(def oddball-queue (as-queue "oddball"))
+(def addboll-queue (as-queue "addboll"))
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -69,6 +71,15 @@
   (deftest remote-receive-should-work
     (publish ham-queue "testing-remote")
     (is (= (receive ham-queue :timeout 60000 :host "integ-app1.torquebox.org" :port 5445)
+           "testing-remote")))
+
+  (deftest remote-publish-with-as-queue-should-work
+    (publish oddball-queue "testing-remote" :host "integ-app1.torquebox.org" :port 5445)
+    (is (= (receive ham-queue :timeout 60000) "testing-remote")))
+  
+  (deftest remote-receive-with-as-queue-should-work
+    (publish addboll-queue "testing-remote")
+    (is (= (receive addboll-queue :timeout 60000 :host "integ-app1.torquebox.org" :port 5445)
            "testing-remote"))))
 
 (deftest receive-with-decode-disabled-should-work

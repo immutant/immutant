@@ -25,3 +25,14 @@
               (msg/listen "queue.listen-id.request"
                (fn [_] (msg/publish "queue.listen-id.response" :new-listener)) :name "idempotent")
               (msg/publish "queue.listen-id.response" :old-listener)) :name "idempotent")
+
+(msg/start (msg/as-queue "oddball"))
+(msg/start (msg/as-queue "addboll"))
+(msg/start (msg/as-queue "odd-response"))
+
+(msg/listen (msg/as-queue "oddball")
+            #(msg/publish "/queue/ham" (.toLowerCase %)))
+
+
+
+

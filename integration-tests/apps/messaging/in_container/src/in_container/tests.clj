@@ -3,6 +3,10 @@
   (:require [immutant.messaging :as msg]
             [immutant.registry  :as registry]))
 
+(defn get-destination [name]
+  (let [destinations (.getDestinations (registry/get "destinationizer"))]
+    (.get destinations (str name))))
+
 (deftest listen-on-a-queue-should-raise-for-non-existent-destinations
   (is (thrown? IllegalStateException
                (msg/listen "a.non-existent.queue" (constantly nil)))))
@@ -17,25 +21,10 @@
     ;; this should throw if the queue doesn't yet exist
     (is (msg/listen queue (constantly true)))))
 
-(deftest topic-start-should-be-synchronous
-  (let [topic "topic.start.sync"]
-    (msg/start topic)
-    ;; this should throw if the topic doesn't exist
-    (is (msg/listen topic (constantly true)))))
-
-(deftest queue-stop-should-be-synchronous
-  (let [queue "queue.stop.sync"]
-    (msg/start queue)
-    (msg/stop queue)
-    (is (thrown? IllegalStateException
-                 (msg/listen queue (constantly true))))))
-
-(deftest topic-stop-should-be-synchronous
-  (let [topic "topic.stop.sync"]
-    (msg/start topic)
-    (msg/stop topic)
-    (is (thrown? IllegalStateException
-                 (msg/listen topic (constantly true))))))
+(deftest queue-start-should-work-with-as-queue
+  (let [q (msg/as-queue "hambone")]
+    (msg/start q)
+    (is (get-destination q))))
 
 (deftest queue-start-should-be-idempotent
   (let [queue "queue.id"]
@@ -47,6 +36,16 @@
           (.printStackTrace e)
           (is false)))))
 
+(deftest topic-start-should-be-synchronous
+  (let [topic "topic.start.sync"]
+    (msg/start topic)
+    ;; this should throw if the topic doesn't exist
+    (is (msg/listen topic (constantly true)))))
+
+(deftest topic-start-should-work-with-as-topic
+  (let [q (msg/as-topic "pigbone")]
+    (msg/start q)
+    (is (get-destination q))))
 
 (deftest topic-start-should-be-idempotent
   (let [topic "topic.id"]
@@ -58,17 +57,31 @@
           (.printStackTrace e)
           (is false)))))
 
-(deftest unlisten-on-a-queue-should-be-synchronous
-  (let [queue "queue.ham"]
+(deftest queue-stop-should-be-synchronous
+  (let [queue "queue.stop.sync"]
     (msg/start queue)
-    (msg/unlisten (msg/listen queue (constantly nil)))
-    (is (= true (msg/stop queue)))))
+    (msg/stop queue)
+    (is (thrown? IllegalStateException
+                 (msg/listen queue (constantly true))))))
 
-(deftest unlisten-on-a-topic-should-be-synchronous
-  (let [topic "topic.ham"]
+(deftest queue-stop-should-work-with-as-queue
+  (let [queue (msg/as-queue "dogleg")]
+    (msg/start queue)
+    (msg/stop queue)
+    (is (not (get-destination queue)))))
+
+(deftest topic-stop-should-be-synchronous
+  (let [topic "topic.stop.sync"]
     (msg/start topic)
-    (msg/unlisten (msg/listen topic (constantly nil)))
-    (is (= true (msg/stop topic)))))
+    (msg/stop topic)
+    (is (thrown? IllegalStateException
+                 (msg/listen topic (constantly true))))))
+
+(deftest topic-stop-should-work-with-as-topic
+  (let [topic (msg/as-topic "dogsnout")]
+    (msg/start topic)
+    (msg/stop topic)
+    (is (not (get-destination topic)))))
 
 (deftest force-stop-on-a-queue-should-remove-listeners
   (let [queue "queue.force"
@@ -85,3 +98,15 @@
     (msg/listen topic (constantly nil))
     (msg/stop topic :force true)
     (is (not (seq (.installedGroupsFor izer topic))))))
+
+(deftest unlisten-on-a-queue-should-be-synchronous
+  (let [queue "queue.ham"]
+    (msg/start queue)
+    (msg/unlisten (msg/listen queue (constantly nil)))
+    (is (= true (msg/stop queue)))))
+
+(deftest unlisten-on-a-topic-should-be-synchronous
+  (let [topic "topic.ham"]
+    (msg/start topic)
+    (msg/unlisten (msg/listen topic (constantly nil)))
+    (is (= true (msg/stop topic)))))

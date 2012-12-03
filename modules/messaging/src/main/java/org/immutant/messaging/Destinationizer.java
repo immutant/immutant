@@ -107,6 +107,11 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
         return this.messageProcessorGroupizerInjector;
     }
     
+    //useful for testing
+    public Map<String, ServiceName> getDestinations() {
+        return this.destinations;
+    }
+    
     private final InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
     private final InjectedValue<MessageProcessorGroupizer> messageProcessorGroupizerInjector = new InjectedValue<MessageProcessorGroupizer>();
     private Map<String, ServiceName> destinations = new HashMap<String, ServiceName>();

@@ -28,6 +28,8 @@
 (def hiscuit-queue "queue/hiscuit")
 (def loader-queue "/queue/loader")
 (def loader-result-queue "/queue/loader-result")
+(def addboll-queue (as-queue "addboll"))
+(def odd-response-queue (as-queue "odd-response"))
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -38,13 +40,27 @@
   (publish biscuit-queue "foo")
   (is (= "FOO" (receive ham-queue :timeout 60000))))
 
+(deftest listen-with-as-queue-should-work
+  (publish (as-queue "oddball") "BACON")
+  (is (= "bacon" (receive ham-queue :timeout 60000))))
+
 (deftest remote-listen-should-work
-  (listen bam-queue
-          (fn [m]
-            (publish hiscuit-queue m))
-          :host "integ-app1.torquebox.org" :port 5445)
-  (publish bam-queue "listen-up")
-  (is (= (receive hiscuit-queue :timeout 60000) "listen-up")))
+  (let [listener (listen bam-queue
+                          (fn [m]
+                            (publish hiscuit-queue m))
+                          :host "integ-app1.torquebox.org" :port 5445)]
+    (publish bam-queue "listen-up")
+    (is (= (receive hiscuit-queue :timeout 60000) "listen-up"))
+    (unlisten listener)))
+
+(deftest remote-listen-with-as-queue-should-work
+  (let [listener (listen addboll-queue
+                          (fn [m]
+                            (publish odd-response-queue m))
+                          :host "integ-app1.torquebox.org" :port 5445)]
+    (publish addboll-queue "ahoyhoy")
+    (is (= (receive odd-response-queue :timeout 60000) "ahoyhoy"))
+    (unlisten listener)))
 
 (deftest the-listener-should-be-using-the-deployment-classloader
   (publish loader-queue "whatevs")
