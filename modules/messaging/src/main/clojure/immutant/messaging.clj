@@ -226,7 +226,8 @@
    destination before your app is undeployed."
   [listener]
   (when listener
-    (if (instance? java.io.Closeable listener)
+    (if (or (instance? java.io.Closeable listener)
+            (instance? javax.jms.Connection listener))
       (.close listener)
       (let [complete (promise)]
         (.remove listener #(deliver complete %))
