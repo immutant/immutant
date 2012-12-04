@@ -155,6 +155,7 @@
   [dest f & {:keys [concurrency decode?] :or {concurrency 1 decode? true} :as opts}]
   (let [connection (create-connection opts)
         dest-name (destination-name dest)
+        izer (registry/get "message-processor-groupizer")
         setup-fn (fn []
                    (let [session (create-session connection)
                          destination (create-destination session dest)]
@@ -163,36 +164,44 @@
                       "handler" #(with-transaction session
                                    (f (codecs/decode-if decode? %)))}))]
     (at-exit #(.close connection))
-    (if-let [izer (registry/get "message-processor-groupizer")]
-      
-      ;; in-container
-      (if (destination-exists? connection dest)
-        (let [complete (promise)
-              group (.createGroup izer
-                                  dest-name
-                                  false ;; TODO: singleton
-                                  concurrency
-                                  (not (nil? (:client-id opts)))
-                                  (:name opts (str f))
-                                  connection
-                                  setup-fn
-                                  #(deliver complete %))]
-          (if (= "up" (deref complete 5000 nil))
-            group
-            (log/error "Failed to setup listener for" dest-name)))
-        (throw (IllegalStateException. (str "Destination " dest-name " does not exist."))))
-      
-      ;; out of container
-      (try
-        (dotimes [_ concurrency]
-          (let [settings (setup-fn)]
-            (.setMessageListener (settings "consumer")
-                                 (create-listener (settings "handler")))))
-        (.start connection)
-        connection
-        (catch Throwable e
-          (.close connection)
-          (throw e))))))
+    (cond
+     (or (not izer)
+         (and (:host opts)
+              (destination-exists? connection dest)))
+     ;; we're outside the container, or in-container but listening to a remote dest
+     (try
+       (when izer (log/info
+                   "Setting up direct listener for remote destination:"
+                   dest))
+       (dotimes [_ concurrency]
+         (let [settings (setup-fn)]
+           (.setMessageListener (settings "consumer")
+                                (create-listener
+                                 (settings "handler")))))
+       (.start connection)
+       connection
+       (catch Throwable e
+         (.close connection)
+         (throw e)))
+
+     (destination-exists? connection dest)
+     ;; we're inside the container, and the dest is valid
+     (let [complete (promise)
+           group (.createGroup izer
+                               dest-name
+                               false ;; TODO: singleton
+                               concurrency
+                               (not (nil? (:client-id opts)))
+                               (:name opts (str f))
+                               connection
+                               setup-fn
+                               #(deliver complete %))]
+       (if (= "up" (deref complete 5000 nil))
+         group
+         (log/error "Failed to setup listener for" dest-name)))
+
+     :else
+     (throw (IllegalStateException. (str "Destination " dest-name " does not exist."))))))
 
 (defn request
   "Send a message to queue and return a delay that will retrieve the response.

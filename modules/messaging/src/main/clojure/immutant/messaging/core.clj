@@ -16,7 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging.core
-  (:use [immutant.util :only (at-exit)])
+  (:use [immutant.util :only (at-exit)]
+        [immutant.try :only (try-if)])
   (:import (javax.jms DeliveryMode Destination JMSException Queue Session Topic))
   (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]
@@ -285,9 +286,17 @@
   `(with-connection* ~options (fn [] ~@body)))
 
 
-;; only used outside of the container
-(defn ^{:internal true} create-listener [handler]
-  (reify javax.jms.MessageListener
-    (onMessage [_ message]
-      (handler message))))
-
+(try-if
+ (import 'org.immutant.runtime.ClojureRuntime)
+ 
+   ;; we're in-container
+  (defn ^{:internal true} create-listener [handler]
+    (org.immutant.messaging.MessageListener.
+     (registry/get "clojure-runtime")
+     handler))
+  
+  ;; we're not in-container
+  (defn ^{:internal true} create-listener [handler]
+    (reify javax.jms.MessageListener
+      (onMessage [_ message]
+        (handler message)))))
