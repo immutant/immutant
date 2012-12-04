@@ -125,3 +125,70 @@
       (msg/start topic)
       (msg/unlisten (msg/listen topic (constantly nil)))
       (is (= true (msg/stop topic))))))
+
+  (defn pio [f]
+    (fn [i]
+      (println "INPUT:" i)
+      (let [o (f i)]
+        (println "OUTPUT:" o)
+        o)))
+
+(testing "pipelines"
+
+  (defn dollarizer [s]
+    (.replace s "S" "$"))
+
+  (defn sleeper [x]
+    (Thread/sleep 500)
+    x)
+  
+  (deftest it-should-work
+    (let [result-queue "queue.pl.result"
+          pl (msg/pipeline
+              #(.replace % "m" "x")
+              (memfn toUpperCase)
+              dollarizer
+              #(.replace % "$" "Ke$ha")
+              #(msg/publish result-queue %))]
+      (msg/start result-queue)
+      (msg/publish pl "hambiscuit")
+      (is (= "HAXBIKe$haCUIT" (msg/receive result-queue)))))
+
+  (deftest it-should-work-with-options
+    (let [result-queue "queue.pl.result2"
+          pl (msg/pipeline
+              #(.replace % "y" "x")
+              (memfn toUpperCase)
+              dollarizer
+              #(.replace % "$" "NipseyHu$$le")
+              #(msg/publish result-queue %)
+              :name "opt-pipeline")]
+      (msg/start result-queue)
+      (msg/publish pl "gravybiscuit")
+      (is (= "GRAVXBINipseyHu$$leCUIT" (msg/receive result-queue)))))
+
+  (deftest it-should-work-with-a-result-queue
+    (let [result-queue "queue.pl.result-opt"
+          pl (msg/pipeline
+              #(.replace % "y" "x")
+              (memfn toUpperCase)
+              dollarizer
+              #(.replace % "$" "NipseyHu$$le")
+              :result-destination result-queue)]
+      (msg/publish pl "gravybiscuit")
+      (is (= "GRAVXBINipseyHu$$leCUIT" (msg/receive result-queue)))))
+
+    (deftest it-should-work-with-concurrency
+    (let [result-queue "queue.pl.result-opt"
+          pl (msg/pipeline
+              dollarizer
+              (with-meta sleeper {:concurrency 10})
+              :result-destination result-queue)]
+      (dotimes [n 10]
+        (msg/publish pl "hamboneS"))
+      (let [results
+            (keep identity
+                  (map (fn [_] (msg/receive result-queue :timeout 510))
+                       (range 10)))]
+        (is (= 10 (count results)))
+        (is (= (take 10 (repeat "hambone$")) results))))))

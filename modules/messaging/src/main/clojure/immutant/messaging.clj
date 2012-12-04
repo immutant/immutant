@@ -272,3 +272,39 @@
    (queue-name? name) (stop-queue name :force force)
    (topic-name? name) (stop-topic name :force force)
    :else (throw (destination-name-error name))))
+
+
+(defn- pipeline-listen [pl opts step-count cur-step f]
+  (let [opts (-> opts
+                 (merge (meta f))
+                 (assoc :selector
+                   (if (= cur-step 0)
+                     (str "step is null")
+                     (str "step = " cur-step)))
+                 (dissoc :name))]
+    (mapply listen
+            pl
+            (if (= cur-step (dec step-count))
+              f
+              #(publish pl (f %)
+                        :properties {"step" (inc cur-step)}))
+            opts)))
+
+;; - store listeners as md on a QueueMarker around pl
+;; - figure out a way to unlisten them on stop
+;; - find a way to shut it all down
+;; - and make it idempotent
+(defn pipeline [& args]
+  (let [{:keys [result-destination name] :as opts} (drop-while fn? args)
+        fns (take-while fn? args)
+        fns (if result-destination
+              (conj (vec fns) #(publish result-destination %))
+              fns)
+        pl (as-queue (str "queue.pipeline-"
+                          (or name (java.util.UUID/randomUUID))))]
+    (when result-destination
+      (start result-destination))
+    (mapply start pl opts)
+    (doall
+     (map-indexed (partial pipeline-listen pl opts (count fns)) fns))
+    pl))
