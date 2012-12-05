@@ -15,28 +15,19 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.integ-helper
-  (:require [clj-http.client :as client]))
+(ns immutant.integs.web.verbs
+  (:use fntest.core
+        clojure.test
+        [immutant.integs.integ-helper :only [as-data*]]))
 
-(def deployment-class-loader-regex
-  #"ImmutantClassLoader.*deployment\..*\.clj")
+(use-fixtures :once (with-deployment *file*
+                      '{
+                        :root "target/apps/ring/basic-ring/"
+                        :init 'basic-ring.core/init-request-echo
+                        :context-path "/verbs"
+                        }))
 
-(defn as-data* [method path & [opts]]
-  (let [result (client/request
-                (merge
-                 {:method method
-                  :url (str "http://localhost:8080" path)}
-                 opts))]
-    ;;(println "RESPONSE" result)
-    {:result result
-     :body (if (seq (:body result))
-             (read-string (:body result)))}))
-
-(defn as-data [method path & [opts]]
-  (:body (as-data* method path opts)))
-
-(defn get-as-data* [path & [opts]]
-  (as-data* :get path opts))
-
-(defn get-as-data [path]
-  (:body (get-as-data* path)))
+(deftest test-passthrough-methods
+  (doseq [method [:get :post :put :delete :head]]
+    (is (= (str method)
+           (get-in (as-data* method "/verbs") [:result :headers "x-request-method"])))))

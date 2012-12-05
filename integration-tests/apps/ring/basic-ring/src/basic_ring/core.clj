@@ -15,9 +15,9 @@
 
 (println "basic-ring.core LOADED")
 
-(defn response [body]
+(defn response [body & [headers]]
   {:status 200
-   :headers {"Content-Type" "text/html"}
+   :headers (merge {"Content-Type" "text/html"} headers)
    :body (pr-str body)})
 
 (defn handler [request]
@@ -39,11 +39,11 @@
     (response (.trim (slurp res)))))
 
 (defn request-echo-handler [request]
-  (response (assoc request :body "<body>"))) ;; body is a inputstream, chuck it for now
+  (response (assoc request :body "<body>") ;; body is a inputstream, chuck it for now
+            {"x-request-method" (str (:request-method request))})) 
 
 (defn java-class-handler [request]
   (response (SomeClass/hello)))
-
 
 (defn dev-handler [request]
    (let [original-project (dev/current-project)]

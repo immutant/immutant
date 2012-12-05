@@ -22,17 +22,15 @@ import java.io.IOException;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.catalina.servlets.DefaultServlet;
 
 import org.immutant.runtime.ClojureRuntime;
 import org.jboss.logging.Logger;
 
-public class RingServlet extends DefaultServlet {
+public class RingServlet extends HttpServlet {
     public static final String CLOJURE_RUNTIME = "clojure.runtime";
-    
     
     @Override
     public void init() throws ServletException {
@@ -42,13 +40,30 @@ public class RingServlet extends DefaultServlet {
         this.handlerName = config.getServletName();
     }
     
-    protected void serveResource(HttpServletRequest request,
-            HttpServletResponse response,
-            boolean ignored)
-                    throws IOException, ServletException {
-        doRing( request, response );    
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+       doRing( req, resp );
     }
-    
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        doRing( req, resp );
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        doRing( req, resp );
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        doRing( req, resp );
+    }
+
     protected void doRing(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         try { 
             this.runtime.invoke( "immutant.web.ring/handle-request", this.handlerName, request, response );
@@ -57,6 +72,7 @@ public class RingServlet extends DefaultServlet {
             throw new ServletException( e );
         }
     }
+    
     private ClojureRuntime runtime;
     private String handlerName;
        
