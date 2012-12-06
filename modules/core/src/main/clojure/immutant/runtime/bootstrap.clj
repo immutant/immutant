@@ -80,7 +80,12 @@ to gracefully handle missing dependencies."
   (when project
     (project/load-certificates project)
     (try
-      (classpath/resolve-dependencies :dependencies project)
+      (->> (update-in project [:dependencies]
+                      (fn [deps] (remove #(and
+                                           (= "org.immutant" (namespace (first %)))
+                                           (.startsWith (name (first %)) "immutant"))
+                                        deps)))
+           (classpath/resolve-dependencies :dependencies))
       (catch clojure.lang.ExceptionInfo e
         (log/error "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
         nil))))
@@ -97,7 +102,8 @@ to gracefully handle missing dependencies."
 (defn ^{:internal true} get-dependencies
   "Resolves the dependencies for an application. It concats bundled jars with any aether resolved
 dependencies, with bundled jars taking precendence. If resolve-deps is false, dependencies aren't
-resolved via aether and only bundled jars are returned."
+resolved via aether and only bundled jars are returned. This strips any org.immutant/immutant-*
+deps from the list before resolving to prevent conflicts with internal jars."
   ([app-root profiles resolve-deps?]
      (get-dependencies (or (read-project app-root profiles)
                            {:root app-root})

@@ -67,7 +67,7 @@
           deps => (contains (aether/dependency-files
                              (aether/resolve-dependencies
                               :coordinates [['org.clojure/clojure "1.3.0"]]))))
-
+        
         (fact "should return deps from lib"
           deps => (contains (io/file (io/resource "project-root/lib/some.jar"))))
 
@@ -119,7 +119,13 @@
       (let [project-with-bad-dep (update-in project [:dependencies]
                                             conj ['i-dont-exist "1.0.0"])]
         (fact "should return the no deps when there is an unresolvable dep"
-          (resolve-dependencies project-with-bad-dep) => nil))))
+          (resolve-dependencies project-with-bad-dep) => nil))
+
+      (fact "should ignore immutant deps"
+        (let [project-with-immutant-deps
+              (update-in project [:dependencies]
+                         conj ['org.immutant/immutant "0.6.0"] ['org.immutant/immutant-web "0.6.0"])]
+          (resolve-dependencies project-with-immutant-deps) => expected-deps))))
     
     
   (facts "read-full-app-config"
