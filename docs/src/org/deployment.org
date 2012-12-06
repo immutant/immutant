@@ -103,12 +103,13 @@
   :CUSTOM_ID: deployment-descriptor
   :END:
 
-  An Immutant deployment descriptor is simply a Clojure file containing a map of
-  options. When a descriptor is deployed, Immutant reads the file in and uses it
-  to determine where the actual application resides by looking at its =:root=
-  entry. The =:root= entry can either be the path to the application root on disk, 
-  or the path to an =.ima= archive. For details on the format of the deployment
-  descriptor, see [[./initialization.html#initialization-configuration][Configuration Options]]. 
+  An Immutant deployment descriptor is simply a Clojure file
+  containing a map of options. When a descriptor is deployed, Immutant
+  loads the file, evaluating all its forms, and uses it to determine
+  where the actual application resides by looking at its =:root=
+  entry. The =:root= entry can either be the path to the application
+  root on disk, or the path to an =.ima= archive. For details on the
+  format of the deployment descriptor, see [[./initialization.html#initialization-configuration][Configuration Options]].
 
 * Running Immutant
 

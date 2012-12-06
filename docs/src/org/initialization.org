@@ -89,8 +89,10 @@
     for more details.
 
   - =:init= - optionally specifies a function to call to initialize your
-    application. It can be either a namespace qualified symbol
+    application. It can be either a namespace-qualified symbol
     (=my.app/do-something=) or a string ("my.app/do-something").
+    Because the [[./deployment.html#deployment-descriptor][deployment descriptor]] is evaluated, it must be quoted (or
+    a string) if present there.
 
   - =:context-path= - overrides the default web context path that is generated
     based on the deployment name. See [[./web.html#web-context-path][Web - Context Paths]] for more details.
@@ -107,7 +109,7 @@
      :lein-profiles [:dev :clj15]
      :swank-port 4242
      :nrepl-port 4343
-     :init my.app/init
+     :init 'my.app/init
      :context-path "/"
      :virtual-host "foo.host"} ;; can also be: ["foo1.host" "foo2.host"]
   #+end_src
@@ -148,7 +150,7 @@
    to trigger the deployment of an application. It must contain a =:root= entry
    (see [[#initialization-configuration][above]]), but any other configuration is optional. Any configuration 
    specified here overrides configuration from =project.clj=. See the 
-   [[./deployment.html#deployment-descriptor][deployment descriptor]] additional for more details.
+   [[./deployment.html#deployment-descriptor][deployment descriptor]] for more details.
 
 ** project.clj
    :PROPERTIES:
@@ -166,7 +168,7 @@
      (defproject my-app "1.2.3"
                  :dependencies [[org.clojure/clojure "1.3.0"]
                                 [noir "1.2.0"]]
-                 :immutant {:init my-app.core/initialize
+                 :immutant {:init 'my-app.core/initialize
                             :resolve-dependencies true
                             :lein-profiles [:dev :clj15]
                             :context-path "/"
