@@ -88,8 +88,10 @@ public class TmpResourceMounter implements Service<TmpResourceMounter> {
     }
     
     private File tmpMountDir() throws IOException {
-        File dir = new File( this.deploymentUnit.getAttachment( ApplicationMetaData.ATTACHMENT_KEY ).getRoot(), ".tmp_jar_mounts" );
+        File dir = new File( System.getProperty( "java.io.tmpdir" ), 
+                             "tmp-jar-mounts." + this.deploymentUnit.getName() + "." + Long.toString(System.nanoTime()) );
         dir.mkdir();
+        
         return dir;
     }
     
