@@ -168,7 +168,7 @@
      (defproject my-app "1.2.3"
                  :dependencies [[org.clojure/clojure "1.3.0"]
                                 [noir "1.2.0"]]
-                 :immutant {:init 'my-app.core/initialize
+                 :immutant {:init my-app.core/initialize
                             :resolve-dependencies true
                             :lein-profiles [:dev :clj15]
                             :context-path "/"
