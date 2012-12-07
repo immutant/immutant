@@ -255,9 +255,9 @@
       </dependency>
 
       <dependency>
-        <groupId>org.tcrawley</groupId>
-        <artifactId>autodoc</artifactId>
-        <version>${version.autodoc}</version>
+      <groupId>codox</groupId>
+      <artifactId>codox.core</artifactId>
+      <version>${version.codox}</version>
       </dependency>
 
       <dependency>
@@ -373,7 +373,7 @@
     <version.midje>1.4.0-beta2</version.midje>
     <version.leiningen>2.0.0-preview10</version.leiningen>
     <version.deploy-tools>0.9.2</version.deploy-tools>
-    <version.autodoc>0.9.2</version.autodoc>
+    <version.codox>0.6.3</version.codox>
     
     <warn-on-reflection>false</warn-on-reflection>
   </properties>

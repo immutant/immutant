@@ -127,33 +127,4 @@
     </plugins>
   </build>
 
-  <profiles>
-    <profile>
-      <id>docs</id>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>com.theoryinpractise</groupId>
-              <artifactId>clojure-maven-plugin</artifactId>
-              <configuration>
-                <autodoc>
-                  <build-raw-index>true</build-raw-index>
-                </autodoc>
-              </configuration>
-              <executions>
-                <execution>
-                  <id>autodoc</id>
-                  <phase>compile</phase>
-                  <goals>
-                    <goal>autodoc</goal>
-                  </goals>
-                </execution>
-              </executions>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-  </profiles>
 </project>

@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.jobs.internal
+(ns ^{:no-doc true} immutant.jobs.internal
   (:use [immutant.util :only [app-name]]
         [immutant.try :only [try-defn]])
   (:require [immutant.registry :as registry]

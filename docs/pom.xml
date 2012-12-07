@@ -18,18 +18,21 @@
   </properties>
 
   <dependencies>
+
     <dependency>
-      <groupId>org.tcrawley</groupId>
-      <artifactId>autodoc</artifactId>
-      <scope>provided</scope>
+      <groupId>codox</groupId>
+      <artifactId>codox.core</artifactId>
+      <scope>compile</scope>
     </dependency>
-    <!-- autodoc needs ant-launcher, but doesn't pull it in -->
+
+    <!-- explicitly needed for codox -->
     <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant-launcher</artifactId>
-      <version>1.8.2</version>
-      <scope>provided</scope>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.namespace</artifactId>
+      <version>0.1.3</version>
+      <scope>compile</scope>
     </dependency>
+
   </dependencies>
   <build>
 
@@ -140,14 +143,14 @@
             </goals>
           </execution>
           <execution>
-            <id>generate-autodoc</id>
+            <id>generate-codox</id>
             <phase>compile</phase>
             <goals>
               <goal>run</goal>
             </goals>
             <configuration>
-              <mainClass>immutant.docs.autodoc</mainClass>
-              <args>..</args>
+              <mainClass>immutant.docs.generate_codox_docs</mainClass>
+              <args>.. ${project.version} ../modules ../namespaces</args>
             </configuration>
           </execution>
         </executions>

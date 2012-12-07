@@ -90,7 +90,7 @@ stop-nrepl to shut it down manually."
   ([port]
      (start-nrepl (util/management-interface-address) port)))
 
-(defn ^{:internal true} init-repl
+(defn ^{:internal true :no-doc true} init-repl
   "Looks for nrepl-port and swank-port values in the given config, and starts
 the appropriate servers."
   [config]

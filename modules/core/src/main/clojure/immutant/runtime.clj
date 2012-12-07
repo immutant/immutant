@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.runtime
+(ns ^{:no-doc true} immutant.runtime
   "This namespace is solely for use during the application runtime
 bootstrapping process. Applications shouldn't use anything here."
   (:require [clojure.string             :as str]

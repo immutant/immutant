@@ -62,6 +62,17 @@
               <mainClass>immutant.build.generate_clojars_project</mainClass>
             </configuration>
           </execution>
+
+          <execution>
+            <id>codox</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <mainClass>immutant.build.generate_codox_index</mainClass>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 

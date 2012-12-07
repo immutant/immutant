@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.runtime.util
+(ns ^{:no-doc true} immutant.runtime.util
   "Util functions that are boostrap related, but are safe to use in any runtime."
   (:require [clojure.java.io          :as io]
             [clojure.walk             :as walk]

@@ -16,6 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.messaging.core
+  "Internal utilities used by messaging. You should only need to dip
+   into here in advanced cases."
   (:use [immutant.util :only (at-exit)]
         [immutant.try :only (try-if)])
   (:import (javax.jms DeliveryMode Destination JMSException Queue Session Topic))

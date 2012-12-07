@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.messaging.codecs
+(ns ^{:no-doc true} immutant.messaging.codecs
   (:require [immutant.codecs :as core])
   (:use [immutant.messaging.core :only [get-properties]])
   (:import [javax.jms BytesMessage TextMessage]))

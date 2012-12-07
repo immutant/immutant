@@ -14,28 +14,22 @@
 ;; License along with this software; if not, write to the Free
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
-(ns ^{:no-doc true} immutant.hooks
-  "Monkeypatching."
-  (:require [robert.hooke :as bob]))
 
-(comment 
-  (defmacro time-it*
-    [tag expr]
-    `(let [start# (. System (nanoTime))
-           ret# ~expr]
-       (println (str ~tag " took " (/ (double (- (. System (nanoTime)) start#)) 1000000.0) "ms"))
-       ret#))
+(ns immutant.build.generate-codox-index
+  (:require [clojure.java.io :as io]
+            [clojure.walk    :as walk]
+            [codox.utils     :as cu]
+            [codox.reader    :as cr])
+  (:import java.io.File)
+  (:gen-class))
 
 
-  (defn time-it [name f & args]
-    (time-it*
-     (str name " " args)
-     (apply f args)))
-
-  (def time-require (partial time-it "require"))
-  (def time-use (partial time-it "use"))
-  (def time-import (partial time-it "import"))
-
-  (bob/add-hook #'clojure.core/require #'time-require)
-  (bob/add-hook #'clojure.core/use #'time-use)
-  (bob/add-hook #'clojure.core/import #'time-import))
+(defn -main [& args]
+  (spit (io/file "target/codox-index.clj")
+        (pr-str
+         (walk/postwalk
+          #(if (instance? File %) (.getCanonicalPath %) %)
+          (-> (cr/read-namespaces "src/main/clojure/")
+              ;;(ns-filter include exclude)
+              (cu/add-source-paths ["src/main/clojure"])))))
+  (shutdown-agents))

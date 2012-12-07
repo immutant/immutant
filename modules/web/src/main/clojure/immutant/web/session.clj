@@ -16,6 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.web.session
+  "Functions for using the cluster-wide servlet store for sessions."
   (:use ring.middleware.session.store
         [immutant.web.internal :only [current-servlet-request]])
   (:require [ring.middleware.session :as ring-session])

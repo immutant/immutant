@@ -16,6 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.registry
+  "Functions for working with Immutant's internal per-app registry."
   (:use [immutant.try :only [try-defn]])
   (:refer-clojure :exclude (get)))
 
@@ -34,12 +35,14 @@
      (and controller (.getValue controller)))))
   
 (defn put
+  "Store a value in the registry."
   [k v]
   (swap! registry assoc k v)
   v)
 
 (defn get
+  "Retrieve a value from the registry."
   [name]
   (or (clojure.core/get @registry name) (get-from-msc name)))
 
-(def ^{:doc "Deprecated; use get instead"} fetch #'get)
+(def ^{:doc "Deprecated; use get instead" :no-doc true} fetch #'get)
