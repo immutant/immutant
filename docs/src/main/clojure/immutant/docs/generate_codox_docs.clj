@@ -62,7 +62,7 @@
   (binding [*root-path* root-path]
     (with-redefs [html/header our-header]
       (-> options
-          (update-in [:src-dir-uri] str (if (re-find #"SNAPSHOT" version)
+          (update-in [:src-dir-uri] str (if (re-find #"SNAPSHOT|incremental" version)
                                           "master"
                                           version))
           (assoc :version version
