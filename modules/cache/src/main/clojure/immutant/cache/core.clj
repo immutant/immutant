@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.cache.core
+(ns ^{:no-doc true} immutant.cache.core
   (:use [immutant.try :only [try-def try-defn]])
   (:require [immutant.registry :as registry]
             [clojure.tools.logging :as log]))
