@@ -36,10 +36,10 @@
   ([dir]
      (->> (file-seq (io/file dir))
           (filter #(= "codox-index.clj" (.getName %)))
-          (mapcat load-index)
-          (sort-by :name)))
+          (mapcat load-index)))
   ([dir & dirs]
-     (mapcat load-indexes (cons dir dirs))))
+     (sort-by :name
+              (mapcat load-indexes (cons dir dirs)))))
 
 (def options
   {:output-dir "target/html/apidoc"

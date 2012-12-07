@@ -30,6 +30,5 @@
          (walk/postwalk
           #(if (instance? File %) (.getCanonicalPath %) %)
           (-> (cr/read-namespaces "src/main/clojure/")
-              ;;(ns-filter include exclude)
               (cu/add-source-paths ["src/main/clojure"])))))
   (shutdown-agents))
