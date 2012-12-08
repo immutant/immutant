@@ -255,7 +255,7 @@
       </dependency>
 
       <dependency>
-      <groupId>codox</groupId>
+      <groupId>org.clojars.tcrawley</groupId>
       <artifactId>codox.core</artifactId>
       <version>${version.codox}</version>
       </dependency>

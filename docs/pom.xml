@@ -20,7 +20,7 @@
   <dependencies>
 
     <dependency>
-      <groupId>codox</groupId>
+      <groupId>org.clojars.tcrawley</groupId>
       <artifactId>codox.core</artifactId>
       <scope>compile</scope>
     </dependency>
