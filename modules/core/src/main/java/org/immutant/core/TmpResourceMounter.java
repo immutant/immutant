@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.module.ModuleRootMarker;
@@ -38,7 +37,6 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.vfs.VFS;
 import org.jboss.vfs.VirtualFile;
-import org.projectodd.polyglot.core.app.ApplicationMetaData;
 
 public class TmpResourceMounter implements Service<TmpResourceMounter> {
     
@@ -53,8 +51,8 @@ public class TmpResourceMounter implements Service<TmpResourceMounter> {
     
     public ResourceRoot mount(File file, boolean unmountable) throws IOException {
         synchronized (this.mountMap) {
-            VirtualFile mountPath = VFS.getChild( File.createTempFile( file.getName(), ".jar", tmpMountDir() ).toURI() );
-            log.debug( this.deploymentUnit.getName() + ": mounting " + file );
+            VirtualFile mountPath = tmpMountPath().getChild( file.getName() );
+            log.debug( this.deploymentUnit.getName() + ": mounting " + file + " at " + mountPath );
             final ResourceRoot childResource = new ResourceRoot( mountPath, 
                     new MountHandle( VFS.mountZip( file, mountPath, TempFileProviderService.provider() ) ) );
             ModuleRootMarker.mark( childResource );
@@ -87,11 +85,10 @@ public class TmpResourceMounter implements Service<TmpResourceMounter> {
         return false;
     }
     
-    private File tmpMountDir() throws IOException {
-        File dir = new File( this.deploymentUnit.getAttachment( ApplicationMetaData.ATTACHMENT_KEY ).getRoot(), 
-                             ".immutant_tmp_jar_mounts" );
-        dir.mkdir();
-        return dir;
+    private VirtualFile tmpMountPath() throws IOException {
+        ResourceRoot root = this.deploymentUnit.getAttachment( Attachments.DEPLOYMENT_ROOT );
+
+        return root.getRoot().getChild( "tmp_mounts" ).getChild( this.deploymentUnit.getName() );
     }
     
     public TmpResourceMountMap getMountMap() {
@@ -112,11 +109,7 @@ public class TmpResourceMounter implements Service<TmpResourceMounter> {
 
     @Override
     public void stop(StopContext context) {
-        try {
-            FileUtils.deleteDirectory( tmpMountDir() );        
-        } catch (IOException e) {
-            log.error( e );
-        }
+
     }
     
     private DeploymentUnit deploymentUnit;
