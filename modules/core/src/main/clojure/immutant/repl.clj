@@ -84,7 +84,7 @@ stop-nrepl to shut it down manually."
                "at" (str interface-address ":" port))
      (when-let [server ((util/try-resolve 'clojure.tools.nrepl.server/start-server)
                         :handler ((util/try-resolve 'clojure.tools.nrepl.server/default-handler) #'nrepl-init-handler)
-                        :port (fix-port port) :host interface-address)]
+                        :port (fix-port port) :bind interface-address)]
        (log/info "Bound to " (str interface-address ":" (-> server deref :ss .getLocalPort)))
        (util/at-exit (partial stop-nrepl server))
        server))
