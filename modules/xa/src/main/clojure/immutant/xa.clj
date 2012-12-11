@@ -38,9 +38,17 @@
     :database  the database name
     :username  the username for the database connection
     :password  the password associated with the username
-    :pool      the maximum number of simultaneous connections used"
+    :pool      the maximum number of simultaneous connections used
+
+    :subprotocol an alias for :adapter
+    :subname     an alias for :database
+    :user        an alias for :username"
   [id spec]
-  (let [params (into {} (for [[k v] spec] [(name k) v]))
+  (let [spec (assoc spec
+               :adapter  (:adapter  spec (:subprotocol spec))
+               :database (:database spec (:subname spec))
+               :username (:username spec (:user spec)))
+        params (into {} (for [[k v] spec] [(name k) v]))
         name (.createDataSource (registry/get "xaifier") id params)]
     (util/backoff 10 10000 (.lookup ^javax.naming.InitialContext (InitialContext.) name))))
 
