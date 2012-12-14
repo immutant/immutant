@@ -192,7 +192,7 @@
                                false ;; TODO: singleton
                                concurrency
                                (not (nil? (:client-id opts)))
-                               (:name opts (str f))
+                               (str (:name opts f))
                                connection
                                setup-fn
                                #(deliver complete %))]
