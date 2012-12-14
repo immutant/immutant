@@ -1,25 +1,15 @@
 (ns in-container.pipeline
   (:use clojure.test)
-  (:require [immutant.messaging.pipeline :as pl]
-            [immutant.messaging          :as msg]))
-
-(defn pio [f]
-  (fn [i]
-    (println "INPUT:" i)
-    (let [o (f i)]
-      (println "OUTPUT:" o)
-      o)))
+  (:require [immutant.pipeline  :as pl]
+            [immutant.messaging :as msg]))
 
 (defn random-queue []
-  (msg/as-queue (str (java.util.UUID/randomUUID))))
+  (let [q (msg/as-queue (str (java.util.UUID/randomUUID)))]
+    (msg/start q)
+    q))
 
 (defn dollarizer [s]
   (.replace s "S" "$"))
-
-(defn make-sleeper [ms]
-  (fn [x]
-    (Thread/sleep ms)
-    x))
 
 (deftest it-should-work
   (let [result-queue (random-queue)
@@ -29,46 +19,100 @@
             (memfn toUpperCase)
             dollarizer
             #(.replace % "$" "Ke$ha")
-            #(msg/publish result-queue %))]
-    (msg/start result-queue)
-    (msg/publish pl "hambiscuit")
+            (partial msg/publish result-queue))]
+    (pl "hambiscuit")
     (is (= "HAXBIKe$haCUIT" (msg/receive result-queue)))))
 
-(deftest it-should-work-with-a-result-queue
-  (let [result-queue "queue.pl.result-opt"
-        pl (pl/pipeline "result-queue"
-                        #(.replace % "y" "x")
-                        (memfn toUpperCase)
-                        dollarizer
-                        #(.replace % "$" "NipseyHu$$le")
-                        :result-destination result-queue)]
-    (msg/publish pl "gravybiscuit")
-    (is (= "GRAVXBINipseyHu$$leCUIT" (msg/receive result-queue)))))
-
-#_(deftest it-should-work-with-concurrency
+(deftest it-should-work-with-a-step-name-on-publish
   (let [result-queue (random-queue)
         pl (pl/pipeline
-            "concurrency"
+            "basic-step"
+            #(.replace % "m" "x")
+            (pl/step (memfn toUpperCase) :name :uc)
             dollarizer
-            (pl/step (make-sleeper 500) :concurrency 10)
-            :result-destination result-queue)]
+            #(.replace % "$" "Ke$ha")
+            (partial msg/publish result-queue))]
+    (pl "hambiscuit" :step :uc)
+    (is (= "HAMBIKe$haCUIT" (msg/receive result-queue)))))
+
+(deftest it-should-work-with-concurrency
+  (let [result-queue (random-queue)
+        pl (pl/pipeline
+             "concurrency"
+             (pl/step (fn [_]
+                        (Thread/sleep 500)
+                        (.getName (Thread/currentThread))) :concurrency 5)
+             (partial msg/publish result-queue))]
     (dotimes [n 10]
-      (msg/publish pl "hamboneS"))
-    (let [results
-          (keep identity
-                (map (fn [_] (msg/receive result-queue :timeout 510))
-                     (range 10)))]
-      (is (= 10 (count results)))
-      (is (= (take 10 (repeat "hambone$")) results)))))
+      (pl "yo"))
+    (let [results (->> (range 10)
+                       (map (fn [_] (msg/receive result-queue :timeout 400)))
+                       set)]
+      (is (<= 2 (count results))))))
+
+(deftest it-should-work-with-global-concurrency
+  (let [result-queue (random-queue)
+        pl (pl/pipeline
+             "concurrency-global"
+             (fn [_]
+               (Thread/sleep 500)
+               (.getName (Thread/currentThread)))
+             (partial msg/publish result-queue)
+             :concurrency 5)]
+    (dotimes [n 10]
+      (pl "yo"))
+    (let [results (->> (range 10)
+                       (map (fn [_] (msg/receive result-queue :timeout 400)))
+                       set)]
+      (is (<= 2 (count results))))))
+
+(deftest step-concurrency-should-override-global
+  (let [result-queue (random-queue)
+        pl (pl/pipeline
+             "concurrency-global-override"
+             (pl/step  (fn [_]
+                         (Thread/sleep 500)
+                         (.getName (Thread/currentThread))) :concurrency 5)
+             (partial msg/publish result-queue)
+             :concurrency 1)]
+    (dotimes [n 10]
+      (pl "yo"))
+    (let [results (->> (range 10)
+                       (map (fn [_] (msg/receive result-queue :timeout 400)))
+                       (remove nil?)
+                       set)]
+      (is (<= 2 (count results))))))
 
 (deftest *pipeline*-should-be-bound
     (let [result-queue (random-queue)
           pl (pl/pipeline
               "pipeline var"
-              (fn [_] (msg/publish result-queue (str pl/*pipeline*))))]
-      (msg/start result-queue)
-      (msg/publish pl "hi")
-      (is (= (str pl) (msg/receive result-queue)))))
+              (fn [_] (msg/publish result-queue (meta pl/*pipeline*))))]
+      (pl "hi")
+      (is (= (-> pl meta :pipeline) (:pipeline (msg/receive result-queue))))))
+
+(deftest *current-step*-and-*next-step*-should-be-bound
+    (let [result-queue (random-queue)
+          pl (pl/pipeline
+              "step vars"
+              (fn [_] (msg/publish result-queue [pl/*current-step* pl/*next-step*]))
+              (fn [_]))]
+      (pl "hi")
+      (is (= ["0" "1"] (msg/receive result-queue)))))
+
+(deftest *current-step*-and-*next-step*-should-be-bound-when-steps-are-named
+    (let [result-queue (random-queue)
+          pl (pl/pipeline
+              "step vars redux"
+              (pl/step
+               (fn [_]
+                 (msg/publish result-queue [pl/*current-step* pl/*next-step*]))
+               :name "one")
+              (pl/step
+               (fn [_])
+               :name "two"))]
+      (pl "hi")
+      (is (= ["one" "two"] (msg/receive result-queue)))))
 
 (defn chucker [_]
   (throw (Exception. "boom")))
@@ -81,8 +125,7 @@
               chucker
               :error-handler (fn [e m]
                                (msg/publish result-queue "caught it!")))]
-      (msg/start result-queue)
-      (msg/publish pl "hi")
+      (pl "hi")
       (is (= "caught it!" (msg/receive result-queue)))))
 
   (deftest step-error-handling-should-work
@@ -92,8 +135,7 @@
               (pl/step chucker
                        :error-handler (fn [e m]
                                         (msg/publish result-queue "from step"))))]
-      (msg/start result-queue)
-      (msg/publish pl "hi")
+      (pl "hi")
       (is (= "from step" (msg/receive result-queue)))))
 
   (deftest step-error-handling-should-override-global
@@ -105,8 +147,7 @@
                                         (msg/publish result-queue "from step")))
               :error-handler (fn [e m]
                                (msg/publish result-queue "from global")))]
-      (msg/start result-queue)
-      (msg/publish pl "hi")
+      (pl "hi")
       (is (= "from step" (msg/receive result-queue)))))
 
   (deftest *pipeline*-should-be-bound-in-an-error-handler
@@ -115,10 +156,9 @@
               "pipeline var in eh"
               chucker
               :error-handler (fn [e m]
-                               (msg/publish result-queue (str pl/*pipeline*))))]
-      (msg/start result-queue)
-      (msg/publish pl "hi")
-      (is (= (str pl) (msg/receive result-queue))))))
+                               (msg/publish result-queue (meta pl/*pipeline*))))]
+      (pl "hi")
+      (is (= (-> pl meta :pipeline) (:pipeline (msg/receive result-queue)))))))
 
 
 
