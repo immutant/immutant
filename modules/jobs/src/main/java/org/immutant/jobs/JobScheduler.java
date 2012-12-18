@@ -19,6 +19,8 @@
 
 package org.immutant.jobs;
 
+import static org.quartz.JobKey.jobKey;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,13 +28,12 @@ import java.util.Map;
 import org.jboss.logging.Logger;
 import org.projectodd.polyglot.jobs.BaseJobScheduler;
 import org.quartz.Job;
-import org.quartz.JobKey;
-import static org.quartz.JobKey.*;
 import org.quartz.JobDetail;
+import org.quartz.JobKey;
 import org.quartz.SchedulerException;
+import org.quartz.simpl.SimpleJobFactory;
 import org.quartz.spi.JobFactory;
 import org.quartz.spi.TriggerFiredBundle;
-import org.quartz.simpl.SimpleJobFactory;
 
 public class JobScheduler extends BaseJobScheduler implements JobFactory {
 

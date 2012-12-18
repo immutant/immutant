@@ -24,12 +24,17 @@
     </dependency>
 
     <dependency>
+      <groupId>org.jboss.msc</groupId>
+      <artifactId>jboss-msc</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>immutant-runtime-api</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
-
+     
   </dependencies>
 
   <build>

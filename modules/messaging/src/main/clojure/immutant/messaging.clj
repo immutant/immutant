@@ -20,7 +20,6 @@
    data structure to dynamically-created topics and queues. Message
    distribution is automatically load-balanced when clustered."
   (:use [immutant.util :only (at-exit mapply)]
-        [immutant.try :only (try-defn)]
         [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]
             [immutant.registry         :as registry]
@@ -266,7 +265,8 @@
   "Destroy a message destination. Typically not necessary since it
    will be done for you when your app is undeployed. This will fail
    with a warning if any handlers are listening or any messages are
-   yet to be delivered. Returns true on success"
+   yet to be delivered unless ':force true' is passed. Returns true on
+   success."
   [name & {:keys [force]}]
   (cond
    (queue-name? name) (stop-queue name :force force)

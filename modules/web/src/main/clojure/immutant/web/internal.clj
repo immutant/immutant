@@ -19,9 +19,7 @@
   (:require
    [immutant.registry     :as registry]
    [immutant.util         :as util]
-   [clojure.tools.logging :as log])
-  
-  (use [immutant.try :only [try-defn try-def]]))
+   [clojure.tools.logging :as log]))
 
 (def ^{:dynamic true} ^javax.servlet.http.HttpServletRequest current-servlet-request nil)
 
@@ -78,9 +76,7 @@
       vh
       [vh])))
 
-(def reqs '(import '(org.apache.catalina.core StandardContext)))
-
-(try-defn reqs install-servlet [servlet-class sub-context-path]
+(defn install-servlet [servlet-class sub-context-path]
   (let [context (registry/get "web-context")
         name (servlet-name sub-context-path)
         wrapper (.createWrapper context)
@@ -108,7 +104,7 @@
       (log/error "Failed to install servlet for" sub-context-path)
       wrapper)))
 
-(try-defn reqs remove-servlet [sub-context-path wrapper]
+(defn remove-servlet [sub-context-path wrapper]
   (let [context (registry/get "web-context")
         mapper (-> (registry/get "jboss.web")
                    (.getService)

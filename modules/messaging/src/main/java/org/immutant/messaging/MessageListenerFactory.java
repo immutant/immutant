@@ -19,25 +19,21 @@
 
 package org.immutant.messaging;
 
-import javax.jms.Message;
-
 import org.immutant.runtime.ClojureRuntime;
 
 /**
  * Only used when in-container but connecting to a remote destination.
  */
-public class MessageListener implements javax.jms.MessageListener {
+public class MessageListenerFactory {
     
-    public MessageListener(ClojureRuntime runtime, Object handler) {
+    public MessageListenerFactory(ClojureRuntime runtime) {
         this.runtime = runtime;
-        this.fn = handler;
     }
     
-    @Override
-    public void onMessage(Message message) {
-       this.runtime.invoke( this.fn, message );
+    public MessageListener newMessageListener(Object handler) {
+        return new MessageListener( this.runtime, handler );
     }
-    
-    private ClojureRuntime runtime;
-    private Object fn;
+
+    private final ClojureRuntime runtime;
 }
+

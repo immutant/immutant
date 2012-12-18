@@ -43,7 +43,6 @@ Calling this function with the same name as a previously scheduled job will repl
   (letfn [(job [ctx] (binding [*job-execution-context* ctx] (f)))]
     (swap! current-jobs assoc name
            (internal/create-job job name spec (boolean singleton))))
-  (at-exit (partial unschedule name))
   nil)
 
 (defn internal-scheduler

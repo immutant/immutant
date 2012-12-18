@@ -39,6 +39,10 @@ public class JobsServices {
         return name;
     }
     
+    public static ServiceName job(DeploymentUnit unit, String name) {
+        return unit.getServiceName().append( "scheduled_job" ).append(  name );
+    }
+    
     public static ServiceName schedulizer(DeploymentUnit unit) {
         return unit.getServiceName().append( "job_schedulizer" );
     }

@@ -17,27 +17,22 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.messaging;
+package org.immutant.xa.processors;
 
-import javax.jms.Message;
-
+import org.immutant.core.processors.RegisteringProcessor;
 import org.immutant.runtime.ClojureRuntime;
+import org.immutant.runtime.ClojureRuntimeService;
+import org.immutant.xa.SynchronizationFactory;
+import org.jboss.as.server.deployment.DeploymentPhaseContext;
+import org.jboss.as.server.deployment.DeploymentUnit;
 
-/**
- * Only used when in-container but connecting to a remote destination.
- */
-public class MessageListener implements javax.jms.MessageListener {
-    
-    public MessageListener(ClojureRuntime runtime, Object handler) {
-        this.runtime = runtime;
-        this.fn = handler;
+public class SynchronizationFactoryInstaller extends RegisteringProcessor {
+
+    public RegistryEntry registryEntry(DeploymentPhaseContext context) {
+        DeploymentUnit unit = context.getDeploymentUnit();
+        ClojureRuntime runtime = unit.getAttachment( ClojureRuntimeService.ATTACHMENT_KEY );
+        
+        return new RegistryEntry( "synchronization-factory", new SynchronizationFactory( runtime ) );
     }
-    
-    @Override
-    public void onMessage(Message message) {
-       this.runtime.invoke( this.fn, message );
-    }
-    
-    private ClojureRuntime runtime;
-    private Object fn;
+
 }

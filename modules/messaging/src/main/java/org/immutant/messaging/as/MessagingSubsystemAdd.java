@@ -26,6 +26,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 import java.util.List;
 
 import org.immutant.messaging.processors.DestinationizerInstaller;
+import org.immutant.messaging.processors.MessageListenerFactoryInstaller;
 import org.immutant.messaging.processors.MessageProcessorGroupizerInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
@@ -73,6 +74,7 @@ class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 11, new ApplicationNamingContextBindingProcessor() );
         processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, new DestinationizerInstaller() );
         processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 201, new MessageProcessorGroupizerInstaller() );
+        processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 202, new MessageListenerFactoryInstaller() );  
 
     }
 

@@ -35,6 +35,15 @@
       <artifactId>jboss-jms-api_1.1_spec</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.hornetq</groupId>
+      <artifactId>hornetq-jms-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hornetq</groupId>
+      <artifactId>hornetq-core-client</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>immutant-messaging-module</artifactId>
       <version>${project.version}</version>

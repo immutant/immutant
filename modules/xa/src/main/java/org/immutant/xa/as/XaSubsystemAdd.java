@@ -25,6 +25,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 
 import java.util.List;
 
+import org.immutant.xa.processors.SynchronizationFactoryInstaller;
 import org.immutant.xa.processors.XAifierInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
@@ -62,6 +63,7 @@ public class XaSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( XaExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 1, new XaDependenciesProcessor() );
 
         processorTarget.addDeploymentProcessor( XaExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, new XAifierInstaller() );
+        processorTarget.addDeploymentProcessor( XaExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 201, new SynchronizationFactoryInstaller() );
 
     }
 

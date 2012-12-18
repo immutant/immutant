@@ -16,8 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns ^{:no-doc true} immutant.jobs.internal
-  (:use [immutant.util :only [app-name]]
-        [immutant.try :only [try-defn]])
+  (:use [immutant.util :only [app-name]])
   (:require [immutant.registry :as registry]
             [clojure.tools.logging :as log])
   (:import [org.immutant.jobs ClojureJob ScheduledJobMBean]))
@@ -60,43 +59,16 @@ A singleton scheduler will participate in a cluster, and will only execute its j
   (let [s (scheduler singleton)]
     (wait-for-scheduler s #(.getScheduler s))))
 
-(try-defn (import org.immutant.jobs.as.JobsServices) register-job-mbean [name job]
-  (.installMBean
-   (job-schedulizer)
-   (.append JobsServices/JOBS
-            (doto (make-array String 2)
-              (aset 0 (app-name))
-              (aset 1 name)))
-   "immutant.jobs"
-   job))
-
-(try-defn (import org.projectodd.polyglot.jobs.BaseScheduledJob)
-  ^{:internal true} create-job
+(defn ^{:internal true} create-job
   "Instantiates and starts a job"
   [f name spec singleton]
-  (let [scheduler (scheduler singleton)
-        job
-        (doto
-            (proxy [BaseScheduledJob ScheduledJobMBean]
-                [ClojureJob (app-name) name "" spec singleton]
-              (start []
-                (wait-for-scheduler
-                 scheduler
-                 #(.addJob scheduler
-                           name (app-name)
-                           (ClojureJob. (registry/get "clojure-runtime") f)))
-                (let [^BaseScheduledJob this this] ;; hack to eliminate reflection
-                  (proxy-super start)))
-              (getScheduler []
-                (.getScheduler scheduler)))
-          .start)]
-    (register-job-mbean name job)
-    job))
+  (scheduler singleton) ;; creates the scheduler if necessary
+  (.createJob (job-schedulizer) f name spec singleton))
 
 (defn ^{:internal true} stop-job
   "Stops (unschedules) a job, removing it from the scheduler."
   [job]
-  (if-not (.isShutdown (.getScheduler job))
+  (if (.isStarted job)
     (.stop job)))
 
 

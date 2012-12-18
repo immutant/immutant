@@ -17,27 +17,20 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.messaging;
-
-import javax.jms.Message;
+package org.immutant.xa;
 
 import org.immutant.runtime.ClojureRuntime;
 
-/**
- * Only used when in-container but connecting to a remote destination.
- */
-public class MessageListener implements javax.jms.MessageListener {
+public class SynchronizationFactory {
     
-    public MessageListener(ClojureRuntime runtime, Object handler) {
+    public SynchronizationFactory(ClojureRuntime runtime) {
         this.runtime = runtime;
-        this.fn = handler;
     }
     
-    @Override
-    public void onMessage(Message message) {
-       this.runtime.invoke( this.fn, message );
+    public Synchronization newSynchronization(Object handler) {
+        return new Synchronization( this.runtime, handler );
     }
-    
-    private ClojureRuntime runtime;
-    private Object fn;
+
+    private final ClojureRuntime runtime;
 }
+

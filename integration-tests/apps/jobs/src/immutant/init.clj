@@ -19,6 +19,9 @@
 (defn handler [request]
   (if (re-find #"reschedule" (:query-string request))
     (job/schedule "another-job" "*/1 * * * * ?" #(reset! another-value "rescheduled")))
+  (if (re-find #"unschedule" (:query-string request))
+      (job/unschedule "a-job"))
+    
   {:status 200
    :headers {"Content-Type" "text/plain"}
    :body (pr-str {:a-value @a-value :another-value @another-value :loader @loader})})

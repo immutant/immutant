@@ -18,13 +18,12 @@
 (ns ^{:no-doc true} immutant.messaging.core
   "Internal utilities used by messaging. You should only need to dip
    into here in advanced cases."
-  (:use [immutant.util :only (at-exit)]
-        [immutant.try :only (try-if)])
-  (:import (javax.jms DeliveryMode Destination JMSException Queue Session Topic))
+  (:use [immutant.util :only (at-exit if-in-immutant)])
   (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]
             [immutant.xa.transaction    :as tx]
-            [clojure.tools.logging      :as log]))
+            [clojure.tools.logging      :as log])
+  (:import (javax.jms DeliveryMode Destination JMSException Queue Session Topic)))
 
 ;;; The name of the JBoss connection factory
 (def factory-name "jboss.naming.context.java.ConnectionFactory")
@@ -287,18 +286,9 @@
 (defmacro with-connection [options & body]
   `(with-connection* ~options (fn [] ~@body)))
 
-
-(try-if
- (import 'org.immutant.runtime.ClojureRuntime)
- 
-   ;; we're in-container
-  (defn ^{:internal true} create-listener [handler]
-    (org.immutant.messaging.MessageListener.
-     (registry/get "clojure-runtime")
-     handler))
-  
-  ;; we're not in-container
-  (defn ^{:internal true} create-listener [handler]
-    (reify javax.jms.MessageListener
-      (onMessage [_ message]
-        (handler message)))))
+(defn ^{:internal true} create-listener [handler]
+  (if-in-immutant
+   (.newMessageListener (registry/get "message-listener-factory") handler)
+   (reify javax.jms.MessageListener
+     (onMessage [_ message]
+       (handler message)))))

@@ -25,10 +25,9 @@
 
 (defn fun [])
 
-(deffact "schedule unschedule, create, and register an at-exit handler"
+(deffact "schedule unschedules and creates a job"
   (schedule "name" "spec" fun) => anything
   (provided
     (unschedule "name") => nil
-    (create-job (as-checker fn?) "name" "spec" true) => :job
-    (at-exit anything) => nil))
+    (create-job (as-checker fn?) "name" "spec" true) => :job))
 

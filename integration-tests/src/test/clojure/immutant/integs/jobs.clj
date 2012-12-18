@@ -45,6 +45,13 @@
   (Thread/sleep 2000)
   (is (= (:another-value (get-values)) "rescheduled")))
 
+(deftest unschedule
+  (get-values "unschedule")
+  (Thread/sleep 1000)
+  (let [initial-value (:a-value (get-values))]
+    (Thread/sleep 10000)
+    (is (= initial-value (:a-value (get-values))))))
+
 (deftest a-job-should-be-using-the-deployment-classloader
   (is (re-find deployment-class-loader-regex
               (:loader (get-values)))))

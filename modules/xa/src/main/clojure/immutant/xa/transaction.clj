@@ -17,8 +17,8 @@
 
 (ns immutant.xa.transaction
   "Fine-grained XA transactional control"
-  (:use [immutant.try :only [try-defn]])
-  (:require [immutant.registry :as registry]
+  (:require [immutant.registry     :as registry]
+            [immutant.util         :as util]
             [clojure.tools.logging :as log]
             clojure.java.jdbc))
 
@@ -60,15 +60,14 @@
   (let [tx (current)]
     (doseq [resource resources] (.enlistResource tx resource))))
 
-(try-defn
- (import 'org.immutant.xa.Synchronization 'org.immutant.runtime.ClojureRuntime)
- after-completion
+(defn after-completion
  "Register a callback to fire when the current transaction is complete"
  [f]
- (.registerSynchronization (current)
-                           (Synchronization.
-                            (registry/get "clojure-runtime")
-                            f)))
+ (util/if-in-immutant
+  (let [factory (registry/get "synchronization-factory")]
+    (.registerSynchronization (current)
+                              (.newSynchronization factory f)))
+  (log/warn "transaction/after-completion called outside of Immutant, ignoring.")))
 
 (defn no-tx-strategy
   "Pass this to java.jdbc to prevent it from managing the tx on its connection"

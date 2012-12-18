@@ -20,7 +20,6 @@
 shouldn't be used in production."
   (:require [immutant.registry     :as registry]
             [immutant.util         :as util]
-            [immutant.try          :as try]
             [immutant.runtime.util :as runtime]
             [clojure.java.io       :as io])
   (:import org.immutant.core.ApplicationBootstrapUtils

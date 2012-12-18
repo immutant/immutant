@@ -17,8 +17,8 @@
 
 (ns immutant.registry
   "Functions for working with Immutant's internal per-app registry."
-  (:use [immutant.try :only [try-defn]])
-  (:refer-clojure :exclude (get)))
+  (:refer-clojure :exclude (get))
+  (:import org.jboss.msc.service.ServiceName))
 
 (def ^{:private true} registry (atom {}))
 (def ^{:private true} msc-registry (atom nil))
@@ -26,13 +26,11 @@
 (defn set-msc-registry [v]
   (reset! msc-registry v))
 
-(try-defn
- (import 'org.jboss.msc.service.ServiceName)
- ^{:private true} get-from-msc [name]
- (if @msc-registry
-   (let [key (if (string? name) (ServiceName/parse name) name)
-         controller (.getService @msc-registry key)]
-     (and controller (.getValue controller)))))
+(defn ^{:private true} get-from-msc [name]
+  (if @msc-registry
+    (let [key (if (string? name) (ServiceName/parse name) name)
+          controller (.getService @msc-registry key)]
+      (and controller (.getValue controller)))))
   
 (defn put
   "Store a value in the registry."

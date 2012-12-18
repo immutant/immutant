@@ -19,12 +19,19 @@
   "Various utility functions."
   (:require [immutant.registry :as registry]
             [clojure.string    :as str]
-            [clojure.java.io :as io]))
+            [clojure.java.io   :as io]))
 
 (defn in-immutant?
   "Returns true if running inside an Immutant container"
   []
   (not (nil? (registry/get "housekeeper"))))
+
+(defmacro if-in-immutant
+  "Executes the 'yes' branch if inside immutant, the 'no' branch otherwise."
+  [yes no]
+  `(if (in-immutant?)
+     ~yes
+     ~no))
 
 (defn app-root
   "Returns a file pointing to the root dir of the application"

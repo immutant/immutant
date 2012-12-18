@@ -19,9 +19,15 @@
 
 package org.immutant.jobs;
 
+import java.util.concurrent.Callable;
+
+import org.immutant.core.as.CoreServices;
 import org.immutant.jobs.as.JobsServices;
+import org.immutant.runtime.ClojureRuntime;
+import org.immutant.runtime.ClojureRuntimeService;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.logging.Logger;
+import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
 
@@ -33,13 +39,40 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
     }
 
     public JobScheduler createScheduler(boolean singleton) {
-
         JobScheduler scheduler = new JobScheduler( "JobScheduler$" + getUnit().getName() );
         ServiceName serviceName = JobsServices.scheduler( getUnit(), singleton );
-        
+
         deploy( serviceName, scheduler, singleton );
 
         return scheduler;
+    }
+
+    @SuppressWarnings("rawtypes")
+    public ScheduledJob createJob(Callable handler, String name, String cronExpression, final boolean singleton) {
+        final ScheduledJob job = new ScheduledJob( handler,
+                                                   getUnit().getName(),
+                                                   name,
+                                                   cronExpression,
+                                                   singleton );
+
+        final ServiceName serviceName = JobsServices.job( getUnit(), name );
+
+        replaceService( serviceName,
+                        new Runnable() {
+            @SuppressWarnings("unchecked")
+            public void run() {
+                ServiceBuilder builder = build( serviceName, job, false );
+
+                builder.addDependency( CoreServices.runtime( getUnit() ), job.getClojureRuntimeInjector() )
+                .addDependency( JobsServices.scheduler( getUnit(), singleton ), job.getJobSchedulerInjector() )
+                .install();
+
+            }
+        } );
+
+        installMBean( serviceName, "immutant.jobs", job );
+
+        return job;
     }
 
     private static final Logger log = Logger.getLogger( "org.immutant.jobs" );
