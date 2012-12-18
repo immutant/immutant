@@ -22,12 +22,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.projectodd</groupId>
-      <artifactId>polyglot-web</artifactId>
-      <version>${version.polyglot}</version>
-    </dependency>
-
-    <dependency>
       <groupId>ring</groupId>
       <artifactId>ring-servlet</artifactId>
       <version>${version.ring}</version>
@@ -49,13 +43,6 @@
           <artifactId>clojure</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-web-module</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
     </dependency>
 
   </dependencies>

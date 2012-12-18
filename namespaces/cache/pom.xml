@@ -63,13 +63,6 @@
       <artifactId>jboss-marshalling-river</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-cache-module</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
   </dependencies>
 
   <build>

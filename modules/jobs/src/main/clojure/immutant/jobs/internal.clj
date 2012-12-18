@@ -18,8 +18,7 @@
 (ns ^{:no-doc true} immutant.jobs.internal
   (:use [immutant.util :only [app-name]])
   (:require [immutant.registry :as registry]
-            [clojure.tools.logging :as log])
-  (:import [org.immutant.jobs ClojureJob ScheduledJobMBean]))
+            [clojure.tools.logging :as log]))
 
 (defn ^{:private true} job-schedulizer  []
   (registry/get "job-schedulizer"))

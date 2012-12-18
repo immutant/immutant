@@ -21,7 +21,7 @@
   (:require [clojure.tools.logging :as log]
             [immutant.jobs.internal :as internal]))
 
-(def ^:dynamic ^org.quartz.JobExecutionContext *job-execution-context* nil)
+(def ^:dynamic *job-execution-context* nil)
 
 (def ^{:private true} current-jobs (atom {}))
 
