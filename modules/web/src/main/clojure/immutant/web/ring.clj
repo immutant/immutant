@@ -21,6 +21,18 @@
             [ring.util.servlet :as servlet])
   (:import (javax.servlet.http HttpServletRequest HttpServletResponse)))
 
+(defn- context [^HttpServletRequest request]
+  (str (.getContextPath request)
+       (.getServletPath request)))
+
+;; we don't use .getPathInfo since it is decoded. See IMMUTANT-195
+(defn- path-info [^HttpServletRequest request]
+  (let [path-info (.substring (.getRequestURI request)
+                              (.length (context request)))]
+    (if (.isEmpty path-info)
+      "/"
+      path-info)))
+
 (defn handle-request [servlet-name
                       ^HttpServletRequest request
                       ^HttpServletResponse response]
@@ -30,9 +42,8 @@
       (if-let [response-map (binding [current-servlet-request request]
                               (handler
                                (assoc (servlet/build-request-map request)
-                                 :context (str (.getContextPath request)
-                                               (.getServletPath request))
-                                 :path-info (or (.getPathInfo request) "/"))))]
+                                 :context (context request)
+                                 :path-info (path-info request))))]
         (servlet/update-servlet-response response response-map)
         (throw (NullPointerException. "Handler returned nil.")))
       (throw (IllegalArgumentException. (str "No handler function found for " servlet-name))))))
