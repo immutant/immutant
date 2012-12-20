@@ -91,12 +91,34 @@
       (pl "hi")
       (is (= (-> pl meta :pipeline) (:pipeline (msg/receive result-queue))))))
 
+(defn chucker [_]
+  (throw (Exception. "boom")))
+
+(deftest *pipeline*-should-be-bound-in-an-error-handler
+    (let [result-queue (random-queue)
+          pl (pl/pipeline
+              "pipeline var eh"
+              chucker
+              :error-handler (fn [_ _] (msg/publish result-queue (meta pl/*pipeline*))))]
+      (pl "hi")
+      (is (= (-> pl meta :pipeline) (:pipeline (msg/receive result-queue))))))
+
 (deftest *current-step*-and-*next-step*-should-be-bound
     (let [result-queue (random-queue)
           pl (pl/pipeline
               "step vars"
               (fn [_] (msg/publish result-queue [pl/*current-step* pl/*next-step*]))
               (fn [_]))]
+      (pl "hi")
+      (is (= ["0" "1"] (msg/receive result-queue)))))
+
+(deftest *current-step*-and-*next-step*-should-be-bound-in-an-error-handler
+    (let [result-queue (random-queue)
+          pl (pl/pipeline
+              "step vars eh"
+              chucker
+              (fn [_])
+              :error-handler (fn [_ _] (msg/publish result-queue [pl/*current-step* pl/*next-step*])))]
       (pl "hi")
       (is (= ["0" "1"] (msg/receive result-queue)))))
 
@@ -113,9 +135,6 @@
                :name "two"))]
       (pl "hi")
       (is (= ["one" "two"] (msg/receive result-queue)))))
-
-(defn chucker [_]
-  (throw (Exception. "boom")))
 
 (testing "error handling"
   (deftest global-error-handling-should-work

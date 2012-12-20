@@ -20,9 +20,19 @@
   (:require [clojure.tools.logging :as log]
             [immutant.messaging    :as msg]))
 
-(def ^:dynamic *pipeline* nil)
-(def ^:dynamic *current-step* nil)
-(def ^:dynamic *next-step* nil)
+(def ^:dynamic *pipeline*
+  "The currently active pipeline fn. Will be bound within the
+   pipeline steps and error handlers."
+  nil)
+
+(def ^:dynamic *current-step*
+  "The name of the current pipeline step. Will be bound within the
+   pipeline steps and error handlers."
+  nil)
+(def ^:dynamic *next-step*
+  "The name of the next pipeline step. Will be bound within the
+   pipeline steps and error handlers."
+  nil)
 
 (def ^:private pipelines (atom #{}))
 
@@ -74,7 +84,10 @@
        (vary-meta f assoc :step step :next-step next-step))
      fns (partition 2 1 step-names))))
 
-(defn pipeline [name & args]
+(defn pipeline
+  "Creates a pipeline function. A pipeline is a sequence of chained
+  functions (\"steps\"), each receiving the result of the previous step."
+  [name & args]
   (let [steps (named-steps (take-while fn? args))
         {:as opts} (drop-while fn? args)
         pl (str "queue.pipeline-" name)
@@ -90,10 +103,14 @@
         (swap! pipelines conj pl)
         (vary-meta pl-fn assoc :listeners listeners)))))
 
-(defn step [f & {:as opts}]
+(defn step
+  "Creates a step with additional options. {{what options?}}"
+  [f & {:as opts}]
   (vary-meta f merge opts))
 
-(defn stop [pl & args]
+(defn stop
+  "Shuts down the given pipeline."
+  [pl & args]
   (let [{:keys [pipeline listeners]} (meta pl)]
     (swap! pipelines disj pipeline)
     (doseq [l listeners]
