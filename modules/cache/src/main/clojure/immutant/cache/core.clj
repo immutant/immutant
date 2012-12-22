@@ -17,6 +17,7 @@
 
 (ns ^{:no-doc true} immutant.cache.core
     (:require [immutant.registry :as registry]
+              [clojure.java.io :as io]
               [clojure.tools.logging :as log])
     (:import [org.infinispan.configuration.cache ConfigurationBuilder VersioningScheme CacheMode]
              [org.infinispan.transaction TransactionMode LockingMode]
@@ -26,6 +27,7 @@
 
 (def clustered-manager (registry/get "jboss.infinispan.web"))
 (def local-manager (delay (DefaultCacheManager.)))
+(def file-store-path (str (io/file (System/getProperty "jboss.server.data.dir") "immutant-cache-persist")))
 
 (defn cache-mode
   [{:keys [mode sync]}]
@@ -54,7 +56,7 @@
   builder)
 
 (defn build-config
-  [{:keys [locking template] :as opts}]
+  [{:keys [locking template persist] :as opts}]
   (let [builder (ConfigurationBuilder.)]
     (if template (.read builder template))
     (.classLoader builder (.getContextClassLoader (Thread/currentThread)))
@@ -63,6 +65,9 @@
         (transactionMode TransactionMode/TRANSACTIONAL))
     (.. builder clustering
         (cacheMode (cache-mode opts)))
+    (if persist
+      (let [store (.. builder loaders addFileCacheStore)]
+        (.. store (location (if (string? persist) persist file-store-path)))))
     (cond
       (= locking :pessimistic) (set-pessimistic-locking! builder)
       (= locking :optimistic) (set-optimistic-locking! builder)
