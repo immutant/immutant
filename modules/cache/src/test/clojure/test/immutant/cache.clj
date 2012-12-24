@@ -16,9 +16,10 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns test.immutant.cache
-  (:use [immutant.cache]
-        [clojure.test]
-        [clojure.core.cache]))
+  (:use immutant.cache
+        clojure.test
+        clojure.core.cache
+        [clojure.java.io :as io]))
 
 (deftest test-lookup-by-list
   (is (= :foo (lookup (miss (cache "foo") '(bar) :foo) '(bar)))))
@@ -171,3 +172,15 @@
     (is (= (:b c) (:b d) 2))
     (let [e (cache "foo" :seed {})]
       (is (every? empty? [c d e])))))
+
+(deftest test-persistent-seeding
+  (let [c (cache "cachey" :persist "src/test/resources/cache-store")]
+    (is (= (:key c) 42))))
+
+(deftest test-persist-file-store
+  (try
+    (cache "mike" :persist true)
+    (is (.exists (io/file "immutant-cache-persist/mike")))
+    (finally
+     (io/delete-file "immutant-cache-persist/mike")
+     (io/delete-file "immutant-cache-persist"))))
