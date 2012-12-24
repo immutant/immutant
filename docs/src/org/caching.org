@@ -66,6 +66,7 @@
     | Option     | Default    | Description                                                                                                                            |
     |------------+------------+----------------------------------------------------------------------------------------------------------------------------------------|
     | =:mode=    | =:local=   | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. Defaults to =:invalidated= if clustered.           |
+    | =:persist= | =nil=      | Enables entries to persist across server restarts in a file-backed store.
     | =:seed=    | =nil=      | A hash of initial entries to replace the existing ones.                                                                                |
     | =:locking= | =nil=      | The locking mode within a transaction. One of =:optimistic= or =:pessimistic=                                                          |
     | =:ttl=     | =-1=       | Time-To-Live. The maximum time the entry will live before being expired. A negative value disables time-to-live expiration.            |
@@ -74,6 +75,12 @@
 
    When not clustered, the value of =:mode= is ignored and set to
    =:local=.
+
+   If =:persist= is =true= (or any non-nil, non-string value), cache
+   entries will persist in the directory named by
+   =immutant.cache.core/file-store-path=. Override this by
+   setting =:persist= to a string naming the desired directory, the
+   parents of which will be created, if necessary.
 
    Seeding a cache will cause existing entries to be deleted, a
    potentially expensive operation depending on replication mode.

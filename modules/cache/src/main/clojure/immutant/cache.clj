@@ -159,6 +159,8 @@
    The following options are supported [default]:
      :mode     Replication mode [:invalidated or :local]
                  :local, :invalidated, :distributed, or :replicated
+     :persist  If non-nil, data persists across server restarts in a file
+                 store; a string value names the directory [nil]
      :seed     A hash of initial entries [nil]
      :locking  Infinispan locking schemes [nil]
                  :optimisitic or :pessimistic
@@ -169,6 +171,10 @@
    The replication mode defaults to :invalidated when clustered. When
    not clustered, the value of :mode is ignored, and the cache will
    be :local.
+
+   If :persist is true, cache entries will persist in the directory
+   named by immutant.cache.core/file-store-path. Override this by
+   setting :persist to a string naming the desired directory.
 
    Seeding the cache will delete any existing entries.
 
