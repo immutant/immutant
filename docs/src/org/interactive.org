@@ -16,13 +16,13 @@
   that are not shut down by the application will be shut down when the
   application is undeployed.
 
-  /See [[./initialization.html#initialization-configuration][initialization configuration]]
+  See [[./initialization.html#initialization-configuration][initialization configuration]]
   for a list of configuration options (like =:swank-port= and =:nrepl-port=)
-  and how to apply them./
+  and how to apply them.
 
 ** Binding To An Interface
    :PROPERTIES:
-   :CUSTOM_ID: interative-binding
+   :CUSTOM_ID: interactive-binding
    :END:
 
    AS7 is setup to use multiple network interfaces, and allows you to specify
