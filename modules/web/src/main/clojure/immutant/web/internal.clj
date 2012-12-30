@@ -92,6 +92,7 @@
             (.setServletClass servlet-class)
             (.setEnabled true)
             (.setDynamic true)
+            (.setAsyncSupported true)
             (.setLoadOnStartup -1))
           (doto context
             (.addChild wrapper)
