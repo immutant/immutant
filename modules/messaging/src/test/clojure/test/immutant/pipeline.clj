@@ -21,6 +21,9 @@
         clojure.test
         midje.sweet))
 
+(background
+ (immutant.util/app-name) => "app")
+
 (deffact "step"
   (fact "it should attach the options as meta"
     (meta (step #() :foo :bar :ham :biscuit)) => {:foo :bar :ham :biscuit})
@@ -54,23 +57,23 @@
     (fact "should pass a queue name based on the given name"
       (pipeline "my-pl") => anything
       (provided
-        (immutant.messaging/start "queue.pipeline-my-pl") => nil))
+        (immutant.messaging/start "queue.app.pipeline-my-pl") => nil))
 
     (fact "should pass a queue name based on the given name, even if it's a keyword"
       (pipeline :pl) => anything
       (provided
-        (immutant.messaging/start "queue.pipeline-:pl") => nil))
+        (immutant.messaging/start "queue.app.pipeline-:pl") => nil))
     
     (fact "should pass a options through to start"
       (pipeline "my-pl-with-options" :ham :biscuit) => anything
       (provided
-        (immutant.messaging/start "queue.pipeline-my-pl-with-options"
+        (immutant.messaging/start "queue.app.pipeline-my-pl-with-options"
                                   :ham :biscuit) => nil)))
 
   (facts "the returned value"
 
     (fact "should have the pipeline queue as metadata"
-      (-> "name" pipeline meta :pipeline) => "queue.pipeline-name"
+      (-> "name" pipeline meta :pipeline) => "queue.app.pipeline-name"
       (provided
         (immutant.messaging/start anything) => nil))
 
@@ -90,7 +93,7 @@
       ((pipeline :bar) :ham) => anything
       (provided
         (immutant.messaging/start anything) => nil
-        (immutant.messaging/publish "queue.pipeline-:bar" :ham :properties {"step" nil}) => anything))
+        (immutant.messaging/publish "queue.app.pipeline-:bar" :ham :properties {"step" nil}) => anything))
 
     (fact "should publish to the pipeline queue with the correct step"
       ((pipeline :bart (step #() :name "onesies")) :ham) => anything

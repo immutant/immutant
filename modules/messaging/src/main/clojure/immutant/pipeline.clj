@@ -16,7 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.pipeline
-  (:use [immutant.util :only (mapply)])
+  (:use [immutant.util :only (mapply app-name)])
   (:require [clojure.tools.logging :as log]
             [immutant.messaging    :as msg]))
 
@@ -90,7 +90,7 @@
   [name & args]
   (let [steps (named-steps (take-while fn? args))
         {:as opts} (drop-while fn? args)
-        pl (str "queue.pipeline-" name)
+        pl (str "queue." (app-name)  ".pipeline-" name)
         pl-fn (pipeline-fn pl (-> steps first meta :step))]
     (if (some #{pl} @pipelines)
       (throw (IllegalArgumentException.
