@@ -20,7 +20,7 @@
   (:use clojure.test)
   (:require [clj-http.client :as client]))
 
-(let [run-tests (not= "1.5.0-beta1"
+(let [run-tests (not= "1.5.0-RC1"
                       (:full immutant.integs/*current-clojure-version*))]
 
   (when run-tests
@@ -35,4 +35,4 @@
       (let [result (client/get "http://localhost:8080/noir-app/welcome")]
         ;; (println "RESPONSE" result)
         (is (.contains (result :body) "Welcome to noir-app, jim")))
-      (println "==> skipping noir tests under 1.5.0 until lobos is fixed. see: https://github.com/budu/lobos/issues/53"))))
+      (println "==> skipping noir tests under 1.5.0 since noir itself is broken under 1.5.0"))))

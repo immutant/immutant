@@ -89,7 +89,7 @@
   functions (\"steps\"), each receiving the result of the previous step."
   [name & args]
   (let [steps (named-steps (take-while fn? args))
-        {:as opts} (drop-while fn? args)
+        {:as opts} (seq (drop-while fn? args)) ;; seq is a workaround for CLJ-1140
         pl (str "queue." (app-name)  ".pipeline-" name)
         pl-fn (pipeline-fn pl (-> steps first meta :step))]
     (if (some #{pl} @pipelines)

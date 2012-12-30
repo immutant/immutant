@@ -20,20 +20,14 @@
         clojure.test)
   (:require [immutant.in-container :as ic]))
 
-(let [run-tests (not= "1.5.0-beta1"
-                      (:full immutant.integs/*current-clojure-version*))]
-  
-  (when run-tests
-    (use-fixtures :once (with-deployment *file*
-                          {
-                           :root "target/apps/tx/"
-                           })))
-  
-  (deftest verify-in-container-tests
-    (if run-tests
-      (ic/run-in-container-tests
-       (str "http://localhost:8080/tx?dbs=" (System/getProperty "databases")))
-      (println "==> skipping tx tests under 1.5.0 until lobos is fixed. see: https://github.com/budu/lobos/issues/53"))))
+(use-fixtures :once (with-deployment *file*
+                      {
+                       :root "target/apps/tx/"
+                       }))
+
+(deftest verify-in-container-tests
+  (ic/run-in-container-tests
+   (str "http://localhost:8080/tx?dbs=" (System/getProperty "databases"))))
 
 
 
