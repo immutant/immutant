@@ -258,28 +258,28 @@
   (if (zip/end? loc)
     (zip/root loc)
     (recur (zip/next
-            (cond
-             (looking-at? :extensions loc) (fix-extensions loc)
-             (looking-at? :extension loc) (fix-extension loc)
-             (looking-at? :subsystem loc) (fix-subsystem loc)
-             (looking-at? :profile loc) (fix-profile loc)
-             (looking-at? :periodic-rotating-file-handler loc) (add-logger-levels loc)
-             (looking-at? :virtual-server loc) (set-welcome-root loc)
-             (looking-at? :system-properties loc) (-> loc
-                                                      unquote-cookie-path
-                                                      allow-backslashes)
-             (looking-at? :jms-destinations loc) (zip/remove loc)
-             (looking-at? :deployment-scanner loc) (increase-deployment-timeout loc)
-             (looking-at? :native-interface loc) (disable-security loc)
-             (looking-at? :http-interface loc) (disable-security loc)
-             (looking-at? :max-size-bytes loc) (zip/edit loc assoc :content ["20971520"])
-             (looking-at? :address-full-policy loc) (zip/edit loc assoc :content ["PAGE"])
-             (looking-at? :hornetq-server loc) (update-hq-server loc)
-             (looking-at? :jms-connection-factories loc) (disable-flow-control loc)
-             (looking-at? :servers loc) (replace-servers loc)
-             (looking-at? :server-groups loc) (replace-server-groups loc)
-             (looking-at? :socket-binding-group loc) (fix-socket-binding-group loc)
-             :else loc)))))
+            (condp looking-at? loc
+              :extensions                     (fix-extensions loc)
+              :extension                      (fix-extension loc)
+              :subsystem                      (fix-subsystem loc)
+              :profile                        (fix-profile loc)
+              :periodic-rotating-file-handler (add-logger-levels loc)
+              :virtual-server                 (set-welcome-root loc)
+              :system-properties              (-> loc
+                                                  unquote-cookie-path
+                                                  allow-backslashes)
+              :jms-destinations               (zip/remove loc)
+              :deployment-scanner             (increase-deployment-timeout loc)
+              :native-interface               (disable-security loc)
+              :http-interface                 (disable-security loc)
+              :max-size-bytes                 (zip/edit loc assoc :content ["20971520"])
+              :address-full-policy            (zip/edit loc assoc :content ["PAGE"])
+              :hornetq-server                 (update-hq-server loc)
+              :jms-connection-factories       (disable-flow-control loc)
+              :servers                        (replace-servers loc)
+              :server-groups                  (replace-server-groups loc)
+              :socket-binding-group           (fix-socket-binding-group loc)
+              loc)))))
   
 (defn transform-config [file]
   (let [in-file (io/file jboss-dir file)
