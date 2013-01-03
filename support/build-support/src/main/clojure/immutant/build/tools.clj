@@ -192,7 +192,14 @@
     (add-system-property loc prop value)))
 
 (defn unquote-cookie-path [loc]
-  (set-system-property loc "org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR" "false"))
+  (set-system-property loc
+                       "org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR"
+                       "false"))
+
+(defn allow-backslashes [loc]
+  (set-system-property loc
+                       "org.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH"
+                       "true"))
 
 (defn set-welcome-root [loc]
   (if (= "false" (-> loc zip/node :attrs :enable-welcome-root))
@@ -258,7 +265,9 @@
              (looking-at? :profile loc) (fix-profile loc)
              (looking-at? :periodic-rotating-file-handler loc) (add-logger-levels loc)
              (looking-at? :virtual-server loc) (set-welcome-root loc)
-             (looking-at? :system-properties loc) (unquote-cookie-path loc)
+             (looking-at? :system-properties loc) (-> loc
+                                                      unquote-cookie-path
+                                                      allow-backslashes)
              (looking-at? :jms-destinations loc) (zip/remove loc)
              (looking-at? :deployment-scanner loc) (increase-deployment-timeout loc)
              (looking-at? :native-interface loc) (disable-security loc)
