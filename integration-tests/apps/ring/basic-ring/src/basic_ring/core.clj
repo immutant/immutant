@@ -26,7 +26,8 @@
               :config (registry/get :config)
               :app :basic-ring
               :handler :handler
-              :ham-biscuit-location hb/location}]
+              :ham-biscuit-location hb/location
+              :current-servlet-request? (not (nil? (web/current-servlet-request)))}]
     (reset! a-value "not-default")
     (response body)))
 

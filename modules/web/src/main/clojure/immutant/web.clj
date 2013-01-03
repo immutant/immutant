@@ -22,7 +22,15 @@
             [clojure.tools.logging  :as log]
             [immutant.util          :as util]
             [ring.middleware.reload :as ring])
-  (:use immutant.web.internal))
+  (:use [immutant.web.internal :exclude [current-servlet-request]])
+  (:import javax.servlet.http.HttpServletRequest))
+
+(defn ^HttpServletRequest current-servlet-request
+  "Returns the currently active HttpServletRequest. This will only
+  return a value within an active ring handler. Standard ring handlers
+  should never need to access this value."
+  []
+  immutant.web.internal/current-servlet-request)
 
 (def
   ^{:arglists '([handler & {:keys [reload]}]
