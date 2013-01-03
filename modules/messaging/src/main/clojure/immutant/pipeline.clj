@@ -29,10 +29,16 @@
   "The name of the current pipeline step. Will be bound within the
    pipeline steps and error handlers."
   nil)
+
 (def ^:dynamic *next-step*
   "The name of the next pipeline step. Will be bound within the
    pipeline steps and error handlers."
   nil)
+
+(def halt
+  "Halts pipeline processing for a given message if returned from any
+   handler function."
+  ::halt)
 
 (def ^:private pipelines (atom #{}))
 
@@ -62,17 +68,19 @@
     (mapply msg/listen
             pl
             (if next-step
-              #(msg/publish pl (wrapped-f %)
-                            :properties {"step" next-step})
+              #(let [m (wrapped-f %)]
+                 (when-not (= halt m)
+                   (msg/publish pl m
+                                :properties {"step" next-step})))
               wrapped-f)            
             opts)))
 
 (defn- pipeline-fn [pl entry]
   (vary-meta
-    (fn [m & {:keys [step] :or {step entry}}]
-      (msg/publish pl m :properties {"step" step}))
-    assoc
-    :pipeline pl))
+   (fn [m & {:keys [step] :or {step entry}}]
+     (msg/publish pl m :properties {"step" step}))
+   assoc
+   :pipeline pl))
 
 (defn- named-steps [fns]
   (let [step-names (-> (map-indexed (fn [n s]

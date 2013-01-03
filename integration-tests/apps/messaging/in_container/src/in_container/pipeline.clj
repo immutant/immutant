@@ -23,6 +23,18 @@
     (pl "hambiscuit")
     (is (= "HAXBIKe$haCUIT" (msg/receive result-queue)))))
 
+(deftest halt-should-work
+  (let [result-queue (random-queue)
+        pl (pl/pipeline
+            "halt"
+            (fn [m]
+              (msg/publish result-queue (dollarizer m))
+              pl/halt)
+            (partial msg/publish result-queue))]
+    (pl "hambiScuit")
+    (is (= "hambi$cuit" (msg/receive result-queue)))
+    (is (nil? (msg/receive result-queue :timeout 2000)))))
+
 (deftest it-should-work-with-a-step-name-on-publish
   (let [result-queue (random-queue)
         pl (pl/pipeline
