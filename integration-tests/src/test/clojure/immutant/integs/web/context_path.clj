@@ -96,3 +96,21 @@
       "/nr/subcontext/x2/"     "/nr/subcontext/x2" "/"
       "/nr/subcontext/x2/foo"  "/nr/subcontext/x2" "/foo"
       "/nr/subcontext/x2/foo/" "/nr/subcontext/x2" "/foo/"))))
+
+(deftest static-resource-at-root-context
+  ((with-deployment "context_path.clj"
+     {:root "target/apps/ring/context-path/"
+      :context-path "/"})
+   (fn []
+     (is (= 'foo (get-as-data "/foo.txt")))
+     (is (= 'foo (get-as-data "/subcontext/foo.txt")))
+     (is (= 'foo (get-as-data "/subcontext/x2/foo.txt"))))))
+
+(deftest static-resource-at-non-root-context
+  ((with-deployment "context_path.clj"
+     {:root "target/apps/ring/context-path/"
+      :context-path "/nr"})
+   (fn []
+     (is (= 'foo (get-as-data "/nr/foo.txt")))
+     (is (= 'foo (get-as-data "/nr/subcontext/foo.txt")))
+     (is (= 'foo (get-as-data "/nr/subcontext/x2/foo.txt"))))))

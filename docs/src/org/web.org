@@ -268,3 +268,24 @@
     (require '[immutant.util :as util])
     (noir.server/load-views (util/app-relative "src/my_project_name/views"))
   #+end_src
+
+* Serving static resources
+
+  Web applications often need to serve static resources such as
+  images, stylesheets, or javascript files. Ideally, you would use
+  [[https://github.com/ring-clojure/ring/wiki/Static-Resources][Ring middleware]] to accomplish this, but prior to Ring 1.2, those
+  functions do not support applications mounted at a context path
+  other than the root. So until 1.2 is released, you can use
+  [[./apidoc/immutant.web-api.html#immutant.web/wrap-resource][immutant.web/wrap-resource]], which is a drop-in replacement for
+  [[http://mmcgrana.github.com/ring/ring.middleware.resource.html#var-wrap-resource][ring.middleware.resource/wrap-resource]].
+
+  The recommended approach is to store your resources beneath
+  =resources/public/= and then reference that path when adding the
+  middleware: 
+
+  #+begin_src clojure
+    (immutant.web/wrap-resource app "public")
+  #+end_src
+
+  This works because the =resources/= directory is automatically added
+  to the application's effective class path at deployment.

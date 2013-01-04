@@ -21,7 +21,9 @@
   (:require [immutant.registry      :as registry]
             [clojure.tools.logging  :as log]
             [immutant.util          :as util]
-            [ring.middleware.reload :as ring])
+            [ring.middleware.reload :as ring]
+            [ring.util.codec :as codec]
+            [ring.util.response :as response])
   (:use [immutant.web.internal :exclude [current-servlet-request]])
   (:import javax.servlet.http.HttpServletRequest))
 
@@ -88,5 +90,20 @@
           (log/warn "Attempted to deregister ring handler at sub-context path:" sub-context-path ", but none found")))
       (log/warn "web/stop called outside of Immutant, ignoring"))))
 
+(defn wrap-resource
+  "Temporary workaround for its non-context-aware namesake from
+  ring.middleware.resource. This function will go away when Ring 1.2
+  is released.
 
-
+  Middleware that first checks to see whether the request map matches
+  a static resource. If it does, the resource is returned in a
+  response map, otherwise the request map is passed onto the handler.
+  The root-path argument will be added to the beginning of the
+  resource path."
+  [handler root-path]
+  (fn [request]
+    (if-not (= :get (:request-method request))
+      (handler request)
+      (let [path (.substring (codec/url-decode (:path-info request)) 1)]
+        (or (response/resource-response path {:root root-path})
+            (handler request))))))
