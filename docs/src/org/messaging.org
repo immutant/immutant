@@ -52,7 +52,7 @@
    it's a queue; if it contains "topic", it's a topic. If you
    need to use queue or topic names that don't match the above
    convention, you can wrap the name in a call to
-   [[./apidoc/immutant.messaging.html#immutant.messaging/as-queue][immutant.messaging/as-queue]] or [[./apidoc/immutant.messaging-api.html#immutant.messaging/as-topic][immutant.messaging/as-topic]]
+   [[./apidoc/immutant.messaging.html#immutant.messaging/as-queue][immutant.messaging/as-queue]] or [[./apidoc/immutant.messaging.html#immutant.messaging/as-topic][immutant.messaging/as-topic]]
    respectively. If you do wrap a destination name, you'll need to
    pass the wrapped version to any =immutant.messaging= function that
    takes a destination name. It's common to separate sections of the
