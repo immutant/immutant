@@ -46,13 +46,13 @@
 
 ** Deployment
 
-   Use the [[./apidoc/immutant.messaging-api.html#immutant.messaging/start][immutant.messaging/start]] function to define a messaging
+   Use the [[./apidoc/immutant.messaging.html#immutant.messaging/start][immutant.messaging/start]] function to define a messaging
    destination. A simple naming convention designates the destination
    as either a queue or a topic: if its name contains "queue",
    it's a queue; if it contains "topic", it's a topic. If you
    need to use queue or topic names that don't match the above
    convention, you can wrap the name in a call to
-   [[./apidoc/immutant.messaging-api.html#immutant.messaging/as-queue][immutant.messaging/as-queue]] or [[./apidoc/immutant.messaging-api.html#immutant.messaging/as-topic][immutant.messaging/as-topic]]
+   [[./apidoc/immutant.messaging.html#immutant.messaging/as-queue][immutant.messaging/as-queue]] or [[./apidoc/immutant.messaging-api.html#immutant.messaging/as-topic][immutant.messaging/as-topic]]
    respectively. If you do wrap a destination name, you'll need to
    pass the wrapped version to any =immutant.messaging= function that
    takes a destination name. It's common to separate sections of the
@@ -87,7 +87,7 @@
    application code.  You can invoke =start= anytime during the
    lifecycle of your application.
 
-   While =start= has a complement, [[./apidoc/immutant.messaging-api.html#immutant.messaging/stop][immutant.messaging/stop]], you needn't 
+   While =start= has a complement, [[./apidoc/immutant.messaging.html#immutant.messaging/stop][immutant.messaging/stop]], you needn't 
    call it directly. It will be invoked when your application is
    undeployed. And it's important to note that =start= is idempotent:
    if an endpoint has already been started, likely by a cooperating
@@ -130,7 +130,7 @@
    details of the destination or any of its /consumers/.
 
    In Immutant, there is only one way to send a message, whether to a
-   queue or a topic: via the [[./apidoc/immutant.messaging-api.html#immutant.messaging/publish][immutant.messaging/publish]] function. It 
+   queue or a topic: via the [[./apidoc/immutant.messaging.html#immutant.messaging/publish][immutant.messaging/publish]] function. It 
    accepts two required parameters: the name of the destination and the
    message content, which can be just about anything.
 
@@ -197,13 +197,13 @@
    properties, subject to any overridden values passed in the
    =:properties= option (see above). If the payload cannot accept
    metadata, the message properties can be converted to a convenient
-   Clojure hash using [[./apidoc/immutant.messaging-api.html#immutant.messaging.core/get-properties][immutant.messaging.core/get-properties]].
+   Clojure hash using [[./apidoc/immutant.messaging.html#immutant.messaging.core/get-properties][immutant.messaging.core/get-properties]].
 
    Immutant features three functions for consuming messages.
-   - [[./apidoc/immutant.messaging-api.html#immutant.messaging/receive][immutant.messaging/receive]] Blocks the caller until a message arrives and returns
+   - [[./apidoc/immutant.messaging.html#immutant.messaging/receive][immutant.messaging/receive]] Blocks the caller until a message arrives and returns
      the decoded message
-   - [[./apidoc/immutant.messaging-api.html#immutant.messaging/message-seq][immutant.messaging/message-seq]] Creates a lazy sequence of messages
-   - [[./apidoc/immutant.messaging-api.html#immutant.messaging/listen][immutant.messaging/listen]] Register a handler function that will receive the
+   - [[./apidoc/immutant.messaging.html#immutant.messaging/message-seq][immutant.messaging/message-seq]] Creates a lazy sequence of messages
+   - [[./apidoc/immutant.messaging.html#immutant.messaging/listen][immutant.messaging/listen]] Register a handler function that will receive the
      decoded message when it arrives
 
    Both =receive= and =message-seq= expect the destination name as the
@@ -249,7 +249,7 @@
    Any messages published within the handler automatically become part
    of its transaction, by default. So they won't be delivered until
    that transaction commits. To override this behavior, wrap your
-   handler inside the [[./apidoc/immutant.messaging-api.html#immutant.xa.transaction/not-supported][immutant.xa.transaction/not-supported]] macro.
+   handler inside the [[./apidoc/immutant.messaging.html#immutant.xa.transaction/not-supported][immutant.xa.transaction/not-supported]] macro.
 
    See [[./transactions.html][Distributed Transactions]] for more details.
 
@@ -307,7 +307,7 @@
 
 ** Request
    
-   The [[./apidoc/immutant.messaging-api.html#immutant.messaging/request][immutant.messaging/request]] function takes a queue, a message, and an
+   The [[./apidoc/immutant.messaging.html#immutant.messaging/request][immutant.messaging/request]] function takes a queue, a message, and an
    optional list of options. It publishes the message to the queue, marking 
    it as a /synchronous/ message and returns a delay that will receive the 
    response from the worker initiated by the =respond= function. It accepts
@@ -320,7 +320,7 @@
 
 ** Respond
 
-   The [[./apidoc/immutant.messaging-api.html#immutant.messaging/respond][immutant.messaging/respond]] method takes a queue, a function, and an
+   The [[./apidoc/immutant.messaging.html#immutant.messaging/respond][immutant.messaging/respond]] method takes a queue, a function, and an
    optional list of options. It sets up a listener (via the =listen=
    function) that applies the given function to any received message and publishes
    the result back to the queue for the delay returned by =request= to receive.

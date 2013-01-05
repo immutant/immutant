@@ -12,7 +12,7 @@
 
 * Scheduling Jobs
 
-  Scheduling a job is as simple as calling [[./apidoc/immutant.jobs-api.html#immutant.jobs/schedule][immutant.jobs/schedule]]:
+  Scheduling a job is as simple as calling [[./apidoc/immutant.jobs.html#immutant.jobs/schedule][immutant.jobs/schedule]]:
 
   #+begin_src clojure
     (ns my.ns
@@ -80,7 +80,7 @@
 
 * Unscheduling Jobs
   
-  Jobs can be unscheduled via the [[./apidoc/immutant.jobs-api.html#immutant.jobs/unschedule][immutant.jobs/unschedule]] function:
+  Jobs can be unscheduled via the [[./apidoc/immutant.jobs.html#immutant.jobs/unschedule][immutant.jobs/unschedule]] function:
 
   #+begin_src clojure
     (require '[immutant.jobs :as jobs])

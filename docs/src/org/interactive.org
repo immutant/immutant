@@ -59,7 +59,7 @@
     You can also start a Swank service from your own code, which is useful
     if you need to start it in response to a runtime event or bind to an
     interface other than the [[#interactive-binding][management interface]]. To do so, simply
-    call [[./apidoc/immutant.repl-api.html#immutant.repl/start-swank][immutant.repl/start-swank]]:
+    call [[./apidoc/immutant.repl.html#immutant.repl/start-swank][immutant.repl/start-swank]]:
 
     #+begin_src clojure
       ;; bind to the given port on the management interface
@@ -93,7 +93,7 @@
 
    Immutant will automatically shutdown the Swank service for you when your
    application is undeployed, but if you need to do so before undeploy you
-   can do so using the [[./apidoc/immutant.repl-api.html#immutant.repl/stop-swank][immutant.repl/stop-swank]] function:
+   can do so using the [[./apidoc/immutant.repl.html#immutant.repl/stop-swank][immutant.repl/stop-swank]] function:
 
    #+begin_src clojure
       ;; no arg needed since only one Swank server can exist for the application
@@ -124,7 +124,7 @@
     You can also start a nREPL service from your own code, which is useful
     if you need to start it in response to a runtime event or bind to an
     interface other than the [[#interactive-binding][management interface]]. To do so, simply
-    call [[./apidoc/immutant.repl-api.html#immutant.repl/start-nrepl][immutant.repl/start-nrepl]]. nREPL allows you to have multiple
+    call [[./apidoc/immutant.repl.html#immutant.repl/start-nrepl][immutant.repl/start-nrepl]]. nREPL allows you to have multiple
     services in the same runtime, so you need to save the return value of
     =start-nrepl= if you want to shut down the nREPL service yourself:
 
@@ -183,7 +183,7 @@
 
    Immutant will automatically shutdown any nREPL services for you when your
    application is undeployed, but if you need to do so before undeploy you
-   can do so using the [[./apidoc/immutant.repl-api.html#immutant.repl/stop-nrepl][immutant.repl/stop-nrepl]] function. You'll need to
+   can do so using the [[./apidoc/immutant.repl.html#immutant.repl/stop-nrepl][immutant.repl/stop-nrepl]] function. You'll need to
    pass it the service handle returned by the =start-nrepl= call:
 
    #+begin_src clojure
@@ -198,20 +198,20 @@
 * Reloading application dependencies
   
   Immutant provides tools to aid interactive repl-based development via
-  the [[./apidoc/immutant.dev-api.html][immutant.dev]] namespace. Currently, it provides three functions for 
+  the [[./apidoc/immutant.dev.html][immutant.dev]] namespace. Currently, it provides three functions for 
   reloading, updating, and viewing your application's dependencies in container:
 
-  - [[./apidoc/immutant.dev-api.html#immutant.dev/reload-project!][immutant.dev/reload-project!]] Resets the application's class loader to provide the
+  - [[./apidoc/immutant.dev.html#immutant.dev/reload-project!][immutant.dev/reload-project!]] Resets the application's class loader to provide the
     paths and dependencies in the from the given project. If no project is provided, 
     the =project.clj= for the appplication is loaded from disk. If used under clojure 
     > 1.3.0, this will also make any new data readers from the dependencies available.
     Returns the project map.
-  - [[./apidoc/immutant.dev-api.html#immutant.dev/add-dependencies!][immutant.dev/add-dependencies!]] Adds the given dependencies into the currently active 
+  - [[./apidoc/immutant.dev.html#immutant.dev/add-dependencies!][immutant.dev/add-dependencies!]] Adds the given dependencies into the currently active 
     project's dependency set and resets the application's class loader to provide the paths
     and dependencies from that project (via reload-project!). Each dep can either be a lein
     coordinate ('[foo-bar \"0.1.0\"]) or a path (as a String) to be added to :source-paths. 
     Returns the project map.
-  - [[./apidoc/immutant.dev-api.html#immutant.dev/current-project][immutant.dev/current-project]] Returns the map representing the currently active 
+  - [[./apidoc/immutant.dev.html#immutant.dev/current-project][immutant.dev/current-project]] Returns the map representing the currently active 
     leiningen project. This will be the last project reloaded by reload-project!, or the 
     map read from project.clj if reload-project! has yet to be called.
     

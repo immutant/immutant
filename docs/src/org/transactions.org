@@ -3,7 +3,7 @@
 * Introduction
   
   Immutant encapsulates the distributed transaction support provided
-  by JBoss AS7 within the [[./apidoc/immutant.xa-api.html][immutant.xa]] namespace.
+  by JBoss AS7 within the [[./apidoc/immutant.xa.html][immutant.xa]] namespace.
 
   A *distributed* transaction is one in which multiple types of
   resources may participate. The most common example of a
@@ -25,7 +25,7 @@
   | =transaction= | A macro that wraps its body in a transaction unless one is already active |
 
   More fine-grained transactional control is available through the
-  [[./apidoc/immutant.xa-api.html#immutant.xa.transaction][immutant.xa.transaction]] namespace, described below.
+  [[./apidoc/immutant.xa.html#immutant.xa.transaction][immutant.xa.transaction]] namespace, described below.
 
 * Creating XA DataSources
 
@@ -135,7 +135,7 @@
 
    But annotations are gross, right? :)
 
-   So instead, [[./apidoc/immutant.xa-api.html#immutant.xa.transaction][immutant.xa.transaction]] provides analogs to [[http://docs.oracle.com/javaee/6/tutorial/doc/bncij.html][the JEE transaction attributes]] in the form of Clojure macros. In fact, the
+   So instead, [[./apidoc/immutant.xa.html#immutant.xa.transaction][immutant.xa.transaction]] provides analogs to [[http://docs.oracle.com/javaee/6/tutorial/doc/bncij.html][the JEE transaction attributes]] in the form of Clojure macros. In fact, the
    =xa/transaction= macro shown above is merely an alias for
    =immutant.xa.transaction/required=, which is the implicit attribute
    used in JEE. There are a total of 6 macros:
