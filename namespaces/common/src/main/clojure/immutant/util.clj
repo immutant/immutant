@@ -77,6 +77,22 @@
   unsecure-interface-address
   (partial lookup-interface-address "unsecure"))
 
+(defn http-port
+  "Returns the HTTP port for the embedded web server"
+  []
+  (.getPort (registry/get "jboss.web.connector.http")))
+
+(defn context-path
+  "Returns the HTTP context path for the deployed app"
+  []
+  (.getName (immutant.registry/get "web-context")))
+
+(defn app-uri
+  "Returns the base URI for the app, given a host [localhost]"
+  [& [host]]
+  (let [host (or host "localhost")]
+    (str "http://" host ":" (http-port) (context-path))))
+
 (defn try-resolve
   "Tries to resolve the given namespace-qualified symbol"
   [sym]
