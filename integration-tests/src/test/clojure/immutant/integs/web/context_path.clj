@@ -34,6 +34,7 @@
   ((with-deployment "context_path.clj"
      {:root "target/apps/ring/context-path/"})
    (fn []
+     (is (= "http://localhost:8080/context-from-project" (:app-uri (get-as-data "/context-from-project"))))
      (do-template
       [path                           context                 path-info] (verify path context path-info)
       "/context-from-project"         "/context-from-project" "/"
@@ -45,6 +46,7 @@
      {:root "target/apps/ring/context-path/"
       :context-path "/context-from-descriptor"})
    (fn []
+     (is (= "http://localhost:8080/context-from-descriptor" (:app-uri (get-as-data "/context-from-descriptor"))))     
      (is (= "context-path" (:app (get-as-data "/context-from-descriptor"))))
      (is (= 404
             (-> (get-as-data* "/context-from-project" {:throw-exceptions false})
