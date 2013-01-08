@@ -135,7 +135,7 @@
 
    But annotations are gross, right? :)
 
-   So instead, [[./apidoc/immutant.xa.html#immutant.xa.transaction][immutant.xa.transaction]] provides analogs to [[http://docs.oracle.com/javaee/6/tutorial/doc/bncij.html][the JEE transaction attributes]] in the form of Clojure macros. In fact, the
+   So instead, [[./apidoc/immutant.xa.html#var-/docs.oracle.com/javaee/6/tutorial/doc/bncij.html][the JEE transaction attributes]] in the form of Clojure macros. In fact, the
    =xa/transaction= macro shown above is merely an alias for
    =immutant.xa.transaction/required=, which is the implicit attribute
    used in JEE. There are a total of 6 macros:
