@@ -32,7 +32,9 @@
         <resource-root path="polyglot-core.jar"/>
         <resource-root path="polyglot-core-extensions.jar"/>
         <resource-root path="tools.logging.jar"/>
-        <resource-root path="data.json.jar"/>
+        <resource-root path="cheshire.jar"/>
+        <resource-root path="jackson-core.jar"/>
+        <resource-root path="jackson-dataformat-smile.jar"/>
         <resource-root path="dynapath.jar"/>
         <resource-root path="leiningen-core.jar"/>
         <resource-root path="pomegranate.jar"/>

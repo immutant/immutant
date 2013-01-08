@@ -15,8 +15,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>data.json</artifactId>
+      <groupId>cheshire</groupId>
+      <artifactId>cheshire</artifactId>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>

@@ -17,7 +17,7 @@
 
 (ns immutant.codecs
   "Common codecs used when [de]serializing data structures."
-  (:require [clojure.data.json :as json]))
+  (:require [cheshire.core :as json]))
 
 ;; Encode
 
@@ -36,7 +36,7 @@
 
 (defmethod encode :json [data _]
   "Stringify a json data structure"
-   (json/json-str data))
+   (json/generate-string data))
 
 (defmethod encode :text [data _]
   "Treat the payload as a raw String. No encoding is done."
@@ -59,7 +59,7 @@
 
 (defmethod decode :json [data _]
   "Turn a string into a json data structure"
-  (and data (json/read-json data)))
+  (and data (json/parse-string data true)))
 
 (defmethod decode :text [data _]
   "Treats the message payload as a raw string. No decoding is done."
