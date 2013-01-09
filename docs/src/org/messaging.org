@@ -1,6 +1,13 @@
 #+TITLE:     Immutant Messaging
 
 * Introduction
+
+  The term "messaging" encompasses a large area of functionality.
+  Messaging solutions are used to achieve loosely-coupled,
+  asynchronous systems. The primary actors in a messaging-based
+  system are messages, destinations, consumers, and producers. The
+  broker mediates the relationships between the other actors.
+
 ** HornetQ
 
    Immutant encapsulates the JBoss [[http://www.jboss.org/hornetq/][HornetQ message broker]].  It is
@@ -8,12 +15,6 @@
    required to start the messaging service. HornetQ supports clustered
    messaging, which provides auto-discovery, load-balancing, and
    failover, among other things.
-
-   The term "messaging" encompasses a large area of functionality.
-   Messaging solutions are used to achieve loosely-coupled,
-   asynchronous systems. The primary actors in a messaging-based
-   system are messages, destinations, consumers, and producers. The
-   broker mediates the relationships between the other actors.
 
 * Destinations
 
@@ -144,28 +145,28 @@
 
    The =publish= function accepts the following options:
 
-   | Option            | Default                        | Description                         |
-   |-------------------+--------------------------------+-------------------------------------|
-   |                   | <c>                            | <35>                                |
-   | =:encoding=       | =:clojure=                     | One of =:clojure=, =:edn=, =:json=, or =:text= |
-   | =:priority=       | =4=                            | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively |
-   | =:ttl=            | =0=                            | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed. A 0 indicates that the message should be held indefinitely. |
-   | =:persistent=     | =true=                         | If true, undelivered messages survive restarts. |
-   | =:properties=     | ={}=                           | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages |
-   | =:correlation-id= | =nil=                          | Used to set the JMSCorrelationID (see [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html#setJMSCorrelationID(java.lang.String)][setJMSCorrelationID]]) |
-   | =:host=           | =nil=                          | A remote HornetQ host to connect to. |
+   | Option            | Default                            | Description                         |
+   |-------------------+------------------------------------+-------------------------------------|
+   |                   | <c>                                | <35>                                |
+   | =:encoding=       | =:clojure=                         | One of =:clojure=, =:edn=, =:json=, or =:text= |
+   | =:priority=       | =4=                                | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively |
+   | =:ttl=            | =0=                                | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed. A 0 indicates that the message should be held indefinitely. |
+   | =:persistent=     | =true=                             | If true, undelivered messages survive restarts. |
+   | =:properties=     | ={}=                               | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages |
+   | =:correlation-id= | =nil=                              | Used to set the JMSCorrelationID (see [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html#setJMSCorrelationID(java.lang.String)][setJMSCorrelationID]]) |
+   | =:host=           | =nil=                              | A remote HornetQ host to connect to. |
    | =:port=           | =nil=, or =5445= if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
-   | =:username=       | =nil=                          | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
-   | =:password=       | =nil=                          | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
+   | =:username=       | =nil=                              | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
+   | =:password=       | =nil=                              | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
    #+TBLFM: 
 
-   The =:json= encoding is useful when the message consumers aren't
-   written in Clojure. For example, [[http://torquebox.org][TorqueBox]] Ruby processors will
-   automatically convert json-encoded messages generated by a Clojure
-   function into their analogous Ruby data structures, so as long as
-   you limit the content of your messages to standard collections and
-   types, they are transparently interoperable between Clojure and
-   Ruby in either direction.
+   The =:json= and =:edn= encodings are useful when the message
+   consumers aren't written in Clojure. For example, [[http://torquebox.org][TorqueBox]] Ruby
+   processors will automatically convert edn-encoded messages
+   generated by a Clojure function into their analogous Ruby data
+   structures, so as long as you limit the content of your messages to
+   standard collections and types, they are transparently
+   interoperable between Clojure and Ruby in either direction.
 
 *** Some Examples
 
@@ -185,6 +186,15 @@
       ;; The received message's metadata => {:foo 42, :bar 1}
       (msg/publish q (with-meta msg {:foo 42 :bar 0}) :properties {:bar 1})
     #+end_src
+
+*** A note about encodings
+    :PROPERTIES:
+    :CUSTOM_ID: messaging-publishing-encodings-note
+    :END:
+
+    None of the built-in encodings can encode every java object, so
+    you need to pay attention to the payloads you publish. For
+    example, none of the encodings can handle an OutputStream.
 
 ** Receiving
 
@@ -358,8 +368,202 @@
      @(msg/request "/queue/work" [1 2 3 4] :properties {"operation" "multiply"}) ;; => 24
    #+end_src
 
+* Pipelines
+  :PROPERTIES:
+  :CUSTOM_ID: messaging-pipelines
+  :END:
 
+  Immutant provides a tool called a /pipeline/. A pipeline is
+  basically a composition of functions (/steps/), where each function
+  is passed the result of the previous function. It is built on top of
+  the messaging subsystem, allowing each step to have multiple
+  processing threads, and to be automatically load balanced across a
+  cluster. The pipeline functions are available via the
+  [[./apidoc/immutant.pipeline.html][immutant.pipeline]] namespace. 
 
+  Since messaging is used to pass the data between step functions, the
+  data has to be in a format that can be encoded as clojure via
+  [[http://clojuredocs.org/clojure_core/clojure.core/pr][pr]]. See the above [[#messaging-publishing-encodings-note][note about encodings]].
 
+  Pipeline support is currently in an alpha state, and may be subject
+  to massive changes.
 
+** Creating a pipeline
 
+   You create a pipeline with the [[./apidoc/immutant.pipeline.html#var-pipeline][immutant.pipeline/pipeline]]
+   function. The =pipeline= function takes a unique (within the scope
+   of the application) name, one or more single-arity functions, and
+   optional keyword argument options, returning a function that acts
+   as an entry point into the pipeline:
+
+   #+BEGIN_SRC clojure
+          (require '[immutant.pipeline :as pl])
+          
+          (defonce foo-pipeline
+            (pl/pipeline "foo"
+              function-that-does-something
+              another-function))
+   #+END_SRC
+
+*** Pipeline options
+
+    =pipeline= can take the following options, passed as keyword
+    arguments after the step functions:
+    
+    | Option           | Default | Description                         |
+    |------------------+---------+-------------------------------------|
+    |                  | <c>     | <35>                                |
+    | =:error-handler= | =nil=   | A function to call when a step function throws an exception. Receives the exception and the data passed to the step function. Can be overriden on a per-step basis (see below). |
+    | =:concurrency=   | =1=     | The number of threads to use for each step. Can be overridden on a per-step basis (see below). |
+
+   #+BEGIN_SRC clojure
+     (require '[immutant.pipeline :as pl])
+     
+     (defonce foo-pipeline
+       (pl/pipeline "foo"
+         function-that-does-something
+         another-function
+         :concurrency 2))
+   #+END_SRC
+
+*** Per-step options
+
+   Each function can optionally be wrapped with metadata via the
+   [[./apidoc/immutant.pipeline.html#var-step][immutant.pipeline/step]] function, providing settings for how that
+   particular function is handled within the pipeline:
+
+    | Option           | Default               | Description                         |
+    |------------------+-----------------------+-------------------------------------|
+    |                  | <c>                   | <35>                                |
+    | =:name=          | /the index of the fn/ | a name to use for the step          |
+    | =:concurrency=   | =1=                   | the number of threads to use, overriding the pipeline setting |
+    | =:error-handler= | =nil=                 | an error handler function that can override the pipeline setting |
+   
+   #+BEGIN_SRC clojure
+     (require '[immutant.pipeline :as pl])
+     
+     (pl/pipeline "foo"
+       function-that-does-something
+       (pl/step another-function :concurrency 10)
+       :concurrency 2)
+   #+END_SRC
+
+** Using a pipeline
+
+   The function returned by [[./apidoc/immutant.pipeline.html#var-pipeline][pipeline]] acts as an entry function,
+   placing its argument onto the pipeline when called:
+   
+   #+BEGIN_SRC clojure
+     (require '[immutant.pipeline :as pl])
+     
+     (defonce foo-pipeline
+       (pl/pipeline "foo"
+         function-that-does-something
+         another-function))
+     
+     (foo-pipeline {:ham :biscuit})
+   #+END_SRC
+
+   By default, the pipeline entry function places its argument onto
+   the front of the pipeline. You can insert the data into the
+   pipeline at any step by passing a =:step= keyword argument. The
+   step name would be the name you provided as an option for that step
+   using the [[./apidoc/immutant.pipeline.html#var-step][step]] function, or the index of the step in the list of
+   steps if you haven't provided a name:
+
+   #+BEGIN_SRC clojure
+     (require '[immutant.pipeline :as pl])
+     
+     (defonce foo-pipeline
+       (pl/pipeline "foo"
+         function-that-does-something
+         (pl/step another-function :name :another)
+         a-third-function))
+     
+     ;; insert at head
+     (foo-pipeline {:ham :biscuit})
+     
+     ;; skip the first step
+     (foo-pipeline {:ham :biscuit} :step :another)
+     
+     ;; insert at the last step 
+     (foo-pipeline {:ham :biscuit} :step 2)
+   #+END_SRC
+
+** Available bindings
+   :PROPERTIES:
+   :CUSTOM_ID: messaging-pipelines-bindings
+   :END:
+
+   The following vars have bound values inside a step or error-handler
+   invocation: 
+    
+   | Var              | Value                                            |
+   |------------------+--------------------------------------------------|
+   |                  | <48>                                             |
+   | [[./apidoc/immutant.pipeline.html#var-*pipeline*][=*pipeline*=]]     | The pipeline entry function for the currently active pipeline. |
+   | [[./apidoc/immutant.pipeline.html#var-*current-step*][=*current-step*=]] | The name of the currently executing step.        |
+   | [[./apidoc/immutant.pipeline.html#var-*next-step*][=*next-step*=]]    | The name of the next step in the pipeline.       |
+  
+** Error handling
+
+   When an exception occurs in a step function, an error-handler
+   function will be invoked if provided for the pipeline or for the
+   particular step. This function will be passed the exception and the
+   original data passed to the step function, and have all of the
+   [[#messaging-pipelines-bindings][above bindings]] available:
+
+   #+BEGIN_SRC clojure
+     ;; a naive error handler that sleeps then retries on a network error,
+     ;; logging and discarding otherwise
+     (defn error-handler [ex data]
+       (if (instance? NoRouteToHostException ex)
+         (do
+           (Thread/sleep 1000)
+           (pl/*pipeline* data :step pl/*current-step*))
+         (println "ERROR:" ex)))
+     
+     (require '[immutant.pipeline :as pl])
+     
+     (pl/pipeline "foo"
+       connects-to-foo
+       connects-to-bar
+       :error-handler error-handler)
+   #+END_SRC
+
+   If no error-handler function is provided, the error handling
+   semantics provided my HornetQ are used, which causes the offending
+   step to be retried up to ten times before giving up.
+
+** Halting the pipeline for a particular message
+
+   If, in a step function, you determine that the data requires no
+   further processing, you can halt that particular pipeline execution
+   by returning a special flag symbol - [[./apidoc/immutant.pipeline.html#var-halt][immutant.pipeline/halt]]:
+
+   #+BEGIN_SRC clojure
+     (require '[immutant.pipeline :as pl])
+     
+     ;; halt the pipeline at the second step, causing another-function to
+     ;; not be called
+     (pl/pipeline "foo"
+       function-that-does-something
+       #(if (:some-done-condition %)
+          pl/halt
+          %)
+       another-function)
+   #+END_SRC
+
+** Stopping the pipeline
+
+   When your application is undeployed, Immutant will automatically
+   shut down the pipeline. If you need to stop the pipeline at
+   runtime, use the [[./apidoc/immutant.pipeline.html#var-stop][immutant.pipeline/stop]] function:
+
+   #+BEGIN_SRC clojure
+     (require '[immutant.pipeline :as pl])
+     
+     (let [pipeline (pl/pipeline "foo" ...)]
+       ...
+       (pl/stop pipeline))
+   #+END_SRC
