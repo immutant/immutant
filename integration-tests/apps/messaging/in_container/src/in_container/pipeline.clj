@@ -47,6 +47,18 @@
     (pl "hambiscuit" :step :uc)
     (is (= "HAMBIKe$haCUIT" (msg/receive result-queue)))))
 
+(deftest it-should-work-with-a-numeric-name-on-publish
+  (let [result-queue (random-queue)
+        pl (pl/pipeline
+            "numeric-step"
+            #(.replace % "m" "x")
+            (memfn toUpperCase)
+            dollarizer
+            #(.replace % "$" "Ke$ha")
+            (partial msg/publish result-queue))]
+    (pl "hambiscuit" :step 1)
+    (is (= "HAMBIKe$haCUIT" (msg/receive result-queue)))))
+
 (deftest it-should-work-with-concurrency
   (let [result-queue (random-queue)
         pl (pl/pipeline

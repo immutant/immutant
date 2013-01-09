@@ -1,4 +1,4 @@
-;; Copyright 2008-2013 Red Hat, Inc, and individual contributors.
+;; Copyright 2008-2012 Red Hat, Inc, and individual contributors.
 ;; 
 ;; This is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU Lesser General Public License as
@@ -71,14 +71,13 @@
                                   :ham :biscuit) => nil)))
 
   (facts "the returned value"
-
+    
     (fact "should have the pipeline queue as metadata"
       (-> "name" pipeline meta :pipeline) => "queue.app.pipeline-name"
       (provided
         (immutant.messaging/start anything) => nil))
 
     (fact "should have the listeners as metadata"
-      (println "called")
       (-> "ham" (pipeline #() #()) meta :listeners) => [:a :b]
       (provided
         (immutant.messaging/start anything) => nil
@@ -90,10 +89,11 @@
         (immutant.messaging/start anything) => nil))
 
     (fact "should publish to the pipeline queue when invoked"
-      ((pipeline :bar) :ham) => anything
+      ((pipeline :bar #()) :ham) => anything
       (provided
         (immutant.messaging/start anything) => nil
-        (immutant.messaging/publish "queue.app.pipeline-:bar" :ham :properties {"step" nil}) => anything))
+        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil
+        (immutant.messaging/publish "queue.app.pipeline-:bar" :ham :properties {"step" "0"}) => anything))
 
     (fact "should publish to the pipeline queue with the correct step"
       ((pipeline :bart (step #() :name "onesies")) :ham) => anything
@@ -106,7 +106,14 @@
       (pipeline "shamwow") => anything
       (provided
         (immutant.messaging/start anything) => nil)
-      (pipeline "shamwow") => (throws IllegalArgumentException))))
+      (pipeline "shamwow") => (throws IllegalArgumentException))
+    
+    (fact "should raise if given a non-existent step"
+      ((pipeline "slapchop" (step #() :name :biscuit))
+       nil :step :ham) => (throws IllegalArgumentException)
+      (provided
+        (immutant.messaging/start anything) => nil
+        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil))))
 
 
 

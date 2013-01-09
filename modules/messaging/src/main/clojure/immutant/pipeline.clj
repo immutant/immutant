@@ -134,10 +134,15 @@
 (defn- pipeline-fn
   "Creates a fn that places it's first arg onto the pipeline,
   optionally at a step specified by :step"
-  [pl entry]
+  [pl step-names]
   (vary-meta
-   (fn [m & {:keys [step] :or {step entry}}]
-     (msg/publish pl m :properties {"step" step}))
+   (fn [m & {:keys [step] :or {step (first step-names)}}]
+     (let [step (str step)]
+       (when-not (some #{step} step-names)
+         (throw (IllegalArgumentException. 
+                 (format "'%s' is not one of the available steps: %s" step (vec step-names)))))
+       (msg/publish pl m :properties {"step" step}))
+     nil)
    assoc
    :pipeline pl))
 
@@ -187,7 +192,7 @@
   (let [steps (named-steps (take-while fn? args))
         opts (apply hash-map (drop-while fn? args)) 
         pl (str "queue." (app-name)  ".pipeline-" name)
-        pl-fn (pipeline-fn pl (-> steps first meta :step))]
+        pl-fn (pipeline-fn pl (map (comp :step meta) steps))]
     (if (some #{pl} @pipelines)
       (throw (IllegalArgumentException.
               (str "A pipeline named " name " already exists."))))
