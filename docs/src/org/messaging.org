@@ -451,7 +451,7 @@
 ** Using a pipeline
 
    The function returned by [[./apidoc/immutant.pipeline.html#var-pipeline][pipeline]] acts as an entry function,
-   placing its argument onto the pipeline when called:
+   placing its argument onto the pipeline when called, returning nil:
    
    #+BEGIN_SRC clojure
      (require '[immutant.pipeline :as pl])
@@ -463,6 +463,24 @@
      
      (foo-pipeline {:ham :biscuit})
    #+END_SRC
+
+   Since the pipeline is asynchronous, you are responsible for doing
+   something with the data when it reaches the end of the
+   pipeline. One option is to place it on a queue for some other
+   process to consume:
+
+   #+BEGIN_SRC clojure
+     (require '[immutant.pipeline  :as pl]
+              '[immutant.messaging :as msg])
+     
+     (msg/start "queue.results")
+     
+     (pl/pipeline "foo"
+       function-that-does-something
+       another-function
+       (partial msg/publish "queue.results"))
+   #+END_SRC
+
 
    By default, the pipeline entry function places its argument onto
    the front of the pipeline. You can insert the data into the
