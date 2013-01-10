@@ -51,34 +51,36 @@
 
 (deffact "pipeline"
   (facts "starting the queue"
-    (against-background
-      (pipeline-listen anything anything anything) => nil)
-    
+
     (fact "should pass a queue name based on the given name"
       (pipeline "my-pl") => anything
       (provided
-        (immutant.messaging/start "queue.app.pipeline-my-pl") => nil))
+        (immutant.messaging/start "queue.app.pipeline-my-pl") => nil
+        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil))
 
     (fact "should pass a queue name based on the given name, even if it's a keyword"
       (pipeline :pl) => anything
       (provided
-        (immutant.messaging/start "queue.app.pipeline-:pl") => nil))
+        (immutant.messaging/start "queue.app.pipeline-:pl") => nil
+        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil))
     
     (fact "should pass a options through to start"
       (pipeline "my-pl-with-options" :ham :biscuit) => anything
       (provided
         (immutant.messaging/start "queue.app.pipeline-my-pl-with-options"
-                                  :ham :biscuit) => nil)))
+                                  :ham :biscuit) => nil
+        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil)))
 
   (facts "the returned value"
     
     (fact "should have the pipeline queue as metadata"
       (-> "name" pipeline meta :pipeline) => "queue.app.pipeline-name"
       (provided
-        (immutant.messaging/start anything) => nil))
+        (immutant.messaging/start anything) => nil
+        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil))
 
     (fact "should have the listeners as metadata"
-      (-> "ham" (pipeline #() #()) meta :listeners) => [:a :b]
+      (-> "ham" (pipeline #() #()) meta :listeners) => [:a :b :c]
       (provided
         (immutant.messaging/start anything) => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) =streams=> [:a :b :c]))
@@ -86,26 +88,32 @@
     (fact "should be a fn"
       (pipeline :foo) => fn?
       (provided
-        (immutant.messaging/start anything) => nil))
+        (immutant.messaging/start anything) => nil
+        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil))
 
     (fact "should publish to the pipeline queue when invoked"
       ((pipeline :bar #()) :ham) => anything
       (provided
         (immutant.messaging/start anything) => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) => nil
-        (immutant.messaging/publish "queue.app.pipeline-:bar" :ham :properties {"step" "0"}) => anything))
+        (immutant.messaging/publish "queue.app.pipeline-:bar" :ham
+                                    :properties {"step" "0"}
+                                    :correlation-id anything) => anything))
 
     (fact "should publish to the pipeline queue with the correct step"
       ((pipeline :bart (step #() :name "onesies")) :ham) => anything
       (provided
         (immutant.messaging/start anything) => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) => nil
-        (immutant.messaging/publish anything :ham :properties {"step" "onesies"}) => anything))
+        (immutant.messaging/publish anything :ham
+                                    :properties {"step" "onesies"}
+                                    :correlation-id anything) => anything))
         
     (fact "should raise if the named pl already exists"
       (pipeline "shamwow") => anything
       (provided
-        (immutant.messaging/start anything) => nil)
+        (immutant.messaging/start anything) => nil
+        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil)
       (pipeline "shamwow") => (throws IllegalArgumentException))
     
     (fact "should raise if given a non-existent step"

@@ -124,11 +124,32 @@
       (when encoded
         (codecs/decode-if decode? encoded)))))
 
+(defn ^:internal ^:no-doc delayed-receive
+  "Creates an IDeref/IBlockingDeref that calls receive when deref'ed"
+  [queue & {:as opts}]
+  (letfn [(rcv [timeout]
+            (mapply receive queue (if timeout
+                                    (assoc opts :timeout timeout)
+                                    opts)))]
+    (reify 
+      clojure.lang.IDeref 
+      (deref [_] (rcv nil))
+      clojure.lang.IBlockingDeref
+      (deref
+        [_ timeout-ms timeout-val]
+        (let [r (rcv timeout-ms)]
+          (if (nil? r) timeout-val r))))))
+
 (defn message-seq
   "A lazy sequence of messages received from a destination. Accepts
    same options as receive."
   [dest & opts]
   (lazy-seq (cons (apply receive dest opts) (message-seq dest))))
+
+(def ^:dynamic *raw-message*
+  "Will be bound to the raw javax.jms.Message during the invocation of a
+   destination listener."
+  nil)
 
 (defn listen
   "The handler function, f, will receive each message sent to dest.
@@ -158,7 +179,8 @@
                      {"session" session
                       "consumer" (create-consumer session destination opts)
                       "handler" #(with-transaction session
-                                   (f (codecs/decode-if decode? %)))}))]
+                                   (binding [*raw-message* %]
+                                     (f (codecs/decode-if decode? %))))}))]
     (at-exit #(.close connection))
     (cond
      (or (not izer)
@@ -214,6 +236,7 @@
                                            (update-in opts [:properties]
                                                       #(merge % {"synchronous" "true"})))]
     (delay
+     ;; TODO: move the timeout from the request call to the deref
      (mapply receive queue
              (assoc opts
                :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'"))))))

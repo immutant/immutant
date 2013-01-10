@@ -12,16 +12,13 @@
   (.replace s "S" "$"))
 
 (deftest it-should-work
-  (let [result-queue (random-queue)
-        pl (pl/pipeline
+  (let [pl (pl/pipeline
             "basic"
             #(.replace % "m" "x")
             (memfn toUpperCase)
             dollarizer
-            #(.replace % "$" "Ke$ha")
-            (partial msg/publish result-queue))]
-    (pl "hambiscuit")
-    (is (= "HAXBIKe$haCUIT" (msg/receive result-queue)))))
+            #(.replace % "$" "Ke$ha"))]
+    (is (= "HAXBIKe$haCUIT" @(pl "hambiscuit")))))
 
 (deftest halt-should-work
   (let [result-queue (random-queue)
@@ -29,35 +26,28 @@
             "halt"
             (fn [m]
               (msg/publish result-queue (dollarizer m))
-              pl/halt)
-            (partial msg/publish result-queue))]
-    (pl "hambiScuit")
+              pl/halt))
+        result (pl "hambiScuit")]
     (is (= "hambi$cuit" (msg/receive result-queue)))
-    (is (nil? (msg/receive result-queue :timeout 2000)))))
+    (is (nil? (deref result 1000 nil)))))
 
 (deftest it-should-work-with-a-step-name-on-publish
-  (let [result-queue (random-queue)
-        pl (pl/pipeline
+  (let [pl (pl/pipeline
             "basic-step"
             #(.replace % "m" "x")
             (pl/step (memfn toUpperCase) :name :uc)
             dollarizer
-            #(.replace % "$" "Ke$ha")
-            (partial msg/publish result-queue))]
-    (pl "hambiscuit" :step :uc)
-    (is (= "HAMBIKe$haCUIT" (msg/receive result-queue)))))
+            #(.replace % "$" "Ke$ha"))]
+        (is (= "HAMBIKe$haCUIT" @(pl "hambiscuit" :step :uc)))))
 
 (deftest it-should-work-with-a-numeric-name-on-publish
-  (let [result-queue (random-queue)
-        pl (pl/pipeline
+  (let [pl (pl/pipeline
             "numeric-step"
             #(.replace % "m" "x")
             (memfn toUpperCase)
             dollarizer
-            #(.replace % "$" "Ke$ha")
-            (partial msg/publish result-queue))]
-    (pl "hambiscuit" :step 1)
-    (is (= "HAMBIKe$haCUIT" (msg/receive result-queue)))))
+            #(.replace % "$" "Ke$ha"))]
+        (is (= "HAMBIKe$haCUIT" @(pl "hambiscuit" :step 1)))))
 
 (deftest it-should-work-with-concurrency
   (let [result-queue (random-queue)
@@ -66,7 +56,8 @@
              (pl/step (fn [_]
                         (Thread/sleep 500)
                         (.getName (Thread/currentThread))) :concurrency 5)
-             (partial msg/publish result-queue))]
+             (partial msg/publish result-queue)
+             :sync false)]
     (dotimes [n 10]
       (pl "yo"))
     (let [results (->> (range 10)
@@ -82,7 +73,8 @@
                (Thread/sleep 500)
                (.getName (Thread/currentThread)))
              (partial msg/publish result-queue)
-             :concurrency 5)]
+             :concurrency 5
+             :sync false)]
     (dotimes [n 10]
       (pl "yo"))
     (let [results (->> (range 10)
@@ -98,7 +90,8 @@
                          (Thread/sleep 500)
                          (.getName (Thread/currentThread))) :concurrency 5)
              (partial msg/publish result-queue)
-             :concurrency 1)]
+             :concurrency 1
+             :sync false)]
     (dotimes [n 10]
       (pl "yo"))
     (let [results (->> (range 10)
@@ -108,12 +101,10 @@
       (is (<= 2 (count results))))))
 
 (deftest *pipeline*-should-be-bound
-    (let [result-queue (random-queue)
-          pl (pl/pipeline
+    (let [pl (pl/pipeline
               "pipeline var"
-              (fn [_] (msg/publish result-queue (meta pl/*pipeline*))))]
-      (pl "hi")
-      (is (= (-> pl meta :pipeline) (:pipeline (msg/receive result-queue))))))
+              (fn [_] (meta pl/*pipeline*)))]
+      (is (= (-> pl meta :pipeline) (:pipeline @(pl "hi"))))))
 
 (defn chucker [_]
   (throw (Exception. "boom")))
@@ -128,13 +119,11 @@
       (is (= (-> pl meta :pipeline) (:pipeline (msg/receive result-queue))))))
 
 (deftest *current-step*-and-*next-step*-should-be-bound
-    (let [result-queue (random-queue)
-          pl (pl/pipeline
+    (let [pl (pl/pipeline
               "step vars"
-              (fn [_] (msg/publish result-queue [pl/*current-step* pl/*next-step*]))
-              (fn [_]))]
-      (pl "hi")
-      (is (= ["0" "1"] (msg/receive result-queue)))))
+              (fn [_] [pl/*current-step* pl/*next-step*])
+              identity)]
+      (is (= ["0" "1"] @(pl "hi")))))
 
 (deftest *current-step*-and-*next-step*-should-be-bound-in-an-error-handler
     (let [result-queue (random-queue)
@@ -147,18 +136,21 @@
       (is (= ["0" "1"] (msg/receive result-queue)))))
 
 (deftest *current-step*-and-*next-step*-should-be-bound-when-steps-are-named
-    (let [result-queue (random-queue)
-          pl (pl/pipeline
+    (let [pl (pl/pipeline
               "step vars redux"
               (pl/step
                (fn [_]
-                 (msg/publish result-queue [pl/*current-step* pl/*next-step*]))
+                 [pl/*current-step* pl/*next-step*])
                :name "one")
-              (pl/step
-               (fn [_])
-               :name "two"))]
-      (pl "hi")
-      (is (= ["one" "two"] (msg/receive result-queue)))))
+              (pl/step identity :name "two"))]
+      (is (= ["one" "two"] @(pl "hi")))))
+
+(deftest result-ttl-should-be-honored
+  (let [pl (pl/pipeline
+             "result-ttl"
+             identity
+             :result-ttl 1)]
+    (is (nil? (deref (pl :foo) 1000 nil)))))
 
 (testing "error handling"
   (deftest global-error-handling-should-work

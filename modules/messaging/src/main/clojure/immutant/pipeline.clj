@@ -66,7 +66,8 @@
    This API is alpha, and subject to change."
   (:use [immutant.util :only (mapply app-name)])
   (:require [clojure.tools.logging :as log]
-            [immutant.messaging    :as msg]))
+            [immutant.messaging    :as msg])
+  (:import java.util.UUID))
 
 (def ^:dynamic *pipeline*
   "The currently active pipeline fn. Will be bound within the
@@ -110,6 +111,15 @@
             *next-step* next]
     (bound-fn* f)))
 
+(defn- wrap-result-passing
+  [f pl next-step]
+  (fn [m]
+    (let [m (f m)]
+      (when-not (= halt m)
+        (msg/publish pl m
+                     :correlation-id (.getJMSCorrelationID msg/*raw-message*)
+                     :properties {"step" next-step})))))
+
 (defn- pipeline-listen
   "Creates a listener on the pipeline for the given function."
   [pl opts f]
@@ -118,31 +128,32 @@
                  (merge (meta f))
                  (assoc :selector
                    (str "step = '" step "'")))
-        wrapped-f (-> f
-                      (wrap-error-handler opts)
-                      (wrap-step-bindings step next-step))]
+        f (-> f
+              (wrap-error-handler opts)
+              (wrap-step-bindings step next-step))]
     (mapply msg/listen
             pl
             (if next-step
-              #(let [m (wrapped-f %)]
-                 (when-not (= halt m)
-                   (msg/publish pl m
-                                :properties {"step" next-step})))
-              wrapped-f)            
+              (wrap-result-passing f pl next-step)
+              f)            
             opts)))
 
 (defn- pipeline-fn
   "Creates a fn that places it's first arg onto the pipeline,
   optionally at a step specified by :step"
-  [pl step-names]
+  [pl step-names sync]
   (vary-meta
    (fn [m & {:keys [step] :or {step (first step-names)}}]
-     (let [step (str step)]
+     (let [step (str step)
+           id (str (UUID/randomUUID))]
        (when-not (some #{step} step-names)
          (throw (IllegalArgumentException. 
                  (format "'%s' is not one of the available steps: %s" step (vec step-names)))))
-       (msg/publish pl m :properties {"step" step}))
-     nil)
+       (msg/publish pl m :properties {"step" step} :correlation-id id)
+       (when sync
+         (msg/delayed-receive pl
+                              :selector (str "JMSCorrelationID='" id
+                                             "' AND result = true")))))
    assoc
    :pipeline pl))
 
@@ -158,13 +169,22 @@
        (vary-meta f assoc :step step :next-step next-step))
      fns (partition 2 1 step-names))))
 
+(defn- sync-result-step-fn
+  "Returns a function that publishes the result of the pipeline so it can be deref'ed"
+  [pl opts]
+  #(msg/publish pl %
+                :ttl (:result-ttl opts 3600000) ;; 1 hr
+                :correlation-id (.getJMSCorrelationID msg/*raw-message*)
+                :properties {"result" true}))
+
 (defn pipeline
   "Creates a pipeline function.
 
    It takes a unique (within the scope of the application) name, one
    or more single-arity functions, and optional kwarg options, and
    returns a function that places its argument onto the pipeline when
-   called.
+   called. If :sync is true (the default), it returns a delayed value
+   that can be derefed to get the result of the pipeline execution.
 
    The following kwarg options are supported, and must follow the step
    functions [default]:
@@ -178,7 +198,13 @@
    :concurrency    the number of threads to use for *each* step. Can be
                    overridden on a per-step basis - see the 'step'
                    function. [1]
-
+   :sync           specifies if the pipeline should behave
+                   synchronously, meaning it will return a delay
+                   and place the result of the pipeline on a queue
+                   [true]
+   :result-ttl     the time-to-live for any results placed on the
+                   queue if the pipeline is synchronous, in ms [1 hour]
+   
    During the execution of each step and each error-handler call, the
    following vars are bound:
 
@@ -189,10 +215,14 @@
    This function is *not* idempotent. Attempting to create a pipeline
    with the same name as an existing pipeline will raise an error."
   [name & args]
-  (let [steps (named-steps (take-while fn? args))
-        opts (apply hash-map (drop-while fn? args)) 
+  (let [opts (apply hash-map (drop-while fn? args))
         pl (str "queue." (app-name)  ".pipeline-" name)
-        pl-fn (pipeline-fn pl (map (comp :step meta) steps))]
+        sync (:sync opts true)
+        steps (-> (take-while fn? args)
+                  vec
+                  (#(if sync (conj % (sync-result-step-fn pl opts)) %))
+                  named-steps)
+        pl-fn (pipeline-fn pl (map (comp :step meta) steps) sync)]
     (if (some #{pl} @pipelines)
       (throw (IllegalArgumentException.
               (str "A pipeline named " name " already exists."))))
