@@ -85,7 +85,11 @@
     (let [result (delayed-receive ham-queue)]
       (is (not (realized? result)))
       (publish ham-queue :hi)
-      (is (realized? result)))))
+      (is (realized? result))))
+
+  (deftest force-should-work
+    (publish ham-queue :ahoyhoy)
+    (is (= :ahoyhoy (force (delayed-receive ham-queue))))))
 
 (testing "remote connections"
   (deftest remote-publish-should-work

@@ -128,28 +128,22 @@
         (codecs/decode-if decode? message)))))
 
 (defn ^:internal ^:no-doc delayed-receive
-  "Creates an IDeref/IBlockingDeref that calls receive when deref'ed"
+  "Creates an timeout-derefable delay around a receive call"
   [queue & {:as opts}]
   (let [val (atom nil)
         rcv (fn [timeout]
               (reset! val
-                      (mapply receive queue (if timeout
-                                              (assoc opts :timeout timeout)
-                                              opts))))]
-    (reify 
-      clojure.lang.IDeref 
-      (deref [_]
-        (if (nil? @val)
-          (rcv nil)
-          @val))
-      clojure.lang.IBlockingDeref
-      (deref [_ timeout-ms timeout-val]
-        (if (nil? @val)
-          (let [r (rcv timeout-ms)]
-            (if (nil? r) timeout-val r))
-          @val))
-      clojure.lang.IPending
-      (isRealized [_]
+                      (mapply receive queue (assoc opts :timeout timeout))))]
+    (proxy [clojure.lang.Delay clojure.lang.IBlockingDeref] [nil]
+      (deref
+        ([]
+           (if (nil? @val) (rcv 0) @val))
+        ([timeout-ms timeout-val]
+           (if (nil? @val)
+             (let [r (rcv timeout-ms)]
+               (if (nil? r) timeout-val r))
+             @val)))
+      (isRealized []
         (not (and (nil? @val)
                   (nil? (rcv -1))))))))
 

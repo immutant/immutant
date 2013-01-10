@@ -149,8 +149,10 @@
   (let [pl (pl/pipeline
              :result-ttl
              identity
-             :result-ttl 1)]
-    (is (nil? (deref (pl :foo) 1000 nil)))))
+             :result-ttl 1)
+        result (pl :foo)]
+    (Thread/sleep 100)
+    (is (nil? (deref result 1000 nil)))))
 
 (testing "error handling"
   (deftest global-error-handling-should-work
@@ -195,5 +197,14 @@
       (pl "hi")
       (is (= (-> pl meta :pipeline) (:pipeline (msg/receive result-queue)))))))
 
+(deftest pipelines-should-be-useable-inside-pipelines
+  (let [p1 (pl/pipeline
+            "inner"
+            (memfn toUpperCase))
+        p2 (pl/pipeline
+            "outer"
+            p1
+            dollarizer)]
+    (is (= "FANTA$TIC" @(p2 "fantastic")))))
 
 

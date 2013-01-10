@@ -65,8 +65,9 @@
  
    This API is alpha, and subject to change."
   (:use [immutant.util :only (mapply app-name)])
-  (:require [clojure.tools.logging :as log]
-            [immutant.messaging    :as msg])
+  (:require [clojure.tools.logging   :as log]
+            [immutant.messaging      :as msg]
+            [immutant.xa.transaction :as tx])
   (:import java.util.UUID))
 
 (def ^:dynamic *pipeline*
@@ -114,11 +115,16 @@
 (defn- wrap-result-passing
   [f pl next-step]
   (fn [m]
-    (let [m (f m)]
+    (let [m (force (f m))]
       (when-not (= halt m)
         (msg/publish pl m
                      :correlation-id (.getJMSCorrelationID msg/*raw-message*)
                      :properties {"step" next-step})))))
+
+(defn- wrap-new-tx
+  [f]
+  (fn [m]
+    (tx/requires-new (f m))))
 
 (defn- pipeline-listen
   "Creates a listener on the pipeline for the given function."
@@ -130,7 +136,8 @@
                    (str "step = '" step "'")))
         f (-> f
               (wrap-error-handler opts)
-              (wrap-step-bindings step next-step))]
+              (wrap-step-bindings step next-step)
+              wrap-new-tx)]
     (mapply msg/listen
             pl
             (if next-step
