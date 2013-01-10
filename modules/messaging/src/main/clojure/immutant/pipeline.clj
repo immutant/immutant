@@ -115,6 +115,7 @@
 (defn- wrap-result-passing
   [f pl next-step]
   (fn [m]
+    ;; FIXME: a blind force instead of a deref w/o a timeout may be a bad idea here
     (let [m (force (f m))]
       (when-not (= halt m)
         (msg/publish pl m
@@ -148,7 +149,7 @@
 (defn- pipeline-fn
   "Creates a fn that places it's first arg onto the pipeline,
   optionally at a step specified by :step"
-  [pl step-names sync]
+  [pl step-names keep-result?]
   (vary-meta
    (fn [m & {:keys [step] :or {step (first step-names)}}]
      (let [step (str step)
@@ -157,10 +158,12 @@
          (throw (IllegalArgumentException. 
                  (format "'%s' is not one of the available steps: %s" step (vec step-names)))))
        (msg/publish pl m :properties {"step" step} :correlation-id id)
-       (when sync
+       (if keep-result?
          (msg/delayed-receive pl
                               :selector (str "JMSCorrelationID='" id
-                                             "' AND result = true")))))
+                                             "' AND result = true"))
+         (delay (throw (IllegalStateException.
+                        "Attempt to derefence a pipeline that doesn't provide a result"))))))
    assoc
    :pipeline pl))
 
@@ -178,9 +181,9 @@
 
 (defn- sync-result-step-fn
   "Returns a function that publishes the result of the pipeline so it can be deref'ed"
-  [pl opts]
+  [pl ttl]
   #(msg/publish pl %
-                :ttl (:result-ttl opts 3600000) ;; 1 hr
+                :ttl ttl
                 :correlation-id (.getJMSCorrelationID msg/*raw-message*)
                 :properties {"result" true}))
 
@@ -205,12 +208,9 @@
    :concurrency    the number of threads to use for *each* step. Can be
                    overridden on a per-step basis - see the 'step'
                    function. [1]
-   :sync           specifies if the pipeline should behave
-                   synchronously, meaning it will return a delay
-                   and place the result of the pipeline on a queue
-                   [true]
-   :result-ttl     the time-to-live for any results placed on the
-                   queue if the pipeline is synchronous, in ms [1 hour]
+   :result-ttl     the time-to-live for the final pipeline result,
+                   in ms. Set to 0 for \"forever\", -1 to disable
+                   returning the result via a delay [1 hour]
    
    During the execution of each step and each error-handler call, the
    following vars are bound:
@@ -224,12 +224,15 @@
   [pl-name & args]
   (let [opts (apply hash-map (drop-while fn? args))
         pl (str "queue." (app-name)  ".pipeline-" (name pl-name))
-        sync (:sync opts true)
+        result-ttl (:result-ttl opts 3600000) ;; 1 hr
+        keep-result? (>= result-ttl 0)
         steps (-> (take-while fn? args)
                   vec
-                  (#(if sync (conj % (sync-result-step-fn pl opts)) %))
+                  (#(if keep-result?
+                      (conj % (sync-result-step-fn pl result-ttl))
+                      %))
                   named-steps)
-        pl-fn (pipeline-fn pl (map (comp :step meta) steps) sync)]
+        pl-fn (pipeline-fn pl (map (comp :step meta) steps) keep-result?)]
     (if (some #{pl} @pipelines)
       (throw (IllegalArgumentException.
               (str "A pipeline named " pl-name " already exists."))))

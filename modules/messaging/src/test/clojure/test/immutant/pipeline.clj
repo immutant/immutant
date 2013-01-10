@@ -121,7 +121,16 @@
        nil :step :ham) => (throws IllegalArgumentException)
       (provided
         (immutant.messaging/start anything) => nil
-        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil))))
+        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil))
+
+    (fact "should raise if a disabled result pipeline is derefed"
+      @((pipeline "boom" #() :result-ttl -1) :foo) => (throws IllegalStateException)
+      (provided
+        (immutant.messaging/start anything :result-ttl -1) => nil
+        (#'immutant.pipeline/pipeline-listen anything anything anything) => nil
+        (immutant.messaging/publish "queue.app.pipeline-boom" :foo
+                                    :properties {"step" "0"}
+                                    :correlation-id anything) => anything))))
 
 
 

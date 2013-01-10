@@ -57,7 +57,7 @@
                         (Thread/sleep 500)
                         (.getName (Thread/currentThread))) :concurrency 5)
              (partial msg/publish result-queue)
-             :sync false)]
+             :result-ttl -1)]
     (dotimes [n 10]
       (pl "yo"))
     (let [results (->> (range 10)
@@ -74,7 +74,7 @@
                (.getName (Thread/currentThread)))
              (partial msg/publish result-queue)
              :concurrency 5
-             :sync false)]
+             :result-ttl -1)]
     (dotimes [n 10]
       (pl "yo"))
     (let [results (->> (range 10)
@@ -91,7 +91,7 @@
                          (.getName (Thread/currentThread))) :concurrency 5)
              (partial msg/publish result-queue)
              :concurrency 1
-             :sync false)]
+             :result-ttl -1)]
     (dotimes [n 10]
       (pl "yo"))
     (let [results (->> (range 10)
