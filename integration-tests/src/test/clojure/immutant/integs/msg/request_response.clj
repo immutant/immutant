@@ -23,6 +23,7 @@
 (def ham-queue "/queue/ham")
 (def biscuit-queue "/queue/biscuit")
 (def oddball-queue (as-queue "oddball"))
+(def sleepy-queue "queue.sleeper")
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -30,15 +31,22 @@
                        }))
 
 (deftest request-and-respond-should-both-work
-  (is (= "BISCUIT" @(request ham-queue "biscuit" :timeout 2000))))
+  (is (= "BISCUIT" @(request ham-queue "biscuit"))))
 
 (deftest request-and-respond-with-a-selector-should-work
   (is (= "BISCUIT" @(request biscuit-queue "biscuit"
-                             :timeout 2000
                              :properties {"worker" "upper"})))
   (is (= "ham" @(request biscuit-queue "HAM"
-                         :timeout 2000
                          :properties {"worker" "lower"}))))
 
 (deftest request-and-respond-with-as-queue-should-both-work
-  (is (= "BISCUIT" @(request oddball-queue "biscuit" :timeout 2000))))
+  (is (= "BISCUIT" @(request oddball-queue "biscuit"))))
+
+(deftest request-with-a-deref-timeout-should-work
+  (is (= 100 (deref (request sleepy-queue 100) 1000 nil))))
+
+(deftest realized?-should-work
+  (let [response (request sleepy-queue 1000)]
+    (is (not (realized? response)))
+    (is (= 1000 (time @response)))
+    (is (realized? response))))

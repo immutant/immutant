@@ -330,12 +330,7 @@
    optional list of options. It publishes the message to the queue, marking 
    it as a /synchronous/ message and returns a delay that will receive the 
    response from the worker initiated by the =respond= function. It accepts
-   the same options as =publish=, with one additional option:
-
-   | Option     | Default | Description                         |
-   |------------+---------+-------------------------------------|
-   |            | <c>     | <35>                                |
-   | =:timeout= | =10000= | Time in ms for the delayed receive to wait once it it is dereferenced, after which nil is returned |
+   the same options as =publish=.
 
 ** Respond
 

@@ -240,19 +240,15 @@
    with respond. The queue parameter can either be the name of a
    queue, an actual javax.jms.Queue, or the result of as-queue.
 
-   It takes the same options as publish, and one more [default]:
-     :timeout  time in ms for the delayed receive to wait once it it is
-               dereferenced, after which nil is returned [10000]"
+   It takes the same options as publish."
   [queue message & {:as opts}]
   {:pre [(queue? queue)]}
   (let [^javax.jms.Message message (mapply publish queue message
                                            (update-in opts [:properties]
                                                       #(merge % {"synchronous" "true"})))]
-    (delay
-     ;; TODO: move the timeout from the request call to the deref
-     (mapply receive queue
-             (assoc opts
-               :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'"))))))
+    (mapply delayed-receive queue
+            (assoc opts
+              :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'")))))
 
 (defn respond
   "Listen for messages on queue sent by the request function and
