@@ -414,11 +414,12 @@
     =pipeline= can take the following options, passed as keyword
     arguments after the step functions:
     
-    | Option           | Default | Description                         |
-    |------------------+---------+-------------------------------------|
-    |                  | <c>     | <35>                                |
-    | =:error-handler= | =nil=   | A function to call when a step function throws an exception. Receives the exception and the data passed to the step function. Can be overriden on a per-step basis (see below). |
-    | =:concurrency=   | =1=     | The number of threads to use for each step. Can be overridden on a per-step basis (see below). |
+    | Option           | Default  | Description                         |
+    |------------------+----------+-------------------------------------|
+    |                  | <c>      | <35>                                |
+    | =:concurrency=   | =1=      | The number of threads to use for each step. Can be overridden on a per-step basis (see below). |
+    | =:error-handler= | =nil=    | A function to call when a step function throws an exception. Receives the exception and the data passed to the step function. Can be overriden on a per-step basis (see below). |
+    | =:result-ttl=    | /1 hour/ | The time-to-live for the final pipeline result, in ms. Set to 0 for "forever", -1 to disable returning the result via a delay |
 
    #+BEGIN_SRC clojure
      (require '[immutant.pipeline :as pl])
@@ -439,9 +440,9 @@
     | Option           | Default               | Description                         |
     |------------------+-----------------------+-------------------------------------|
     |                  | <c>                   | <35>                                |
-    | =:name=          | /the index of the fn/ | a name to use for the step          |
-    | =:concurrency=   | =1=                   | the number of threads to use, overriding the pipeline setting |
-    | =:error-handler= | =nil=                 | an error handler function that can override the pipeline setting |
+    | =:name=          | /the index of the fn/ | A name to use for the step          |
+    | =:concurrency=   | =1=                   | The number of threads to use, overriding the pipeline setting |
+    | =:error-handler= | =nil=                 | An error handler function that can override the pipeline setting |
    
    #+BEGIN_SRC clojure
      (require '[immutant.pipeline :as pl])
@@ -455,7 +456,8 @@
 ** Using a pipeline
 
    The function returned by [[./apidoc/immutant.pipeline.html#var-pipeline][pipeline]] acts as an entry function,
-   placing its argument onto the pipeline when called, returning nil:
+   placing its argument onto the pipeline when called, returning a
+   delay around the end of the pipeline (by default):
    
    #+BEGIN_SRC clojure
      (require '[immutant.pipeline :as pl])
@@ -465,26 +467,19 @@
          function-that-does-something
          another-function))
      
-     (foo-pipeline {:ham :biscuit})
+     @(foo-pipeline {:ham :biscuit})
    #+END_SRC
 
-   Since the pipeline is asynchronous, you are responsible for doing
-   something with the data when it reaches the end of the
-   pipeline. One option is to place it on a queue for some other
-   process to consume:
-
-   #+BEGIN_SRC clojure
-     (require '[immutant.pipeline  :as pl]
-              '[immutant.messaging :as msg])
-     
-     (msg/start "queue.results")
-     
-     (pl/pipeline "foo"
-       function-that-does-something
-       another-function
-       (partial msg/publish "queue.results"))
-   #+END_SRC
-
+   Pipelines store the result of an execution by default, allowing it
+   to be retrieved by dereferencing the delay returned by the
+   pipeline-fn call.  To prevent results that may not be retrieved
+   from being stored indefinitely, they have a default time-to-live of
+   1 hour. You can control the retention time by passing a
+   =:result-ttl= option to =pipeline=. It is specified in
+   milliseconds, with a value of =0= indicating that the result should
+   be saved indefinitely, and =-1= indicating that the results should
+   be discarded immediately. If you set the =:result-ttl= to =-1=, any 
+   attempt to dereference the returned delay will raise an error.
 
    By default, the pipeline entry function places its argument onto
    the front of the pipeline. You can insert the data into the
