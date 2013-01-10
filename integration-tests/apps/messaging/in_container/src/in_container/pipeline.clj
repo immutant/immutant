@@ -147,7 +147,7 @@
 
 (deftest result-ttl-should-be-honored
   (let [pl (pl/pipeline
-             "result-ttl"
+             :result-ttl
              identity
              :result-ttl 1)]
     (is (nil? (deref (pl :foo) 1000 nil)))))

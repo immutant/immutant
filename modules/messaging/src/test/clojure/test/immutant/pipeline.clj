@@ -61,7 +61,7 @@
     (fact "should pass a queue name based on the given name, even if it's a keyword"
       (pipeline :pl) => anything
       (provided
-        (immutant.messaging/start "queue.app.pipeline-:pl") => nil
+        (immutant.messaging/start "queue.app.pipeline-pl") => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) => nil))
     
     (fact "should pass a options through to start"
@@ -96,7 +96,7 @@
       (provided
         (immutant.messaging/start anything) => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) => nil
-        (immutant.messaging/publish "queue.app.pipeline-:bar" :ham
+        (immutant.messaging/publish "queue.app.pipeline-bar" :ham
                                     :properties {"step" "0"}
                                     :correlation-id anything) => anything))
 

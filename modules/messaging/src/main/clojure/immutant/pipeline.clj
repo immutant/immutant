@@ -214,9 +214,9 @@
 
    This function is *not* idempotent. Attempting to create a pipeline
    with the same name as an existing pipeline will raise an error."
-  [name & args]
+  [pl-name & args]
   (let [opts (apply hash-map (drop-while fn? args))
-        pl (str "queue." (app-name)  ".pipeline-" name)
+        pl (str "queue." (app-name)  ".pipeline-" (name pl-name))
         sync (:sync opts true)
         steps (-> (take-while fn? args)
                   vec
@@ -225,7 +225,7 @@
         pl-fn (pipeline-fn pl (map (comp :step meta) steps) sync)]
     (if (some #{pl} @pipelines)
       (throw (IllegalArgumentException.
-              (str "A pipeline named " name " already exists."))))
+              (str "A pipeline named " pl-name " already exists."))))
     (mapply msg/start pl opts)
     (binding [*pipeline* pl-fn]
       (let [listeners (->> steps
