@@ -63,6 +63,30 @@
   (publish ham-queue "die!" :ttl 1)
   (is (nil? (receive ham-queue :timeout 1000))))
 
+(testing "delayed-receive"
+  (deftest deref-should-work
+    (publish ham-queue :hi)
+    (is (= :hi @(delayed-receive ham-queue))))
+
+  (deftest deref-should-cache
+    (publish ham-queue :hi)
+    (let [result (delayed-receive ham-queue)]
+      (is (= :hi @result))
+      (is (= :hi @result))))
+
+  (deftest deref-with-a-timeout-should-work
+    (publish ham-queue :hi)
+    (is (= :hi (deref (delayed-receive ham-queue) 1000 nil))))
+
+  (deftest deref-with-a-timeout-and-default-should-work
+    (is (= :hello (deref (delayed-receive ham-queue) 1 :hello))))
+  
+  (deftest realized?-should-work
+    (let [result (delayed-receive ham-queue)]
+      (is (not (realized? result)))
+      (publish ham-queue :hi)
+      (is (realized? result)))))
+
 (testing "remote connections"
   (deftest remote-publish-should-work
     (publish ham-queue "testing-remote" :host "integ-app1.torquebox.org" :port 5445)

@@ -222,7 +222,7 @@
    | Option       | Default                            | Description                         |
    |--------------+------------------------------------+-------------------------------------|
    |              | <c>                                | <35>                                |
-   | =:timeout=   | =10000=                            | An expiration in milliseconds, after which nil is returned; a value of 0 means wait forever |
+   | =:timeout=   | =10000=                            | An expiration in milliseconds, after which nil is returned; a value of 0 means wait forever, a value of -1 means don't wait at all |
    | =:selector=  | =nil=                              | A JMS expression used to filter messages according to the values of arbitrary =:properties= |
    | =:decode?=   | =true=                             | If true, the decoded message body is returned. Otherwise, the javax.jms.Message object is returned |
    | =:client-id= | =nil=                              | Identifies a durable topic subscriber; ignored for queues |

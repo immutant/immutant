@@ -103,7 +103,8 @@
    as-queue or as-topic.
 
    The following options are supported [default]:
-     :timeout    time in ms, after which nil is returned [10000]
+     :timeout    time in ms, after which nil is returned. 0 means wait forever,
+                 -1 means don't wait at all [10000]
      :selector   A JMS (SQL 92) expression matching message metadata/properties
      :decode?    if true, the decoded message body is returned. Otherwise, the
                  javax.jms.Message object is returned [true]
@@ -120,25 +121,37 @@
     (let [session (session)
           destination (create-destination session dest)
           consumer (create-consumer session destination opts)
-          encoded (.receive consumer timeout)]
-      (when encoded
-        (codecs/decode-if decode? encoded)))))
+          message (if (= -1 timeout)
+                    (.receiveNoWait consumer)
+                    (.receive consumer timeout))]
+      (when message
+        (codecs/decode-if decode? message)))))
 
 (defn ^:internal ^:no-doc delayed-receive
   "Creates an IDeref/IBlockingDeref that calls receive when deref'ed"
   [queue & {:as opts}]
-  (letfn [(rcv [timeout]
-            (mapply receive queue (if timeout
-                                    (assoc opts :timeout timeout)
-                                    opts)))]
+  (let [val (atom nil)
+        rcv (fn [timeout]
+              (reset! val
+                      (mapply receive queue (if timeout
+                                              (assoc opts :timeout timeout)
+                                              opts))))]
     (reify 
       clojure.lang.IDeref 
-      (deref [_] (rcv nil))
+      (deref [_]
+        (if (nil? @val)
+          (rcv nil)
+          @val))
       clojure.lang.IBlockingDeref
-      (deref
-        [_ timeout-ms timeout-val]
-        (let [r (rcv timeout-ms)]
-          (if (nil? r) timeout-val r))))))
+      (deref [_ timeout-ms timeout-val]
+        (if (nil? @val)
+          (let [r (rcv timeout-ms)]
+            (if (nil? r) timeout-val r))
+          @val))
+      clojure.lang.IPending
+      (isRealized [_]
+        (not (and (nil? @val)
+                  (nil? (rcv -1))))))))
 
 (defn message-seq
   "A lazy sequence of messages received from a destination. Accepts
