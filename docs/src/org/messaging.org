@@ -481,6 +481,25 @@
    be discarded immediately. If you set the =:result-ttl= to =-1=, any 
    attempt to dereference the returned delay will raise an error.
 
+   If the result from a step is reference, it will be dereferenced
+   before being passed to the next step. This allows you to use a
+   pipeline within a pipeline:
+
+   #+BEGIN_SRC clojure
+     (require '[immutant.pipeline :as pl])
+          
+     (defonce pipeline-x
+       (pl/pipeline :x
+         function-that-does-something
+         another-function))
+     
+     (defonce pipeline-y
+       (pl/pipeline :y
+         yet-another-function
+         pipeline-x
+         and-another))
+   #+END_SRC
+
    By default, the pipeline entry function places its argument onto
    the front of the pipeline. You can insert the data into the
    pipeline at any step by passing a =:step= keyword argument. The
