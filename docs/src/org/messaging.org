@@ -233,23 +233,15 @@
 
    For more details on message selectors, see [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html][javax.jms.Message]]. 
 
-   The =listen= method takes two parameters: the destination name and
-   a function accepting one parameter which will be applied to any
-   received message. The following key/value options are also
-   available:
+   The =listen= function takes two parameters: the destination name
+   and a function accepting one parameter which will be applied to any
+   received message. All of the above options except =:timeout= are
+   supported, plus =listen= also accepts the following:
 
    | Option         | Default                            | Description                         |
    |----------------+------------------------------------+-------------------------------------|
    |                | <c>                                | <35>                                |
    | =:concurrency= | =1=                                | The maximum number of listening threads that can simultaneouly call the function |
-   | =:selector=    | =nil=                              | Same as =receive=                   |
-   | =:decode?=     | =true=                             | If true, the decoded message body is passed to f. Otherwise, the javax.jms.Message object is passed |
-   | =:name=        | =nil=                              | A name for this listener that is used to give the mbean a known identifier, and to allow future calls to listen with the same :name to replace the prior listener with that name |
-   | =:client-id=   | =nil=                              | Identifies a durable topic subscriber; ignored for queues |
-   | =:host=        | =nil=                              | A remote HornetQ host to connect to. |
-   | =:port=        | =nil=, or =5445= if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
-   | =:username=    | =nil=                              | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
-   | =:password=    | =nil=                              | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
 
    By default, message handlers are transactional, so the function
    invoked in response to a message effectively demarcates a
@@ -271,7 +263,7 @@
         (perform task))
       
       ;; Case-sensitive work queues?
-      (msg/listen ".queue.lower" #(msg/publish "/queue/upper" (.toUpperCase %)) :name "upperizer")
+      (msg/listen ".queue.lower" #(msg/publish "/queue/upper" (.toUpperCase %)))
       
       ;; Listen to a remote queue
       (msg/listen "queue/remote" #(do-someting %) :host "foo.example.com" :port 5445)
@@ -282,26 +274,43 @@
         (= (range 4) (take 4 messages)))
     #+end_src
 
-*** Acessing Listeners via JMX
+    The complement of =listen= is [[./apidoc/immutant.messaging.html#var-unlisten][immutant.messaging/unlisten]], to
+    which you pass the value returned by =listen= to cease the flow of
+    messages to that handler.
+
+    Queues and topics behave differently when you map a handler to the
+    same destination. For queues, the current handler, if any, is
+    replaced, effectively making the =listen= call idempotent.
+    Multiple =listen= calls for topics are idempotent, too, but *only*
+    if the parameters are exactly the same. If you call =listen= for a
+    certain topic with different handlers, they are additive. For
+    example:
+
+    #+begin_src clojure
+      (listen "queue" #(println (inc %)))
+      (listen "queue" #(println (dec %)))
+      (publish "queue" 42)
+      => 41
+      
+      (listen "topic" #(println (inc %)))
+      (listen "topic" #(println (dec %)))
+      (publish "topic" 42)
+      => 43
+      => 41
+    #+end_src
+
+*** Accessing Listeners via JMX
 
    Each message listener has a MBean exposed via JMX. Currently, you
    can only stop and start the listener from the MBean.
    
-   The MBean name is derived from the =:name= option (or the listener
-   function object if =:name= is not provided to =listen=), the
-   destination name, and the application name. Given an application
-   name of =my-app= and a destination name of =queue.example=:
+   The MBean name is derived from URL-encoded concatenation of
+   destination name and the =:selector=, if any. If the destination is
+   a topic, the =:client-id= and the handler function name will be
+   included as well.
 
-   #+begin_src text
-   # when given a listener fn referenced by the symbol immutant.init/my-listener
-   immutant.messaging:app=my-app,name=queue.example.immutant.init$my_listener@a4e459
-
-   # when given an anonymous listener fn defined in immutant.init
-   immutant.messaging:app=my-app,name=queue.example.immutant.init$eval4385$fn_4386@8e33a2
-
-   # when given a :name of "foo"
-   immutant.messaging:app=my-app,name=queue.example.foo
-   #+end_src
+   The names are so gross-looking that I'm loathe to include any
+   examples at this time.
 
 * Request/Response
    :PROPERTIES:

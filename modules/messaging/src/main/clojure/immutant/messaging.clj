@@ -47,7 +47,7 @@
    or 'topic', or be the result of calling as-queue or as-topic.
 
    The following options are supported [default]:
-     :durable    whether queue items persist across restarts [false]
+     :durable    whether queue items persist across restarts [true]
      :selector   A JMS (SQL 92) expression matching message metadata/properties [\"\"]"
   [name & opts]
   (cond
@@ -140,9 +140,6 @@
      :selector     A JMS (SQL 92) expression matching message metadata/properties
      :decode?      if true, the decoded message body is passed to f. Otherwise, the
                    javax.jms.Message object is passed [true]
-     :name         A name for this listener that is used to give the mbean a known
-                   identifier, and to allow future calls to listen with the same
-                   :name to replace the prior listener with that name [nil]  
      :client-id    identifies a durable topic subscriber, ignored for queues [nil]
      :host         the remote host to connect to (default is to connect in-vm) [nil]
      :port         the remote port to connect to (requires :host to be set) [nil,
@@ -191,7 +188,7 @@
                                false ;; TODO: singleton
                                concurrency
                                (not (nil? (:client-id opts)))
-                               (str (:name opts f))
+                               (str (:selector opts) (if (topic? dest) (str (:client-id opts) f)))
                                connection
                                setup-fn
                                #(deliver complete %))]

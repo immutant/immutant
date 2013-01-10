@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.net.URLEncoder;
 
 import javax.jms.XAConnection;
 
@@ -47,7 +48,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
     public MessageProcessorGroup createGroup(final String destinationName, final boolean singleton, final int concurrency, 
             final boolean durable, final String handlerName, final XAConnection connection, final Object setupHandler, 
             final Object startCallback) {
-        final String name = destinationName + "." + handlerName.replace( ":", "" );
+        final String name = destinationName + "." + URLEncoder.encode(handlerName);
         final ServiceName serviceName = MessagingServices.messageProcessor( getUnit(),  name );
         final MessageProcessorGroup group = new MessageProcessorGroup( getUnit().getServiceRegistry(), serviceName,
                 destinationName, connection, setupHandler, startCallback );

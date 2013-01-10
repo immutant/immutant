@@ -3,7 +3,7 @@
 
 (msg/start "/queue/ham")
 (msg/start ".queue.biscuit")
-(msg/listen ".queue.biscuit" #(msg/publish "/queue/ham" (.toUpperCase %)) :name "hambone")
+(msg/listen ".queue.biscuit" #(msg/publish "/queue/ham" (.toUpperCase %)))
 
 (msg/start "/queuebam")
 (msg/start "queue/hiscuit")
@@ -23,8 +23,8 @@
 (msg/listen "queue.listen-id.request"
             (fn [_]
               (msg/listen "queue.listen-id.request"
-               (fn [_] (msg/publish "queue.listen-id.response" :new-listener)) :name "idempotent")
-              (msg/publish "queue.listen-id.response" :old-listener)) :name "idempotent")
+               (fn [_] (msg/publish "queue.listen-id.response" :new-listener)))
+              (msg/publish "queue.listen-id.response" :old-listener)))
 
 (msg/start (msg/as-queue "oddball"))
 (msg/start (msg/as-queue "addboll"))

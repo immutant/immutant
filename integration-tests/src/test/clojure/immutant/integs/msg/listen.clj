@@ -67,13 +67,13 @@
   (is (re-seq deployment-class-loader-regex
               (receive loader-result-queue :timeout 60000))))
 
-(deftest a-listener-with-a-name-option-should-have-a-findable-mbean
+(deftest a-listener-should-have-a-findable-mbean
   (jmx/with-connection {:url "service:jmx:remoting-jmx://127.0.0.1:9999"}
-    (is (jmx/mbean "immutant.messaging:name=.queue.biscuit.hambone,app=listen"))))
+    (is (jmx/mbean "immutant.messaging:name=.queue.biscuit.,app=listen"))))
 
 (let [request-queue "queue.listen-id.request"
       response-queue "queue.listen-id.response"]
-  (deftest listen-with-a-name-should-be-idempotent
+  (deftest listen-on-a-queue-should-be-idempotent
     (publish request-queue :whatever)
     (is (= :old-listener (receive response-queue)))
     (publish request-queue :whatever)

@@ -14,3 +14,9 @@
     (finally
      (msg/unlisten l))))
 
+(msg/start "queue.198")
+(msg/start "topic.198")
+
+;;; Topic listeners are additive, not idempotent
+(msg/listen "topic.198" #(msg/publish "queue.198" (inc %)))
+(msg/listen "topic.198" #(msg/publish "queue.198" (dec %)))

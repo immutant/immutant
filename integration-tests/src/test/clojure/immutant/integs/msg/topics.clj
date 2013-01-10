@@ -54,3 +54,7 @@
     (Thread/sleep 1000)
     (publish oddball "ahoy")
     (is (= "ahoy" @result))))
+
+(deftest topic-listeners-should-append
+  (publish "topic.198" 42)
+  (is (= #{41 43} (set (take 2 (message-seq "queue.198"))))))
