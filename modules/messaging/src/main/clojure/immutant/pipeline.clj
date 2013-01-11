@@ -114,13 +114,15 @@
 
 (defn- wrap-result-passing
   [f pl next-step]
-  (fn [m]
-    ;; FIXME: a blind force instead of a deref w/o a timeout may be a bad idea here
-    (let [m (force (f m))]
-      (when-not (= halt m)
-        (msg/publish pl m
-                     :correlation-id (.getJMSCorrelationID msg/*raw-message*)
-                     :properties {"step" next-step})))))
+  (if next-step
+    (fn [m]
+      ;; FIXME: a blind force instead of a deref w/o a timeout may be a bad idea here
+      (let [m (force (f m))]
+        (when-not (= halt m)
+          (msg/publish pl m
+                       :correlation-id (.getJMSCorrelationID msg/*raw-message*)
+                       :properties {"step" next-step}))))
+    f))
 
 (defn- wrap-no-tx
   [f]
@@ -133,18 +135,22 @@
   (let [{:keys [step next-step]} (meta f)
         opts (-> opts
                  (merge (meta f))
-                 (assoc :selector
-                   (str "step = '" step "'")))
-        f (-> f
-              (wrap-error-handler opts)
-              (wrap-step-bindings step next-step)
-              wrap-no-tx)]
-    (mapply msg/listen
-            pl
-            (if next-step
-              (wrap-result-passing f pl next-step)
-              f)            
-            opts)))
+                 (assoc :selector (str "step = '" step "'")))]
+    (mapply msg/listen pl
+      (-> f
+          (wrap-error-handler opts)
+          (wrap-step-bindings step next-step)
+          wrap-no-tx
+          (wrap-result-passing pl next-step))
+      opts)))
+
+(defn- create-delay
+  [pl id keep-result?]
+  (if keep-result?
+    (msg/delayed-receive pl
+                         :selector (str "JMSCorrelationID='" id "' AND result = true"))
+    (delay (throw (IllegalStateException.
+                   "Attempt to derefence a pipeline that doesn't provide a result")))))
 
 (defn- pipeline-fn
   "Creates a fn that places it's first arg onto the pipeline,
@@ -158,12 +164,7 @@
          (throw (IllegalArgumentException. 
                  (format "'%s' is not one of the available steps: %s" step (vec step-names)))))
        (msg/publish pl m :properties {"step" step} :correlation-id id)
-       (if keep-result?
-         (msg/delayed-receive pl
-                              :selector (str "JMSCorrelationID='" id
-                                             "' AND result = true"))
-         (delay (throw (IllegalStateException.
-                        "Attempt to derefence a pipeline that doesn't provide a result"))))))
+       (create-delay pl id keep-result?)))
    assoc
    :pipeline pl))
 
