@@ -32,7 +32,7 @@ class DAV
   end
 
   def mkcol(url)
-    status, message = curl(
+    curl(
       '--request MKCOL',
       "--header 'Content-Type: text/xml; charset=\"utf-8\"'",
       url
@@ -40,7 +40,7 @@ class DAV
   end
 
   def put(url, file)
-    status, message = curl(
+    curl(
       '--upload-file', 
       file,
       url
@@ -48,7 +48,7 @@ class DAV
   end
 
   def delete(url)
-    status, message = curl(
+    curl(
       '--request DELETE',
       "--header 'Content-Type: text/xml; charset=\"utf-8\"'",
       url
@@ -56,7 +56,7 @@ class DAV
   end
 
   def copy(src, dest, depth)
-    status, message = curl(
+    curl(
       '--request COPY',
       "--header 'Destination: #{dest}'",
       "--header 'Depth: #{depth}'",
@@ -85,12 +85,16 @@ class DAV
       stdout_thr.join
       stderr_thr.join
     end
-    status_line = error.split( "\n" ).reverse.find{|e| e =~ /^< HTTP\/1.1/}
-    status  = "500"
-    message = 'Unknown'
-    if ( status_line =~ /HTTP\/1.1 ([0-9][0-9][0-9]) (.*)$/ ) 
+
+    #puts error
+    status_line = error.split( "\n" ).reverse.find{|e| e =~ /^< HTTP\/1\.[0-1]/}
+    if status_line =~ /HTTP\/1\.[0-1] ([0-9][0-9][0-9]) (.*)$/ &&
+        $1 != '100' # if the last status was a 100, then we crapped out before the final status
       status = $1
       message = $2.strip
+    else
+      status  = '500'
+      message = 'Unknown'
     end
     [ status, message ]
   end

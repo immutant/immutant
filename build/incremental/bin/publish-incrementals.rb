@@ -58,7 +58,7 @@ class Publisher
   end
 
   def dav_remote_cp_r(src, dest)
-    puts_r @dav.copy( src + '/', dest + '/', :infinity ).inspect
+    puts_r @dav.copy( src + '/', dest + '/', :infinity )
   end
 
   def dav_put_r(root_url, root_dir)
