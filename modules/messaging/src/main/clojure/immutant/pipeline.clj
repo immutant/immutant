@@ -122,10 +122,10 @@
                      :correlation-id (.getJMSCorrelationID msg/*raw-message*)
                      :properties {"step" next-step})))))
 
-(defn- wrap-new-tx
+(defn- wrap-no-tx
   [f]
   (fn [m]
-    (tx/requires-new (f m))))
+    (tx/not-supported (f m))))
 
 (defn- pipeline-listen
   "Creates a listener on the pipeline for the given function."
@@ -138,7 +138,7 @@
         f (-> f
               (wrap-error-handler opts)
               (wrap-step-bindings step next-step)
-              wrap-new-tx)]
+              wrap-no-tx)]
     (mapply msg/listen
             pl
             (if next-step
