@@ -22,13 +22,6 @@
       <type>pom</type>
       <scope>provided</scope>
     </dependency>
-    <!-- <dependency> -->
-    <!--   <groupId>org.immutant</groupId> -->
-    <!--   <artifactId>immutant-docs-en_US</artifactId> -->
-    <!--   <version>${project.version}</version> -->
-    <!--   <type>pom</type> -->
-    <!--   <scope>provided</scope> -->
-    <!-- </dependency> -->
   </dependencies>
 
   <build>

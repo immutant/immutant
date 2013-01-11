@@ -30,6 +30,10 @@ class Publisher
     @published_artifacts = []
   end
 
+  def puts_r(result)
+    puts "Result: #{result.first} - #{result.last}"
+  end
+  
   def build_base_url
     BASE_URL + "/#{build_number}"
   end
@@ -40,21 +44,21 @@ class Publisher
 
   def dav_mkdir_p(url)
     puts "mkdir #{url}"
-    puts @dav.mkcol( url )
+    puts_r @dav.mkcol( url )
   end
 
   def dav_put(url, file, remember = true)
     puts "put #{url}"
-    puts @dav.put( url, file )
+    puts_r @dav.put( url, file )
     @published_artifacts << url if remember
   end
 
   def dav_rm_rf(url)
-    puts @dav.delete( url )
+    puts_r @dav.delete( url )
   end
 
   def dav_remote_cp_r(src, dest)
-    puts @dav.copy( src + '/', dest + '/', :infinity ).inspect
+    puts_r @dav.copy( src + '/', dest + '/', :infinity ).inspect
   end
 
   def dav_put_r(root_url, root_dir)

@@ -65,9 +65,9 @@ class DAV
     )
   end
 
-  def curl(*args)
-    cmd = "curl -v -s -u#{@username}:#{@password} #{args.join(' ')}"
-    puts "CMD: #{args.join(' ')}"
+  def curl!(cmd_frag)
+    cmd = "curl -v -s -u#{@username}:#{@password} #{cmd_frag}"
+    puts "CMD: #{cmd_frag}"
     response = ''
     error    = ''
     Open3.popen3( cmd ) do |stdin, stdout, stderr|
@@ -86,13 +86,28 @@ class DAV
       stderr_thr.join
     end
     status_line = error.split( "\n" ).reverse.find{|e| e =~ /^< HTTP\/1.1/}
-    status  = 500
+    status  = "500"
     message = 'Unknown'
     if ( status_line =~ /HTTP\/1.1 ([0-9][0-9][0-9]) (.*)$/ ) 
       status = $1
-      message = $2
+      message = $2.strip
     end
     [ status, message ]
   end
 
+  def curl_with_retry(cmd, attempt = 5)
+    result = curl!(cmd)
+    
+    if result.first =~ /^5/ &&
+        attempt > 0
+      puts "Curl failed with #{result.first} - #{result.last}, retrying (#{attempt})"
+      result = curl_with_retry(cmd, attempt - 1)
+    end
+    result
+  end
+  
+  def curl(*args)
+    curl_with_retry(args.join(' '))    
+  end
+  
 end
