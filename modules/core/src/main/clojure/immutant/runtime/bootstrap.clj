@@ -48,7 +48,9 @@
 (defn ^{:internal true} read-project-to-string
   "Returns the project map as a pr string with metadata so it can be moved across runtimes."
   [app-root profiles]
-  (pr-str-with-meta (read-project app-root profiles)))
+  (->> (read-project app-root profiles)
+       (walk/postwalk (vary-meta dissoc :reduce)) ;; reduce points to a fn, so won't serialize
+       pr-str-with-meta))
 
 (defn ^{:internal true} read-full-app-config
   "Returns the full configuration for an app. This consists of the :immutant map

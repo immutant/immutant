@@ -40,6 +40,7 @@
         <resource-root path="pomegranate.jar"/>
         <resource-root path="swank-clojure.jar"/>
         <resource-root path="clj-stacktrace.jar"/>
+        <resource-root path="tools.macro.jar"/>
         <resource-root path="tools.nrepl.jar"/>
         <resource-root path="clojure-complete.jar"/>
         <resource-root path="aether-impl.jar"/>
@@ -57,6 +58,7 @@
         <resource-root path="maven-repository-metadata.jar"/>
         <resource-root path="plexus-utils.jar"/>
         <resource-root path="plexus-interpolation.jar"/>
+        <resource-root path="useful.jar"/>
         <resource-root path="wagon-provider-api.jar"/>
         <resource-root path="wagon-http.jar"/>
         <resource-root path="wagon-http-shared4.jar"/>

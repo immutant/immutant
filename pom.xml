@@ -371,7 +371,7 @@
     <version.digest>1.4.0</version.digest>
     <version.cheshire>5.0.1</version.cheshire>
     <version.midje>1.5-alpha4</version.midje>
-    <version.leiningen>2.0.0-preview10</version.leiningen>
+    <version.leiningen>2.0.0-RC1</version.leiningen>
     <version.deploy-tools>0.9.2</version.deploy-tools>
     <version.codox>0.6.3</version.codox>
     
