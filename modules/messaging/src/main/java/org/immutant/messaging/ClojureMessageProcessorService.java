@@ -22,7 +22,7 @@ package org.immutant.messaging;
 import java.util.Map;
 
 import javax.jms.MessageConsumer;
-import javax.jms.XASession;
+import javax.jms.Session;
 
 import org.immutant.runtime.ClojureRuntime;
 import org.projectodd.polyglot.messaging.BaseMessageProcessor;
@@ -42,7 +42,7 @@ public class ClojureMessageProcessorService extends MessageProcessorService {
     @Override
     protected void setupConsumer() {
         Map settings = (Map)this.runtime.invoke( this.setupHandler );
-        setSession( (XASession)settings.get( "session") );
+        setSession( (Session)settings.get( "session") );
         setConsumer( (MessageConsumer)settings.get( "consumer" ) );
         ((MessageProcessor)getListener()).setHandler( settings.get( "handler" ) );
     }
