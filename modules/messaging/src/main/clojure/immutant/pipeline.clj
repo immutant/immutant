@@ -18,15 +18,17 @@
 (ns immutant.pipeline
   "Provides functions for creating and managing pipelines. A pipeline
    is a composition of functions (\"steps\"), where each function is
-   passed the result of the previous function. It is built on top of
-   Immutant's messaging subsystem, allowing each step to have multiple
-   processing threads, and to be automatically load balanced across a
-   cluster.
+   passed the result of the previous function, dereferenced if needed.
+   It is built on top of Immutant's messaging subsystem, allowing each
+   step to have multiple processing threads, and to be automatically
+   load balanced across a cluster.
 
    The `pipeline` function takes a unique (within the scope of the
    application) name, one or more single-arity functions, and optional
    kwarg options, returning a function that places its argument onto
-   the pipeline when called.
+   the pipeline when called. The resulting pipeline-fn optionally
+   returns a delay that can be used to retrieve the result of the
+   pipeline execution.
 
    Each function can be optionally be wrapped with metadata that
    provides options for how that particular function is handled (see
@@ -59,7 +61,10 @@
  
    ;; put data onto the pipeline at a given step
    (foo-pipeline {:bar 1 :foo 42 :ham \"gravy\"} :step :update-bar)
- 
+
+   ;; get the result
+   (deref (foo-pipeline {:bar 1 :ham \"biscuit\"}) 1000 ::timeout!)
+
    ;; optional - it will automatically be stopped on undeploy
    (pl/stop foo-pipeline)
  
@@ -68,7 +73,9 @@
   (:require [clojure.tools.logging   :as log]
             [immutant.messaging      :as msg]
             [immutant.xa.transaction :as tx])
-  (:import java.util.UUID))
+  (:import java.util.UUID
+           java.util.concurrent.TimeoutException
+           clojure.lang.IDeref))
 
 (def ^:dynamic *pipeline*
   "The currently active pipeline fn. Will be bound within the
@@ -112,13 +119,22 @@
             *next-step* next]
     (bound-fn* f)))
 
+(defn- maybe-deref [v timeout timeout-val]
+  (if (instance? IDeref v)
+    (deref v timeout timeout-val)
+    v))
+
 (defn- wrap-result-passing
-  [f pl next-step]
+  [f pl current-step next-step opts]
   (if next-step
     (fn [m]
-      ;; FIXME: a blind force instead of a deref w/o a timeout may be a bad idea here
-      (let [m (force (f m))]
-        (when-not (= halt m)
+      (let [timeout (:step-deref-timeout opts 60000) ;; 10s
+            m (maybe-deref (f m) timeout ::timeout)] 
+        (condp = m
+          halt      nil
+          ::timeout (throw (TimeoutException.
+                            (format "Timed out after %d ms when dereferencing the result of step %s"
+                                    timeout current-step)))
           (msg/publish pl m
                        :correlation-id (.getJMSCorrelationID msg/*raw-message*)
                        :properties {"step" next-step}))))
@@ -138,10 +154,10 @@
                  (assoc :selector (str "step = '" step "'")))]
     (mapply msg/listen pl
       (-> f
+          (wrap-result-passing pl step next-step opts)
           (wrap-error-handler opts)
           (wrap-step-bindings step next-step)
-          wrap-no-tx
-          (wrap-result-passing pl next-step))
+          wrap-no-tx)
       opts)))
 
 (defn- create-delay
@@ -200,18 +216,22 @@
    The following kwarg options are supported, and must follow the step
    functions [default]:
 
-   :error-handler  a function that will be called when any step raises
-                   an exception. It will be passed the exception and
-                   the argument to the step. Without an error-handler,
-                   the default HornetQ retry semantics will be
-                   used. Can be overridden on a per-step basis - see
-                   the 'step' function. [nil]
-   :concurrency    the number of threads to use for *each* step. Can be
-                   overridden on a per-step basis - see the 'step'
-                   function. [1]
-   :result-ttl     the time-to-live for the final pipeline result,
-                   in ms. Set to 0 for \"forever\", -1 to disable
-                   returning the result via a delay [1 hour]
+   :concurrency         the number of threads to use for *each* step. Can be
+                        overridden on a per-step basis - see the 'step'
+                        function. [1]
+   :error-handler       a function that will be called when any step raises
+                        an exception. It will be passed the exception and
+                        the argument to the step. Without an error-handler,
+                        the default HornetQ retry semantics will be
+                        used. Can be overridden on a per-step basis - see
+                        the 'step' function. [nil]
+   :result-ttl          the time-to-live for the final pipeline result,
+                        in ms. Set to 0 for \"forever\", -1 to disable
+                        returning the result via a delay [1 hour]
+   :step-deref-timeout  the amount of time to wait when dereferencing
+                        the result of a step that returns a delay,
+                        in ms. Can be overridden on a per-step basis -
+                        see the 'step' function. [10 seconds]
    
    During the execution of each step and each error-handler call, the
    following vars are bound:
@@ -250,11 +270,15 @@
 
    The following options are supported [default]:
 
-   :name           a name to use for the step [the current index of the fn]
-   :concurrency    the number of threads to use, overriding the pipeline
-                   setting. See the docs for 'pipeline' [1]
-   :error-handler  an error handler function that can override the
-                   pipeline setting. See the docs for 'pipeline' [nil]"
+   :name                a name to use for the step [the current index of the fn]
+   :concurrency         the number of threads to use, overriding the pipeline
+                        setting [1]
+   :error-handler       an error handler function that can override the
+                        pipeline setting [nil]
+   :step-deref-timeout  the amount of time to wait when dereferencing
+                        the result of the step if it returns a delay,
+                        in ms. Overrides the pipeline setting [10 seconds]"
+
   [f & {:as opts}]
   (vary-meta f merge opts))
 

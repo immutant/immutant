@@ -330,7 +330,7 @@
    optional list of options. It publishes the message to the queue, marking 
    it as a /synchronous/ message and returns a delay that will receive the 
    response from the worker initiated by the =respond= function. It accepts
-   the same options as =publish=.
+   the same options as =publish=. 
 
 ** Respond
 
@@ -352,7 +352,7 @@
      
      ;; send a request
      (let [result (msg/request "/queue/work" [1 2 3])]
-       (println @result)) ;; => 6
+       (println (deref result 1000 nil)) ;; => 6
    #+end_src
 
    An example of using properties and selectors to segment work on the same 
@@ -367,9 +367,13 @@
      ;; respond to 'multiply' messages
      (msg/respond "/queue/work" (partial apply *) :selector "operation='multiply'")
      
-     @(msg/request "/queue/work" [1 2 3 4] :properties {"operation" "add"}) ;; => 9
+     (deref
+      (msg/request "/queue/work" [1 2 3 4] :properties {"operation" "add"})
+      1000 nil) ;; => 9
      
-     @(msg/request "/queue/work" [1 2 3 4] :properties {"operation" "multiply"}) ;; => 24
+     (deref
+      (msg/request "/queue/work" [1 2 3 4] :properties {"operation" "multiply"})
+      1000 nil) ;; => 24
    #+end_src
 
 * Pipelines
@@ -379,11 +383,11 @@
 
   Immutant provides a tool called a /pipeline/. A pipeline is
   basically a composition of functions (/steps/), where each function
-  is passed the result of the previous function. It is built on top of
-  the messaging subsystem, allowing each step to have multiple
-  processing threads, and to be automatically load balanced across a
-  cluster. The pipeline functions are available via the
-  [[./apidoc/immutant.pipeline.html][immutant.pipeline]] namespace. 
+  is passed the result of the previous function, dereferenced if
+  needed. It is built on top of the messaging subsystem, allowing each
+  step to have multiple processing threads, and to be automatically
+  load balanced across a cluster. The pipeline functions are available
+  via the [[./apidoc/immutant.pipeline.html][immutant.pipeline]] namespace.
 
   Since messaging is used to pass the data between step functions, the
   data has to be in a format that can be encoded as clojure via
@@ -414,12 +418,13 @@
     =pipeline= can take the following options, passed as keyword
     arguments after the step functions:
     
-    | Option           | Default  | Description                         |
-    |------------------+----------+-------------------------------------|
-    |                  | <c>      | <35>                                |
-    | =:concurrency=   | =1=      | The number of threads to use for each step. Can be overridden on a per-step basis (see below). |
-    | =:error-handler= | =nil=    | A function to call when a step function throws an exception. Receives the exception and the data passed to the step function. Can be overriden on a per-step basis (see below). |
-    | =:result-ttl=    | /1 hour/ | The time-to-live for the final pipeline result, in ms. Set to 0 for "forever", -1 to disable returning the result via a delay |
+    | Option                | Default      | Description                         |
+    |-----------------------+--------------+-------------------------------------|
+    |                       | <c>          | <35>                                |
+    | =:concurrency=        | =1=          | The number of threads to use for each step. Can be overridden on a per-step basis (see below). |
+    | =:error-handler=      | =nil=        | A function to call when a step function throws an exception. Receives the exception and the data passed to the step function. Can be overriden on a per-step basis (see below). |
+    | =:result-ttl=         | /1 hour/     | The time-to-live for the final pipeline result, in ms. Set to 0 for "forever", -1 to disable returning the result via a delay |
+    | =:step-deref-timeout= | /10 seconds/ | The amount of time to wait when dereferencing the result of a step that returns a delay, in ms |
 
    #+BEGIN_SRC clojure
      (require '[immutant.pipeline :as pl])
@@ -437,12 +442,13 @@
    [[./apidoc/immutant.pipeline.html#var-step][immutant.pipeline/step]] function, providing settings for how that
    particular function is handled within the pipeline:
 
-    | Option           | Default               | Description                         |
-    |------------------+-----------------------+-------------------------------------|
-    |                  | <c>                   | <35>                                |
-    | =:name=          | /the index of the fn/ | A name to use for the step          |
-    | =:concurrency=   | =1=                   | The number of threads to use, overriding the pipeline setting |
-    | =:error-handler= | =nil=                 | An error handler function that can override the pipeline setting |
+    | Option                | Default               | Description                         |
+    |-----------------------+-----------------------+-------------------------------------|
+    |                       | <c>                   | <35>                                |
+    | =:name=               | /the index of the fn/ | A name to use for the step          |
+    | =:concurrency=        | =1=                   | The number of threads to use, overriding the pipeline setting |
+    | =:error-handler=      | =nil=                 | An error handler function that can override the pipeline setting |
+    | =:step-deref-timeout= | /10 seconds/          | The amount of time to wait when dereferencing the result of a step that returns a delay, in ms. Overrides the pipeline setting |
    
    #+BEGIN_SRC clojure
      (require '[immutant.pipeline :as pl])
@@ -467,7 +473,7 @@
          function-that-does-something
          another-function))
      
-     @(foo-pipeline {:ham :biscuit})
+     (deref (foo-pipeline {:ham :biscuit}) 10000 :timeout!)
    #+END_SRC
 
    Pipelines store the result of an execution by default, allowing it
@@ -483,7 +489,10 @@
 
    If the result from a step is reference, it will be dereferenced
    before being passed to the next step. This allows you to use a
-   pipeline within a pipeline:
+   pipeline within a pipeline. The amount of time to wait for the
+   =deref= is controlled by the =:step-deref-timeout= option, and
+   defaults to 10 seconds. Setting it to =0= will cause it to wait
+   forever, which will tie up a thread 
 
    #+BEGIN_SRC clojure
      (require '[immutant.pipeline :as pl])
@@ -497,9 +506,10 @@
        (pl/pipeline :y
          yet-another-function
          pipeline-x
-         and-another))
+         and-another
+         :step-deref-timeout 60000))
    #+END_SRC
-
+   
    By default, the pipeline entry function places its argument onto
    the front of the pipeline. You can insert the data into the
    pipeline at any step by passing a =:step= keyword argument. The

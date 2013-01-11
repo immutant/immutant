@@ -11,6 +11,11 @@
 (defn dollarizer [s]
   (.replace s "S" "$"))
 
+(defn make-sleeper [t]
+  (fn [m]
+    (Thread/sleep t)
+    m))
+
 (deftest it-should-work
   (let [pl (pl/pipeline
             "basic"
@@ -99,6 +104,34 @@
                        (remove nil?)
                        set)]
       (is (<= 2 (count results))))))
+
+(deftest it-should-work-with-global-step-deref-timeout
+  (let [err-queue (random-queue)
+        pl1 (pl/pipeline
+             :global-timeout-sleepy
+             (make-sleeper 500))
+        pl2 (pl/pipeline
+             :global-timeout
+             pl1
+             identity
+             :step-deref-timeout 1
+             :error-handler (fn [e _] (msg/publish err-queue (str e))))]
+    (pl2 :ham)
+    (is (re-find #"Timed out after 1" (msg/receive err-queue)))))
+
+(deftest step-step-deref-timeout-should-override-global
+  (let [err-queue (random-queue)
+        pl1 (pl/pipeline
+             :step-timeout-sleepy
+             (make-sleeper 500))
+        pl2 (pl/pipeline
+             :step-timeout
+             (pl/step pl1 :step-deref-timeout 1)
+             identity
+             :step-deref-timeout 1000
+             :error-handler (fn [e _] (msg/publish err-queue (str e))))]
+    (pl2 :ham)
+    (is (re-find #"Timed out after 1" (msg/receive err-queue)))))
 
 (deftest *pipeline*-should-be-bound
     (let [pl (pl/pipeline
