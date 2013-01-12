@@ -15,7 +15,7 @@
  (sql/with-connection spec
    (sql/insert-records :things {:name "success"})))
 
-(defn read []
+(defn read-names []
   (sql/with-connection spec
     (sql/with-query-results rows ["select name from things"]
       (:name (first rows)))))
@@ -24,5 +24,5 @@
 (defn handler [req]
   {:status 200
    :headers {"Content-Type" "text/plain"}
-   :body (pr-str (read))})
+   :body (pr-str (read-names))})
 (web/start "/thing" handler)
