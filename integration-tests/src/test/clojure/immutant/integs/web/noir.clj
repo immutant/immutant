@@ -20,19 +20,22 @@
   (:use clojure.test)
   (:require [clj-http.client :as client]))
 
-(let [run-tests (not= "1.5.0-RC1"
-                      (:full immutant.integs/*current-clojure-version*))]
+(defn run-tests? []
+  (not= "1.5.0-RC1"
+        (:full immutant.integs/*current-clojure-version*)))
 
-  (when run-tests
-    (use-fixtures :once (with-deployment *file*
-                          {
-                           :root "target/apps/ring/noir-app/"
-                           :context-path "/noir-app"
-                           })))
+(let [file *file*]
+  (use-fixtures :once #(if (run-tests?)
+                         ((with-deployment file
+                            {
+                             :root "target/apps/ring/noir-app/"
+                             :context-path "/noir-app"
+                             }) %)
+                         (%))))
 
-  (deftest simple "it should work"
-    (if run-tests
-      (let [result (client/get "http://localhost:8080/noir-app/welcome")]
-        ;; (println "RESPONSE" result)
-        (is (.contains (result :body) "Welcome to noir-app, jim")))
-      (println "==> skipping noir tests under 1.5.0 since noir itself is broken under 1.5.0"))))
+(deftest simple "it should work"
+  (if (run-tests?)
+    (let [result (client/get "http://localhost:8080/noir-app/welcome")]
+      ;; (println "RESPONSE" result)
+      (is (.contains (result :body) "Welcome to noir-app, jim")))
+    (println "==> skipping noir tests under 1.5.0 since noir itself is broken under 1.5.0")))
