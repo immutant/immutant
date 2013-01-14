@@ -197,6 +197,9 @@
     example, none of the encodings can handle an OutputStream.
 
 ** Receiving
+   :PROPERTIES:
+   :CUSTOM_ID: messaging-receiving
+   :END:
 
    Any component that waits for messages to be delivered to it by
    the message broker is consider a /consumer/. Typically, a
