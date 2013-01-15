@@ -20,15 +20,29 @@
              org.hornetq.api.core.TransportConfiguration
              (org.hornetq.api.jms HornetQJMSClient JMSFactoryType)))
 
+(defn set-retry-options
+  "Call retry setters on connection factory"
+  [factory opts]
+  (let [fmap {:retry-interval #(.setRetryInterval factory %)
+              :retry-interval-multiplier #(.setRetryIntervalMultiplier factory %)
+              :reconnect-attempts #(.setReconnectAttempts factory %)
+              :max-retry-interval #(.setMaxRetryInterval factory %)}
+        retry-opts (select-keys opts (keys fmap))]
+    (doseq [[setter val] retry-opts :when (number? val)]
+      ((setter fmap) val)))
+  factory)
+
 (defn connection-factory
  "Create a connection factory, typically invoked when outside container"
  ([]
     (connection-factory nil))
- ([{:keys [host port] :or {host "localhost" port 5445}}]
+ ([{:keys [host port] :or {host "localhost" port 5445} :as opts}]
     (let [connect_opts { "host" host "port" (Integer. (int port)) }
           transport_config (TransportConfiguration.
                             "org.hornetq.core.remoting.impl.netty.NettyConnectorFactory"
-                            connect_opts)]
-      (HornetQJMSClient/createConnectionFactoryWithoutHA
-       JMSFactoryType/CF
-       ^"[Lorg.hornetq.api.core.TransportConfiguration;" (into-array [transport_config])))))
+                            connect_opts)
+          factory (HornetQJMSClient/createConnectionFactoryWithoutHA
+                   JMSFactoryType/CF
+                   ^"[Lorg.hornetq.api.core.TransportConfiguration;"
+                   (into-array [transport_config]))]
+      (set-retry-options factory opts))))
