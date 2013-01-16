@@ -24,6 +24,8 @@ import java.util.Map;
 
 import org.immutant.core.SimpleServiceStateListener;
 import org.immutant.runtime.ClojureRuntime;
+import org.jboss.as.messaging.MessagingServices;
+import org.jboss.as.messaging.jms.JMSServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceController;
@@ -43,10 +45,10 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
     }
 
     public boolean createQueue(String queueName, boolean durable, String selector, Object callback) {
-        if (this.destinations.containsKey( queueName )) {
+        if (destinationExists( queueName, true )) {
             return false;
-        } 
-        
+        }
+                
         QueueService service = new QueueService( queueName, selector, durable, 
                                                  this.clojureRuntimeInjector.getValue(),
                                                  callback );
@@ -58,7 +60,7 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
     }
     
     public boolean createTopic(String topicName, Object callback) {
-        if (this.destinations.containsKey( topicName )) {
+        if (destinationExists( topicName, false )) {
             return false;
         } 
         
@@ -97,6 +99,19 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
         }
         
         return success;
+    }
+
+    protected boolean destinationExists(String name, boolean queue) {
+        ServiceName defaultService = MessagingServices.getHornetQServiceName( "default" );
+        ServiceName serviceName;
+        if (queue) {
+            serviceName = JMSServices.getJmsQueueBaseServiceName( defaultService );
+        } else {
+            serviceName = JMSServices.getJmsTopicBaseServiceName( defaultService );
+        }
+        serviceName = serviceName.append( name );
+        
+        return (getUnit().getServiceRegistry().getService( serviceName ) != null);
     }
     
     public Injector<ClojureRuntime> getClojureRuntimeInjector() {

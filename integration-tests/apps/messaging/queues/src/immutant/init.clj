@@ -1,5 +1,6 @@
 (ns immutant.init
-  (:require [immutant.messaging :as msg]))
+  (:require [immutant.messaging :as msg]
+            [immutant.web       :as web]))
 
 (msg/start "/queue/ham")
 (msg/start ".queue.biscuit")
@@ -33,6 +34,17 @@
 (msg/listen (msg/as-queue "oddball")
             #(msg/publish "/queue/ham" (.toLowerCase %)))
 
+(msg/start "queue.echo")
 
+(let [responder (atom nil)]
+  (web/start
+   (fn [request]
+     (if @responder
+       (do
+         (msg/unlisten @responder)
+         (reset! responder nil))
+       (reset! responder (msg/respond "queue.echo" identity)))
+     {:status 200
+      :body ":success"})))
 
 
