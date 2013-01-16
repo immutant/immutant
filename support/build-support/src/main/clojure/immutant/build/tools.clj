@@ -250,6 +250,11 @@
     (zip/remove loc)
     loc))
 
+(defn fix-socket-binding [loc]
+  (condp = (-> loc zip/node :attrs :name)
+    "http" (zip/edit loc assoc-in [:attrs :port] "${http.port:8080}")
+    loc))
+
 (defn prepare-zip
   [file]
   (zip/xml-zip (xml/parse file)))
@@ -279,6 +284,7 @@
               :servers                        (replace-servers loc)
               :server-groups                  (replace-server-groups loc)
               :socket-binding-group           (fix-socket-binding-group loc)
+              :socket-binding                 (fix-socket-binding loc)
               loc)))))
   
 (defn transform-config [file]
