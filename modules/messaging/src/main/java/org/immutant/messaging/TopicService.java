@@ -29,7 +29,7 @@ import org.projectodd.polyglot.messaging.destinations.DestroyableJMSTopicService
 public class TopicService extends DestroyableJMSTopicService {
     public TopicService(String topicName, ClojureRuntime runtime, Object callback) {
         super( topicName, 
-               new String[] { DestinationUtils.cleanServiceName( topicName ) } );
+               new String[] { DestinationUtils.jndiName( topicName ) } );
         this.runtime = runtime;
         this.callback = callback;
     }

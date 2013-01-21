@@ -68,7 +68,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
 
                 builder.addDependency( CoreServices.runtime( getUnit() ), group.getClojureRuntimeInjector() )
                 .addDependency( javaContext.append( "ConnectionFactory" ), group.getConnectionFactoryInjector() )
-                .addDependency( javaContext.append( DestinationUtils.cleanServiceName( destinationName ) ), group.getDestinationInjector() )
+                .addDependency( javaContext.append( DestinationUtils.getServiceName( destinationName ) ), group.getDestinationInjector() )
                 .install();
 
             }

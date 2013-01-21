@@ -30,7 +30,7 @@ public class QueueService extends DestroyableJMSQueueService {
     public QueueService(String queueName, String selectorString, boolean durable, 
                         ClojureRuntime runtime, Object callback) {
         super( queueName, selectorString, durable, 
-               new String[] { DestinationUtils.cleanServiceName( queueName ) } );
+               new String[] { DestinationUtils.jndiName( queueName ) } );
         this.runtime = runtime;
         this.callback = callback;
     }
