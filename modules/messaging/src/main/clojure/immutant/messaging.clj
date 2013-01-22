@@ -248,13 +248,18 @@
   "Listen for messages on queue sent by the request function and
    respond with the result of applying f to the message. queue can
    either be the name of the queue, a javax.jms.Queue, or the result
-   of as-queue. Accepts the same options as listen."
-  [queue f & {:keys [decode?] :or {decode? true} :as opts}]
+   of as-queue. Accepts the same options as listen, along with [default]:
+
+     :ttl  time for the response mesage to live, in ms [60000, 1 minute]"
+  [queue f & {:keys [decode? ttl]
+              :or {decode? true, ttl 60000} ;; 1m
+              :as opts}]
   {:pre [(queue? queue)]}
   (letfn [(respond* [^javax.jms.Message msg]
             (publish (.getJMSDestination msg)
                      (f (codecs/decode-if decode? msg))
                      :correlation-id (.getJMSMessageID msg)
+                     :ttl ttl
                      :encoding (codecs/get-encoding msg)))]
     (mapply listen queue respond*
             (assoc (update-in opts [:selector]
