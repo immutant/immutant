@@ -175,7 +175,16 @@
      :username     the username to use to auth the connection (requires :password
                    to be set) [nil]
      :password     the password to use to auth the connection (requires :username
-                   to be set) [nil]"
+                   to be set) [nil]
+
+  The following options are for connection reconnection/reattachment attributes:
+     :retry-interval             the period in milliseconds between subsequent
+                                 reconnection attempts
+     :retry-interval-multiplier  a multiplier to apply to the time since the last
+                                 retry to compute the time to the next retry
+     :max-retry-interval         the max retry interval that will be used [2000]
+     :reconnect-attempts         total number of reconnect attempts to make before giving
+                                 up and shutting down (-1 for unlimited) [0]"
   [dest f & {:keys [concurrency decode?] :or {concurrency 1 decode? true} :as opts}]
   (let [connection (create-connection opts)
         dest-name (destination-name dest)
