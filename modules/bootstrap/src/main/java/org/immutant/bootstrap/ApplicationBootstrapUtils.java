@@ -17,12 +17,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.core;
+package org.immutant.bootstrap;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import org.immutant.common.ClassLoaderUtils;
 
 import clojure.lang.RT;
 import clojure.lang.Var;
@@ -56,7 +58,8 @@ public class ApplicationBootstrapUtils {
              new Callable() {
                 public Object call() throws Exception {
                     RT.load( "immutant/runtime/bootstrap" );
-
+                    RT.load( "immutant/runtime_util" );
+                    
                     return null;
                 }
             }, loader );
@@ -73,7 +76,7 @@ public class ApplicationBootstrapUtils {
     public static Map parseDescriptor(final File file) throws Exception {
         return (Map) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "util", "read-and-stringify-descriptor" ).invoke( file );
+                return bootstrapVar( "runtime-util", "read-and-stringify-descriptor" ).invoke( file );
             }
         } );
     }
@@ -140,11 +143,11 @@ public class ApplicationBootstrapUtils {
     }
     
     private static Var bootstrapVar(String ns, String varName) throws Exception {
-        return RT.var( "immutant.runtime." + ns, varName );
+        return RT.var( "immutant." + ns, varName );
     }
     
     private static Var bootstrapVar(String varName) throws Exception {
-        return bootstrapVar( "bootstrap", varName );
+        return bootstrapVar( "runtime.bootstrap", varName );
     }
 
     @SuppressWarnings("rawtypes")

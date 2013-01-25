@@ -15,17 +15,14 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.runtime.util-test
-  (:use immutant.runtime.util
+(ns immutant.runtime-util-test
+  (:use immutant.runtime-util
         clojure.test
         midje.sweet
-        immutant.test.helpers
         [midje.util :only [expose-testables]])
   (:require [clojure.java.io             :as io]))
 
 (deftest all-tests
-
-  (expose-testables immutant.runtime.bootstrap)
   
   (let [app-root (io/file (io/resource "project-root"))]
     

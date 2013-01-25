@@ -27,48 +27,17 @@
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="immutant-runtime-api.jar"/>
-        <resource-root path="immutant-common.jar"/>
-        <resource-root path="clojure.jar"/>
         <resource-root path="polyglot-core.jar"/>
         <resource-root path="polyglot-core-extensions.jar"/>
-        <resource-root path="tools.logging.jar"/>
-        <resource-root path="cheshire.jar"/>
-        <resource-root path="jackson-core.jar"/>
-        <resource-root path="jackson-dataformat-smile.jar"/>
         <resource-root path="dynapath.jar"/>
-        <resource-root path="leiningen-core.jar"/>
-        <resource-root path="pomegranate.jar"/>
         <resource-root path="swank-clojure.jar"/>
         <resource-root path="clj-stacktrace.jar"/>
-        <resource-root path="tools.macro.jar"/>
         <resource-root path="tools.nrepl.jar"/>
         <resource-root path="clojure-complete.jar"/>
-        <resource-root path="aether-impl.jar"/>
-        <resource-root path="aether-spi.jar"/>
-        <resource-root path="aether-util.jar"/>
-        <resource-root path="aether-api.jar"/>
-        <resource-root path="aether-connector-file.jar"/>
-        <resource-root path="aether-connector-wagon.jar"/>
-        <resource-root path="hooke.jar"/>
-        <resource-root path="httpclient.jar"/>
-        <resource-root path="httpcore.jar"/>
-        <resource-root path="maven-aether-provider.jar"/>
-        <resource-root path="maven-model.jar"/>
-        <resource-root path="maven-model-builder.jar"/>
-        <resource-root path="maven-repository-metadata.jar"/>
-        <resource-root path="plexus-utils.jar"/>
-        <resource-root path="plexus-interpolation.jar"/>
-        <resource-root path="useful.jar"/>
-        <resource-root path="wagon-provider-api.jar"/>
-        <resource-root path="wagon-http.jar"/>
-        <resource-root path="wagon-http-shared4.jar"/>
     </resources>
 
     <exports>
       <include-set>
-        <path name="clojure/lang"/>
-        <path name="clojure/lang/**"/>
-        <path name="clojure/tools/logging/**"/>
         <path name="org/projectodd/polyglot"/>
         <path name="org/projectodd/polyglot/**"/>
         <path name="immutant/**"/>
@@ -76,6 +45,13 @@
     </exports>
 
     <dependencies>
+        <module name="org.immutant.common"/>
+        <module name="org.immutant.bootstrap">
+          <imports>
+            <include path="org/immutant/bootstrap"/>
+            <exclude path="/**"/>
+          </imports>
+        </module>
         <module name="javax.api"/>
         <module name="javax.servlet.api"/>
         <module name="org.jboss.staxmapper"/>
@@ -90,9 +66,6 @@
         <module name="org.jboss.vfs"/>
         <module name="org.jboss.metadata"/>
         <module name="sun.jdk"/>
-        <module name="org.apache.commons.codec"/>
-        <module name="org.apache.commons.io"/>
-        <module name="org.apache.commons.logging"/>
     </dependencies>
 </module>
 

@@ -20,11 +20,10 @@
 package org.immutant.core;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
+import org.immutant.bootstrap.ApplicationBootstrapUtils;
 import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.projectodd.polyglot.core.app.ApplicationMetaData;

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ JBoss, Home of Professional Open Source.
+  ~ Copyright 2010, Red Hat, Inc., and individual contributors
+  ~ as indicated by the @author tags. See the copyright.txt file in the
+  ~ distribution for a full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+
+<module xmlns="urn:jboss:module:1.0" name="org.immutant.bootstrap">
+
+    <resources>
+        <resource-root path="${project.artifactId}.jar"/>
+        <resource-root path="clojure.jar"/>
+        <resource-root path="tools.logging.jar"/>
+        <resource-root path="tools.macro.jar"/>
+        <resource-root path="leiningen-core.jar"/>
+        <resource-root path="pomegranate.jar"/>
+        <resource-root path="aether-impl.jar"/>
+        <resource-root path="aether-spi.jar"/>
+        <resource-root path="aether-util.jar"/>
+        <resource-root path="aether-api.jar"/>
+        <resource-root path="aether-connector-file.jar"/>
+        <resource-root path="aether-connector-wagon.jar"/>
+        <resource-root path="hooke.jar"/>
+        <resource-root path="httpclient.jar"/>
+        <resource-root path="httpcore.jar"/>
+        <resource-root path="maven-aether-provider.jar"/>
+        <resource-root path="maven-model.jar"/>
+        <resource-root path="maven-model-builder.jar"/>
+        <resource-root path="maven-repository-metadata.jar"/>
+        <resource-root path="plexus-utils.jar"/>
+        <resource-root path="plexus-interpolation.jar"/>
+        <resource-root path="useful.jar"/>
+        <resource-root path="wagon-provider-api.jar"/>
+        <resource-root path="wagon-http.jar"/>
+        <resource-root path="wagon-http-shared4.jar"/>
+    </resources>
+
+    <dependencies>
+        <module name="javax.api"/>
+        <module name="org.jboss.staxmapper"/>
+        <module name="org.jboss.as.controller"/>
+        <module name="org.jboss.modules"/>
+        <module name="org.jboss.logging"/>
+        <module name="sun.jdk"/>
+        <module name="org.apache.commons.codec"/>
+        <module name="org.apache.commons.io"/>
+        <module name="org.apache.commons.logging"/>
+        <module name="org.immutant.common"/>
+    </dependencies>
+</module>
+

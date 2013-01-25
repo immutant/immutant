@@ -24,7 +24,7 @@ import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.List;
 
-import org.immutant.core.ApplicationBootstrapUtils;
+import org.immutant.bootstrap.ApplicationBootstrapUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
 import org.immutant.core.Timer;

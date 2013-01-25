@@ -19,7 +19,7 @@
 
 package org.immutant.daemons;
 
-import org.immutant.core.ClassLoaderUtils;
+import org.immutant.common.ClassLoaderUtils;
 import org.immutant.daemons.as.DaemonServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceName;

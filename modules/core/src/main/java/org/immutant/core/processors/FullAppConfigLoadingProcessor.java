@@ -21,7 +21,7 @@ package org.immutant.core.processors;
 
 import java.io.File;
 
-import org.immutant.core.ApplicationBootstrapUtils;
+import org.immutant.bootstrap.ApplicationBootstrapUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Timer;
 import org.jboss.as.server.deployment.Attachments;

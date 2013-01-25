@@ -23,7 +23,7 @@
             [clojure.tools.logging    :as log]
             [leiningen.core.classpath :as classpath]
             [leiningen.core.project   :as project])
-  (:use immutant.runtime.util))
+  (:use immutant.runtime-util))
 
 (defn ^{:internal true} read-project
   "Reads a leiningen project.clj file in the given root dir."

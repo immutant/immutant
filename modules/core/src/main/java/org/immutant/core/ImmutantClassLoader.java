@@ -27,6 +27,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.immutant.common.ClassLoaderFactory;
 import org.jboss.modules.ModuleClassLoader;
 import org.jboss.modules.Resource;
 import org.jboss.modules.ResourceLoader;
@@ -89,6 +90,14 @@ public class ImmutantClassLoader extends ClassLoader {
         }
 
         return urls;
+    }
+    
+    public static ClassLoaderFactory getFactory() {
+        return new ClassLoaderFactory() {
+            public ClassLoader newInstance( ClassLoader parent, Object mountMap ) {
+                return new ImmutantClassLoader( parent, (TmpResourceMountMap)mountMap );
+            }
+        };
     }
     
     private File getActualFile(URL url) {

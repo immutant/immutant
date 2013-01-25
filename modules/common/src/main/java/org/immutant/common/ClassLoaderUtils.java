@@ -17,22 +17,30 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.core;
+package org.immutant.common;
 
 import java.util.concurrent.Callable;
 
+import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.modules.Module;
 
 public class ClassLoaderUtils {
 
+    @SuppressWarnings("rawtypes")
+    public static void init(ClassLoaderFactory aLoaderFactory, AttachmentKey aMountMapKey) {
+        loaderFactory = aLoaderFactory;
+        mountMapKey = aMountMapKey;
+    }
+    
+    @SuppressWarnings("unchecked")
     public static ClassLoader getModuleLoader(DeploymentUnit unit) {
         Module module = unit.getAttachment( Attachments.MODULE );
         
         if (module != null) {
-            return new ImmutantClassLoader( module.getClassLoader(), 
-                    unit.getAttachment( TmpResourceMountMap.ATTACHMENT_KEY ) );
+            return loaderFactory.newInstance( module.getClassLoader(),
+                    unit.getAttachment( mountMapKey ) );
         } else {
             // this won't happen in production, but helps testing    
             return ClassLoaderUtils.class.getClassLoader(); 
@@ -49,4 +57,8 @@ public class ClassLoaderUtils {
             Thread.currentThread().setContextClassLoader( originalCl );
         }
     }
+    
+    private static ClassLoaderFactory loaderFactory;
+    @SuppressWarnings("rawtypes")
+    private static AttachmentKey mountMapKey;
 }

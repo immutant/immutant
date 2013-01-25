@@ -20,9 +20,9 @@
 shouldn't be used in production."
   (:require [immutant.registry     :as registry]
             [immutant.util         :as util]
-            [immutant.runtime.util :as runtime]
+            [immutant.runtime-util :as runtime]
             [clojure.java.io       :as io])
-  (:import org.immutant.core.ApplicationBootstrapUtils
+  (:import org.immutant.core.ApplicationBootstrapProxy
            org.projectodd.polyglot.core.util.ResourceLoaderUtil))
 
 (defn ^:private reset-classloader-resources [resources]
@@ -53,14 +53,14 @@ that weren't unmounted."
   "Reads the lein project in the current app dir."
   []
   (read-string
-   (ApplicationBootstrapUtils/readProjectAsString
+   (ApplicationBootstrapProxy/readProjectAsString
     (util/app-root) 
     (map str (:lein-profiles (registry/get :config))))))
 
 (defn ^:private get-dependency-paths [project]
   (mount-paths
    (read-string
-    (ApplicationBootstrapUtils/getDependenciesAsString
+    (ApplicationBootstrapProxy/getDependenciesAsString
      (runtime/pr-str-with-meta project)
      true))))
 
@@ -146,4 +146,5 @@ never be used in production. (beta)"
   [lib]
   (remove-ns lib)
   (dosync (alter @#'clojure.core/*loaded-libs* disj lib)))
+
 

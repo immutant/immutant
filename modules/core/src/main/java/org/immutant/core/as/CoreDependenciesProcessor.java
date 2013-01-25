@@ -34,6 +34,7 @@ import org.jboss.modules.ModuleLoader;
 public class CoreDependenciesProcessor implements DeploymentUnitProcessor {
     
     private static ModuleIdentifier IMMUTANT_CORE_ID = ModuleIdentifier.create("org.immutant.core");
+    private static ModuleIdentifier IMMUTANT_COMMON_ID = ModuleIdentifier.create("org.immutant.common");
     private static ModuleIdentifier JBOSS_MSC_ID = ModuleIdentifier.create("org.jboss.msc");
 
     @Override
@@ -45,6 +46,7 @@ public class CoreDependenciesProcessor implements DeploymentUnitProcessor {
 
         if (unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
             addDependency( moduleSpecification, moduleLoader, IMMUTANT_CORE_ID );
+            addDependency( moduleSpecification, moduleLoader, IMMUTANT_COMMON_ID );
             addDependency( moduleSpecification, moduleLoader, JBOSS_MSC_ID );
         }
     }

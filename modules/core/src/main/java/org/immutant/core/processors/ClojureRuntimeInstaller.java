@@ -19,7 +19,7 @@
 
 package org.immutant.core.processors;
 
-import org.immutant.core.ClassLoaderUtils;
+import org.immutant.common.ClassLoaderUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Timer;
 import org.immutant.core.as.CoreServices;

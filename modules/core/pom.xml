@@ -30,8 +30,23 @@
 
     <dependency>
       <groupId>org.immutant</groupId>
+      <artifactId>immutant-common-module</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-bootstrap-module</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.immutant</groupId>
       <artifactId>immutant-common</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -45,18 +60,6 @@
       <groupId>org.immutant</groupId>
       <artifactId>immutant-runtime-impl</artifactId>
       <version>${project.version}</version>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>tools.logging</artifactId>
       <scope>compile</scope>
     </dependency>
 
@@ -75,12 +78,6 @@
     <dependency>
       <groupId>clojure-complete</groupId>
       <artifactId>clojure-complete</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>leiningen-core</groupId>
-      <artifactId>leiningen-core</artifactId>
       <scope>compile</scope>
     </dependency>
 

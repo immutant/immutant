@@ -29,7 +29,6 @@ import java.util.List;
 
 import javax.management.MBeanServer;
 
-import org.immutant.core.ApplicationBootstrapUtils;
 import org.immutant.core.Immutant;
 import org.immutant.core.ImmutantMBean;
 import org.immutant.core.processors.AppDependenciesProcessor;
@@ -80,8 +79,6 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
                 addDeploymentProcessors( processorTarget );
             }
         }, OperationContext.Stage.RUNTIME );
-        
-        ApplicationBootstrapUtils.lazyInit();
         
         try {
             addImmutantService( context, verificationHandler, newControllers );

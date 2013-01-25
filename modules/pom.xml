@@ -14,6 +14,8 @@
   <description />
 
   <modules>
+    <module>bootstrap</module> 
+    <module>common</module>
     <module>core</module>
     <module>daemons</module>
     <module>jobs</module>

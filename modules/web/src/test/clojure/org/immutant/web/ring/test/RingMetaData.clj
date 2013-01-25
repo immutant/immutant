@@ -18,8 +18,9 @@
 (ns org.immutant.web.ring.test.RingMetaData
   (:use clojure.test
         midje.sweet)
-  (:import (org.immutant.core ApplicationBootstrapUtils ClojureMetaData)
-           org.immutant.web.ring.RingMetaData)
+  (:import  org.immutant.bootstrap.ApplicationBootstrapUtils
+            org.immutant.core.ClojureMetaData
+            org.immutant.web.ring.RingMetaData)
   (:require [clojure.java.io :as io]))
 
 ;; init the global runtime
