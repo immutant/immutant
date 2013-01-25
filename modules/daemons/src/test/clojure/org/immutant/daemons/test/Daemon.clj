@@ -40,7 +40,7 @@
 
 (defn start-daemon []
   (.start *daemon*)
-  (Thread/sleep 10))
+  (Thread/sleep 100))
 
 (deftest start-should-call-the-start-function
   (start-daemon)
