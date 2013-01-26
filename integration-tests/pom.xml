@@ -27,7 +27,7 @@
     <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>fntest</artifactId>
-      <version>0.3.6-SNAPSHOT</version>
+      <version>0.3.7-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>leiningen-core</groupId>
