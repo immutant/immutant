@@ -1,4 +1,4 @@
-(ns counter.locking
+(ns counter.test.locking
   (:use clojure.test)
   (:require [immutant.cache :as csh]
             [immutant.messaging :as msg]))

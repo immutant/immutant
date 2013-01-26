@@ -16,15 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.caching
-  (:use fntest.core
-        clojure.test)
-  (:require [immutant.in-container :as ic]))
-
-(use-fixtures :once (with-deployment *file*
-                      {
-                       :root "target/apps/caching/counter/"
-                       }))
+  (:use [clojure.test :only [is deftest]]
+        [fntest.core :only [test-in-container]]))
 
 (deftest verify-in-container-tests
-  (ic/run-in-container-tests "http://localhost:8080/caching"))
+  (is (test-in-container "caching" "target/apps/caching/counter/")))
 

@@ -1,4 +1,4 @@
-(ns tx.listen
+(ns tx.test.listen
   (:use clojure.test)
   (:require [immutant.cache :as ic]
             [immutant.messaging :as imsg]

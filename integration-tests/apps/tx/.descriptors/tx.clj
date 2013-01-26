@@ -1,0 +1,1 @@
+{:root "/Users/jim/src/immutant/integration-tests/apps/tx", :context-path "tx-c34beae8-f8d0-4b48-b48f-e845784e5b4f", :lein-profiles [:default :test], :swank-port nil, :nrepl-port 7888}

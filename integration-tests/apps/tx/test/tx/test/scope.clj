@@ -1,4 +1,4 @@
-(ns tx.scope
+(ns tx.test.scope
   (:use clojure.test)
   (:require [immutant.xa.transaction :as tx]
             [immutant.cache :as c]))

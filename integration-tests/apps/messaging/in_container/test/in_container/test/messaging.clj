@@ -1,4 +1,4 @@
-(ns in-container.messaging
+(ns in-container.test.messaging
   (:use clojure.test)
   (:require [immutant.messaging :as msg]
             [immutant.registry  :as registry]))

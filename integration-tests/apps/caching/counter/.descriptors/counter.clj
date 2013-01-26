@@ -1,0 +1,1 @@
+{:root "/Users/jim/src/immutant/integration-tests/apps/caching/counter", :context-path "counter-f8a80d59-4877-4209-9349-f8e08849c61a", :lein-profiles [:default :test], :swank-port nil, :nrepl-port 7888}

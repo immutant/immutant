@@ -1,4 +1,4 @@
-(ns in-container.pipeline
+(ns in-container.test.pipeline
   (:use clojure.test)
   (:require [immutant.pipeline  :as pl]
             [immutant.messaging :as msg]))
@@ -239,5 +239,3 @@
             p1
             dollarizer)]
     (is (= "FANTA$TIC" @(p2 "fantastic")))))
-
-

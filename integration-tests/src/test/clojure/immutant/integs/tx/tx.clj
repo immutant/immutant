@@ -17,17 +17,11 @@
 
 (ns immutant.integs.tx.tx
   (:use fntest.core
-        clojure.test)
-  (:require [immutant.in-container :as ic]))
-
-(use-fixtures :once (with-deployment *file*
-                      {
-                       :root "target/apps/tx/"
-                       }))
+        clojure.test))
 
 (deftest verify-in-container-tests
-  (ic/run-in-container-tests
-   (str "http://localhost:8080/tx?dbs=" (System/getProperty "databases"))))
+  (is (test-in-container "tx" "target/apps/tx/",
+                         :config {:databases (System/getProperty "databases")})))
 
 
 

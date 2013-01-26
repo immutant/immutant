@@ -17,14 +17,8 @@
 
 (ns immutant.integs.msg.in-container
   (:use fntest.core
-        clojure.test)
-  (:require [immutant.in-container :as ic]))
-
-(use-fixtures :once (with-deployment *file*
-                      {
-                       :root "target/apps/messaging/in_container/"
-                       }))
+        clojure.test))
 
 (deftest verify-in-container-tests
-  (ic/run-in-container-tests "http://localhost:8080/in_container"))
+  (is (test-in-container "messaging" "target/apps/messaging/in_container/")))
 
