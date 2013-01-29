@@ -31,7 +31,7 @@
   (let [result (get-as-data "/dev")]
     (testing "add-dependencies"
       (is (= (:final result)
-             (set (concat (:original result) (:added result))))))
+             (distinct (concat (:original result) (:added result))))))
 
     (when (not= "1.3.0" (:full immutant.integs/*current-clojure-version*))
       (testing "data-readers are re-read"

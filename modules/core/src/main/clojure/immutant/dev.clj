@@ -58,11 +58,11 @@ that weren't unmounted."
     (map str (:lein-profiles (registry/get :config))))))
 
 (defn ^:private get-dependency-paths [project]
-  (mount-paths
-   (read-string
-    (ApplicationBootstrapProxy/getDependenciesAsString
-     (runtime/pr-str-with-meta project)
-     true))))
+  (-> project
+      runtime/pr-str-with-meta
+      (ApplicationBootstrapProxy/getDependenciesAsString true)
+      read-string
+      mount-paths))
 
 (defn ^:private absolutize-paths [paths]
   (map (fn [p]
@@ -138,8 +138,8 @@ never be used in production. (beta)"
   [& deps]
   (reload-project!
    (-> (current-project)
-       (update-in [:dependencies] #(set (concat % (remove string? deps))))
-       (update-in [:source-paths] #(concat % (filter string? deps))))))
+       (update-in [:dependencies] #(distinct (concat % (remove string? deps))))
+       (update-in [:source-paths] #(distinct (concat % (filter string? deps)))))))
 
 (defn remove-lib
   "Borrowed from tools.namespace"
