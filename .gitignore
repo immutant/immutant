@@ -20,3 +20,4 @@ release.properties
 TAGS
 .repository
 .DS_Store
+/integration-tests/apps/tx/.lein-repl-history
