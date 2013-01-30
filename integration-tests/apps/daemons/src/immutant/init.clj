@@ -12,7 +12,6 @@
                            (swap! x inc)
                            (recur)))
                 :stop (fn []
-                        (println "JC: stop x=" @x)
                         (reset! done true))
                 :value (fn [] @x)
                 :loader (partial deref loader)

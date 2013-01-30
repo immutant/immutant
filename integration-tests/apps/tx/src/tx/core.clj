@@ -65,6 +65,5 @@
      (ic/put cache :a 1)
      (if f (f)))
     (catch Exception e
-      (println "JC: wtf?" (.getMessage e))
-      (.printStackTrace e))))
+      (println "Caught exception:" (.getMessage e)))))
 

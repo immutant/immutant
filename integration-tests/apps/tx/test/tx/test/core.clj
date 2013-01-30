@@ -26,7 +26,7 @@
              (attempt-transaction ds#)
              (verify-transaction-success ds#))
            (deftest ~(symbol (str "rollback-" db))
-             (attempt-transaction ds# #(throw (Exception. "rollback")))
+             (attempt-transaction ds# #(throw (Exception. "force rollback")))
              (verify-transaction-failure ds#)))))
 
 (defn db-fixture [db]
@@ -43,13 +43,4 @@
   (doseq [db dbs]
     (define-tests db)))
 
-;; (apply testes (str/split (:databases (immutant.registry/get :config)) #","))
-
-(deftest commit-h2
-  (attempt-transaction @h2)
-  (verify-transaction-success @h2))
-(deftest rollback-h2
-  (attempt-transaction @h2 #(throw (Exception. "rollback")))
-  (verify-transaction-failure @h2))
-
-(use-fixtures :each cache-fixture (db-fixture @h2))
+(apply testes (str/split (:databases (immutant.registry/get :config)) #","))
