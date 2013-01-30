@@ -64,9 +64,13 @@
  "Register a callback to fire when the current transaction is complete"
  [f]
  (util/if-in-immutant
-  (let [factory (registry/get "synchronization-factory")]
-    (.registerSynchronization (current)
-                              (.newSynchronization factory f)))
+  (.registerSynchronization
+   (current)
+   (reify
+     javax.transaction.Synchronization
+     (afterCompletion [_ _]
+       (f))
+     (beforeCompletion [_])))
   (log/warn "transaction/after-completion called outside of Immutant, ignoring.")))
 
 (defn no-tx-strategy
