@@ -10,15 +10,11 @@
   (is (re-find #"ImmutantClassLoader.*deployment\..*\.clj" (str ((:loader service))))))
 
 (deftest daemons-should-be-reloadable
-  ;; Overwrite service
-  (daemon/daemonize "counter" (:start another-service) (:stop another-service))
+  (let [p (promise)]
+    ((:callback service) (fn [] (deliver p :success)))
+    (daemon/daemonize "counter" (:start another-service) (:stop another-service))
+    (is (= :success (deref p 30000 :failure))))
 
   ;; This is silly, because it has nothing to do with daemonization.
-  ;; TODO: Retrieve the service via some daemon api
-  (is (= "another-service" ((:value another-service))))
-
-  ;; Now verify that the old service is stopped
-  (Thread/sleep 11)
-  (let [v ((:value service))]
-    (Thread/sleep 22)
-    (is (= v ((:value service))))))
+  ;; TODO: Retrieve the service by name via some daemon api
+  (is (= "another-service" ((:value another-service)))))

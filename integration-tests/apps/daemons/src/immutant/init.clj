@@ -3,7 +3,8 @@
 
 (def service (let [x (atom 0)
                    loader (atom nil)
-                   done (atom false)]
+                   done (atom false)
+                   callback (atom nil)]
                {:start (fn []
                          (reset! loader (.getContextClassLoader (Thread/currentThread)))
                          (Thread/sleep 10)
@@ -11,9 +12,11 @@
                            (swap! x inc)
                            (recur)))
                 :stop (fn []
-                        (reset! done true))
+                        (reset! done true)
+                        (and @callback (@callback)))
                 :value (fn [] @x)
                 :loader (partial deref loader)
+                :callback (fn [f] (reset! callback f))
                 }))
 
 (def another-service  {:start (fn [] (println "STARTING"))
