@@ -1,5 +1,4 @@
 (ns immutant.init
-  (:require [immutant.web :as web])
   (:require [immutant.daemons :as daemon]))
 
 (def service (let [x (atom 0)
@@ -23,16 +22,3 @@
                        :loader (constantly "who cares?")})
 
 (daemon/daemonize "counter" (:start service) (:stop service))
-
-(defn handler [request]
-  (let [s (if (re-find #"reload" (or (:query-string request) ""))
-            (do
-              (daemon/daemonize "counter" (:start another-service) (:stop another-service))
-              another-service)
-            service)]
-    {:status 200
-     :headers {"Content-Type" "text/plain"}
-     :body (pr-str {:value ((:value s))
-                    :loader (.toString ((:loader s)))})}))
-
-(web/start "/" handler)

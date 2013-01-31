@@ -17,23 +17,8 @@
 
 (ns immutant.integs.daemons
   (:use fntest.core
-        clojure.test
-        immutant.integs.integ-helper)
-  (:require [clj-http.client :as client]))
+        clojure.test))
 
-(use-fixtures :once (with-deployment *file*
-                      {
-                       :root "target/apps/daemons/"
-                       }))
-
-(deftest simple "it should work"
-  (is (< 0 (:value (get-as-data "/daemons")))))
-
-(deftest the-daemon-should-be-using-the-deployment-classloader
-  (is (re-find deployment-class-loader-regex
-               (:loader (get-as-data "/daemons")))))
-
-(deftest daemons-should-be-reloadable
-  (is (= "another-service"
-         (:value (get-as-data "/daemons?reload=1")))))
+(deftest verify-in-container-tests
+  (is (test-in-container "daemons" "target/apps/daemons/")))
 
