@@ -1,20 +1,33 @@
 (ns daemons.test
-  (:use immutant.init
-        clojure.test)
+  (:use clojure.test)
   (:require [immutant.daemons :as daemon]))
 
-(deftest simple "it should work"
-  (is (< 0 ((:value service)))))
+(deftest daemon-started-async
+  (let [started (promise)
+        thread (atom nil)]
+    (letfn [(start []
+              (reset! thread (Thread/currentThread))
+              (deliver started :success))]
+      (daemon/daemonize "async" start #())
+      (is (= :success (deref started 30000 :failure)))
+      (is (not= @thread (Thread/currentThread))))))
 
-(deftest the-daemon-should-be-using-the-deployment-classloader
-  (is (re-find #"ImmutantClassLoader.*deployment\..*\.clj" (str ((:loader service))))))
+(deftest daemon-using-the-deployment-classloader
+  (let [started (promise)
+        loader (atom nil)]
+    (letfn [(start []
+              (reset! loader (.getContextClassLoader (Thread/currentThread)))
+              (deliver started :success))]
+      (daemon/daemonize "loader" start #())
+      (is (= :success (deref started 30000 :failure)))
+      (is (re-find #"ImmutantClassLoader.*deployment\..*\.clj" (str @loader))))))
 
-(deftest daemons-should-be-reloadable
-  (let [p (promise)]
-    ((:callback service) (fn [] (deliver p :success)))
-    (daemon/daemonize "counter" (:start another-service) (:stop another-service))
-    (is (= :success (deref p 30000 :failure))))
-
-  ;; This is silly, because it has nothing to do with daemonization.
-  ;; TODO: Retrieve the service by name via some daemon api
-  (is (= "another-service" ((:value another-service)))))
+(deftest daemon-replace-calls-stop
+  (let [started (promise)
+        stopped (promise)]
+    (letfn [(start [] (deliver started :success))
+            (stop [] (deliver stopped :success))]
+      (daemon/daemonize "reload" start stop)
+      (is (= :success (deref started 30000 :failure)))
+      (daemon/daemonize "reload" #() #())
+      (is (= :success (deref stopped 30000 :failure))))))
