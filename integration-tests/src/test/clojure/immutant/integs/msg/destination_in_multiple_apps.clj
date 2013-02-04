@@ -46,22 +46,22 @@
 
 (deftest both-queue-apps-should-be-up
   (is (= :success (get-as-data "/q1")))
-  (is (= :ham (deref (msg/request "queue.echo" :ham) 5000 nil)))
+  (is (= :ham (deref (msg/request "queue.echo" :ham) 15000 nil)))
   (is (= :success (get-as-data "/q1")))
 
   (is (= :success (get-as-data "/q2")))
-  (is (= :ham (deref (msg/request "queue.echo" :ham) 5000 nil)))
+  (is (= :ham (deref (msg/request "queue.echo" :ham) 15000 nil)))
   (is (= :success (get-as-data "/q2"))))
 
 (deftest both-topic-apps-should-be-up
   (is (= :success (get-as-data "/t1")))
   (msg/publish "topic.echo" :ham)
-  (is (= :ham (msg/receive "queue.result" :timeout 5000)))
+  (is (= :ham (msg/receive "queue.result" :timeout 15000)))
   (is (= :success (get-as-data "/t1")))
 
   (is (= :success (get-as-data "/t2")))
   (msg/publish "topic.echo" :ham)
-  (is (= :ham (msg/receive "queue.result" :timeout 5000)))
+  (is (= :ham (msg/receive "queue.result" :timeout 15000)))
   (is (= :success (get-as-data "/t2"))))
 
 
