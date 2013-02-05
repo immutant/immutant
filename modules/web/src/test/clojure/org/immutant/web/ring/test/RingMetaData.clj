@@ -26,21 +26,38 @@
 ;; init the global runtime
 (ApplicationBootstrapUtils/lazyInit)
 
+(defn make-md [data]
+  (RingMetaData. (ClojureMetaData. "app-name" data)))
+
+(defn parse-dd [name]
+  (ClojureMetaData/parse (io/file (io/resource (str name ".clj")))))
+
+(defn get-hosts [name]
+  (-> name
+      parse-dd 
+      make-md
+      .getHosts))
+
 (deftest all-tests
 
-  (fact "multiple hosts should come through as a list"
-    (let [descriptor (ClojureMetaData/parse (io/file (io/resource "multi-host-descriptor.clj")))
-          md (RingMetaData. (ClojureMetaData. "app-name" descriptor))]
-      (.getHosts md) => ["ham.biscuit", "gravy.biscuit"]))
-  
-  (fact "a single host should come through as a list"
-    (let [descriptor (ClojureMetaData/parse (io/file (io/resource "single-host-descriptor.clj")))
-          md (RingMetaData. (ClojureMetaData. "app-name" descriptor))]
-      (.getHosts md) => ["ham.biscuit"]))
-  
-  (fact "a no host should come through as an empty list"
-    (let [descriptor (ClojureMetaData/parse (io/file (io/resource "no-host-descriptor.clj")))
-          md (RingMetaData. (ClojureMetaData. "app-name" descriptor))]
-      (.getHosts md) => [])))
+  (facts "parsing the dd"
+    (fact "multiple hosts should come through as a list"
+      (get-hosts "multi-host-descriptor") => ["ham.biscuit", "gravy.biscuit"])
+    
+    (fact "a single host should come through as a list"
+      (get-hosts "single-host-descriptor") => ["ham.biscuit"])
+    
+    (fact "a no host should come through as an empty list"
+      (get-hosts "no-host-descriptor") => []))
+
+  (tabular
+   (fact "context-path normalization"
+     (.getContextPath (make-md {"context-path" ?given})) => ?expected)
+   ?expected ?given
+   "/foo"    "/foo"
+   "/foo"    "foo"
+   "/"       "/"
+   nil       nil
+   "/"       ""))
 
 

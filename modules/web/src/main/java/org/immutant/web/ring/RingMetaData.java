@@ -53,7 +53,12 @@ public class RingMetaData extends WebApplicationMetaData {
     public String getContextPath() {
         if (this.contextPath == null) {
             this.contextPath = this.appMetaData.getString( "context-path" );
+            if (this.contextPath != null && 
+                    !this.contextPath.startsWith( "/" )) {
+                this.contextPath = "/" + this.contextPath;
+            }
         }
+        
         return this.contextPath;
     }
 
