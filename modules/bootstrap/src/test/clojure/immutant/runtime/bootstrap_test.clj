@@ -57,7 +57,7 @@
 
     (fact "resource-paths should work"
       (let [paths (map #(.getAbsolutePath (io/file app-root %))
-                       ["resources" "target/native" "src" "classes" "target/classes"])]
+                       ["test" "resources" "target/native" "src" "classes" "target/classes"])]
         (resource-paths app-root nil) => (just paths :in-any-order)))
     
     (facts "get-dependencies"
@@ -92,7 +92,7 @@
 
     (fact "resource-paths should work"
       (resource-paths app-root nil) => (just (map #(.getAbsolutePath (io/file app-root %))
-                                                  ["resources" "native" "src" "classes"])
+                                                  ["test" "resources" "native" "src" "classes"])
                                              :in-any-order))
     
     (fact "get-dependencies should return deps from lib"

@@ -27,12 +27,10 @@
     <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>fntest</artifactId>
-      <version>0.3.7</version>
     </dependency>
     <dependency>
       <groupId>clj-http</groupId>
       <artifactId>clj-http</artifactId>
-      <version>0.5.8</version>
     </dependency>
     <dependency>
       <groupId>leiningen-core</groupId>
