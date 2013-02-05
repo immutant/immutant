@@ -148,7 +148,7 @@
    | Option            | Default                            | Description                         |
    |-------------------+------------------------------------+-------------------------------------|
    |                   | <c>                                | <35>                                |
-   | =:encoding=       | =:clojure=                         | One of =:clojure=, =:edn=, =:json=, or =:text= |
+   | =:encoding=       | =:edn=                             | One of =:clojure=, =:edn=, =:json=, or =:text= |
    | =:priority=       | =4=                                | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively |
    | =:ttl=            | =0=                                | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed. A 0 indicates that the message should be held indefinitely. |
    | =:persistent=     | =true=                             | If true, undelivered messages survive restarts. |
@@ -233,6 +233,12 @@
    | =:port=      | =nil=, or =5445= if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
    | =:username=  | =nil=                              | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
    | =:password=  | =nil=                              | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
+
+   By default, the dynamic variable, =clojure.core/*read-eval*= is set
+   to false when decoding messages. To override this, you should set
+   =:decode?= to false and bind =*read-eval*= to true before passing
+   the encoded message to
+   =immutant.messaging.codecs/decode-with-metadata= yourself.
 
    For more details on message selectors, see [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html][javax.jms.Message]]. 
 

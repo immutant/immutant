@@ -49,7 +49,7 @@
 
 ;; Encode
 
-(defmulti encode (fn [_ _ {encoding :encoding}] (or encoding :clojure)))
+(defmulti encode (fn [_ _ {encoding :encoding}] (or encoding :edn)))
 
 (defmethod encode :clojure [^javax.jms.Session session message options]
   "Stringify a clojure data structure"
@@ -98,14 +98,19 @@
 (defmethod decode :default [message]
   (throw (RuntimeException. (str "Received unknown message encoding: " (get-encoding message)))))
 
+(defn decode-with-metadata
+  "Decodes the given message. If the decoded message is a clojure
+   collection, the properties of the message will be affixed as
+   metadata"
+  [msg]
+  (let [result (decode msg)]
+    (if (instance? clojure.lang.IObj result)
+      (with-meta result (get-properties msg))
+      result)))
+
 (defn decode-if
-  "Decodes the given message if decode? is truthy. If the decoded
-   message is a clojure collection, the properties of the message will
-   be affixed as metadata"
+  "Decodes the given message if decode? is truthy"
   [decode? msg]
   (if decode?
-    (let [result (decode msg)]
-      (if (instance? clojure.lang.IObj result)
-        (with-meta result (get-properties msg))
-        result))
+    (binding [*read-eval* false] (decode-with-metadata msg))
     msg))

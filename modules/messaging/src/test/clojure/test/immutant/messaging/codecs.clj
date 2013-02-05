@@ -22,13 +22,17 @@
 (defn session-mock []
   (proxy [javax.jms.Session] []
     (createTextMessage [text]
-      (let [properties (java.util.HashMap.)]
+      (let [properties (java.util.Hashtable.)]
         (proxy [javax.jms.TextMessage] []
           (getText [] text)
           (setStringProperty [k,v]
             (.put properties k v))
           (getStringProperty [k]
-            (.get properties k)))))))
+            (.get properties k))
+          (getObjectProperty [k]
+            (.get properties k))
+          (getPropertyNames []
+            (.keys properties)))))))
 
 (defn bytes-message [content]
   (let [properties (java.util.HashMap.)]
@@ -45,8 +49,10 @@
       (getStringProperty [k]
         (.get properties k)))))
 
-(defn test-codec [message encoding]
-  (is (= message (decode (encode (session-mock) message {:encoding encoding})))))
+(defn test-codec [message encoding & [read-eval?]]
+  (is (= message (if-not read-eval?
+                   (decode-if true (encode (session-mock) message {:encoding encoding}))
+                   (decode (encode (session-mock) message {:encoding encoding}))))))
 
 (deftest json-string
   (test-codec "a random text message" :json))
@@ -58,7 +64,7 @@
   (test-codec (java.util.Date.) :clojure))
 
 (deftest clojure-date-inside-hash
-  (test-codec {:date (java.util.Date.)} :clojure))
+  (test-codec {:date (java.util.Date.)} :clojure :read-eval))
 
 (deftest clojure-date-inside-vector
   (test-codec [(java.util.Date.)] :clojure))
@@ -79,7 +85,7 @@
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
 
 (deftest clojure-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
+  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure :read-eval))
 
 (deftest edn-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))

@@ -67,7 +67,7 @@
    published.
 
    The following options are supported [default]:
-     :encoding        :clojure :json or :text [:clojure]
+     :encoding        :clojure :edn :json or :text [:edn]
      :priority        0-9 or :low :normal :high :critical [4]
      :ttl             time to live, in ms [0=forever]
      :persistent      whether undelivered messages survive restarts [true]

@@ -23,14 +23,14 @@
 
 (defmulti encode
   "Encode the data using the given encoding."
-  (fn [_ & [encoding]] (or encoding :clojure)))
+  (fn [_ & [encoding]] (or encoding :edn)))
 
-(defmethod encode :clojure [data & _]
+(defmethod encode :clojure [data _]
   "Stringify a clojure data structure"
   (binding [*print-dup* true]
     (pr-str data)))
 
-(defmethod encode :edn [data _]
+(defmethod encode :edn [data & _]
   "Stringify an edn data structure"
   (pr-str data))
 
@@ -47,13 +47,13 @@
 
 (defmulti decode
   "Decode the data using the given encoding."
-  (fn [_ & [encoding]] (or encoding :clojure)))
+  (fn [_ & [encoding]] (or encoding :edn)))
 
-(defmethod decode :clojure [data & _]
+(defmethod decode :clojure [data _]
   "Turn a string into a clojure data structure"
   (and data (read-string data)))
 
-(defmethod decode :edn [data _]
+(defmethod decode :edn [data & _]
   "Turn a string into an edn data structure"
   (and data (read-string data)))
 
