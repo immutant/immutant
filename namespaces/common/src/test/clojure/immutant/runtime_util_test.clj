@@ -20,7 +20,7 @@
         clojure.test
         midje.sweet
         [midje.util :only [expose-testables]])
-  (:require [clojure.java.io             :as io]))
+  (:require [clojure.java.io :as io]))
 
 (deftest all-tests
   
@@ -71,5 +71,4 @@
    #{:foo}      ["foo"]
    #{:foo :bar} [:foo :bar]
    #{:foo :bar} [":foo" :bar]))
-
 
