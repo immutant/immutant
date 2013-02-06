@@ -19,9 +19,11 @@
 
 package org.immutant.daemons;
 
+import org.immutant.core.as.CoreServices;
 import org.immutant.common.ClassLoaderUtils;
 import org.immutant.daemons.as.DaemonServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
+import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
 
@@ -32,11 +34,18 @@ public class Daemonizer extends AtRuntimeInstaller<Daemonizer> {
         super( unit );
     }
 
-    public Daemon createDaemon(final String daemonName, Runnable start, Runnable stop, boolean singleton) {
-        ServiceName serviceName = DaemonServices.daemon( getUnit(), daemonName );
-        Daemon daemon = new Daemon( ClassLoaderUtils.getModuleLoader( getUnit() ), start, stop );
+    public Daemon createDaemon(final String daemonName, Runnable start, Runnable stop, final boolean singleton) {
+        final ServiceName serviceName = DaemonServices.daemon( getUnit(), daemonName );
+        final Daemon daemon = new Daemon( ClassLoaderUtils.getModuleLoader( getUnit() ), start, stop );
         
-        deploy( serviceName, daemon, singleton );
+        replaceService(serviceName, new Runnable() {
+            @SuppressWarnings("rawtypes")
+            public void run() {
+                ServiceBuilder builder = build( serviceName, daemon, singleton );
+                builder.addDependency( CoreServices.runtime( getUnit() ) ).install();
+            }
+        });
+        
         installMBean( serviceName, "immutant.daemons", daemon );
         
         return daemon;
