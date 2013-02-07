@@ -193,7 +193,7 @@
                    (let [session (create-session connection)
                          destination (create-destination session dest)]
                      {"session" session
-                      "consumer" (create-consumer session destination opts)
+                      "consumer-fn" #(create-consumer % destination opts)
                       "handler" #(with-transaction session
                                    (binding [*raw-message* %]
                                      (f (codecs/decode-if decode? %))))}))]
@@ -208,10 +208,11 @@
                    "Setting up direct listener for remote destination:"
                    dest))
        (dotimes [_ concurrency]
-         (let [settings (setup-fn)]
-           (.setMessageListener (settings "consumer")
-                                (create-listener
-                                 (settings "handler")))))
+         (let [{session     "session"
+                consumer-fn "consumer-fn"
+                handler     "handler"} (setup-fn)]
+           (.setMessageListener (consumer-fn session)
+                                (create-listener handler))))
        (.start connection)
        connection
        (catch Throwable e
