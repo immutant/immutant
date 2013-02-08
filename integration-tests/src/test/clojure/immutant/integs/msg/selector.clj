@@ -20,7 +20,7 @@
   (:use clojure.test)
   (:use immutant.messaging))
 
-(def ham-queue "/queue/ham")
+(def queue "/queue/selectors")
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -28,10 +28,11 @@
                        }))
 
 (deftest select-lower-priority
-  (publish ham-queue 1 :properties {:prop 5} :priority :high)
-  (publish ham-queue 2 :properties {:prop 3} :priority :low)
-  (is (= 2 (receive ham-queue :selector "prop < 5")))
-  (is (= 1 (receive ham-queue))))
+  (publish queue 1 :properties {:prop 5} :priority :high)
+  (publish queue 2 :properties {:prop 3} :priority :low)
+  (is (= 2 (receive queue :selector "prop < 5")))
+  (is (= 1 (receive queue)))
+  (is (nil? (receive queue :timeout 1000))))
 
 (deftest various-selectors
   (let [selectors ["prop = true"
@@ -49,20 +50,20 @@
                 5.5
                 "string"]
         func (fn [selector, value]
-               (publish ham-queue value :properties {:prop value})
-               (= value (receive ham-queue :selector selector)))]
+               (publish queue value :properties {:prop value})
+               (= value (receive queue :selector selector)))]
     ;; First put a message in there that should be ignored by all selectors
-    (publish ham-queue "first")
+    (publish queue "first")
     ;; Run through all the selectors, ensuring their corresponding values are received
     (is (every? identity (map func selectors values)))
     ;; Now purge the ignored message
-    (is (= "first" (receive ham-queue)))))
+    (is (= "first" (receive queue)))))
     
 (deftest selectors-on-queues-and-listeners
   (publish "/queue/filtered" "failure")
   (is (nil? (receive "/queue/filtered" :timeout 1000)))
   (publish "/queue/filtered" "success" :properties {:color "blue"})
   (is (= "success" (receive "/queue/filtered")))
-  (is (nil? (receive "/queue/ham" :timeout 1000)))
+  (is (nil? (receive queue :timeout 1000)))
   (publish "/queue/filtered" "success" :properties {:color "blue" :animal "penguin"})
-  (is (= "success" (receive "/queue/ham"))))
+  (is (= "success" (receive queue))))

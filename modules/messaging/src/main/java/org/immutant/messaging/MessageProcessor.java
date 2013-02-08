@@ -20,9 +20,13 @@
 package org.immutant.messaging;
 
 import javax.jms.Message;
+import javax.jms.XASession;
+import javax.transaction.TransactionManager;
 
 import org.immutant.runtime.ClojureRuntime;
+import org.jboss.logging.Logger;
 import org.projectodd.polyglot.messaging.BaseMessageProcessor;
+
 
 public class MessageProcessor extends BaseMessageProcessor {
     
@@ -31,14 +35,50 @@ public class MessageProcessor extends BaseMessageProcessor {
     }
     
     @Override
+    protected void prepareTransaction() {
+        try {
+            getTransactionManager().begin();
+            getTransactionManager().getTransaction().enlistResource(((XASession)getSession()).getXAResource());
+        } catch (Throwable e) {
+            log.error("Failed to prepare transaction for message", e);
+        }
+    }
+
+    @Override
     public void onMessage(Message message) {
-        this.runtime.invoke( this.handler, message );
+        try {
+            try {
+                this.runtime.invoke(this.handler, message);
+                getTransactionManager().commit();
+            } catch (javax.transaction.RollbackException ignored) {
+            } catch (Throwable e) {
+                getTransactionManager().rollback();
+                throw(e);
+            }
+        } catch (Throwable e) {
+            log.error("Unexpected error in " + getGroup().getName(), e);
+        }
     }
     
     public void setHandler(Object handler) {
         this.handler = handler;
     }
 
+    // This is FRMF, but I have no clue how to make the base class
+    // method of the same name return an actual TM. Probably adding
+    // some dependency to the Groupizer that sets the TM in the Group
+    // that would then have to somehow set the TM in this thing's
+    // parent, probably using "typesafe managed factory injectors",
+    // which is even more FRMF, so here we are.
+    protected TransactionManager getTransactionManager() {
+        if (this.tm == null) {
+            this.tm = (TransactionManager) runtime.invoke("immutant.registry/get", "jboss.txn.TransactionManager");
+        }
+        return this.tm;
+    }
+    
     private ClojureRuntime runtime;
     private Object handler;
+    private TransactionManager tm;
+    static final Logger log = Logger.getLogger( MessageProcessor.class );
 }

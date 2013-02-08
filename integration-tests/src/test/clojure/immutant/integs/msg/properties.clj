@@ -20,7 +20,7 @@
   (:use clojure.test)
   (:use immutant.messaging))
 
-(def ham-queue "/queue/ham")
+(def queue "/queue/properties")
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -28,7 +28,7 @@
                        }))
 
 (deftest properties-as-metadata
-  (publish ham-queue (with-meta [] {:literalint     6
+  (publish queue (with-meta [] {:literalint     6
                                     :int            (int 6)
                                     :long           (long 6)
                                     :bigint         (bigint 6)
@@ -42,7 +42,7 @@
                                     :booleanfalse   (boolean nil)
                                     :literalstring  "{}"
                                     :hashmap        {}}))
-  (let [message (receive ham-queue)
+  (let [message (receive queue)
         props (meta message)]
     (is (= [] message))
     (is (= 7 (inc (:literalint props))))
@@ -61,8 +61,8 @@
     (is (= "{}" (:hashmap props)))))
 
 (deftest option-overrides-metadata
-  (publish ham-queue (with-meta [1] {:foo 42 :bar 69}) :properties {:bar 99})
-  (let [message (receive ham-queue)
+  (publish queue (with-meta [1] {:foo 42 :bar 69}) :properties {:bar 99})
+  (let [message (receive queue)
         props (meta message)]
     (is (= [1] message))
     (is (= 42 (:foo props)))

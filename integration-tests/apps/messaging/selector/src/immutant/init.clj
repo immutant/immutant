@@ -1,9 +1,12 @@
 (ns immutant.init
   (:require [immutant.messaging :as msg]))
 
-(msg/start "/queue/ham")
+;; used by the properties test
+(msg/start "/queue/properties")
+
+(msg/start "/queue/selectors")
 (msg/start "/queue/filtered" :selector "color = 'blue'")
 
 (msg/listen "/queue/filtered"
-            #(msg/publish "/queue/ham" %)
+            #(msg/publish "/queue/selectors" %)
             :selector "animal = 'penguin'")

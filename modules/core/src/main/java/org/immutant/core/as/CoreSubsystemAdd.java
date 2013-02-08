@@ -57,6 +57,7 @@ import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceBuilder.DependencyType;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
+import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core.processors.ApplicationExploder;
 import org.projectodd.polyglot.core.processors.ArchiveStructureProcessor;
 import org.projectodd.polyglot.core.processors.DescriptorRootMountProcessor;
@@ -125,8 +126,9 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
             }
         } ).toString();
 
-        MBeanRegistrationService<ImmutantMBean> mbeanService = new MBeanRegistrationService<ImmutantMBean>( mbeanName );
-        newControllers.add( context.getServiceTarget().addService( CoreServices.IMMUTANT.append( "mbean" ), mbeanService )
+        ServiceName mbeanServiceName = CoreServices.IMMUTANT.append( "mbean" );
+        MBeanRegistrationService<ImmutantMBean> mbeanService = new MBeanRegistrationService<ImmutantMBean>( mbeanName, mbeanServiceName );
+        newControllers.add( context.getServiceTarget().addService( mbeanServiceName, mbeanService )
                 .addDependency( DependencyType.OPTIONAL, MBeanServerService.SERVICE_NAME, MBeanServer.class, mbeanService.getMBeanServerInjector() )
                 .addDependency( CoreServices.IMMUTANT, ImmutantMBean.class, mbeanService.getValueInjector() )
                 .addListener( verificationHandler )

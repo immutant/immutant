@@ -120,11 +120,11 @@ public class RingWebApplicationInstaller implements DeploymentUnitProcessor {
             warMetaData.setWebFragmentsMetaData( webFragmentsMetaData );
         }
 
-        JBossWebMetaData jbossWebMetaData = warMetaData.getJbossWebMetaData();
+        JBossWebMetaData jbossWebMetaData = warMetaData.getJBossWebMetaData();
 
         if (jbossWebMetaData == null) {
             jbossWebMetaData = new JBossWebMetaData();
-            warMetaData.setJbossWebMetaData( jbossWebMetaData );
+            warMetaData.setJBossWebMetaData( jbossWebMetaData );
         }
         
         JBossServletsMetaData servlets = jbossWebMetaData.getServlets();

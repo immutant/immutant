@@ -15,32 +15,37 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.msg.priority
-  (:use fntest.core)
+(ns in-container.test.priority
   (:use clojure.test)
   (:use immutant.messaging))
 
-(def ham-queue "/queue/ham")
+(def queue "/queue/ham")
 
-(use-fixtures :once (with-deployment *file*
-                      {
-                       :root "target/apps/messaging/queues"
-                       }))
+(use-fixtures :once (fn [f]
+                      (start queue :durable false)
+                      (f)
+                      (stop queue)))
 
 (deftest default-priority-should-be-fifo
-  (let [messages (message-seq ham-queue)]
-    (dotimes [x 10] (publish ham-queue x))
+  (let [messages (message-seq queue)]
+    (dotimes [x 10] (publish queue x))
     (is (= (range 10) (take 10 messages)))))
 
 (deftest prioritize-by-integer
-  (let [messages (message-seq ham-queue)]
-    (dotimes [x 10] (publish ham-queue x :priority x))
+  (let [messages (message-seq queue)]
+    (dotimes [x 10] (publish queue x :priority x))
     (is (= (reverse (range 10)) (take 10 messages)))))
 
 (deftest prioritize-by-keyword
-  (let [messages (message-seq ham-queue)
+  (let [messages (message-seq queue)
         labels [:low :normal :high :critical]
         size (count labels)]
-    (dotimes [x size] (publish ham-queue x :priority (labels x)))
+    (dotimes [x size] (publish queue x :priority (labels x)))
     (is (= (reverse (range size)) (take size messages)))))
 
+(deftest select-lower-priority
+  (publish queue 1 :properties {:prop 5} :priority :high)
+  (publish queue 2 :properties {:prop 3} :priority :low)
+  (is (= 2 (receive queue :selector "prop < 5")))
+  (is (= 1 (receive queue)))
+  (is (nil? (receive queue :timeout 1000))))
