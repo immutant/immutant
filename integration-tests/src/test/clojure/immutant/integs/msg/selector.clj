@@ -63,6 +63,6 @@
   (is (nil? (receive "/queue/filtered" :timeout 1000)))
   (publish "/queue/filtered" "success" :properties {:color "blue"})
   (is (= "success" (receive "/queue/filtered")))
-  (is (nil? (receive "/queue/ham" :timeout 1000)))
+  (is (nil? (receive queue :timeout 1000)))
   (publish "/queue/filtered" "success" :properties {:color "blue" :animal "penguin"})
-  (is (= "success" (receive "/queue/ham"))))
+  (is (= "success" (receive queue))))
