@@ -19,19 +19,63 @@
 
 package org.immutant.web.ring.processors;
 
+import static org.jboss.as.web.WebMessages.MESSAGES;
+
+import java.util.Collection;
+import java.util.Collections;
+
 import org.apache.catalina.Context;
 import org.immutant.core.processors.RegisteringProcessor;
+import org.jboss.as.ee.component.EEModuleDescription;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.web.WebSubsystemServices;
-import org.jboss.as.web.deployment.WarDeploymentProcessor;
 import org.jboss.as.web.deployment.WarMetaData;
+import org.jboss.metadata.web.jboss.JBossWebMetaData;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.Value;
 
-
 public class WebContextRegisteringProcessor extends RegisteringProcessor {
 
+    //borrowed from org.jboss.as.web.deployment.WarDeploymentProcessor since it's now package scoped
+    static String hostNameOfDeployment(final WarMetaData metaData, final String defaultHost) {
+        Collection<String> hostNames = null;
+        if (metaData.getMergedJBossWebMetaData() != null) {
+            hostNames = metaData.getMergedJBossWebMetaData().getVirtualHosts();
+        }
+        if (hostNames == null || hostNames.isEmpty()) {
+            hostNames = Collections.singleton(defaultHost);
+        }
+        String hostName = hostNames.iterator().next();
+        if (hostName == null) {
+            throw MESSAGES.nullHostName();
+        }
+        return hostName;
+    }
+
+    //borrowed from org.jboss.as.web.deployment.WarDeploymentProcessor since it's now package scoped
+    static String pathNameOfDeployment(final DeploymentUnit deploymentUnit, final JBossWebMetaData metaData) {
+        String pathName;
+        if (metaData.getContextRoot() == null) {
+            final EEModuleDescription description = deploymentUnit.getAttachment(org.jboss.as.ee.component.Attachments.EE_MODULE_DESCRIPTION);
+            if (description != null) {
+                // if there is a EEModuleDescription we need to take into account that the module name may have been overridden
+                pathName = "/" + description.getModuleName();
+            } else {
+                pathName = "/" + deploymentUnit.getName().substring(0, deploymentUnit.getName().length() - 4);
+            }
+        } else {
+            pathName = metaData.getContextRoot();
+            if ("/".equals(pathName)) {
+                pathName = "";
+            } else if (pathName.length() > 0 && pathName.charAt(0) != '/') {
+                pathName = "/" + pathName;
+            }
+        }
+        return pathName;
+    }
+
+    
     @Override
     public RegistryEntry registryEntry(DeploymentPhaseContext context) {
         DeploymentUnit unit = context.getDeploymentUnit();
@@ -41,9 +85,9 @@ public class WebContextRegisteringProcessor extends RegisteringProcessor {
             return null;
         }
 
-        String hostName = WarDeploymentProcessor.hostNameOfDeployment( warMetaData, "default-host" );
-        String pathName = WarDeploymentProcessor.pathNameOfDeployment( unit,
-                warMetaData.getMergedJBossWebMetaData() );
+        String hostName = hostNameOfDeployment( warMetaData, "default-host" );
+        String pathName = pathNameOfDeployment( unit,
+                                                warMetaData.getMergedJBossWebMetaData() );
         ServiceName serviceName = WebSubsystemServices.deploymentServiceName( hostName, pathName ); 
                         
         Context webContext = ((Value<Context>)unit.getServiceRegistry().getService( serviceName )).getValue();

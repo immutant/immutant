@@ -111,7 +111,7 @@
     <!-- needed so we can get its version for the build info -->
     <dependency>
       <groupId>org.hornetq</groupId>
-      <artifactId>hornetq-core</artifactId>
+      <artifactId>hornetq-core-client</artifactId>
       <scope>provided</scope>
     </dependency>
   </dependencies>

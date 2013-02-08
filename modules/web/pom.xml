@@ -68,6 +68,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.namespace</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.jboss.web</groupId>
       <artifactId>jbossweb</artifactId>
       <scope>provided</scope>

@@ -30,12 +30,12 @@ import org.immutant.core.ImmutantClassLoader;
 import org.immutant.core.TmpResourceMountMap;
 import org.jboss.as.controller.ExtensionContext;
 import org.jboss.as.controller.SubsystemRegistration;
+import org.jboss.as.controller.operations.common.GenericSubsystemDescribeHandler;
 import org.jboss.as.controller.parsing.ExtensionParsingContext;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
 import org.jboss.logging.Logger;
 import org.projectodd.polyglot.core.as.AbstractBootstrappableExtension;
-import org.projectodd.polyglot.core.as.GenericSubsystemDescribeHandler;
 
 public class CoreExtension extends AbstractBootstrappableExtension {
 
