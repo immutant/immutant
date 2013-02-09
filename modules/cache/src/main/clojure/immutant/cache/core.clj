@@ -25,13 +25,12 @@
              org.infinispan.transaction.lookup.GenericTransactionManagerLookup
              org.infinispan.util.concurrent.IsolationLevel))
 
-(def clustered-manager (registry/get "jboss.infinispan.web"))
-(def local-manager (delay (DefaultCacheManager.)))
 (def file-store-path (str (io/file (System/getProperty "jboss.server.data.dir") "immutant-cache-persist")))
-
-(let [builder (org.infinispan.configuration.global.GlobalConfigurationBuilder.)]
-  (.. builder globalJmxStatistics (allowDuplicateDomains true))
-  (.build builder))
+(def clustered-manager (registry/get "jboss.infinispan.web"))
+(def global-config (let [builder (org.infinispan.configuration.global.GlobalConfigurationBuilder.)]
+                     (.. builder globalJmxStatistics (allowDuplicateDomains true))
+                     (.build builder)))
+(def local-manager (delay (DefaultCacheManager. global-config)))
 
 (defn cache-mode
   [{:keys [mode sync]}]
