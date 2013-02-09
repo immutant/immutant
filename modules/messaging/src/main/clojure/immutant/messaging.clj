@@ -194,9 +194,8 @@
                          destination (create-destination session dest)]
                      {"session" session
                       "consumer-fn" #(create-consumer % destination opts)
-                      "handler" #(with-transaction session
-                                   (binding [*raw-message* %]
-                                     (f (codecs/decode-if decode? %))))}))]
+                      "handler" #(binding [*raw-message* %]
+                                   (f (codecs/decode-if decode? %)))}))]
     (at-exit #(.close connection))
     (cond
      (or (not izer)
