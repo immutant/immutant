@@ -31,7 +31,8 @@
   (publish queue 1 :properties {:prop 5} :priority :high)
   (publish queue 2 :properties {:prop 3} :priority :low)
   (is (= 2 (receive queue :selector "prop < 5")))
-  (is (= 1 (receive queue))))
+  (is (= 1 (receive queue)))
+  (is (nil? (receive queue :timeout 1000))))
 
 (deftest various-selectors
   (let [selectors ["prop = true"
