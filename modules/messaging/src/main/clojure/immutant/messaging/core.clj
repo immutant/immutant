@@ -213,15 +213,17 @@
         (log/info "Topic already exists:" name)))
     (throw (Exception. (str "Unable to start topic: " name)))))
 
-(defn create-session [^javax.jms.XAConnection connection]
-  (if (registry/get factory-name)
-    (.createXASession connection)
-    (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
+(defn create-session [connection]
+  (if-in-immutant
+   (.createXASession connection)
+   (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
 
 (defn create-connection
   "Creates a connection and registers it in the *connections* map"
   [opts]
-  (let [conn (.createXAConnection (connection-factory opts) (:username opts) (:password opts))]
+  (let [conn (if-in-immutant
+              (.createXAConnection (connection-factory opts) (:username opts) (:password opts))
+              (.createConnection (connection-factory opts) (:username opts) (:password opts)))]
     (if (:client-id opts) (.setClientID conn (:client-id opts)))
     (if *connections* (set! *connections* (assoc *connections* (connection-key opts) conn)))
     conn))
