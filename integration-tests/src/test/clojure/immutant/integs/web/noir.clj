@@ -21,8 +21,9 @@
   (:require [clj-http.client :as client]))
 
 (defn run-tests? []
-  (not= "1.5.0-RC1"
-        (:full immutant.integs/*current-clojure-version*)))
+  (not (.startsWith 
+        (:full immutant.integs/*current-clojure-version*)
+        "1.5.0")))
 
 (let [file *file*]
   (use-fixtures :once #(if (run-tests?)
