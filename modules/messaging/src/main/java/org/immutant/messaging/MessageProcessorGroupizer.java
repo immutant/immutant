@@ -45,13 +45,13 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public MessageProcessorGroup createGroup(final String destinationName, final boolean singleton, final int concurrency, 
-            final boolean durable, final String handlerName, final XAConnection connection, final Object setupHandler, 
-            final Object startCallback) {
+        public MessageProcessorGroup createGroup(final String destinationName, final boolean singleton, final int concurrency, 
+                                                 final boolean durable, final String handlerName, final XAConnection connection, final Object setupHandler, 
+                                                 final Object startCallback) {
         final String name = destinationName + "." + URLEncoder.encode(handlerName);
         final ServiceName serviceName = MessagingServices.messageProcessor( getUnit(),  name );
         final MessageProcessorGroup group = new MessageProcessorGroup( getUnit().getServiceRegistry(), serviceName,
-                destinationName, connection, setupHandler, startCallback );
+                                                                       destinationName, connection, setupHandler, startCallback );
 
         group.setConcurrency( concurrency );
         group.setDurable( durable );
@@ -60,19 +60,19 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
         rememberGroup( destinationName, serviceName );
                 
         replaceService( serviceName,
-                new Runnable() {
-            public void run() {
-                ServiceBuilder builder = build( serviceName, group, singleton );
+                        new Runnable() {
+                            public void run() {
+                                ServiceBuilder builder = build( serviceName, group, singleton );
 
-                ServiceName javaContext = ContextNames.JAVA_CONTEXT_SERVICE_NAME;
+                                ServiceName javaContext = ContextNames.JAVA_CONTEXT_SERVICE_NAME;
 
-                builder.addDependency( CoreServices.runtime( getUnit() ), group.getClojureRuntimeInjector() )
-                .addDependency( javaContext.append( "ConnectionFactory" ), group.getConnectionFactoryInjector() )
-                .addDependency( javaContext.append( DestinationUtils.getServiceName( destinationName ) ), group.getDestinationInjector() )
-                .install();
+                                builder.addDependency( CoreServices.runtime( getUnit() ), group.getClojureRuntimeInjector() )
+                                    .addDependency( javaContext.append( "ConnectionFactory" ), group.getConnectionFactoryInjector() )
+                                    .addDependency( javaContext.append( DestinationUtils.getServiceName( destinationName ) ), group.getDestinationInjector() )
+                                    .install();
 
-            }
-        } );
+                            }
+                        } );
         
         installMBean( serviceName, "immutant.messaging", group );
         
@@ -80,7 +80,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
     }
 
     @SuppressWarnings("rawtypes")
-    public void removeGroupsFor(String destinationName) {
+        public void removeGroupsFor(String destinationName) {
         List<ServiceName> groups = installedGroupsFor( destinationName ); 
         if (groups != null) {
             for (ServiceName each : groups) {
