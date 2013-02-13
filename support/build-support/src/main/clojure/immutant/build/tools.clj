@@ -91,7 +91,7 @@
                              {}
                              (glob/glob (str (.getAbsolutePath root-dir) "/modules/*/target/*-module"))))
   (def polyglot-modules
-    ["hasingleton"]))
+    ["hasingleton" "cache"]))
 
 (defn looking-at? [tag loc]
   (= tag (:tag (zip/node loc))))
@@ -255,6 +255,11 @@
     "http" (zip/edit loc assoc-in [:attrs :port] "${http.port:8080}")
     loc))
 
+(defn fix-cache-container [loc]
+  (condp = (-> loc zip/node :attrs :name)
+    "web" (zip/edit loc update-in [:attrs :aliases] #(str "polyglot " %))
+    loc))
+
 (defn prepare-zip
   [file]
   (zip/xml-zip (xml/parse file)))
@@ -285,6 +290,7 @@
               :server-groups                  (replace-server-groups loc)
               :socket-binding-group           (fix-socket-binding-group loc)
               :socket-binding                 (fix-socket-binding loc)
+              :cache-container                (fix-cache-container loc)
               loc)))))
   
 (defn transform-config [file]
