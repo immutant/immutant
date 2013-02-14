@@ -16,42 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.jobs
-  (:use fntest.core
-        clojure.test
-        immutant.integs.integ-helper))
+  (:use [clojure.test :only [is deftest]]
+        [fntest.core :only [test-in-container]]))
 
-(use-fixtures :once (with-deployment *file*
-                      {
-                       :root "target/apps/jobs/"
-                       }))
+(deftest verify-in-container-tests
+  (is (test-in-container "jobs" "target/apps/jobs")))
 
-(defn get-values
-  ([]
-     (get-values ""))
-  ([query]
-     (get-as-data (str "/jobs?" query))))
-
-(deftest simple "it should work"
-  (let [initial-value (:a-value (get-values))]
-    (Thread/sleep 1000)
-    (let [next-value (:a-value (get-values))]
-      (is (> next-value initial-value))
-      (Thread/sleep 1000)
-      (is (> (:a-value (get-values)) next-value)))))
-
-(deftest rescheduling
-  (is (> (:another-value (get-values)) 0))
-  (get-values "reschedule")
-  (Thread/sleep 2000)
-  (is (= (:another-value (get-values)) "rescheduled")))
-
-(deftest unschedule
-  (get-values "unschedule")
-  (Thread/sleep 1000)
-  (let [initial-value (:a-value (get-values))]
-    (Thread/sleep 10000)
-    (is (= initial-value (:a-value (get-values))))))
-
-(deftest a-job-should-be-using-the-deployment-classloader
-  (is (re-find deployment-class-loader-regex
-              (:loader (get-values)))))
