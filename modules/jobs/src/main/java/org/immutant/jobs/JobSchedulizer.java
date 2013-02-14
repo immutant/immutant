@@ -19,17 +19,18 @@
 
 package org.immutant.jobs;
 
+import java.util.Date;
 import java.util.concurrent.Callable;
 
+import org.immutant.core.HasImmutantRuntimeInjector;
 import org.immutant.core.as.CoreServices;
 import org.immutant.jobs.as.JobsServices;
-import org.immutant.runtime.ClojureRuntime;
-import org.immutant.runtime.ClojureRuntimeService;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
+import org.projectodd.polyglot.jobs.BaseJob;
 
 
 public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
@@ -55,25 +56,46 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
                                                    cronExpression,
                                                    singleton );
 
-        final ServiceName serviceName = JobsServices.job( getUnit(), name );
+        installJob(job);
+        
+        return job;
+    }
+
+    @SuppressWarnings("rawtypes")
+    public AtJob createAtJob(Callable handler, String name, Date startAt, Date endAt, long interval, int repeat, final boolean singleton) {
+        final AtJob job = new AtJob( handler,
+                                     getUnit().getName(),
+                                     name,
+                                     singleton );
+        job.setStartAt( startAt );
+        job.setEndAt( endAt );
+        job.setInterval( interval );
+        job.setRepeat( repeat );
+
+        installJob( job );
+
+        return job;
+    }
+    
+    private void installJob(final BaseJob job) {
+        final ServiceName serviceName = JobsServices.job( getUnit(), job.getName() );
 
         replaceService( serviceName,
                         new Runnable() {
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings({ "unchecked", "rawtypes" })
             public void run() {
                 ServiceBuilder builder = build( serviceName, job, false );
 
-                builder.addDependency( CoreServices.runtime( getUnit() ), job.getClojureRuntimeInjector() )
-                .addDependency( JobsServices.scheduler( getUnit(), singleton ), job.getJobSchedulerInjector() )
+                builder.addDependency( CoreServices.runtime( getUnit() ), ((HasImmutantRuntimeInjector)job).getClojureRuntimeInjector() )
+                .addDependency( JobsServices.scheduler( getUnit(), job.isSingleton() ), job.getJobSchedulerInjector() )
                 .install();
 
             }
         } );
 
         installMBean( serviceName, "immutant.jobs", job );
-
-        return job;
+        
     }
-
+    
     private static final Logger log = Logger.getLogger( "org.immutant.jobs" );
 }

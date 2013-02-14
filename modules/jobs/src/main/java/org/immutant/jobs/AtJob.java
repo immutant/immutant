@@ -26,15 +26,15 @@ import org.immutant.core.HasImmutantRuntimeInjector;
 import org.immutant.runtime.ClojureRuntime;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.value.InjectedValue;
+import org.projectodd.polyglot.jobs.BaseAtJob;
 import org.projectodd.polyglot.jobs.BaseJobScheduler;
-import org.projectodd.polyglot.jobs.BaseScheduledJob;
 import org.quartz.SchedulerException;
 
-public class ScheduledJob extends BaseScheduledJob implements ScheduledJobMBean, HasImmutantRuntimeInjector {
+public class AtJob extends BaseAtJob implements AtJobMBean, HasImmutantRuntimeInjector {
 
     @SuppressWarnings("rawtypes")
-    public ScheduledJob(Callable handler, String group, String name, String cronExpression, boolean singleton) {
-        super( ClojureJob.class, group, name, "", cronExpression, singleton );
+    public AtJob(Callable handler, String group, String name, boolean singleton) {
+        super( ClojureJob.class, group, name, "", null, singleton );
         this.handler = handler;
     }
 

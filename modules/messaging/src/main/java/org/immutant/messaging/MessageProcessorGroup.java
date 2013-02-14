@@ -26,6 +26,7 @@ import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.jms.XAConnection;
 
+import org.immutant.core.HasImmutantRuntimeInjector;
 import org.immutant.core.SimpleServiceStateListener;
 import org.immutant.runtime.ClojureRuntime;
 import org.jboss.msc.inject.Injector;
@@ -39,7 +40,7 @@ import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.messaging.BaseMessageProcessor;
 import org.projectodd.polyglot.messaging.BaseMessageProcessorGroup;
 
-public class MessageProcessorGroup extends BaseMessageProcessorGroup implements MessageProcessorGroupMBean {
+public class MessageProcessorGroup extends BaseMessageProcessorGroup implements MessageProcessorGroupMBean, HasImmutantRuntimeInjector {
 
     public MessageProcessorGroup(ServiceRegistry registry, ServiceName baseServiceName,
             String destinationName, XAConnection connection, Object setupHandler, Object afterStartCallback) {
@@ -111,6 +112,7 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
         return this.clojureRuntimeInjector.getValue();
     }
     
+    @Override
     public Injector<ClojureRuntime> getClojureRuntimeInjector() {
         return clojureRuntimeInjector;
     }

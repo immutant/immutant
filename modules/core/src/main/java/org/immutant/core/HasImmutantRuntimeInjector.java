@@ -15,39 +15,14 @@
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ *package org.immutant.core;
  */
 
-package org.immutant.jobs;
-
-import java.util.concurrent.Callable;
+package org.immutant.core;
 
 import org.immutant.runtime.ClojureRuntime;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.PersistJobDataAfterExecution;
+import org.jboss.msc.inject.Injector;
 
-@PersistJobDataAfterExecution
-@DisallowConcurrentExecution
-public class ClojureJob implements Job {
-
-    @SuppressWarnings("rawtypes")
-    public ClojureJob(ClojureRuntime runtime, Callable fn) {
-        this.runtime = runtime;
-        this.fn = fn;
-    }
-
-    @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        try {
-            this.runtime.invoke( this.fn, context );
-        } catch (Exception e) {
-            throw new JobExecutionException( e );
-        }  
-    }
-
-    private ClojureRuntime runtime;
-    @SuppressWarnings("rawtypes")
-    private Callable fn;
+public interface HasImmutantRuntimeInjector {
+    public Injector<ClojureRuntime> getClojureRuntimeInjector();
 }

@@ -22,6 +22,7 @@ package org.immutant.messaging;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.immutant.core.HasImmutantRuntimeInjector;
 import org.immutant.core.SimpleServiceStateListener;
 import org.immutant.runtime.ClojureRuntime;
 import org.jboss.as.messaging.MessagingServices;
@@ -38,7 +39,7 @@ import org.projectodd.polyglot.messaging.destinations.processors.QueueInstaller;
 import org.projectodd.polyglot.messaging.destinations.processors.TopicInstaller;
 
 
-public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
+public class Destinationizer extends AtRuntimeInstaller<Destinationizer> implements HasImmutantRuntimeInjector {
 
     public Destinationizer(DeploymentUnit unit) {
         super( unit );
@@ -114,6 +115,7 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> {
         return (getUnit().getServiceRegistry().getService( serviceName ) != null);
     }
     
+    @Override
     public Injector<ClojureRuntime> getClojureRuntimeInjector() {
         return this.clojureRuntimeInjector;
     }

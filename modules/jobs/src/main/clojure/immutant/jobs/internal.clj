@@ -18,9 +18,10 @@
 (ns ^{:no-doc true} immutant.jobs.internal
   (:use [immutant.util :only [app-name]])
   (:require [immutant.registry :as registry]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log])
+  (:import java.util.Date))
 
-(defn ^{:private true} job-schedulizer  []
+(defn ^:internal job-schedulizer  []
   (registry/get "job-schedulizer"))
 
 (defn ^{:internal true} create-scheduler
@@ -58,11 +59,47 @@ A singleton scheduler will participate in a cluster, and will only execute its j
   (let [s (scheduler singleton)]
     (wait-for-scheduler s #(.getScheduler s))))
 
+(defn ^:internal date
+  "A wrapper around Date. to facilitate testing"
+  [ms]
+  (Date. ms))
+
+;; TODO: use defmulti/protocol?
+(defn ^:internal as-date
+  [ms-or-date]
+  (cond
+   (instance? Date ms-or-date)       ms-or-date
+   (and ms-or-date (< 0 ms-or-date)) (date ms-or-date)))
+
+(defn ^:private create-scheduled-job [f name spec singleton]
+  (.createJob (job-schedulizer) f name spec singleton))
+
+(defn ^:private create-at-job [f name {:keys [after at every in repeat until]} singleton]
+  (and at in
+       (throw (IllegalArgumentException. "You can't specify both :at and :in")))
+  (and repeat (not every)
+       (throw (IllegalArgumentException. "You can't specify :repeat without :every")))
+  (and until (not every)
+       (throw (IllegalArgumentException. "You can't specify :until without :every")))
+  
+  (.createAtJob (job-schedulizer)
+                f
+                name
+                (or (as-date at)
+                    (and in (< 0 in)
+                         (as-date (+ in (System/currentTimeMillis)))))
+                (as-date until)
+                (or every 0)
+                (or repeat 0)
+                singleton))
+
 (defn ^{:internal true} create-job
   "Instantiates and starts a job"
   [f name spec singleton]
   (scheduler singleton) ;; creates the scheduler if necessary
-  (.createJob (job-schedulizer) f name spec singleton))
+  ((if (map? spec)
+     create-at-job
+     create-scheduled-job) f name spec singleton))
 
 (defn ^{:internal true} stop-job
   "Stops (unschedules) a job, removing it from the scheduler."
