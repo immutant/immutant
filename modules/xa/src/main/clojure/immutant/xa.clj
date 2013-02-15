@@ -63,7 +63,5 @@
   corresponding to all the analogous attributes of the JEE @Transaction
   annotation."
   [& body]
-  (util/if-in-immutant
-   `(tx/required ~@body)
-   `(do ~@body)))
+  `(tx/required ~@body))
 
