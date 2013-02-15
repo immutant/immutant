@@ -23,7 +23,6 @@
         [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]
             [immutant.registry         :as registry]
-            [immutant.xa               :as xa]
             [clojure.tools.logging     :as log])
   (:import [immutant.messaging.core QueueMarker TopicMarker]))
 
@@ -119,15 +118,14 @@
                  be set) [nil]"
   [dest & {:keys [timeout decode?] :or {timeout 10000 decode? true} :as opts}]
   (with-connection opts
-    (xa/transaction
-     (let [session (session)
-           destination (create-destination session dest)
-           consumer (create-consumer session destination opts)
-           message (if (= -1 timeout)
-                     (.receiveNoWait consumer)
-                     (.receive consumer timeout))]
-       (when message
-         (codecs/decode-if decode? message))))))
+    (let [session (session)
+          destination (create-destination session dest)
+          consumer (create-consumer session destination opts)
+          message (if (= -1 timeout)
+                    (.receiveNoWait consumer)
+                    (.receive consumer timeout))]
+      (when message
+        (codecs/decode-if decode? message)))))
 
 (defn ^:internal ^:no-doc delayed-receive
   "Creates an timeout-derefable delay around a receive call"
@@ -188,7 +186,7 @@
      :reconnect-attempts         total number of reconnect attempts to make before giving
                                  up and shutting down (-1 for unlimited) [0]"
   [dest f & {:keys [concurrency decode?] :or {concurrency 1 decode? true} :as opts}]
-  (let [connection (create-connection opts)
+  (let [connection (create-connection (assoc opts :xa true))
         dest-name (destination-name dest)
         izer (registry/get "message-processor-groupizer")
         setup-fn (fn []
