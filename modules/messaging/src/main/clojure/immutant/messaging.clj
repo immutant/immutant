@@ -188,7 +188,7 @@
      :reconnect-attempts         total number of reconnect attempts to make before giving
                                  up and shutting down (-1 for unlimited) [0]"
   [dest f & {:keys [concurrency decode?] :or {concurrency 1 decode? true} :as opts}]
-  (let [connection (create-connection opts)
+  (let [connection (create-connection (assoc opts :xa true))
         dest-name (destination-name dest)
         izer (registry/get "message-processor-groupizer")
         setup-fn (fn []

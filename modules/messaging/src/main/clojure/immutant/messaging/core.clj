@@ -18,7 +18,7 @@
 (ns ^{:no-doc true} immutant.messaging.core
   "Internal utilities used by messaging. You should only need to dip
    into here in advanced cases."
-  (:use [immutant.util :only (at-exit if-in-immutant)])
+  (:use [immutant.util :only (at-exit if-in-immutant in-immutant?)])
   (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]
             [immutant.xa.transaction    :as tx]
@@ -213,17 +213,26 @@
         (log/info "Topic already exists:" name)))
     (throw (Exception. (str "Unable to start topic: " name)))))
 
-(defn create-session [connection]
-  (if-in-immutant
-   (.createXASession connection)
-   (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
+(defprotocol Sessionator
+  "Function for obtaining a session"
+  (create-session [connection]))
+
+(extend-type javax.jms.XAConnection
+  Sessionator
+  (create-session [connection]
+    (.createXASession connection)))
+
+(extend-type javax.jms.Connection
+  Sessionator
+  (create-session [connection]
+    (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
 
 (defn create-connection
   "Creates a connection and registers it in the *connections* map"
   [opts]
-  (let [conn (if-in-immutant
-              (.createXAConnection (connection-factory opts) (:username opts) (:password opts))
-              (.createConnection (connection-factory opts) (:username opts) (:password opts)))]
+  (let [conn (if (or (tx/active?) (and (in-immutant?) (:xa opts)))
+               (.createXAConnection (connection-factory opts) (:username opts) (:password opts))
+               (.createConnection (connection-factory opts) (:username opts) (:password opts)))]
     (if (:client-id opts) (.setClientID conn (:client-id opts)))
     (if *connections* (set! *connections* (assoc *connections* (connection-key opts) conn)))
     conn))
