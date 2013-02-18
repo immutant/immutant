@@ -16,17 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.bundled-clojure-version
-  (:use fntest.core
-        clojure.test
-        [immutant.integs.integ-helper :only [get-as-data]]))
-
-(use-fixtures :once (with-deployment *file*
-                      '{
-                        :root "target/apps/ring/basic-ring/"
-                        :init 'basic-ring.core/init-web
-                        :context-path "/basic-ring"
-                        }))
+  (:use [clojure.test :only [is deftest]]
+        [fntest.core :only [test-in-container]]))
 
 (deftest verify-clojure-version
-  (is (= (:full immutant.integs/*current-clojure-version*)
-         (:clojure-version (get-as-data "/basic-ring")))))
+  (is (test-in-container "bundled-clojure-version" "target/apps/no-clojure-jar")))

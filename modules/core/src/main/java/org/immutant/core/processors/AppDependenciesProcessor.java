@@ -87,7 +87,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
                         ", Using built-in clojure.jar (v" + immutant.getClojureVersion() + ")" );
 
                 // borrow the shipped clojure.jar
-                mounter.mount( findInModulePath( "org/immutant/core/main/clojure.jar" ), false );
+                mounter.mount( findInModulePath( "org/immutant/bootstrap/main/clojure.jar" ), false );
             }
 
             //mount the runtime jar
