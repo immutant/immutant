@@ -2,13 +2,14 @@
 
 * Introduction
 
-  Jobs in Immutant are simply functions that execute on a recurring 
-  schedule. They fire asynchronously, outside of the thread where they are 
-  defined, and fire in the same runtime as the rest of the application, so 
-  have access to any shared state.
+  Jobs in Immutant are simply functions that execute on a recurring
+  schedule. They fire asynchronously, outside of the thread where they
+  are defined, and fire in the same runtime as the rest of the
+  application, so have access to any shared state.
 
-  Jobs are built on top of the [[http://quartz-scheduler.org][Quartz]] library, and support scheduling via
-  a cron-like specification. 
+  Jobs are built on top of the [[http://quartz-scheduler.org][Quartz]] library, and support scheduling
+  via a cron-like specification or a more finer-grained *at*-style
+  syntax.
 
 * Scheduling Jobs
 
@@ -18,23 +19,54 @@
     (ns my.ns
       (:require [immutant.jobs :as jobs]))
       
-    (jobs/schedule "my-job-name" "*/5 * * * * ?" 
-                   #(println "I was called!")
+    (jobs/schedule "my-cron-job-name"  
+                   #(println "I fire every 5s, forever.")
+                   "*/5 * * * * ?"
+                   :singleton false)
+    
+    (jobs/schedule "my-at-job-name"  
+                   #(println "I fire 4 times with a 10ms delay between each, starting in 500ms.")
+                   :in 500   ; ms
+                   :every 10 ; ms
+                   :repeat 3
                    :singleton false)
   #+end_src
 
-  The =schedule= function requires three arguments, and also accepts options:
+  The =schedule= function takes two or three arguments, and also
+  accepts options:
 
-  * =name= - the name of the job. If the given name is the same as the name of 
-    previously scheduled job in the application's runtime, the prior job will be 
-    unscheduled and the new job will be scheduled in its place. 
-  * =spec= - the cron-style specification string. See [[#jobs-cron-syntax][Cron Syntax]].
-  * =f= - the zero argument function that will be invoked each time the job fires.
-  * =options= - options are specified as alternating key & value literals. Valid options are:
+  + =name= - the name of the job. If the given name is the same as the
+    name of previously scheduled job in the application's runtime, the
+    prior job will be unscheduled and the new job will be scheduled in
+    its place.
+  + =f= - the zero argument function that will be invoked each time
+    the job fires.
+  + =spec= - the optional cron-style specification string if you are
+    scheduling a cron-style job. It is an error to provide a spec
+    along with any of the *at* options. See [[#jobs-cron-syntax][Cron Syntax]].
+  + =options= - options are specified as alternating key & value
+    literals. Valid options are:
 
-    | Option     | Default | Description                                                                                                                              |
-    |------------+---------+------------------------------------------------------------------------------------------------------------------------------------------|
-    | :singleton | /true/  | Marks the job as a *singleton* in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node. |
+    | Option     | Default                             | Description                                                                                                                                                              |
+    |------------+-------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+    | :at        | /none/, /now/ if no =spec= provided | Specifies when the *at* job should start firing. Can be a java.util.Date or ms since epoch. Can't be specified with a =spec= or =:in=.                                   |
+    | :in        | /none/                              | Specifies when the *at* job should start firing, in ms from now. Can't be specified with a =spec= or =:at=.                                                              |
+    | :every     | /none/                              | Specifies the delay interval between *at* job firings, in ms. If specified without a =:repeat= or =:until=, the job will fire indefinitely. Can't be specified with a =spec=. |
+    | :repeat    | /none/                              | Specifies the number of times an *at* job should repeat beyond its initial firing. Can't be specified with a =spec=, and requires =:every= to be provided.               |
+    | :until     | /none/                              | Specifies when the *at* job should stop firing. Can be a java.util.Date or ms since epoch. Can't be specified with a =spec=.                                             |
+    | :singleton | /true/                              | Marks the job as a *singleton* in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node.                                 |
+
+  If you specify a job without a cron spec or any *at* options, it
+  will fire once, immediately:
+
+  #+begin_src clojure
+    (ns my.ns
+      (:require [immutant.jobs :as jobs]))
+      
+    (jobs/schedule "another-job"  
+                   #(println "I'll fire right now, once."))
+    
+  #+end_src
 
   Job scheduling is dynamic, and can occur anytime during your
   application's lifecycle.

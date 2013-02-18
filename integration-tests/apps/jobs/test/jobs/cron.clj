@@ -6,7 +6,7 @@
 
 (defmacro with-job [action & body]
   `(try
-     (job/schedule "a-job" "*/1 * * * * ?" ~action)
+     (job/schedule "a-job" ~action "*/1 * * * * ?")
      ~@body
       (finally (job/unschedule "a-job"))))
 
@@ -41,3 +41,7 @@
   (let [q (random-queue)]
     (with-job #(msg/publish q (instance? org.quartz.JobExecutionContext job/*job-execution-context*))
       (is (msg/receive q :timeout 10000)))))
+
+(deftest it-should-raise-when-spec-is-given-with-at-opts
+  (doseq [o [:at :in :every :repeat :until]]
+    (is (thrown? IllegalArgumentException (schedule "name" #() "spec" o 0)))))

@@ -20,20 +20,13 @@
         immutant.jobs.internal
         [immutant.util :only [at-exit]]
         immutant.test.helpers
-        clojure.test
-        midje.sweet)
+        clojure.test)
   (:require [immutant.registry :as registry])
   (:import org.immutant.jobs.JobSchedulizer
            org.projectodd.polyglot.jobs.BaseJob
            java.util.Date))
 
-(defn fun [])
-
-(deffact "schedule unschedules and creates a job"
-  (schedule "name" "spec" fun) => anything
-  (provided
-    (unschedule "name") => nil
-    (create-job (as-checker fn?) "name" "spec" true) => :job))
+(defn fun [] :from-fun)
 
 (def job-args (atom nil))
 
@@ -50,56 +43,83 @@
                                   args))
                   nil)))
 
+(defmacro with-noop-unschedule [& body]
+  (let [f# (fn [_])]
+    `(with-redefs [unschedule ~f#]
+       ~@body)))
+
+(deftest schedule-with-spec-first-works
+  (with-noop-unschedule
+    (schedule "name" "spec" fun)
+    (is (= "spec" (:cron-ex @job-args)))
+    ;; the f gets wrapped in another fn, so we have to call it to id it
+    (is (= :from-fun ((:handler @job-args) nil)))))
+
+(deftest schedule-with-spec-after-f-works
+  (with-noop-unschedule
+    (schedule "name" fun "spec")
+    (is (= "spec" (:cron-ex @job-args)))
+    ;; the f gets wrapped in another fn, so we have to call it to id it
+    (is (= :from-fun ((:handler @job-args) nil)))))
+
+(deftest schedule-with-spec-shoud-throw-if-given-any-at-opts
+  (doseq [o [:at :in :every :repeat :until]]
+    (is (thrown? IllegalArgumentException (schedule "name" fun "spec" o 0)))))
+
 (deftest scheduling-at-jobs
-  (with-redefs [unschedule (fn [_])]
+  (with-noop-unschedule
     
     (testing "it should raise if given :at and :in"
-      (is (thrown? IllegalArgumentException (schedule "name" {:at 0 :in 0} fun))))
+      (is (thrown? IllegalArgumentException (schedule "name" fun :at 0 :in 0))))
 
     (testing "it should raise if given :until without :every"
-      (is (thrown? IllegalArgumentException (schedule "name" {:until 5} fun))))
+      (is (thrown? IllegalArgumentException (schedule "name" fun :until 5))))
 
     (testing "it should raise if given :repeat without :every"
-      (is (thrown? IllegalArgumentException (schedule "name" {:repeat 5} fun))))
+      (is (thrown? IllegalArgumentException (schedule "name" fun :repeat 5))))
     
     (testing "it should turn :in into a date"
       (let [d (Date. (+ 5000 (System/currentTimeMillis)))]
         (with-redefs [date (fn [_] d)]
-          (schedule "name" {:in 5000} fun)
+          (schedule "name" fun :in 5000)
           (is (= d (:start-at @job-args))))))
     
     (testing "it should turn a long :at into a date"
       (let [at (System/currentTimeMillis)]
-        (schedule "name" {:at at} fun)
+        (schedule "name" fun :at at)
         (is (= (Date. at) (:start-at @job-args)))))
 
     (testing "it should pass through a Date :at"
       (let [at (Date.)]
-        (schedule "name" {:at at} fun)
+        (schedule "name" fun :at at)
         (is (= at (:start-at @job-args)))))
 
     (testing "it should turn a long :until into a date"
       (let [until (System/currentTimeMillis)]
-        (schedule "name" {:until until :every 5} fun)
+        (schedule "name" fun :until until :every 5)
         (is (= (Date. until) (:end-at @job-args)))))
 
     (testing "it should pass through a Date :until"
       (let [until (Date.)]
-        (schedule "name" {:until until :every 5} fun)
+        (schedule "name" fun :until until :every 5)
         (is (= until (:end-at @job-args)))))
 
     (testing "it should pass through a non-nil :every"
-      (schedule "name" {:every 5} fun)
+      (schedule "name" fun :every 5)
       (is (= 5 (:every @job-args))))
     
     (testing "it should pass through a non-nil :repeat"
-      (schedule "name" {:repeat 5 :every 5} fun)
+      (schedule "name" fun :repeat 5 :every 5)
       (is (= 5 (:repeat @job-args))))
     
     (testing "it should treat a nil :every as 0"
-      (schedule "name" {:every nil} fun)
+      (schedule "name" fun :every nil)
       (is (= 0 (:every @job-args))))
     
     (testing "it should treat a nil :repeat as 0"
-      (schedule "name" {:repeat nil} fun)
-      (is (= 0 (:repeat @job-args))))))
+      (schedule "name" fun :repeat nil)
+      (is (= 0 (:repeat @job-args))))
+
+    (testing "it should allow no opts"
+      (schedule "name" fun)
+      (is (= "name" (:name @job-args))))))

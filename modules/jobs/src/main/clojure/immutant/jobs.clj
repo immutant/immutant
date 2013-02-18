@@ -34,16 +34,43 @@
     (swap! current-jobs dissoc name)
     true))
 
-(defn schedule
-  "Schedules a job to execute based on the spec.
-Calling this function with the same name as a previously scheduled job will replace that job."
-  [name spec f & {singleton :singleton :or {singleton true}}]
-  (unschedule name)
-  (log/info "Scheduling job" name "at" spec)
-  (letfn [(job [ctx] (binding [*job-execution-context* ctx] (f)))]
-    (swap! current-jobs assoc name
-           (internal/create-job job name spec (boolean singleton))))
-  nil)
+(def
+  ^{:arglists '([name f spec & {:keys [singleton] :or {singleton true}}]
+                  [name f & {:keys [at in until every repeat singleton] :or {singleton true}}])
+    :doc "Schedules a job to execute based on the cron spec or the 'at' options.
+
+Available options [default]:
+  :at        Specifies when the 'at' job should start firing. Can be a
+             java.util.Date or ms since epoch. Can't be specified with
+             a spec or :in [none, now if no spec provided]
+  :in        Specifies when the 'at' job should start firing, in ms from
+             now. Can't be specified with a spec or :at [none]
+  :every     Specifies the delay interval between
+             'at' job firings, in ms. If specified without a :repeat
+             or :until, the job will fire indefinitely. Can't be
+             specified with a spec [none]
+  :repeat    Specifies the number of times an 'at' job should repeat
+             beyond its initial firing. Can't be specified with a
+             spec, and requires :every to be provided [none]
+  :until     Specifies when the 'at' job should stop firing. Can be a
+             java.util.Date or ms since epoch. Can't be specified with
+             a spec [none]
+  :singleton Marks the job as a singleton in a cluster. Singleton
+             jobs will only execute on one node. If false, the job will
+             execute on every node [true]
+
+Calling this function with the same name as a previously scheduled job
+will replace that job."}
+  schedule
+  (fn
+    [name & opts]
+    (let [{:keys [fn spec] :as opts} (internal/extract-spec opts)]
+      (unschedule name)
+      (log/info "Scheduling job" name "with" spec)
+      (letfn [(job [ctx] (binding [*job-execution-context* ctx] (fn)))]
+        (swap! current-jobs assoc name
+               (internal/create-job job name spec (:singleton opts true)))))
+    nil))
 
 (defn internal-scheduler
   "Returns the internal Quartz scheduler for use with other libs, e.g. Quartzite"

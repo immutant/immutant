@@ -28,8 +28,9 @@
   "Creates a scheduler for the current application.
 A singleton scheduler will participate in a cluster, and will only execute its jobs on one node."
   [singleton]
-  (log/info "Creating job scheduler for"  (app-name) "singleton:" singleton)
-  (.createScheduler (job-schedulizer) singleton))
+  (let [singleton (boolean singleton)]
+    (log/info "Creating job scheduler for"  (app-name) "singleton:" singleton)
+    (.createScheduler (job-schedulizer) singleton)))
 
 (defn ^{:internal true} scheduler
   "Retrieves the appropriate scheduler, creating it if necessary"
@@ -72,7 +73,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
    (and ms-or-date (< 0 ms-or-date)) (date ms-or-date)))
 
 (defn ^:private create-scheduled-job [f name spec singleton]
-  (.createJob (job-schedulizer) f name spec singleton))
+  (.createJob (job-schedulizer) f name spec (boolean singleton)))
 
 (defn ^:private create-at-job [f name {:keys [after at every in repeat until]} singleton]
   (and at in
@@ -91,7 +92,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
                 (as-date until)
                 (or every 0)
                 (or repeat 0)
-                singleton))
+                (boolean singleton)))
 
 (defn ^{:internal true} create-job
   "Instantiates and starts a job"
@@ -107,4 +108,32 @@ A singleton scheduler will participate in a cluster, and will only execute its j
   (if (.isStarted job)
     (.stop job)))
 
+
+(defmulti extract-spec #(class (fnext %)))
+
+(let [at-keys [:at :in :every :repeat :until]]
+  (defn ^:private throw-when-at-opts [opts]
+    (when (some (set at-keys) opts)
+      (throw (IllegalArgumentException.
+              "You can't specify a cron spec and 'at' options."))))
+  
+  (defmethod extract-spec clojure.lang.Fn [opts]
+    (log/warn "Supplying the cronspec before the fn is deprecated;"
+              "provide the cronspec after the fn argument.")
+    (throw-when-at-opts opts)
+    (assoc (apply hash-map (nnext opts))
+      :spec (first opts)
+      :fn (fnext opts)))
+
+  (defmethod extract-spec String [opts]
+    (throw-when-at-opts opts)
+    (assoc (apply hash-map (nnext opts))
+      :spec (fnext opts)
+      :fn (first opts)))
+
+  (defmethod extract-spec :default [opts]
+    (let [m (apply hash-map (rest opts))]
+      (assoc (apply dissoc m at-keys)
+        :spec (select-keys m at-keys)
+        :fn (first opts)))))
 
