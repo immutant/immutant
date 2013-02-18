@@ -100,7 +100,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         // disable the annotation index, since we're not an EE app and it spits nasty WARNs to the log if
         // ring is included as an app dep in relation to some jetty classes
         unit.putAttachment( Attachments.COMPUTE_COMPOSITE_ANNOTATION_INDEX, false );
-        // AS let's us disable the index, but then assumes it's always there, so we give it an empty one
+        // the AS lets us disable the index, but then assumes it's always there, so we give it an empty one
         unit.putAttachment( Attachments.COMPOSITE_ANNOTATION_INDEX, new CompositeIndex( Collections.EMPTY_LIST ) );
         
         t.done();
