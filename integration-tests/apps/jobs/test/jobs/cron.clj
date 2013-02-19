@@ -44,4 +44,4 @@
 
 (deftest it-should-raise-when-spec-is-given-with-at-opts
   (doseq [o [:at :in :every :repeat :until]]
-    (is (thrown? IllegalArgumentException (schedule "name" #() "spec" o 0)))))
+    (is (thrown? IllegalArgumentException (job/schedule "name" #() "spec" o 0)))))
