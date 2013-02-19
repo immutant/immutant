@@ -79,7 +79,7 @@
 
   - =:lein-profiles= - If the application is a Leiningen 2 (or greater) project, 
     you can specify the [[https://github.com/technomancy/leiningen/blob/master/doc/PROFILES.md][Leiningen profiles]] (as a collection) to apply when loading 
-    =project.clj=. If no profiles are specified, only the =:default= profile is 
+    =project.clj=. If no profiles are specified, only the =:dev= profile is 
     loaded.
 
   - =:swank-port= & =:nrepl-port= - Immutant can provide a

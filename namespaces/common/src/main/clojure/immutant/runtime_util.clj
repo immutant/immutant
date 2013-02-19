@@ -71,7 +71,7 @@
                  %
                  (keyword (str/replace % ":" "")))
               profiles)
-         [:default])))
+         [:dev])))
 
 (defn ^{:internal true} lib-dir
   "Resolve the library dir for the application."

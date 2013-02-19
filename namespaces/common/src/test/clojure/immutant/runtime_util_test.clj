@@ -64,8 +64,8 @@
    (fact "normalize-profiles"
      (normalize-profiles ?given) => ?expected)
    ?expected    ?given
-   #{:default}  nil
-   #{:default}  []
+   #{:dev}      nil
+   #{:dev}      []
    #{:foo}      [:foo]
    #{:foo}      [":foo"]
    #{:foo}      ["foo"]
