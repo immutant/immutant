@@ -386,7 +386,7 @@
     <version.leiningen>2.0.0</version.leiningen>
     <version.deploy-tools>0.9.2</version.deploy-tools>
     <version.codox>0.6.3</version.codox>
-    <version.fntest>0.3.8</version.fntest>
+    <version.fntest>0.3.9</version.fntest>
     <version.clj-http>0.5.8</version.clj-http>
 
     <warn-on-reflection>false</warn-on-reflection>
