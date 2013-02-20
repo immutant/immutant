@@ -65,7 +65,7 @@
 
     | Option     | Default    | Description                                                                                                                            |
     |------------+------------+----------------------------------------------------------------------------------------------------------------------------------------|
-    | =:mode=    | =:local=   | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. Defaults to =:invalidated= if clustered.           |
+    | =:mode=    | =:local=   | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. Defaults to =:distributed= if clustered. |
     | =:persist= | =nil=      | Enables entries to persist across server restarts in a file-backed store.
     | =:seed=    | =nil=      | A hash of initial entries to replace the existing ones.                                                                                |
     | =:locking= | =nil=      | The locking mode within a transaction. One of =:optimistic= or =:pessimistic=                                                          |
@@ -97,11 +97,11 @@
      (ns example.test
        (:use [immutant.cache]))
      
-     ;; Obtain a cache in :invalidated mode if clustered, :local otherwise
+     ;; Obtain a cache in :distributed mode if clustered, :local otherwise
      (def c1 (cache "jimi"))
      
-     ;; A cache in :distributed mode if clustered, :local otherwise
-     (def c2 (cache "jeff" :mode :distributed))
+     ;; A cache in :invalidated mode if clustered, :local otherwise
+     (def c2 (cache "jeff" :mode :invalidated))
      
      ;; Initialize a replicated cache, if clustered, with a seed
      (def c3 (cache "billy" :mode :replicated, :seed {:a 1 :b 2}))
