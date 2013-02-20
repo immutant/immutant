@@ -20,10 +20,15 @@
       <version>${version.polyglot}</version>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>org.projectodd</groupId>
       <artifactId>polyglot-core-extensions</artifactId>
+      <version>${version.polyglot}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectodd</groupId>
+      <artifactId>polyglot-cache</artifactId>
       <version>${version.polyglot}</version>
       <scope>provided</scope>
     </dependency>

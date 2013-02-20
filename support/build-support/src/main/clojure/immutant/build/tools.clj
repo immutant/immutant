@@ -255,9 +255,23 @@
     "http" (zip/edit loc assoc-in [:attrs :port] "${http.port:8080}")
     loc))
 
+(defn polyglot-cache-container []
+  {:tag :cache-container
+   :attrs {:name "polyglot", :default-cache "default"},
+   :content [{:tag :local-cache
+              :attrs {:name "default", :start "EAGER"},
+              :content [{:tag :eviction
+                         :attrs {:strategy "LRU", :max-entries "10000"}}
+                        {:tag :expiration
+                         :attrs {:max-idle "100000"}}
+                        {:tag :transaction
+                         :attrs {:mode "FULL_XA"}}]}]})
+
 (defn fix-cache-container [loc]
-  (condp = (-> loc zip/node :attrs :name)
-    "web" (zip/edit loc update-in [:attrs :aliases] #(str "polyglot " %))
+  (if (= "web" (-> loc zip/node :attrs :name))
+    (if (looking-at? :transport (zip/down loc))
+      (zip/edit loc update-in [:attrs :aliases] #(str "polyglot " %))
+      (zip/insert-right loc (polyglot-cache-container)))
     loc))
 
 (defn prepare-zip

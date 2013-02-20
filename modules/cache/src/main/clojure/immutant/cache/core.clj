@@ -26,11 +26,8 @@
              org.infinispan.util.concurrent.IsolationLevel))
 
 (def file-store-path (str (io/file (System/getProperty "jboss.server.data.dir") "immutant-cache-persist")))
-(def clustered-manager (registry/get "jboss.infinispan.web"))
-(def global-config (let [builder (org.infinispan.configuration.global.GlobalConfigurationBuilder.)]
-                     (.. builder globalJmxStatistics (allowDuplicateDomains true))
-                     (.build builder)))
-(def local-manager (delay (DefaultCacheManager. global-config)))
+(def service (registry/get org.projectodd.polyglot.cache.as.CacheService/CACHE))
+(def manager (delay (or (and service (.getCacheContainer service)) (DefaultCacheManager.))))
 
 (defn cache-mode
   [{:keys [mode sync]}]
@@ -95,24 +92,23 @@
   (doto (.getCache manager name)
     (.start)))
 
+(defn default-mode []
+  (if (and service (.isClustered service))
+    :distributed
+    :local))
+
 (defn configure-cache
   "Defaults to :distributed, with :sync=true, for a clustered cache"
   [manager name opts]
-  (let [opts (merge {:mode :distributed, :sync true} opts)]
+  (let [opts (merge {:mode (default-mode), :sync true} opts)]
     (if (.isRunning manager name)
       (reconfigure manager name opts)
       (configure manager name opts))))
 
 (defn raw-cache
   "Returns the raw Infinispan cache, clustered if possible, otherwise local"
-  [name {:keys [mode] :or {mode :local} :as opts}]
-  (cond
-    clustered-manager (configure-cache clustered-manager name opts)
-    local-manager (do
-                    (if (not= mode :local)
-                      (log/warn "Invalid mode," mode ", falling back to local"))
-                    (configure-cache @local-manager name (assoc opts :mode :local)))
-    :else (log/error "Infinispan not found on the classpath")))
+  [name {:as opts}]
+  (configure-cache @manager name opts))
 
 (defn lifespan-params [{:keys [ttl idle units] :or {ttl -1 idle -1 units :seconds}}]
   (let [u (.toUpperCase (name units))

@@ -21,6 +21,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.projectodd</groupId>
+      <artifactId>polyglot-cache</artifactId>
+      <version>${version.polyglot}</version>
+    </dependency>
+    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>core.cache</artifactId>
       <version>${version.clojure.core.cache}</version>
