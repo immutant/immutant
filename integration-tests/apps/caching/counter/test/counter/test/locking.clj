@@ -6,9 +6,9 @@
 (msg/start "/queue/work")
 (msg/start "/queue/done")
 
-(def caches {:default (csh/cache "default" :mode :local),
-             :optimistic (csh/cache "optimistic" :locking :optimistic :mode :local)
-             :pessimistic (csh/cache "pessimistic" :locking :pessimistic :mode :local)})
+(def caches {:default (csh/cache "default"),
+             :optimistic (csh/cache "optimistic" :locking :optimistic)
+             :pessimistic (csh/cache "pessimistic" :locking :pessimistic)})
 
 (defn work
   [{:keys [name key]}]
