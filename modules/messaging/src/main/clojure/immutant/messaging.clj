@@ -185,8 +185,8 @@
      :max-retry-interval         the max retry interval that will be used [2000]
      :reconnect-attempts         total number of reconnect attempts to make before giving
                                  up and shutting down (-1 for unlimited) [0]"
-  [dest f & {:keys [concurrency decode?] :or {concurrency 1 decode? true} :as opts}]
-  (let [connection (create-connection (assoc opts :xa true))
+  [dest f & {:keys [concurrency decode? host] :or {concurrency 1 decode? true} :as opts}]
+  (let [connection (create-connection (assoc opts :xa (nil? host)))
         dest-name (destination-name dest)
         izer (registry/get "message-processor-groupizer")
         setup-fn (fn []
@@ -199,8 +199,7 @@
     (at-exit #(.close connection))
     (cond
      (or (not izer)
-         (and (:host opts)
-              (destination-exists? connection dest)))
+         (and host (destination-exists? connection dest)))
      ;; we're outside the container, or in-container but listening to a remote dest
      (try
        (when izer (log/info
