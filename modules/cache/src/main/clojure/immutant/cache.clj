@@ -60,7 +60,7 @@
   (lookup [this key]
     (.valAt this key))
   (has? [this key]
-    (.containsKey cache (encode key)))
+    (.containsKey cache (encode key (:encoding options))))
   (hit [this key] this)
   (miss [this key value]
     (put this key value)
@@ -75,34 +75,47 @@
   Mutable
   (put [this k v] (put this k v {}))
   (put [_ k v opts]
-    (decode (expire (.put cache (encode k) (encode v) (merge options opts)))))
+    (let [opts (merge options opts)
+          enc (:encoding opts)]
+      (decode (expire (.put cache (encode k enc) (encode v enc) opts)) enc)))
   (put-all [this m] (put-all this m {}))
   (put-all [_ m opts]
-    (and m (expire (.putAll cache (into {} (for [[k v] m] [(encode k) (encode v)])) (merge options opts)))))
+    (let [opts (merge options opts)
+          enc (:encoding opts)]
+      (and m (expire (.putAll cache (into {} (for [[k v] m] [(encode k enc) (encode v enc)])) opts)))))
   (put-if-absent [this k v] (put-if-absent this k v {}))
   (put-if-absent [_ k v opts]
-    (decode (expire (.putIfAbsent cache (encode k) (encode v) (merge options opts)))))
+    (let [opts (merge options opts)
+          enc (:encoding opts)]
+      (decode (expire (.putIfAbsent cache (encode k enc) (encode v enc) opts)) enc)))
   (put-if-present [this k v] (put-if-present this k v {}))
   (put-if-present [_ k v opts]
-    (decode (expire (.replace cache (encode k) (encode v) (merge options opts)))))
+    (let [opts (merge options opts)
+          enc (:encoding opts)]
+      (decode (expire (.replace cache (encode k enc) (encode v enc) opts)) enc)))
   (put-if-replace [this k old v] (put-if-replace this k old v {}))
   (put-if-replace [_ k old v opts]
-    (expire (.replace cache (encode k) (encode old) (encode v) (merge options opts))))
-  (delete [_ key] (and key (decode (.remove cache (encode key)))))
-  (delete [_ key value] (.remove cache (encode key) (encode value)))
+    (let [opts (merge options opts)
+          enc (:encoding opts)]
+      (expire (.replace cache (encode k enc) (encode old enc) (encode v enc) opts))))
+  (delete [_ key]
+    (and key (let [enc (:encoding options)] (decode (.remove cache (encode key enc)) enc))))
+  (delete [_ key value] (let [e (:encoding options)] (.remove cache (encode key e) (encode value e))))
   (delete-all [this] (.clear cache) this)
 
   clojure.lang.Seqable
   (seq [_]
     (and (seq cache)
-         (for [[k v] (seq cache)]
-           (clojure.lang.MapEntry. (decode k) (decode v)))))
+         (let [enc (:encoding options)]
+           (for [[k v] (seq cache)]
+             (clojure.lang.MapEntry. (decode k enc) (decode v enc))))))
 
   java.util.Map
   (containsKey [_ key]
-    (.containsKey cache (encode key)))
+    (.containsKey cache (encode key (:encoding options))))
   (get [_ key]
-    (decode (.get cache (encode key))))
+    (let [enc (:encoding options)]
+      (decode (.get cache (encode key enc)) enc)))
   
   clojure.lang.ILookup
   (valAt [this key]
@@ -164,6 +177,7 @@
      :seed     A hash of initial entries [nil]
      :locking  Infinispan locking schemes [nil]
                  :optimisitic or :pessimistic
+     :encoding :edn :json or :none [:edn]
      :ttl      The max time the entry will live before expiry [-1]
      :idle     The time after which an entry will expire if not accessed [-1]
      :units    The units for the values of :ttl and :idle [:seconds]

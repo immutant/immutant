@@ -62,18 +62,19 @@
 (deftest complex-json-encoding
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}
         encoded (encode message :json)]
-    (is (= encoded "{\"a\":\"b\",\"c\":[1,2,3,{\"foo\":42}]}"))))
+    (is (= message (decode encoded)))
+    (is (= message (decode "{\"a\":\"b\",\"c\":[1,2,3,{\"foo\":42}]}" :json)))))
 
 (deftest text
-  (test-codec "ham biscuit" :text))
+  (test-codec "ham biscuit" :none))
 
 (deftest decode-nil
   (are [x] (nil? x)
-       (decode nil)
-       (decode nil :clojure)
-       (decode nil :edn)
-       (decode nil :json)
-       (decode nil :text)))
+       (decode (encode nil))
+       (decode (encode nil :clojure))
+       (decode (encode nil :edn))
+       (decode (encode nil :json))
+       (decode (encode nil :none))))
 
 (deftest decode-list
-  (is (= '(1 2 3) (decode "(1 2 3)"))))
+  (is (= '(1 2 3) (decode (encode '(1 2 3))))))

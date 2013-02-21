@@ -92,8 +92,9 @@
 
 (deftest complex-json-encoding
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}
-        encoded (.getText (encode (session-mock) message {:encoding :json}))]
-    (is (= encoded "{\"a\":\"b\",\"c\":[1,2,3,{\"foo\":42}]}"))))
+        encoded (encode (session-mock) message {:encoding :json})]
+    (is (= message (decode encoded)))
+    (is (.contains (.getText encoded) "{\"a\":\"b\",\"c\":[1,2,3,{\"foo\":42}]}"))))
 
 (deftest text
   (test-codec "ham biscuit" :text))

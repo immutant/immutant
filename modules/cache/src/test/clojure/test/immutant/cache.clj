@@ -174,8 +174,10 @@
       (is (every? empty? [c d e])))))
 
 (deftest test-persistent-seeding
-  (let [c (cache "cachey" :persist "src/test/resources/cache-store")]
-    (is (= (:key c) 42))))
+  (let [c (cache "cachey" :persist "src/test/resources/cache-store")
+        cn (cache "cachey-none" :encoding :none, :persist "src/test/resources/cache-store")]
+    (is (= (:key c) 42))
+    (is (= (:key cn) 42))))
 
 (deftest test-persist-file-store
   (try
