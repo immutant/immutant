@@ -19,6 +19,7 @@
   (:import [org.apache.commons.io FileUtils])
   (:require [clojure.java.io                :as io]
             [clojure.java.shell             :as shell]
+            [clojure.set                    :as set]
             [clojure.string                 :as str]
             [clojure.zip                    :as zip]
             [clojure.contrib.zip-filter     :as zf]
@@ -27,6 +28,23 @@
             [clojure.contrib.lazy-xml       :as lazy-xml]
             [org.satta.glob                 :as glob])
   (:use [clojure.pprint :only [pprint]]))
+
+(def polyglot-modules
+    ["hasingleton" "cache" "core" "web"])
+
+(def polyglot-extensions
+  ["hasingleton" "cache"])
+
+(def fat-modules
+  ["cmp" "ejb3" "jacorb" "jaxr" "jaxrs" "jdr" "jpa" "jsf" "jsr77" "mail"
+   "sar" "webservices" "weld"])
+
+(defn looking-at? [tag loc]
+  (= tag (:tag (zip/node loc))))
+
+(def extensions-to-remove (atom ["pojo"]))
+(def subsystems-to-remove (atom ["pojo"]))
+(def tags-to-remove (atom [(partial looking-at? :jms-destinations)]))
 
 (defn unzip* [& sh-args]
   (let [result (apply shell/sh sh-args)]
@@ -64,54 +82,60 @@
 (defn extract-module-name [dir]
   (second (re-find #"immutant-(.*)-module-module" (.getName dir))))
 
-(defn init [assembly-root]
-  (def root-dir (-> assembly-root .getCanonicalFile .getParentFile .getParentFile))
-  (def root-pom (io/file root-dir "pom.xml"))
-  (def build-dir (io/file (.getCanonicalFile assembly-root) "target/stage"))
-  (def immutant-dir (io/file build-dir "immutant"))
-  (def jboss-dir (io/file immutant-dir "jboss"))
+(def version-paths {:immutant [:version]
+                    :jboss [:properties :version.jbossas]
+                    :polyglot [:properties :version.polyglot]})
 
-  (def version-paths {:immutant [:version]
-                      :jboss [:properties :version.jbossas]
-                      :polyglot [:properties :version.polyglot]})
+(def m2-repo (if (System/getenv "M2_REPO")
+               (System/getenv "M2_REPO")
+               (str (System/getenv "HOME") "/.m2/repository")))
 
-  (def versions (extract-versions root-pom version-paths))
+(def ^:dynamic root-dir nil)
+(def ^:dynamic build-dir nil)
+(def immutant-dir (memoize #(io/file build-dir "immutant")))
+(def jboss-dir (memoize #(io/file (immutant-dir) "jboss")))
+(def versions (memoize #(extract-versions (io/file root-dir "pom.xml") version-paths)))
 
-  (def m2-repo (if (System/getenv "M2_REPO")
-                 (System/getenv "M2_REPO")
-                 (str (System/getenv "HOME") "/.m2/repository")))
+(defn jboss-zip-file []
+  (str m2-repo "/org/jboss/as/jboss-as-dist/"
+       (:jboss (versions)) "/jboss-as-dist-"
+       (:jboss (versions)) ".zip"))
 
-  (def jboss-zip-file
-    (str m2-repo "/org/jboss/as/jboss-as-dist/" (:jboss versions) "/jboss-as-dist-" (:jboss versions) ".zip"))
+(def immutant-modules
+  (memoize #(reduce (fn [acc file]
+                      (assoc acc
+                        (extract-module-name file)
+                        file))
+                    {}
+                    (glob/glob (str (.getAbsolutePath root-dir)
+                                    "/modules/*/target/*-module")))))
 
-  (def immutant-modules (reduce (fn [acc file]
-                               (assoc acc
-                                 (extract-module-name file)
-                                 file))
-                             {}
-                             (glob/glob (str (.getAbsolutePath root-dir) "/modules/*/target/*-module"))))
-  
-  (def polyglot-modules
-    ["hasingleton" "cache" "core" "web"])
+(defmacro with-assembly-root [assembly-root & body]
+  `(binding [root-dir  (-> ~assembly-root .getCanonicalFile .getParentFile .getParentFile)
+             build-dir (io/file (.getCanonicalFile ~assembly-root) "target/stage")]
+     ~@body))
 
-  (def polyglot-extensions
-    ["hasingleton" "cache"]))
+(defn attr= [attr val loc]
+  (= val (get-in (zip/node loc) [:attrs attr])))
 
+(def name= (partial attr= :name))
 
-(defn looking-at? [tag loc]
-  (= tag (:tag (zip/node loc))))
+(defn delete-module [path]
+  (doseq [slot (.listFiles (io/file (jboss-dir) "modules" path))]
+    (if (.exists (io/file slot "module.xml"))
+      (FileUtils/deleteDirectory slot))))
 
 (defn install-module [module-dir]
   (let [name (extract-module-name module-dir)
-        dest-dir (io/file jboss-dir (str "modules/org/immutant/" name "/main"))]
+        dest-dir (io/file (jboss-dir) (str "modules/org/immutant/" name "/main"))]
     (FileUtils/deleteQuietly dest-dir)
     (FileUtils/copyDirectory module-dir dest-dir)))
 
 (defn install-polyglot-module [name]
-  (let [version (:polyglot versions)
+  (let [version (:polyglot (versions))
         artifact-path (str m2-repo "/org/projectodd/polyglot-" name "/" version "/polyglot-" name "-" version "-module.zip")
         artifact-dir (io/file (System/getProperty "java.io.tmpdir") (str "immutant-" name "-" version))
-        dest-dir (io/file jboss-dir (str "modules/org/projectodd/polyglot/" name "/main"))]
+        dest-dir (io/file (jboss-dir) (str "modules/org/projectodd/polyglot/" name "/main"))]
     (try 
       (.mkdir artifact-dir)
       (unzip artifact-path artifact-dir)
@@ -132,7 +156,7 @@
 
 (defn add-extensions [loc]
   (add-polyglot-extensions
-   (reduce (partial add-extension "org.immutant.") loc (keys immutant-modules))))
+   (reduce (partial add-extension "org.immutant.") loc (keys (immutant-modules)))))
 
 (defn add-subsystem [prefix loc name]
   (let [module-name (str "urn:jboss:domain:" prefix name ":1.0")]
@@ -143,7 +167,7 @@
 
 (defn add-subsystems [loc]
   (add-polyglot-subsystems
-   (reduce (partial add-subsystem "immutant-") loc (keys immutant-modules))))
+   (reduce (partial add-subsystem "immutant-") loc (keys (immutant-modules)))))
 
 (defn fix-profile [loc]
   (let [name (get-in (zip/node loc) [:attrs :name])]
@@ -245,15 +269,17 @@
 (defn fix-extensions [loc]
   (add-extensions (append-system-properties loc)))
 
-(defn fix-extension [loc]
-  (if (= "org.jboss.as.pojo" (-> loc zip/node :attrs :module))
-    (zip/remove loc)
-    loc))
+(defn remove-extensions [loc]
+  (let [module (-> loc zip/node :attrs :module)]
+    (if (some #(= (str "org.jboss.as." %) module) @extensions-to-remove)
+      (zip/remove loc)
+      loc)))
 
-(defn fix-subsystem [loc]
-  (if (re-find #"pojo" (-> loc zip/node :attrs :xmlns))
-    (zip/remove loc)
-    loc))
+(defn remove-subsystems [loc]
+  (let [xmlns (-> loc zip/node :attrs :xmlns)]
+    (if (some #(re-find (re-pattern (str \: % \:)) xmlns) @subsystems-to-remove)
+      (zip/remove loc)
+      loc)))
 
 (defn fix-socket-binding [loc]
   (condp = (-> loc zip/node :attrs :name)
@@ -279,49 +305,206 @@
       (zip/insert-right loc (polyglot-cache-container)))
     loc))
 
+(defn extract-extensions [path]
+  (for [x (xml-seq (xml/parse (io/file (jboss-dir) path)))
+        :when (= :extension (:tag x))]
+    (get-in x [:attrs :module])))
+
 (defn prepare-zip
   [file]
   (zip/xml-zip (xml/parse file)))
+
+(defn remove-loc? [loc]
+  (some #(% loc) @tags-to-remove))
 
 (defn walk-the-doc [loc]
   (if (zip/end? loc)
     (zip/root loc)
     (recur (zip/next
-            (condp looking-at? loc
-              :extensions                     (fix-extensions loc)
-              :extension                      (fix-extension loc)
-              :subsystem                      (fix-subsystem loc)
-              :profile                        (fix-profile loc)
-              :periodic-rotating-file-handler (add-logger-levels loc)
-              :virtual-server                 (set-welcome-root loc)
-              :system-properties              (-> loc
-                                                  unquote-cookie-path
-                                                  allow-backslashes)
-              :jms-destinations               (zip/remove loc)
-              :deployment-scanner             (increase-deployment-timeout loc)
-              :native-interface               (disable-security loc)
-              :http-interface                 (disable-security loc)
-              :max-size-bytes                 (zip/edit loc assoc :content ["20971520"])
-              :address-full-policy            (zip/edit loc assoc :content ["PAGE"])
-              :hornetq-server                 (update-hq-server loc)
-              :jms-connection-factories       (disable-flow-control loc)
-              :servers                        (replace-servers loc)
-              :server-groups                  (replace-server-groups loc)
-              :socket-binding-group           (fix-socket-binding-group loc)
-              :socket-binding                 (fix-socket-binding loc)
-              :cache-container                (fix-cache-container loc)
-              loc)))))
+            (if (remove-loc? loc)
+              (zip/remove loc)
+              (condp looking-at? loc
+                :extensions                     (fix-extensions loc)
+                :extension                      (remove-extensions loc)
+                :subsystem                      (remove-subsystems loc)
+                :profile                        (fix-profile loc)
+                :periodic-rotating-file-handler (add-logger-levels loc)
+                :virtual-server                 (set-welcome-root loc)
+                :system-properties              (-> loc
+                                                    unquote-cookie-path
+                                                    allow-backslashes)
+                :deployment-scanner             (increase-deployment-timeout loc)
+                :native-interface               (disable-security loc)
+                :http-interface                 (disable-security loc)
+                :max-size-bytes                 (zip/edit loc assoc :content ["20971520"])
+                :address-full-policy            (zip/edit loc assoc :content ["PAGE"])
+                :hornetq-server                 (update-hq-server loc)
+                :jms-connection-factories       (disable-flow-control loc)
+                :servers                        (replace-servers loc)
+                :server-groups                  (replace-server-groups loc)
+                :socket-binding-group           (fix-socket-binding-group loc)
+                :socket-binding                 (fix-socket-binding loc)
+                :cache-container                (fix-cache-container loc)
+                loc))))))
   
 (defn transform-config [file]
-  (let [in-file (io/file jboss-dir file)
+  (let [in-file (io/file (jboss-dir) file)
         out-file in-file]
     (if (re-find #"immutant" (slurp in-file))
       (println file "already transformed, skipping")
       (do
-        (println "transforming" file)
-        (io/make-parents out-file)
-        (io/copy (with-out-str
-                   (lazy-xml/emit
-                    (walk-the-doc (prepare-zip in-file))
-                    :indent 4))
-                 out-file)))))
+        (with-message (str "Transforming " file)
+          (io/make-parents out-file)
+          (io/copy (with-out-str
+                     (lazy-xml/emit
+                      (walk-the-doc (prepare-zip in-file))
+                      :indent 4))
+                   out-file))))))
+
+(defn extract-module-deps [f]
+  (let [mods (flatten
+              (for [x (xml-seq (xml/parse f))
+                    :when (and (or (= :module-alias (:tag x))
+                                   (= :module (:tag x)))
+                               (not= "true" (get-in x [:attrs :optional])))]
+                [(get-in x [:attrs :name]) (get-in x [:attrs :target-name])]))]
+    {(first mods) (filter identity (rest mods))}))
+
+(defn extract-all-module-deps [jboss-dir]
+  (apply merge
+         (for [f (file-seq (io/file jboss-dir "modules"))
+               :when (= "module.xml" (.getName f))]
+           (extract-module-deps f))))
+
+(defn find-full-required-module-set [top-level all]
+  (loop [hk {:processed #{} :required (vec top-level)} pos 0]
+    (let [mod (and (< pos (count (:required hk)))
+                   (nth (:required hk) pos))
+          hk (if (or (not mod)
+                     (some #{mod}
+                           (:processed hk)))
+               hk
+               (-> hk
+                   (update-in [:processed] conj mod)
+                   (update-in [:required] #(vec (concat % (all mod))))))]
+      (if (not mod)
+        (-> hk :required set)
+        (recur hk (inc pos))))))
+
+(defn prepare []
+  (with-message (str "Creating " (immutant-dir))
+    (io/make-parents (immutant-dir))))
+
+(defn lay-down-jboss []
+  (when-not (.exists (jboss-dir))
+    (with-message "Laying down jboss"
+      (unzip (jboss-zip-file) (immutant-dir)))
+    (let [unzipped (str "jboss-as-" (:jboss (versions)))]
+      (with-message (str "Moving " unzipped " to jboss")
+        (.renameTo (io/file (immutant-dir) unzipped) (jboss-dir))))))
+
+(defn install-modules []
+  (with-message "Installing modules"
+    (doseq [mod (vals (immutant-modules))]
+      (install-module mod))))
+
+(defn install-polyglot-modules []
+  (with-message "Installing polyglot modules"
+    (doseq [mod polyglot-modules]
+      (install-polyglot-module mod))))
+
+(defn backup-configs []
+  (doseq [cfg (map (partial io/file (jboss-dir))
+                   ["standalone/configuration/standalone-full.xml"
+                    "standalone/configuration/standalone-ha.xml"
+                    "standalone/configuration/standalone-full-ha.xml"
+                    "standalone/configuration/standalone.xml"
+                    "domain/configuration/domain.xml"
+                    "domain/configuration/host.xml"])]
+    (let [backup (io/file "target" (.getName cfg))]
+      (if-not (.exists backup)
+        (io/copy cfg backup)))))
+
+(defn transform-configs []
+  (doseq [cfg ["standalone/configuration/standalone-full.xml"
+               "standalone/configuration/standalone-full-ha.xml"
+               "domain/configuration/domain.xml"
+               "domain/configuration/host.xml"]]
+    (transform-config cfg)))
+
+(defn create-standalone-xml []
+  (io/copy (io/file (jboss-dir) "standalone/configuration/standalone-full.xml")
+           (io/file (jboss-dir) "standalone/configuration/standalone.xml")))
+
+(defn create-standalone-ha-xml []
+  (io/copy (io/file (jboss-dir) "standalone/configuration/standalone-full-ha.xml")
+           (io/file (jboss-dir) "standalone/configuration/standalone-ha.xml")))
+
+(defn prep-for-slimming []
+  (apply swap! extensions-to-remove conj fat-modules)
+  (apply swap! subsystems-to-remove conj fat-modules)
+  
+  (swap! tags-to-remove conj
+         (partial looking-at? :pooled-connection-factory)
+         #(and (looking-at? :socket-binding %)
+               (name= "jacorb" %))
+         #(and (looking-at? :socket-binding %)
+               (name= "jacorb-ssl" %))
+         #(and (looking-at? :security-domain %)
+               (name= "jboss-ejb-policy" %))
+         #(and (looking-at? :cache-container %)
+               (name= "hibernate" %))
+         #(and (looking-at? :datasource %)
+               (attr= :jndi-name "java:jboss/datasources/ExampleDS" %))
+         #(and (looking-at? :logger %)
+               (attr= :category "jacorb" %))
+         #(and (looking-at? :logger %)
+               (attr= :category "jacorb.config" %))))
+
+(defn extract-extensions-from-xml []
+  (reduce
+   (fn [acc ext]
+     (if-let [exts (seq (extract-extensions ext))]
+       (set (concat acc exts))
+       acc))
+   #{}
+   ["domain/configuration/domain.xml"
+    "domain/configuration/host.xml"
+    "standalone/configuration/standalone.xml"
+    "standalone/configuration/standalone-ha.xml"]))
+
+(defn slim-modules []
+  (let [all-modules (extract-all-module-deps (jboss-dir))
+        required-modules (-> (extract-extensions-from-xml)
+                             (conj 
+                              ;; add a few modules that aren't mentioned in any config,
+                              ;; but are required at runtime
+                              "org.jboss.as.standalone"
+                              "org.jboss.as.domain-http-error-context"
+                              "com.h2database.h2"
+                              "javaee.api"
+                              "javax.servlet.jstl.api")
+                             (find-full-required-module-set all-modules))]
+    (doseq [m (filter identity (set/difference (set (keys all-modules)) required-modules))]
+      (with-message (str "Deleting module " m)
+        (delete-module (str "system/layers/base/" (.replace m "." "/")))))))
+
+(defn slim-fs []
+  (doseq [path ["appclient"
+                "bin/appclient.bat" "bin/appclient.conf.bat"
+                "bin/appclient.conf" "bin/appclient.sh" "bin/client"
+                "bin/jconsole.bat" "bin/jconsole.sh" "bin/jdr.bat" "bin/jdr.sh"
+                "bin/wsconsume.bat" "bin/wsconsome.sh" "bin/wsprovide.bat" "bin/wsprovide.sh"
+                "bundles" "docs/examples" "docs/schema" "welcome-content"]]
+    (let [f (io/file (jboss-dir) path)]
+      (with-message (str"Deleting " path)
+        (if (.isDirectory f)
+          (FileUtils/deleteDirectory f)
+          (.delete f)))))
+
+  ;; delete empty module dirs
+  (doseq [d (file-seq (io/file (jboss-dir) "modules"))]
+    (and (.isDirectory d)
+         (not (seq (.listFiles d)))
+         (FileUtils/deleteDirectory d))))
+

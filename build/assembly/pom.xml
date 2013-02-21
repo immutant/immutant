@@ -45,7 +45,7 @@
             </goals>
             <configuration>
               <mainClass>immutant.build.assembler</mainClass>
-              <args>.</args>
+              <args>. :slim</args>
             </configuration>
           </execution>
         </executions>
