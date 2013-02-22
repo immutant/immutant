@@ -28,15 +28,15 @@
 (defmethod encode :clojure [data _]
   "Stringify a clojure data structure"
   (binding [*print-dup* true]
-    (str "_|clojure|_" (pr-str data))))
+    (pr-str data)))
 
 (defmethod encode :edn [data & _]
   "Stringify an edn data structure"
-  (str "_|edn|_" (pr-str data)))
+  (pr-str data))
 
 (defmethod encode :json [data _]
   "Stringify a json data structure"
-  (str "_|json|_" (json/generate-string data)))
+  (json/generate-string data))
 
 (defmethod encode :none [data _]
   "Treat the payload as raw. No encoding is done."
@@ -50,36 +50,21 @@
 
 (defmulti decode
   "Decode the data using the given encoding."
-  (fn [data & [encoding]]
-    (if-let [m (and (string? data) (re-find #"^_\|(.*?)\|_" data))]
-      (keyword (str (second m) "-with-header"))
-      (or encoding :edn))))
+  (fn [_ & [encoding]] (or encoding :edn)))
 
-(defmethod decode :clojure [data & _]
+(defmethod decode :clojure [data _]
   "Turn a string into a clojure data structure"
   (and data (read-string data)))
-
-(defmethod decode :clojure-with-header [data & _]
-  "Turn a string into a clojure data structure"
-  (and data (read-string (.substring data 11))))
 
 (defmethod decode :edn [data & _]
   "Turn a string into an edn data structure"
   (and data (read-string data)))
 
-(defmethod decode :edn-with-header [data & _]
-  "Turn a string into an edn data structure"
-  (and data (read-string (.substring data 7))))
-
-(defmethod decode :json [data & _]
+(defmethod decode :json [data _]
   "Turn a string into a json data structure"
   (and data (json/parse-string data true)))
 
-(defmethod decode :json-with-header [data & _]
-  "Turn a string into a json data structure"
-  (and data (json/parse-string (.substring data 8) true)))
-
-(defmethod decode :none [data & _]
+(defmethod decode :none [data _]
   "Treats the payload as raw. No decoding is done."
   data)
 
