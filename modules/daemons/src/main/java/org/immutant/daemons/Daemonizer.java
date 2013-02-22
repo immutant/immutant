@@ -25,7 +25,7 @@ import org.immutant.daemons.as.DaemonServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
-import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
+import org.projectodd.polyglot.core.AtRuntimeInstaller;
 
 
 public class Daemonizer extends AtRuntimeInstaller<Daemonizer> {

@@ -32,7 +32,6 @@
         <resource-root path="commons-codec.jar"/> 
         <resource-root path="joda-time.jar"/> 
 
-        <resource-root path="polyglot-web.jar"/>
         <resource-root path="ring-core.jar"/>
         <resource-root path="ring-servlet.jar"/>
         <resource-root path="ring-devel.jar"/>
@@ -44,7 +43,6 @@
     <dependencies>
         <module name="javax.api"/>
         <module name="javax.servlet.api"/>
-        <module name="org.immutant.core"/>
         <module name="org.jboss.as.clustering.jgroups"/>
         <module name="org.jboss.as.controller"/>
         <module name="org.jboss.as.ee"/>
@@ -56,6 +54,9 @@
         <module name="org.jboss.msc"/>
         <module name="org.jboss.staxmapper"/>
         <module name="org.jboss.vfs"/>
+        <module name="org.immutant.core"/>
+        <module name="org.projectodd.polyglot.core"/>
+        <module name="org.projectodd.polyglot.web"/>
     </dependencies>
 </module>
 

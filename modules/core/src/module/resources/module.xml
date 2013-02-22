@@ -27,8 +27,6 @@
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="immutant-runtime-api.jar"/>
-        <resource-root path="polyglot-core.jar"/>
-        <resource-root path="polyglot-core-extensions.jar"/>
         <resource-root path="dynapath.jar"/>
         <resource-root path="swank-clojure.jar"/>
         <resource-root path="clj-stacktrace.jar"/>
@@ -38,8 +36,6 @@
 
     <exports>
       <include-set>
-        <path name="org/projectodd/polyglot"/>
-        <path name="org/projectodd/polyglot/**"/>
         <path name="immutant/**"/>
       </include-set>
     </exports>
@@ -66,6 +62,7 @@
         <module name="org.jboss.vfs"/>
         <module name="org.jboss.metadata"/>
         <module name="sun.jdk"/>
+        <module name="org.projectodd.polyglot.core"/>
     </dependencies>
 </module>
 

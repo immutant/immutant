@@ -42,6 +42,7 @@
         <module name="org.jboss.metadata"/>
         <module name="org.immutant.common"/>
         <module name="org.immutant.core"/>
+        <module name="org.projectodd.polyglot.core"/>
         <module name="org.projectodd.polyglot.hasingleton"/>
     </dependencies>
 </module>

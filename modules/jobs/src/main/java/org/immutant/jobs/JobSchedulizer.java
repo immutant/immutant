@@ -29,7 +29,7 @@ import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
-import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
+import org.projectodd.polyglot.core.AtRuntimeInstaller;
 import org.projectodd.polyglot.jobs.BaseJob;
 
 

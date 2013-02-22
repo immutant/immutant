@@ -25,7 +25,7 @@ import org.immutant.xa.as.XaServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.xa.datasource.DataSourceFactory;
-import org.projectodd.polyglot.core_extensions.AtRuntimeInstaller;
+import org.projectodd.polyglot.core.AtRuntimeInstaller;
 
 
 public class XAifier extends AtRuntimeInstaller<XAifier> {

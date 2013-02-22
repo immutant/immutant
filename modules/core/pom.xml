@@ -18,14 +18,7 @@
       <groupId>org.projectodd</groupId>
       <artifactId>polyglot-core</artifactId>
       <version>${version.polyglot}</version>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.projectodd</groupId>
-      <artifactId>polyglot-core-extensions</artifactId>
-      <version>${version.polyglot}</version>
-      <scope>compile</scope>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>

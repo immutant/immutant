@@ -48,5 +48,6 @@
         <module name="org.jboss.ironjacamar.api"/>
         <module name="org.jboss.ironjacamar.impl"/>
         <module name="org.immutant.core"/>
+        <module name="org.projectodd.polyglot.core"/>
     </dependencies>
 </module>

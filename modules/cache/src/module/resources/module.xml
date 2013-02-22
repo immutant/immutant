@@ -45,6 +45,7 @@
         <module name="org.jboss.logging"/>
         <module name="org.jboss.vfs"/>
         <module name="org.immutant.core"/>
+        <module name="org.projectodd.polyglot.core"/>
     </dependencies>
 </module>
 

@@ -90,8 +90,13 @@
                                  file))
                              {}
                              (glob/glob (str (.getAbsolutePath root-dir) "/modules/*/target/*-module"))))
+  
   (def polyglot-modules
+    ["hasingleton" "cache" "core" "web"])
+
+  (def polyglot-extensions
     ["hasingleton" "cache"]))
+
 
 (defn looking-at? [tag loc]
   (= tag (:tag (zip/node loc))))
@@ -123,7 +128,7 @@
     (zip/append-child loc {:tag :extension :attrs {:module module-name}})))
 
 (defn add-polyglot-extensions [loc]
-  (reduce (partial add-extension "org.projectodd.polyglot.") loc polyglot-modules))
+  (reduce (partial add-extension "org.projectodd.polyglot.") loc polyglot-extensions))
 
 (defn add-extensions [loc]
   (add-polyglot-extensions
@@ -134,7 +139,7 @@
     (zip/append-child loc {:tag :subsystem :attrs {:xmlns module-name}})))
 
 (defn add-polyglot-subsystems [loc]
-  (reduce (partial add-subsystem "polyglot-") loc polyglot-modules))
+  (reduce (partial add-subsystem "polyglot-") loc polyglot-extensions))
 
 (defn add-subsystems [loc]
   (add-polyglot-subsystems
