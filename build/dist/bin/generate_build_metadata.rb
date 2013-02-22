@@ -2,10 +2,13 @@ puts 'building /target/build-metadata.json'
 require 'java'
 require 'rubygems'
 require 'json'
-require File.join( File.dirname( __FILE__ ), '../../../modules/core/target/immutant-core-module.jar' )
-require File.join( File.dirname( __FILE__ ), '../../../modules/core/target/immutant-core-module-module/polyglot-core.jar' )
+require File.join( File.dirname( __FILE__ ),
+                   "../../assembly/target/stage/immutant/jboss/modules/org/immutant/core/main/immutant-core-module.jar" )
+require File.join( File.dirname( __FILE__ ),
+                   "../../assembly/target/stage/immutant/jboss/modules/org/projectodd/polyglot/core/main/polyglot-core.jar" )
 
-props = org.projectodd.polyglot.core.util.BuildInfo.new( "org/immutant/immutant.properties" )
+props = org.projectodd.polyglot.core.util.BuildInfo.new( java.lang.Thread.currentThread.getContextClassLoader,
+                                                         "org/immutant/immutant.properties" )
 immutant = props.getComponentInfo( 'Immutant' )
 
 metadata = {}
