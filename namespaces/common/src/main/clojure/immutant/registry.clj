@@ -28,9 +28,11 @@
 
 (defn ^{:private true} get-from-msc [name]
   (if @msc-registry
-    (let [key (if (string? name) (ServiceName/parse name) name)
-          controller (.getService @msc-registry key)]
-      (and controller (.getValue controller)))))
+    (try
+      (let [key (if (string? name) (ServiceName/parse name) name)
+            controller (.getService @msc-registry key)]
+        (and controller (.getValue controller)))
+      (catch ClassCastException _))))
   
 (defn put
   "Store a value in the registry."
