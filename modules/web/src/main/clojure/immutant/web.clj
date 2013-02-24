@@ -27,6 +27,8 @@
   (:use [immutant.web.internal :exclude [current-servlet-request]])
   (:import javax.servlet.http.HttpServletRequest))
 
+(declare stop)
+
 (defn ^HttpServletRequest current-servlet-request
   "Returns the currently active HttpServletRequest. This will only
   return a value within an active ring handler. Standard ring handlers
@@ -74,8 +76,8 @@
              :sub-context sub-context-path
              :handler handler
              :destroy destroy})
-           (and init (init))
-           ))
+           (util/at-exit #(stop sub-context-path))
+           (and init (init))))
        nil)
      (log/warn "web/start called outside of Immutant, ignoring"))))
 
