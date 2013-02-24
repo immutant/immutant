@@ -28,7 +28,7 @@ bootstrapping process. Applications shouldn't use anything here."
 
 (defn ^{:internal true} require-and-invoke 
   "Takes a string of the form \"namespace/fn\", requires the namespace, then invokes fn"
-  [namespaced-fn & [args]]
+  [namespaced-fn & args]
   (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
     (require namespace)
     (apply (intern namespace function) args)))
@@ -40,6 +40,36 @@ bootstrapping process. Applications shouldn't use anything here."
      (can-add? [_] false)
      (classpath-urls [cl] (seq (.getResourcePaths cl)))))
 
+(defn ^{:internal true} init-by-fn
+  [init-fn]
+  (when init-fn
+    (require-and-invoke init-fn)
+    (log/info "Initialized" (util/app-name) "via" init-fn)
+    true))
+
+(defn ^{:internal true} init-by-ns
+  []
+  (try
+    (require 'immutant.init)
+    (log/info "Initialized" (util/app-name) "from immutant.init")
+    true
+    (catch java.io.FileNotFoundException e
+      ;; make sure it's a failure to find immutant.init, and not
+      ;; something within init throwing a FNFE
+      (if-not (re-find #"immutant/init" (.getMessage e))
+        (throw e)))))
+
+(defn ^{:internal true} init-by-ring
+  []
+  (let [project (registry/get :project)]
+    (when-let [handler (get-in project [:ring :handler])]
+      (require-and-invoke "immutant.web/start"
+                          (util/try-resolve handler)
+                          :init    (util/try-resolve (get-in project [:ring :init]))
+                          :destroy (util/try-resolve (get-in project [:ring :destroy])))
+      (log/info "Initialized" (util/app-name) "from :ring options in project.clj")
+      true)))
+
 (defn ^{:internal true} initialize 
   "Attempts to initialize the app by calling an init-fn (if given) or, lacking that,
 tries to load the immutant.init namespace. In either case,
@@ -47,21 +77,13 @@ post-initialize is called to finalize initialization."
   [init-fn config-hash]
 
   (dynapathize-class-loader)
-  
-  (if init-fn
-    (do
-      (log/info "Initializing " (util/app-name) "via" init-fn)
-      (require-and-invoke init-fn))
-    (try (require 'immutant.init)
-         (catch java.io.FileNotFoundException e
-           ;; make sure it's a failure to find immutant.init, and not
-           ;; something within init throwing a FNFE
-           (if (re-find #"immutant/init" (.getMessage e))
-             (log/warn "No :init fn or immutant.init namespace found for"
-                       (util/app-name)
-                       "- no initialization will be performed")
-             (throw e)))))
-  
+  (or
+   (init-by-fn init-fn)
+   (init-by-ns)
+   (init-by-ring)
+   (log/warn "No :init fn, immutant.init namespace or :ring options found for"
+             (util/app-name)
+             "- no initialization will be performed"))
   (repl/init-repl (into {} config-hash)))
 
 (defn ^{:internal true} set-app-config

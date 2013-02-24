@@ -44,7 +44,7 @@
   (is (= "biscuit" @a-value)))
 
 (deftest require-and-invoke-should-call-the-given-function-with-args
-  (require-and-invoke "immutant.runtime-test/update-a-value" ["gravy"])
+  (require-and-invoke "immutant.runtime-test/update-a-value" "gravy")
   (is (= "gravy" @a-value)))
 
 (deftest initialize-without-an-init-fn-should-load-init-ns
@@ -66,4 +66,13 @@
   (initialize nil nil)
   (is (= "ham" @a-value)))
 
-
+(deftest initialize-from-lein-ring-options
+  (add-url (io/resource "lein-ring-test/src/"))
+  (registry/put :project '{:ring {:handler guestbook.handler/war-handler
+                                  :init    guestbook.handler/init
+                                  :destroy guestbook.handler/destroy}})
+  (init-by-ring)
+  (let [[handler & {:keys [init destroy]}] @a-value]
+    (is (= "war-handler" (handler)))
+    (is (= "init" (init)))
+    (is (= "destroy" (destroy)))))
