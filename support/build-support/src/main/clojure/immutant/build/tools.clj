@@ -461,21 +461,19 @@
          #(and (looking-at? :logger %)
                (attr= :category "jacorb.config" %))))
 
-(defn extract-extensions-from-xml []
+(defn extract-extensions-from-standalone-xml []
   (reduce
    (fn [acc ext]
      (if-let [exts (seq (extract-extensions ext))]
        (set (concat acc exts))
        acc))
    #{}
-   ["domain/configuration/domain.xml"
-    "domain/configuration/host.xml"
-    "standalone/configuration/standalone.xml"
+   ["standalone/configuration/standalone.xml"
     "standalone/configuration/standalone-ha.xml"]))
 
 (defn slim-modules []
   (let [all-modules (extract-all-module-deps (jboss-dir))
-        required-modules (-> (extract-extensions-from-xml)
+        required-modules (-> (extract-extensions-from-standalone-xml)
                              (conj 
                               ;; add a few modules that aren't mentioned in any config,
                               ;; but are required at runtime
@@ -495,7 +493,7 @@
                 "bin/appclient.conf" "bin/appclient.sh" "bin/client"
                 "bin/jconsole.bat" "bin/jconsole.sh" "bin/jdr.bat" "bin/jdr.sh"
                 "bin/wsconsume.bat" "bin/wsconsome.sh" "bin/wsprovide.bat" "bin/wsprovide.sh"
-                "bundles" "docs/examples" "docs/schema" "welcome-content"]]
+                "bundles" "docs/examples" "docs/schema" "domain" "welcome-content"]]
     (let [f (io/file (jboss-dir) path)]
       (with-message (str"Deleting " path)
         (if (.isDirectory f)
