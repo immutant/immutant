@@ -11,10 +11,10 @@ class Publisher
 
   BASE_URL = 'https://repository-projectodd.forge.cloudbees.com/incremental/immutant'
 
-  DIST_FILES = ['/../../dist/target/immutant-dist-bin.zip',
+  DIST_FILES = ['/../../dist/target/immutant-dist-slim.zip',
+                '/../../dist/target/immutant-dist-full.zip',
                 '/../../dist/target/immutant-dist-modules.zip',
-                '/../../dist/target/build-metadata.json',
-                '/../../assembly/target/stage/immutant/jboss/standalone/configuration/standalone.xml'].inject([]) do |acc, f|
+                '/../../dist/target/build-metadata.json'].inject([]) do |acc, f|
     file = File.dirname(__FILE__) + f
     acc << file
     sha1 = file + ".sha1"
@@ -84,11 +84,24 @@ class Publisher
     publish_distribution()
     verify_distribution()
     publish_documentation()
+    copy_slim_to_bin() # TODO: remove me - see IMMUTANT-229
     publish_artifact_list()
     copy_to_latest()
     verify_distribution( :latest )
   end
 
+  def copy_slim_to_bin()
+    dest_url = build_base_url + "/immutant-dist-bin.zip"
+    puts_r @dav.copy( build_base_url + "/immutant-dist-slim.zip",
+                      dest_url, 1 )
+    @published_artifacts << dest_url
+    
+    dest_url = build_base_url + "/immutant-dist-bin.zip.sha1"
+    puts_r @dav.copy( build_base_url + "/immutant-dist-slim.zip.sha1",
+                      dest_url, 1 )
+    @published_artifacts << dest_url
+  end
+  
   def copy_to_latest()
     dav_remote_cp_r( build_base_url, latest_base_url )
   end

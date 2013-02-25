@@ -1,5 +1,5 @@
 <assembly>
-  <id>bin</id>
+  <id>full</id>
   <baseDirectory>immutant-${project.version}</baseDirectory>
   <formats>
     <format>zip</format>

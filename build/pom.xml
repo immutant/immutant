@@ -35,7 +35,7 @@
 
   <profiles>
     <profile>
-      <id>full</id>
+      <id>incremental</id>
       <modules>
         <module>dist</module>
         <module>incremental</module>

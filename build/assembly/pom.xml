@@ -31,6 +31,19 @@
 
   </dependencies>
 
+  <properties>
+    <build.type>slim</build.type>
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>full-dist</id>
+      <properties>
+        <build.type>full</build.type>
+      </properties>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <plugin>
@@ -45,7 +58,7 @@
             </goals>
             <configuration>
               <mainClass>immutant.build.assembler</mainClass>
-              <args>. :slim</args>
+              <args>. ${build.type}</args>
             </configuration>
           </execution>
         </executions>

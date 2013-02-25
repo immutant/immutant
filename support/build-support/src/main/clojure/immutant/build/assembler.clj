@@ -39,7 +39,7 @@
       (slim-modules)
       (slim-fs))))
 
-(defn -main [assembly-path & [slim?]]
-  (println "Assembling" (if slim? "slim" "full") "Immutant...")
-  (assemble (io/file assembly-path) slim?)
+(defn -main [assembly-path & [type]]
+  (println "Assembling" type "Immutant...")
+  (assemble (io/file assembly-path) (= "slim" type))
   (shutdown-agents))

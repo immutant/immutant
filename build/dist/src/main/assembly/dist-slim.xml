@@ -1,0 +1,15 @@
+<assembly>
+  <id>slim</id>
+  <baseDirectory>immutant-${project.version}</baseDirectory>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <fileSets>
+    <fileSet>
+      <directory>${basedir}/../assembly/target/stage/immutant</directory>
+      <outputDirectory>/</outputDirectory>
+    </fileSet>
+  </fileSets>
+  <dependencySets>
+  </dependencySets>
+</assembly>

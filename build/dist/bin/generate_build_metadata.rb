@@ -15,8 +15,9 @@ metadata = {}
 metadata['build_revision'] = immutant['build.revision']
 metadata['build_number'] = immutant['build.number']
 metadata['build_time'] = Time.now.to_i
-dist_file = './target/immutant-dist-bin.zip'
-metadata['dist_size'] = File.size( dist_file )
+metadata['slim_dist_size'] = File.size( './target/immutant-dist-slim.zip' )
+metadata['dist_size'] = metadata['slim_dist_size'] # TODO: remove me - see IMMUTANT-229
+metadata['full_dist_size'] = File.size( './target/immutant-dist-full.zip' )
 File.open('./target/build-metadata.json', 'w') do |f|
   f.write( metadata.to_json )
 end
