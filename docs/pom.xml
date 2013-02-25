@@ -33,6 +33,13 @@
       <scope>compile</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-build-support</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
   <build>
 
@@ -151,6 +158,18 @@
             <configuration>
               <mainClass>immutant.docs.generate_codox_docs</mainClass>
               <args>.. ${project.version} ../modules ../namespaces</args>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>generate-digests</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <mainClass>immutant.build.generate_digests</mainClass>
+              <args>target/ .zip</args>
             </configuration>
           </execution>
         </executions>

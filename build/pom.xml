@@ -42,6 +42,13 @@
       </modules>
     </profile>
     <profile>
+      <id>release</id>
+      <modules>
+        <module>dist</module>
+        <module>release</module>
+      </modules>
+    </profile>
+    <profile>
       <id>dist</id>
       <modules>
         <module>dist</module>

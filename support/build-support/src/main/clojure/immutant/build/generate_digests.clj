@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.build.generate-sha1
+(ns immutant.build.generate-digests
   (:require [clojure.java.io :as io]
             [digest          :as digest])
   (:gen-class))
@@ -26,6 +26,12 @@
   ([filename checksum-filename]
      (spit (io/file checksum-filename) (digest/sha1 (io/file filename)))))
 
+(defn generate-md5
+  ([filename]
+     (generate-sha1 filename (str filename ".md5")))
+  ([filename checksum-filename]
+     (spit (io/file checksum-filename) (digest/md5 (io/file filename)))))
+
 (defn -main [dirname & suffixes]
   (let [dir (io/file dirname)]
     (doall
@@ -34,4 +40,6 @@
                       (some (fn [s] (.endsWith (.getName f) s)) suffixes))]
        (do
          (println "Generating sha1 of:" (.getName f))
-         (generate-sha1 f))))))
+         (generate-sha1 f)
+         (println "Generating md5 of:" (.getName f))
+         (generate-md5 f))))))

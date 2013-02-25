@@ -70,8 +70,7 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <properties>
-        <jboss.releases.repo.url>dav:https://repository-projectodd.forge.cloudbees.com/staging</jboss.releases.repo.url>
-        <jboss.snapshots.repo.url>dav:https://repository-projectodd.forge.cloudbees.com/staging</jboss.snapshots.repo.url>
+        <release.repo.url>https://repository-projectodd.forge.cloudbees.com/staging</release.repo.url>
       </properties>
       <repositories>
         <repository>
@@ -108,8 +107,7 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <properties>
-        <jboss.releases.repo.url>dav:https://repository-projectodd.forge.cloudbees.com/release</jboss.releases.repo.url>
-        <jboss.snapshots.repo.url>dav:https://repository-projectodd.forge.cloudbees.com/release</jboss.snapshots.repo.url>
+        <release.repo.url>https://repository-projectodd.forge.cloudbees.com/release</release.repo.url>
       </properties>
       <repositories>
         <repository>
@@ -139,16 +137,6 @@
           </snapshots>
         </pluginRepository>
       </pluginRepositories>
-    </profile>
-    <profile>
-      <id>local</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <jboss.releases.repo.url>file:///${user.dir}/target/m2repo/releases</jboss.releases.repo.url>
-        <jboss.snapshots.repo.url>file:///${user.dir}/target/m2repo/snapshots</jboss.snapshots.repo.url>
-      </properties>
     </profile>
 
     <profile>

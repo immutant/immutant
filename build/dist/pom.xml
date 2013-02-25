@@ -127,13 +127,13 @@
             <artifactId>clojure-maven-plugin</artifactId>
             <executions>
               <execution>
-                <id>perform-assembly</id>
+                <id>generate-digests</id>
                 <phase>verify</phase>
                 <goals>
                   <goal>run</goal>
                 </goals>
                 <configuration>
-                  <mainClass>immutant.build.generate_sha1</mainClass>
+                  <mainClass>immutant.build.generate_digests</mainClass>
                   <args>target/ .zip .json</args>
                 </configuration>
               </execution>
