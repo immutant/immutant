@@ -26,7 +26,7 @@
 
 (deftest transactional-writes-in-listener-should-work
   (trigger-listener)
-  (is (= "kiwi" (imsg/receive "/queue/test" :timeout 2000)))
+  (is (= "kiwi" (imsg/receive "/queue/test" :timeout 10000)))
   (is (= "starfruit" (imsg/receive "/queue/remote-test")))
   (is (= 1 (:a core/cache))))
 
