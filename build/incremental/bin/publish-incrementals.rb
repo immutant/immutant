@@ -93,12 +93,12 @@ class Publisher
   def copy_slim_to_bin()
     dest_url = build_base_url + "/immutant-dist-bin.zip"
     puts_r @dav.copy( build_base_url + "/immutant-dist-slim.zip",
-                      dest_url, 1 )
+                      dest_url )
     @published_artifacts << dest_url
     
     dest_url = build_base_url + "/immutant-dist-bin.zip.sha1"
     puts_r @dav.copy( build_base_url + "/immutant-dist-slim.zip.sha1",
-                      dest_url, 1 )
+                      dest_url )
     @published_artifacts << dest_url
   end
   

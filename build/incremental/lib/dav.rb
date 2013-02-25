@@ -55,14 +55,12 @@ class DAV
     )
   end
 
-  def copy(src, dest, depth)
-    curl(
-      '--request COPY',
-      "--header 'Destination: #{dest}'",
-      "--header 'Depth: #{depth}'",
-      "--header 'Overwrite: T'",
-      src
-    )
+  def copy(src, dest, depth = nil)
+    cmd = ['--request COPY',
+           "--header 'Destination: #{dest}'"]
+    cmd << "--header 'Depth: #{depth}'" if depth
+    cmd << src
+    curl(*cmd)
   end
 
   def curl!(cmd_frag)
