@@ -79,7 +79,7 @@ class Publisher
   def verify_distribution( latest = false )
     base_url = latest ? latest_base_url : build_base_url 
     @dist_files.each do |file|
-      verify( base_url, file )
+      verify( base_url, File.basename(file) )
     end
   end
 

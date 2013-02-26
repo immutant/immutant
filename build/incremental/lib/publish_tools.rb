@@ -40,9 +40,9 @@ module PublishTools
   end
 
   def verify(base_url, file)
-    status, message = @dav.curl( "-I", base_url + "/#{File.basename( file )}" )
+    status, message = @dav.curl( "-I", base_url + "/#{file}" )
     raise Exception.new( "Release verification failed for " +
-                         "#{File.basename( file )} - #{status} : #{message}" ) if status.to_i != 200
+                         "#{file} - #{status} : #{message}" ) if status.to_i != 200
   end
 
   def add_digests(*files)

@@ -30,6 +30,7 @@ class Publisher
     dav_mkdir_p( docs_base_url )
     publish_distribution()
     verify_distribution()
+    copy_slim_to_bin() # TODO: remove me - see IMMUTANT-229
     publish_docs()
     verify_docs()
   end
@@ -42,27 +43,45 @@ class Publisher
    "#{@base_url}/org/immutant/immutant-docs/#{@version}"
   end
 
+  def add_version_to_filename(name)
+    if name =~ /^(immutant-[^-.]*)(.*)$/
+      "#{$1}-#{@version}#{$2}"
+    else
+      name
+    end
+  end
+  
   def publish_distribution()
     @dist_files.each do |file|
-      dav_put( dist_base_url + "/#{File.basename( file )}", file )
+      dav_put( dist_base_url + "/#{add_version_to_filename(File.basename( file ))}", file )
     end
   end
 
   def publish_docs()
     @doc_files.each do |file|
-      dav_put( docs_base_url + "/#{File.basename( file )}", file )
+      dav_put( docs_base_url + "/#{add_version_to_filename(File.basename( file ))}", file )
     end
   end
-  
+
+  def copy_slim_to_bin()
+    dest_url = dist_base_url + "/immutant-dist-#{@version}-bin.zip"
+    puts_r @dav.copy( dist_base_url + "/immutant-dist-#{@version}-slim.zip",
+                      dest_url )
+    
+    dest_url = dist_base_url + "/immutant-dist-#{@version}-bin.zip.sha1"
+    puts_r @dav.copy( dist_base_url + "/immutant-dist-#{@version}-slim.zip.sha1",
+                      dest_url )
+  end
+
   def verify_distribution()
     @dist_files.each do |file|
-      verify(dist_base_url, file)
+      verify(dist_base_url, add_version_to_filename(File.basename(file)))
     end
   end
 
   def verify_docs()
     @doc_files.each do |file|
-      verify(docs_base_url, file)
+      verify(docs_base_url, add_version_to_filename(File.basename(file)))
     end
   end
 end
