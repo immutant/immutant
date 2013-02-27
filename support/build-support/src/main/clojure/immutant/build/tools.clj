@@ -46,6 +46,11 @@
 (def subsystems-to-remove (atom ["pojo"]))
 (def tags-to-remove (atom [(partial looking-at? :jms-destinations)]))
 
+(def system-properties
+  {"org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR" "false"
+   "org.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH"     "true"
+   "org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH"         "true"})
+
 (defn unzip* [& sh-args]
   (let [result (apply shell/sh sh-args)]
     (if (not= (:exit result) 0)
@@ -220,15 +225,11 @@
     (zip/up (replace-system-property child prop value))
     (add-system-property loc prop value)))
 
-(defn unquote-cookie-path [loc]
-  (set-system-property loc
-                       "org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR"
-                       "false"))
-
-(defn allow-backslashes [loc]
-  (set-system-property loc
-                       "org.apache.catalina.connector.CoyoteAdapter.ALLOW_BACKSLASH"
-                       "true"))
+(defn set-system-properties [loc]
+  (reduce (fn [loc [k v]]
+            (set-system-property loc k v))
+          loc
+          system-properties))
 
 (defn set-welcome-root [loc]
   (if (= "false" (-> loc zip/node :attrs :enable-welcome-root))
@@ -330,9 +331,7 @@
                 :profile                        (fix-profile loc)
                 :periodic-rotating-file-handler (add-logger-levels loc)
                 :virtual-server                 (set-welcome-root loc)
-                :system-properties              (-> loc
-                                                    unquote-cookie-path
-                                                    allow-backslashes)
+                :system-properties              (set-system-properties loc)
                 :deployment-scanner             (increase-deployment-timeout loc)
                 :native-interface               (disable-security loc)
                 :http-interface                 (disable-security loc)
