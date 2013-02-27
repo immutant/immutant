@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-Dir["target/namespaces/*"].each do |dir|
+base_dir = ARGV[0] || "./target/namespaces"
+puts "looking for namespaces in #{base_dir}..."
+Dir["#{base_dir}/*"].each do |dir|
   if File.directory?(dir) 
     puts "Processing #{dir}..."
     Dir.chdir(dir) do
