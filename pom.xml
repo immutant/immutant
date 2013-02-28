@@ -102,7 +102,7 @@
       </pluginRepositories>
     </profile>
     <profile>
-      <id>release</id>
+      <id>release-release</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
