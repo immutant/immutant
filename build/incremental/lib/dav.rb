@@ -84,7 +84,7 @@ class DAV
       stderr_thr.join
     end
 
-    #puts error
+    @last_error = error
     status_line = error.split( "\n" ).reverse.find{|e| e =~ /^< HTTP\/1\.[0-1]/}
     if status_line =~ /HTTP\/1\.[0-1] ([0-9][0-9][0-9]) (.*)$/ &&
         $1 != '100' # if the last status was a 100, then we crapped out before the final status
@@ -103,6 +103,7 @@ class DAV
     if result.first =~ /^5/ &&
         attempt > 0
       puts "Curl failed with #{result.first} - #{result.last}, retrying (#{attempt})"
+      puts "ERROR:\n#{@last_error}"
       result = curl_with_retry(cmd, attempt - 1)
     end
     result
