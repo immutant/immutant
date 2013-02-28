@@ -40,7 +40,11 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
     }
 
     public JobScheduler createScheduler(boolean singleton) {
-        JobScheduler scheduler = new JobScheduler( "JobScheduler$" + getUnit().getName() );
+        String name = "JobScheduler$" + getUnit().getName();
+        if (singleton) {
+            name += ":singleton";
+        }
+        JobScheduler scheduler = new JobScheduler( name );
         ServiceName serviceName = JobsServices.scheduler( getUnit(), singleton );
 
         deploy( serviceName, scheduler, singleton );

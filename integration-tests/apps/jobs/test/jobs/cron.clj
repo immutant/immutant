@@ -45,3 +45,14 @@
 (deftest it-should-raise-when-spec-is-given-with-at-opts
   (doseq [o [:at :in :every :repeat :until]]
     (is (thrown? IllegalArgumentException (job/schedule "name" #() "spec" o 0)))))
+
+(deftest singleton-false-and-true-should-coexist
+  (let [q (random-queue)
+        q2 (random-queue)]
+    (try
+      (job/schedule "singleton-false" #(msg/publish q "hi") "*/1 * * * * ?" :singleton false)
+      (job/schedule "singleton-true" #(msg/publish q2 "hi") "*/1 * * * * ?" :singleton true)
+      (is (msg/receive q :timeout 10000))
+      (is (msg/receive q2 :timeout 10000))
+      (finally (job/unschedule "singleton-false")
+               (job/unschedule "singleton-true")))))
