@@ -19,9 +19,11 @@
   (:use immutant.runtime
         clojure.test
         immutant.test.helpers)
-  (:require [immutant.registry :as registry]
-            [clojure.java.io   :as io]
-            [dynapath.util     :as dp]))
+  (:require [immutant.registry     :as registry]
+            [immutant.dev          :as dev]
+            [clojure.java.io       :as io]
+            [clojure.tools.logging :as log]
+            [dynapath.util         :as dp]))
 
 (def a-value (atom "ham"))
 
@@ -29,9 +31,16 @@
   (dp/add-classpath-url (clojure.lang.RT/baseLoader) url))
 
 (use-fixtures :each
-              (fn [f]
-                (reset! a-value "ham")
-                (f)))
+  (fn [f]
+    (let [base-cl (clojure.lang.RT/baseLoader)]
+      (try
+        (.set clojure.lang.Compiler/LOADER (clojure.lang.DynamicClassLoader. base-cl))
+        (add-url (io/resource "mock-web/src/"))
+        (dev/remove-lib 'immutant.init)
+        (reset! a-value "ham")
+        (f)
+        (finally
+          (.set clojure.lang.Compiler/LOADER base-cl))))))
 
 (defn do-nothing [])
 
@@ -63,16 +72,21 @@
   (is (= "biscuit" @a-value)))
 
 (deftest initialize-with-no-init-fn-and-no-init-ns-should-do-nothing
-  (initialize nil nil)
-  (is (= "ham" @a-value)))
+  (with-redefs [log/log* (fn [& args]
+                           (reset! a-value args))]
+    (initialize nil nil)
+    (is (re-find #"no initialization" (nth @a-value 3)))))
 
 (deftest initialize-from-lein-ring-options
   (add-url (io/resource "lein-ring-test/src/"))
   (registry/put :project '{:ring {:handler guestbook.handler/war-handler
                                   :init    guestbook.handler/init
                                   :destroy guestbook.handler/destroy}})
-  (init-by-ring)
-  (let [[handler & {:keys [init destroy]}] @a-value]
-    (is (= "war-handler" (handler)))
-    (is (= "init" (init)))
-    (is (= "destroy" (destroy)))))
+  (try
+    (initialize nil nil)
+    (let [[handler & {:keys [init destroy]}]  @a-value]
+      (is (= "war-handler" (handler)))
+      (is (= "init"  (init)))
+      (is (= "destroy" (destroy))))
+    (finally
+      (registry/put :project nil))))
