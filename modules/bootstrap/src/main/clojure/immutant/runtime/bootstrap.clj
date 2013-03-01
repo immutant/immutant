@@ -45,12 +45,25 @@
                (set/difference other-profiles
                                normalized-profiles))))))))
 
+(defn ^:private strip-reduce-metadata [v]
+  (reduce (fn [acc k]
+            (if (-> acc k meta :reduce)
+              (update-in acc [k] vary-meta dissoc :reduce)
+              acc))
+          v
+          (keys v)))
+
 (defn ^{:internal true} read-project-to-string
   "Returns the project map as a pr string with metadata so it can be moved across runtimes."
   [app-root profiles]
-  (->> (read-project app-root profiles)
-       (walk/postwalk (vary-meta dissoc :reduce)) ;; reduce points to a fn, so won't serialize
-       pr-str-with-meta))
+  ;; reduce metadata points to a function, which won't serialize, so
+  ;; we have to strip it out. pre-1.5, walk/postwalk worked, but it
+  ;; now preserves the original metadata (which I consider a bug)
+  (pr-str-with-meta
+    (if-let [p (read-project app-root profiles)]
+      (-> p
+          strip-reduce-metadata
+          (vary-meta #(update-in % [:without-profiles] strip-reduce-metadata))))))
 
 (defn ^{:internal true} read-full-app-config
   "Returns the full configuration for an app. This consists of the :immutant map

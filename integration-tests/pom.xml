@@ -16,7 +16,7 @@
   <properties>
     <assembly.dir>${project.basedir}/../build/assembly/target/stage/immutant</assembly.dir>
     <integ.dist.dir>target/integ-dist</integ.dist.dir>
-    <versions>1.4.0</versions>
+    <versions>1.5.0</versions>
     <fntest.debug>false</fntest.debug>
     <ns />
     <databases>h2</databases>
