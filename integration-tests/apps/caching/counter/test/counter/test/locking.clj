@@ -32,5 +32,5 @@
 (deftest correct-counting-with-optimistic-locking
   (csh/put (:optimistic caches) :count 0)
   (dotimes [_ 3] (msg/publish "/queue/work" {:name :optimistic :key :count}))
-  (is (every? (partial = :success) (take 3 (msg/message-seq "/queue/done" :timeout 30000))))
+  (is (every? (partial = :success) (take 3 (msg/message-seq "/queue/done" :timeout 60000))))
   (is (= 3 (:count (:optimistic caches)))))
