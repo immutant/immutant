@@ -26,7 +26,7 @@
 (deftest correct-counting-with-pessimistic-locking
   (csh/put (:pessimistic caches) :count 0)
   (dotimes [_ 10] (msg/publish "/queue/work" {:name :pessimistic :key :count}))
-  (is (every? (partial = :success) (take 10 (msg/message-seq "/queue/done" :timeout 30000))))
+  (is (every? (partial = :success) (take 10 (msg/message-seq "/queue/done" :timeout 60000))))
   (is (= 10 (:count (:pessimistic caches)))))
 
 (deftest correct-counting-with-optimistic-locking
