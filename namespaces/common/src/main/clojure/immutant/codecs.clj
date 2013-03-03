@@ -54,15 +54,30 @@
 
 (defmethod decode :clojure [data _]
   "Turn a string into a clojure data structure"
-  (and data (read-string data)))
+  (try
+    (and data (read-string data))
+    (catch Throwable e
+      (throw (RuntimeException.
+              (str "Invalid clojure-encoded data (type=" (class data) "): " data)
+              e)))))
 
 (defmethod decode :edn [data & _]
-  "Turn a string into an edn data structure"
-  (and data (read-string data)))
+  "Turn an edn string into a clojure data structure"
+  (try
+    (and data (read-string data))
+    (catch Throwable e
+      (throw (RuntimeException.
+              (str "Invalid edn-encoded data (type=" (class data) "): " data)
+              e)))))
 
 (defmethod decode :json [data _]
-  "Turn a string into a json data structure"
-  (and data (json/parse-string data true)))
+  "Turn a json string into a clojure data structure"
+  (try
+    (and data (json/parse-string data true))
+    (catch Throwable e
+      (throw (RuntimeException.
+              (str "Invalid json-encoded data (type=" (class data) "): " data)
+              e)))))
 
 (defmethod decode :none [data _]
   "Treats the payload as raw. No decoding is done."
