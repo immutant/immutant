@@ -15,7 +15,7 @@
   (let [cache (get caches name)]
     (loop [v (get cache key)]
       (if (csh/put-if-replace cache key v (inc v))
-        (msg/publish "/queue/done" :success)
+        (msg/publish "/queue/done" name)
         (recur (get cache key))))))
 
 (use-fixtures :each (fn [f]
@@ -26,11 +26,11 @@
 (deftest correct-counting-with-pessimistic-locking
   (csh/put (:pessimistic caches) :count 0)
   (dotimes [_ 10] (msg/publish "/queue/work" {:name :pessimistic :key :count}))
-  (is (every? (partial = :success) (take 10 (msg/message-seq "/queue/done" :timeout 60000))))
+  (is (every? (partial = :pessimistic) (take 10 (msg/message-seq "/queue/done" :timeout 60000))))
   (is (= 10 (:count (:pessimistic caches)))))
 
 (deftest correct-counting-with-optimistic-locking
   (csh/put (:optimistic caches) :count 0)
   (dotimes [_ 3] (msg/publish "/queue/work" {:name :optimistic :key :count}))
-  (is (every? (partial = :success) (take 3 (msg/message-seq "/queue/done" :timeout 60000))))
+  (is (every? (partial = :optimistic) (take 3 (msg/message-seq "/queue/done" :timeout 60000))))
   (is (= 3 (:count (:optimistic caches)))))
