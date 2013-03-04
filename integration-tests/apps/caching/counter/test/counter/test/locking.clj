@@ -13,9 +13,9 @@
 (defn work
   [{:keys [name key]}]
   (let [cache (get caches name)]
-    (println "JC: work start" cache)
+    (println "JC: work start" name cache)
     (loop [v (get cache key)]
-      (println "JC: v=" v)
+      (println "JC: v=" name v)
       (if (csh/put-if-replace cache key v (inc v))
         (msg/publish "/queue/done" name)
         (recur (get cache key))))))
