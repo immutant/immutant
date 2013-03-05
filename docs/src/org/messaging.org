@@ -84,7 +84,7 @@
      
    #+end_src
 
-   Job scheduling is dynamic, and can occur anywhere in your
+   Starting a destination is dynamic, and can occur anywhere in your
    application code.  You can invoke =start= anytime during the
    lifecycle of your application.
 
