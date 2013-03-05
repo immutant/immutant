@@ -23,6 +23,13 @@
     </dependency>
 
     <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-core</artifactId>
+      <version>5.2.2.Final</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>immutant-build-support</artifactId>
       <version>${project.version}</version>

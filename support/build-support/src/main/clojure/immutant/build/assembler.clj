@@ -37,7 +37,12 @@
     (create-standalone-ha-xml)
     (when slim?
       (slim-modules)
-      (slim-fs))))
+      (slim-fs))
+
+    ;; hack to replace ispan - this couldn't suck more
+    (io/copy
+     (io/file m2-repo "org/infinispan/infinispan-core/5.2.2.Final/infinispan-core-5.2.2.Final.jar")
+     (io/file (jboss-dir) "modules/system/layers/base/org/infinispan/main/infinispan-core-5.2.1.Final.jar"))))
 
 (defn -main [assembly-path & [type]]
   (println "Assembling" type "Immutant...")
