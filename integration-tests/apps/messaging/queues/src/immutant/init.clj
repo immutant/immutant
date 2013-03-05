@@ -1,6 +1,7 @@
 (ns immutant.init
   (:require [immutant.messaging :as msg]
-            [immutant.web       :as web]))
+            [immutant.web       :as web]
+            [immutant.util      :as util]))
 
 (msg/start "/queue/ham")
 (msg/start ".queue.biscuit")
@@ -47,4 +48,8 @@
      {:status 200
       :body ":success"})))
 
-
+(msg/start "queue.reconfigurable")
+(msg/start "queue.not-reconfigurable")
+(when (re-find #"^/q\d" (util/context-path))
+  (Thread/sleep 2000)
+  (msg/stop "queue.reconfigurable"))

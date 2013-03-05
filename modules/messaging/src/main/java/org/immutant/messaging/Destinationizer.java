@@ -27,9 +27,11 @@ import org.immutant.core.SimpleServiceStateListener;
 import org.immutant.messaging.as.MessagingServices;
 import org.immutant.runtime.ClojureRuntime;
 import org.jboss.as.server.deployment.DeploymentUnit;
+import org.jboss.logging.Logger;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
+import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
@@ -48,23 +50,52 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
         super( unit, globalServiceTarget );
     }
 
-    public boolean createQueue(String queueName, boolean durable, String selector, Object callback) {
+    @SuppressWarnings("rawtypes")
+    public boolean createQueue(final String queueName, final boolean durable, final String selector, Object callback) {
         if (destinationExists( queueName )) {
             return false;
         }
                             
-        ServiceName globalQueueServiceName = QueueInstaller.queueServiceName( queueName );
-        if (getUnit().getServiceRegistry().getService( globalQueueServiceName ) == null) {
-            QueueInstaller.deploy(getGlobalTarget(), 
-                                  new DestroyableJMSQueueService(queueName, selector, durable, 
-                                                                    new String[] { DestinationUtils.jndiName( queueName ) }),
-                                  queueName, 
-                                  Mode.ON_DEMAND); 
+        ServiceName globalQServiceName = QueueInstaller.queueServiceName( queueName );
+        ServiceController globalQService = 
+                getUnit().getServiceRegistry().getService( globalQServiceName );
+        
+        if (globalQService == null) {
+            deployGlobalQueue(queueName, durable, selector);
+        } else {
+            //handle reconfiguration of an existing queue
+            DestroyableJMSQueueService actual = (DestroyableJMSQueueService)globalQService.getService();
+            if (actual.isDurable() != durable || 
+                    !actual.getSelector().equals( selector )) {
+                String from = "durable: " + actual.isDurable() + ", selector: " + actual.getSelector();
+                String to = "durable: " + durable + ", selector: " + selector;
+                State currentState = globalQService.getState();     
+                if (currentState == State.DOWN || 
+                        currentState == State.STOPPING) {
+                    log.info("Reconfiguring " + queueName + " from " + from + " to " + to);
+                    replaceService(globalQServiceName, new Runnable() {
+                        public void run() {
+                            deployGlobalQueue(queueName, durable, selector);
+                        }
+                    });
+                } else {
+                    throw new IllegalStateException("Can't reconfigure " + queueName + " from " + from 
+                                                    + " to " + to + " - it has already been configured");
+                }
+            }   
         }
     
-        createDestinationService(queueName, callback, globalQueueServiceName);
+        createDestinationService(queueName, callback, globalQServiceName);
         
         return true;
+    }
+    
+    protected ServiceName deployGlobalQueue(String queueName, boolean durable, String selector) {
+        return QueueInstaller.deploy(getGlobalTarget(), 
+                                     new DestroyableJMSQueueService(queueName, selector, durable, 
+                                                                        new String[] { DestinationUtils.jndiName( queueName ) }),
+                                     queueName,    
+                                     Mode.ON_DEMAND); 
     }
     
     public boolean createTopic(String topicName, Object callback) {
@@ -151,4 +182,6 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
     private final InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
     private final InjectedValue<MessageProcessorGroupizer> messageProcessorGroupizerInjector = new InjectedValue<MessageProcessorGroupizer>();
     private Map<String, ServiceName> destinations = new HashMap<String, ServiceName>();
+    
+    static final Logger log = Logger.getLogger( "org.immutant.messaging" );
 }

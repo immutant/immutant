@@ -64,6 +64,7 @@
   (is (= :ham (msg/receive "queue.result" :timeout 15000)))
   (is (= :success (get-as-data "/t2"))))
 
-
+(deftest verify-in-container-reconfigure-tests
+  (is (test-in-container "reconfigure" "target/apps/messaging/queues/")))
 
 
