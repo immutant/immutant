@@ -131,6 +131,14 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
             if (dest != null) {
                 ServiceController globalDest = 
                         registry.getService( QueueInstaller.queueServiceName( name ) );
+                if (globalDest == null) {
+                    globalDest = registry.getService( TopicInstaller.topicServiceName( name ) );
+                }
+                if (globalDest == null) {
+                    //should never happen, but...
+                    throw new IllegalStateException("Failed to find global dest for " + name);
+                }
+                    
                 Object service = globalDest.getService();
                 //force it to destroy, even if it's durable
                 if (service instanceof Destroyable) {
