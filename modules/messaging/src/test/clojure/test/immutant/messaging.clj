@@ -24,7 +24,7 @@
 
 (def mock-registry
   {"destinationizer"
-   (proxy [org.immutant.messaging.Destinationizer] [nil]
+   (proxy [org.immutant.messaging.Destinationizer] [nil nil]
      (createQueue [name & _]
        (swap! created-dests conj name)
         false)

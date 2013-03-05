@@ -21,16 +21,13 @@ package org.immutant.messaging;
 
 import org.immutant.core.SimpleServiceStateListener;
 import org.immutant.runtime.ClojureRuntime;
+import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
-import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
-import org.projectodd.polyglot.messaging.destinations.DestroyableJMSQueueService;
+import org.jboss.msc.service.StopContext;
 
-public class QueueService extends DestroyableJMSQueueService {
-    public QueueService(String queueName, String selectorString, boolean durable, 
-                        ClojureRuntime runtime, Object callback) {
-        super( queueName, selectorString, durable, 
-               new String[] { DestinationUtils.jndiName( queueName ) } );
+public class DestinationService implements Service<Void> {
+    public DestinationService(String queueName, ClojureRuntime runtime, Object callback) {
         this.runtime = runtime;
         this.callback = callback;
     }
@@ -40,9 +37,18 @@ public class QueueService extends DestroyableJMSQueueService {
     public synchronized void start(StartContext context) throws StartException {
         context.getController().addListener( new SimpleServiceStateListener( this.runtime,
                                                                              this.callback ) );
-        super.start( context );
     }
-    
+
+    @Override
+    public Void getValue() throws IllegalStateException,
+            IllegalArgumentException {
+        return null;
+    }
+
+    @Override
+    public void stop(StopContext context) {
+    }
+
     private ClojureRuntime runtime;
     private Object callback;
 }

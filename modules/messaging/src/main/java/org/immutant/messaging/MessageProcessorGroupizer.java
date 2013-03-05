@@ -33,6 +33,7 @@ import org.jboss.as.naming.deployment.ContextNames;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core.AtRuntimeInstaller;
 import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
@@ -48,6 +49,14 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
         public MessageProcessorGroup createGroup(final String destinationName, final boolean singleton, final int concurrency, 
                                                  final boolean durable, final String handlerName, final XAConnection connection, final Object setupHandler, 
                                                  final Object startCallback) {
+        
+        final ServiceName pointerDestName = MessagingServices.destinationPointer(getUnit(), destinationName);
+        ServiceController pointerDest = getUnit().getServiceRegistry().getService( pointerDestName );
+        if (pointerDest == null ||
+               !inValidState(pointerDest.getState())) {
+            throw new IllegalStateException( destinationName + " is not available" );
+        }
+        
         final String name = destinationName + "." + URLEncoder.encode(handlerName);
         final ServiceName serviceName = MessagingServices.messageProcessor( getUnit(),  name );
         final MessageProcessorGroup group = new MessageProcessorGroup( getUnit().getServiceRegistry(), serviceName,
@@ -67,6 +76,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
                                 ServiceName javaContext = ContextNames.JAVA_CONTEXT_SERVICE_NAME;
 
                                 builder.addDependency( CoreServices.runtime( getUnit() ), group.getClojureRuntimeInjector() )
+                                    .addDependency( pointerDestName )
                                     .addDependency( javaContext.append( "ConnectionFactory" ), group.getConnectionFactoryInjector() )
                                     .addDependency( javaContext.append( DestinationUtils.getServiceName( destinationName ) ), group.getDestinationInjector() )
                                     .install();
@@ -80,7 +90,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
     }
 
     @SuppressWarnings("rawtypes")
-        public void removeGroupsFor(String destinationName) {
+    public void removeGroupsFor(String destinationName) {
         List<ServiceName> groups = installedGroupsFor( destinationName ); 
         if (groups != null) {
             for (ServiceName each : groups) {
@@ -95,6 +105,10 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
     
     public List<ServiceName> installedGroupsFor(String destinationName) {
         return this.installedGroups.get( destinationName ); 
+    }
+    
+    protected boolean inValidState(State state) {
+        return (state == State.STARTING || state == State.UP);
     }
     
     protected void rememberGroup(String destinationName, ServiceName serviceName) {

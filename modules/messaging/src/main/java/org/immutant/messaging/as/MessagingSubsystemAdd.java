@@ -42,6 +42,7 @@ import org.jboss.msc.service.DuplicateServiceException;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceTarget;
 import org.projectodd.polyglot.messaging.destinations.HornetQStartupPoolService;
 import org.projectodd.polyglot.messaging.processors.ApplicationNamingContextBindingProcessor;
 
@@ -53,26 +54,26 @@ class MessagingSubsystemAdd extends AbstractBoottimeAddStepHandler {
     }
 
     @Override
-    protected void performBoottime(OperationContext context, ModelNode operation, ModelNode model,
+    protected void performBoottime(final OperationContext context, ModelNode operation, ModelNode model,
             ServiceVerificationHandler verificationHandler,
             List<ServiceController<?>> newControllers) throws OperationFailedException {
 
         context.addStep( new AbstractDeploymentChainStep() {
             @Override
             protected void execute(DeploymentProcessorTarget processorTarget) {
-                addDeploymentProcessors( processorTarget );
+                addDeploymentProcessors( processorTarget, context.getServiceTarget() );
             }
         }, OperationContext.Stage.RUNTIME );
 
         addHornetQStartupPoolService( context, verificationHandler, newControllers );
     }
 
-    protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
+    protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget, ServiceTarget globalTarget) {
 
         processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 3, new MessagingDependenciesProcessor() );
 
         processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 11, new ApplicationNamingContextBindingProcessor() );
-        processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, new DestinationizerInstaller() );
+        processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, new DestinationizerInstaller(globalTarget) );
         processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 201, new MessageProcessorGroupizerInstaller() );
         processorTarget.addDeploymentProcessor( MessagingExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 202, new MessageListenerFactoryInstaller() );  
 

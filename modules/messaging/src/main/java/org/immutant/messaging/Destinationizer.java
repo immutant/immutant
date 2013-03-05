@@ -24,54 +24,65 @@ import java.util.Map;
 
 import org.immutant.core.HasImmutantRuntimeInjector;
 import org.immutant.core.SimpleServiceStateListener;
+import org.immutant.messaging.as.MessagingServices;
 import org.immutant.runtime.ClojureRuntime;
-import org.jboss.as.messaging.MessagingServices;
-import org.jboss.as.messaging.jms.JMSServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.core.AtRuntimeInstaller;
+import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
 import org.projectodd.polyglot.messaging.destinations.Destroyable;
+import org.projectodd.polyglot.messaging.destinations.DestroyableJMSQueueService;
+import org.projectodd.polyglot.messaging.destinations.DestroyableJMSTopicService;
 import org.projectodd.polyglot.messaging.destinations.processors.QueueInstaller;
 import org.projectodd.polyglot.messaging.destinations.processors.TopicInstaller;
 
 
 public class Destinationizer extends AtRuntimeInstaller<Destinationizer> implements HasImmutantRuntimeInjector {
 
-    public Destinationizer(DeploymentUnit unit) {
-        super( unit );
+    public Destinationizer(DeploymentUnit unit, ServiceTarget globalServiceTarget) {
+        super( unit, globalServiceTarget );
     }
 
     public boolean createQueue(String queueName, boolean durable, String selector, Object callback) {
-        if (destinationExists( queueName, true )) {
+        if (destinationExists( queueName )) {
             return false;
         }
-                
-        QueueService service = new QueueService( queueName, selector, durable, 
-                                                 this.clojureRuntimeInjector.getValue(),
-                                                 callback );
-                    
-        this.destinations.put( queueName, 
-                               QueueInstaller.deploy( getTarget(), service, queueName ) );
+                            
+        ServiceName globalQueueServiceName = QueueInstaller.queueServiceName( queueName );
+        if (getUnit().getServiceRegistry().getService( globalQueueServiceName ) == null) {
+            QueueInstaller.deploy(getGlobalTarget(), 
+                                  new DestroyableJMSQueueService(queueName, selector, durable, 
+                                                                    new String[] { DestinationUtils.jndiName( queueName ) }),
+                                  queueName, 
+                                  Mode.ON_DEMAND); 
+        }
+    
+        createDestinationService(queueName, callback, globalQueueServiceName);
         
         return true;
     }
     
     public boolean createTopic(String topicName, Object callback) {
-        if (destinationExists( topicName, false )) {
+        if (destinationExists( topicName )) {
             return false;
         } 
-        
-        TopicService service = new TopicService( topicName, 
-                                                 this.clojureRuntimeInjector.getValue(),
-                                                 callback );
-        
-        this.destinations.put( topicName, 
-                               TopicInstaller.deploy( getTarget(), service, topicName ) );
-        
+
+        ServiceName globalTopicServiceName = TopicInstaller.topicServiceName( topicName );
+        if (getUnit().getServiceRegistry().getService( globalTopicServiceName ) == null) {
+            TopicInstaller.deploy(getGlobalTarget(), 
+                                  new DestroyableJMSTopicService(topicName,  
+                                                                    new String[] { DestinationUtils.jndiName( topicName ) }),
+                                  topicName, 
+                                  Mode.ON_DEMAND); 
+        }
+    
+        createDestinationService(topicName, callback, globalTopicServiceName);
+
         return true;
     }
     
@@ -102,17 +113,25 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
         return success;
     }
 
-    protected boolean destinationExists(String name, boolean queue) {
-        ServiceName defaultService = MessagingServices.getHornetQServiceName( "default" );
-        ServiceName serviceName;
-        if (queue) {
-            serviceName = JMSServices.getJmsQueueBaseServiceName( defaultService );
-        } else {
-            serviceName = JMSServices.getJmsTopicBaseServiceName( defaultService );
-        }
-        serviceName = serviceName.append( name );
+    protected void createDestinationService(String destName, Object callback, ServiceName globalName) {
+        DestinationService service = 
+                new DestinationService(destName,
+                                       this.clojureRuntimeInjector.getValue(),
+                                       callback);
+                
+        ServiceName serviceName = MessagingServices.destinationPointer(getUnit(), destName);
         
-        return (getUnit().getServiceRegistry().getService( serviceName ) != null);
+        build(serviceName, service, false)
+            .addDependency( globalName )
+            .install();
+            
+        this.destinations.put( destName, serviceName );
+        
+    }
+    
+    protected boolean destinationExists(String name) {
+        return (getUnit().getServiceRegistry().getService(MessagingServices.destinationPointer(getUnit(), name)) 
+                != null);
     }
     
     @Override

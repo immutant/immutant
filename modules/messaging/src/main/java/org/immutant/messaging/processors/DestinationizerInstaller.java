@@ -28,14 +28,19 @@ import org.immutant.runtime.ClojureRuntime;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceController.Mode;
+import org.jboss.msc.service.ServiceTarget;
 
 
 public class DestinationizerInstaller extends RegisteringProcessor {
 
+    public DestinationizerInstaller(ServiceTarget globalTarget) {
+        this.globalTarget = globalTarget;
+    }
+    
     public RegistryEntry registryEntry(DeploymentPhaseContext context) {
         DeploymentUnit unit = context.getDeploymentUnit();
                 
-        Destinationizer service = new Destinationizer(unit);
+        Destinationizer service = new Destinationizer(unit, this.globalTarget);
                 
         context.getServiceTarget().addService(MessagingServices.destinationizer( unit ), service)
             .addDependency( CoreServices.runtime( context.getDeploymentUnit() ), 
@@ -50,4 +55,5 @@ public class DestinationizerInstaller extends RegisteringProcessor {
         return new RegistryEntry( "destinationizer", service );
     }
 
+    private ServiceTarget globalTarget;
 }
