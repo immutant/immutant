@@ -33,6 +33,7 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.core.AtRuntimeInstaller;
@@ -125,13 +126,17 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
         
         ServiceName serviceName = this.destinations.get( name );
         if (serviceName != null) {
-            ServiceController dest = getUnit().getServiceRegistry().getService( serviceName );
+            ServiceRegistry registry = getUnit().getServiceRegistry();
+            ServiceController dest = registry.getService( serviceName );
             if (dest != null) {
-                Object service = dest.getService();
+                ServiceController globalDest = 
+                        registry.getService( QueueInstaller.queueServiceName( name ) );
+                Object service = globalDest.getService();
                 //force it to destroy, even if it's durable
                 if (service instanceof Destroyable) {
                     ((Destroyable)service).setShouldDestroy( true );
                 }
+                
                 dest.addListener( new SimpleServiceStateListener( this.clojureRuntimeInjector.getValue(),
                                                                   callback ) );
                 dest.setMode( Mode.REMOVE );
