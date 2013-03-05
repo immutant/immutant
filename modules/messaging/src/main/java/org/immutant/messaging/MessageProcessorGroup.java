@@ -43,21 +43,13 @@ import org.projectodd.polyglot.messaging.BaseMessageProcessorGroup;
 public class MessageProcessorGroup extends BaseMessageProcessorGroup implements MessageProcessorGroupMBean, HasImmutantRuntimeInjector {
 
     public MessageProcessorGroup(ServiceRegistry registry, ServiceName baseServiceName,
-            String destinationName, XAConnection connection, Object setupHandler, Object afterStartCallback) {
+            String destinationName, XAConnection connection, Object setupHandler) {
         super( registry, baseServiceName, destinationName, MessageProcessor.class );
         setStartAsynchronously( false );
         setConnection( connection );
         this.setupHandler = setupHandler;
-        this.afterStartCallback = afterStartCallback;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public void start(StartContext context) throws StartException {
-        context.getController().addListener( new SimpleServiceStateListener( getRuntime(), this.afterStartCallback ) );
-        super.start( context );    
-    }
-    
     @Override
     protected BaseMessageProcessor instantiateProcessor() {
         return new MessageProcessor( getRuntime() );
@@ -75,8 +67,6 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
     @SuppressWarnings("rawtypes")
     @Override
     protected Session createSession() {
-        //TODO: use the new method for creating sessions that supposedly fixes IMMUTANT-203
-        // maybe take a look at the method we're overriding here
         this.setupData = (Map)getRuntime().invoke( this.setupHandler );
         
         return (Session)this.setupData.get("session");
@@ -119,7 +109,6 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
     
     private final InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
     private Object setupHandler;
-    private Object afterStartCallback;
     @SuppressWarnings("rawtypes")
     private Map setupData;
 }

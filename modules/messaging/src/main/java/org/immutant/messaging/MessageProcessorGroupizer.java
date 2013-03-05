@@ -47,8 +47,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
         public MessageProcessorGroup createGroup(final String destinationName, final boolean singleton, final int concurrency, 
-                                                 final boolean durable, final String handlerName, final XAConnection connection, final Object setupHandler, 
-                                                 final Object startCallback) {
+                                                 final boolean durable, final String handlerName, final XAConnection connection, final Object setupHandler) {
         
         final ServiceName pointerDestName = MessagingServices.destinationPointer(getUnit(), destinationName);
         ServiceController pointerDest = getUnit().getServiceRegistry().getService( pointerDestName );
@@ -60,7 +59,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
         final String name = destinationName + "." + URLEncoder.encode(handlerName);
         final ServiceName serviceName = MessagingServices.messageProcessor( getUnit(),  name );
         final MessageProcessorGroup group = new MessageProcessorGroup( getUnit().getServiceRegistry(), serviceName,
-                                                                       destinationName, connection, setupHandler, startCallback );
+                                                                       destinationName, connection, setupHandler );
 
         group.setConcurrency( concurrency );
         group.setDurable( durable );
