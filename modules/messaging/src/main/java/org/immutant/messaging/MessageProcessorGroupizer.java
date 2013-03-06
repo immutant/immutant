@@ -50,7 +50,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
                                                  final boolean durable, final String handlerName, final XAConnection connection, final Object setupHandler, 
                                                  final Object startCallback) {
         
-        final ServiceName pointerDestName = MessagingServices.destinationPointer(getUnit(), destinationName);
+        final ServiceName pointerDestName = DestinationUtils.destinationPointerName(getUnit(), destinationName);
         ServiceController pointerDest = getUnit().getServiceRegistry().getService( pointerDestName );
         if (pointerDest == null ||
                !inValidState(pointerDest.getState())) {
