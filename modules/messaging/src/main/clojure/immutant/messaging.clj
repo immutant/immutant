@@ -219,14 +219,20 @@
 
      (destination-exists? connection dest)
      ;; we're inside the container, and the dest is valid
-     (.createGroup izer
-                   dest-name
-                   false ;; TODO: singleton
-                   concurrency
-                   (not (nil? (:client-id opts)))
-                   (str (:selector opts) (if (topic? dest) (str (:client-id opts) f)))
-                   connection
-                   setup-fn)
+     (let [complete (promise)
+           group (.createGroup izer
+                               dest-name
+                               false ;; TODO: singleton
+                               concurrency
+                               (not (nil? (:client-id opts)))
+                               (str (:selector opts) (if (topic? dest) (str (:client-id opts) f)))
+                               connection
+                               setup-fn
+                               #(deliver complete %))]
+       (if (= "up" (deref complete 5000 nil))
+         group
+         (log/error "Failed to setup listener for" dest-name)))
+
      :else
      (throw (IllegalStateException. (str "Destination " dest-name " does not exist."))))))
 
