@@ -3,7 +3,7 @@
             [immutant.web       :as web]))
 
 (msg/start "/topic/gravy")
-(msg/start (msg/as-topic "oddball"))
+(msg/start (msg/as-topic "toddball"))
 
 (let [p (promise)
       l (msg/listen "/topic/gravy" (fn [v] (deliver p v)))]

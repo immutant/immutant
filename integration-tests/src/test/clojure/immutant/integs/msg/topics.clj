@@ -21,7 +21,7 @@
         immutant.messaging))
 
 (def gravy "/topic/gravy")
-(def oddball (as-topic "oddball"))
+(def oddball (as-topic "toddball"))
 
 (use-fixtures :once (with-deployment *file*
                       {
