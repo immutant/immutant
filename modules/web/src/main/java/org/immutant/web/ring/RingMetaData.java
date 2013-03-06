@@ -35,6 +35,7 @@ public class RingMetaData extends WebApplicationMetaData {
     public RingMetaData(ClojureMetaData appMetaData) {
         this.appMetaData = appMetaData;
         setStaticPathPrefix( this.appMetaData.getString( "static" ) );
+        setContextPath(this.appMetaData.getString( "context-path" ));
         final Object host = this.appMetaData.get( "virtual-host" );
         if (host instanceof List) {
             addHosts( (List)host );
@@ -49,25 +50,10 @@ public class RingMetaData extends WebApplicationMetaData {
         unit.putAttachment( ATTACHMENT_KEY, this );
     }
     
-    @Override       
-    public String getContextPath() {
-        if (this.contextPath == null) {
-            this.contextPath = this.appMetaData.getString( "context-path" );
-            if (this.contextPath != null && 
-                    !this.contextPath.startsWith( "/" )) {
-                this.contextPath = "/" + this.contextPath;
-            }
-        }
-        
-        return this.contextPath;
-    }
-
     public String toString() {
-        return "[RingApplicationMetaData:" + System.identityHashCode( this ) + "\n  host=" + this.hosts + "\n  context=" + this.contextPath + "]";
+        return "[RingApplicationMetaData:" + System.identityHashCode( this ) + "\n  host=" + getHosts() + "\n  context=" + getContextPath() + "]";
     }
 
     
     private ClojureMetaData appMetaData;
-    private List<String> hosts = new ArrayList<String>();
-    private String contextPath;
 }

@@ -55,6 +55,7 @@
      (.getContextPath (make-md {"context-path" ?given})) => ?expected)
    ?expected ?given
    "/foo"    "/foo"
+   "/foo"    "/foo/"
    "/foo"    "foo"
    "/"       "/"
    nil       nil
