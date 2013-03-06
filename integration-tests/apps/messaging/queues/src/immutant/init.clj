@@ -19,13 +19,15 @@
                                .getContextClassLoader
                                .toString))))
 
-(msg/start "queue.listen-id.request")
-(msg/start "queue.listen-id.response")
+(msg/start "queue.listen-id.request" :durable false)
+(msg/start "queue.listen-id.response" :durable false)
 
 (msg/listen "queue.listen-id.request"
             (fn [_]
-              (msg/listen "queue.listen-id.request"
-               (fn [_] (msg/publish "queue.listen-id.response" :new-listener)))
+              (future
+                (msg/listen "queue.listen-id.request"
+                            (fn [_] (msg/publish "queue.listen-id.response" :new-listener)))
+                (msg/publish "queue.listen-id.response" :release))
               (msg/publish "queue.listen-id.response" :old-listener)))
 
 (msg/start (msg/as-queue "oddball"))

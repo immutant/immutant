@@ -76,5 +76,6 @@
   (deftest listen-on-a-queue-should-be-idempotent
     (publish request-queue :whatever)
     (is (= :old-listener (receive response-queue)))
+    (is (= :release (receive response-queue)))
     (publish request-queue :whatever)
     (is (= :new-listener (receive response-queue)))))

@@ -229,9 +229,9 @@
                                connection
                                setup-fn
                                #(deliver complete %))]
-       (if (= "up" (deref complete 5000 nil))
+       (if (= "up" (deref complete 10000 nil))
          group
-         (log/error "Failed to setup listener for" dest-name)))
+         (log/error "Setting up a listener for" dest-name "*may* have failed")))
 
      :else
      (throw (IllegalStateException. (str "Destination " dest-name " does not exist."))))))
