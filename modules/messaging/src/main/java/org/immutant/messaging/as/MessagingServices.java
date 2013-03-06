@@ -44,7 +44,7 @@ public class MessagingServices {
         return unit.getServiceName().append( MESSAGING ).append(  processorName );
     }
     
-    public static ServiceName destinationPointer(DeploymentUnit unit, String queueName) {
-        return unit.getServiceName().append( MESSAGING ).append( "destination-pointer" ).append( queueName );
+    public static ServiceName destinationPointer(DeploymentUnit unit, String name) {
+        return unit.getServiceName().append( MESSAGING ).append( "destination-pointer" ).append( name );
     }
 }
