@@ -19,7 +19,6 @@
 
 package org.immutant.web.ring;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.immutant.core.ClojureMetaData;
@@ -44,6 +43,11 @@ public class RingMetaData extends WebApplicationMetaData {
         }
     }
 
+    @Override
+    public boolean forceDefaultContext() {
+        return false;
+    }
+    
     @Override
     public void attachTo(DeploymentUnit unit) {
         super.attachTo( unit );
