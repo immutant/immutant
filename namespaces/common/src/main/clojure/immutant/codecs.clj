@@ -17,7 +17,9 @@
 
 (ns immutant.codecs
   "Common codecs used when [de]serializing data structures."
-  (:require [cheshire.core :as json]))
+  (:require [cheshire.core :as json]
+            [clojure.tools.reader.edn :as edn]
+            [clojure.tools.reader :as r]))
 
 ;; Encode
 
@@ -55,7 +57,7 @@
 (defmethod decode :clojure [data _]
   "Turn a string into a clojure data structure"
   (try
-    (and data (read-string data))
+    (and data (r/read-string data))
     (catch Throwable e
       (throw (RuntimeException.
               (str "Invalid clojure-encoded data (type=" (class data) "): " data)
@@ -64,7 +66,7 @@
 (defmethod decode :edn [data & _]
   "Turn an edn string into a clojure data structure"
   (try
-    (and data (read-string data))
+    (and data (edn/read-string data))
     (catch Throwable e
       (throw (RuntimeException.
               (str "Invalid edn-encoded data (type=" (class data) "): " data)

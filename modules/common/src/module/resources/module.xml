@@ -28,6 +28,7 @@
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="immutant-common.jar"/>
         <resource-root path="tools.logging.jar"/>
+        <resource-root path="tools.reader.jar"/>
         <resource-root path="cheshire.jar"/>
         <resource-root path="jackson-core.jar"/>
         <resource-root path="jackson-dataformat-smile.jar"/>

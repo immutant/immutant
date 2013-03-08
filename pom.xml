@@ -202,6 +202,12 @@
       </dependency>
       
       <dependency>
+        <groupId>org.clojure</groupId>
+        <artifactId>tools.reader</artifactId>
+        <version>${version.clojure.tools.reader}</version>
+      </dependency>
+
+      <dependency>
         <groupId>swank-clojure</groupId>
         <artifactId>swank-clojure</artifactId>
         <version>${version.swank-clojure}</version>
@@ -354,6 +360,7 @@
     <version.clojure-contrib>1.2.0</version.clojure-contrib>
     <version.clojure.tools.logging>0.2.3</version.clojure.tools.logging>
     <version.clojure.tools.namespace>0.1.3</version.clojure.tools.namespace>
+    <version.clojure.tools.reader>0.7.3</version.clojure.tools.reader>
     <version.clojure.core.cache>0.6.1</version.clojure.core.cache>
     <version.clojure.core.memoize>0.5.2</version.clojure.core.memoize>
     <version.clojure.java.jdbc>0.2.3</version.clojure.java.jdbc>
