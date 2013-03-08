@@ -353,16 +353,18 @@
 (defn transform-config [file]
   (let [in-file (io/file (jboss-dir) file)
         out-file in-file]
-    (if (re-find #"immutant" (slurp in-file))
-      (println file "already transformed, skipping")
-      (do
-        (with-message (str "Transforming " file)
-          (io/make-parents out-file)
-          (io/copy (with-out-str
-                     (lazy-xml/emit
-                      (walk-the-doc (prepare-zip in-file))
-                      :indent 4))
-                   out-file))))))
+    (try
+      (if (re-find #"immutant" (slurp in-file))
+        (println file "already transformed, skipping")
+        (do
+          (with-message (str "Transforming " file)
+            (io/make-parents out-file)
+            (io/copy (with-out-str
+                       (lazy-xml/emit
+                        (walk-the-doc (prepare-zip in-file))
+                        :indent 4))
+                     out-file))))
+      (catch java.io.FileNotFoundException e (println (.getMessage e))))))
 
 (defn extract-module-deps [f]
   (let [mods (flatten
