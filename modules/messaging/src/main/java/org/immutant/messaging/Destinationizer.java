@@ -21,6 +21,7 @@ package org.immutant.messaging;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.immutant.core.HasImmutantRuntimeInjector;
 import org.immutant.core.SimpleServiceStateListener;
@@ -37,6 +38,8 @@ import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.core.AtRuntimeInstaller;
 import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
 import org.projectodd.polyglot.messaging.destinations.Destroyable;
+import org.projectodd.polyglot.messaging.destinations.DestroyableJMSQueueService;
+import org.projectodd.polyglot.messaging.destinations.DestroyableJMSTopicService;
 import org.projectodd.polyglot.messaging.destinations.processors.QueueInstaller;
 import org.projectodd.polyglot.messaging.destinations.processors.TopicInstaller;
 
@@ -52,13 +55,17 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
             return false;
         }
                             
+        DestroyableJMSQueueService queue =
+                QueueInstaller.deployGlobalQueue(getUnit().getServiceRegistry(), 
+                                                 getGlobalTarget(),
+                                                 queueName, 
+                                                 durable,   
+                                                 selector, 
+                                                 DestinationUtils.jndiNames( queueName, false ));
+        
         createDestinationService(queueName, callback,
-                                 QueueInstaller.deployGlobalQueue(getUnit().getServiceRegistry(), 
-                                                                  getGlobalTarget(),
-                                                                  queueName, 
-                                                                  durable,   
-                                                                  selector, 
-                                                                  DestinationUtils.jndiNames( queueName, false )));
+                                 QueueInstaller.queueServiceName(queueName),
+                                 queue.getReferenceCount());
         
         return true;
     }
@@ -68,11 +75,15 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
             return false;
         } 
 
-        createDestinationService(topicName, callback, 
-                                 TopicInstaller.deployGlobalTopic(getUnit().getServiceRegistry(),
-                                                                  getGlobalTarget(),
-                                                                  topicName,
-                                                                  DestinationUtils.jndiNames( topicName, false )));
+        DestroyableJMSTopicService topic = 
+                TopicInstaller.deployGlobalTopic(getUnit().getServiceRegistry(),
+                                                 getGlobalTarget(),
+                                                 topicName,
+                                                 DestinationUtils.jndiNames( topicName, false ));
+        
+        createDestinationService(topicName, callback,
+                                 TopicInstaller.topicServiceName(topicName),
+                                 topic.getReferenceCount());
 
         return true;
     }
@@ -116,12 +127,15 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
         return success;
     }
 
-    protected void createDestinationService(String destName, Object callback, ServiceName globalName) {
+    protected void createDestinationService(String destName, Object callback, 
+                                            ServiceName globalName,
+                                            AtomicInteger referenceCount) {
         this.destinations.put(destName, 
                               DestinationUtils.deployDestinationPointerService(getUnit(), 
                                                                                getTarget(), 
-                                                                               destName, 
-                                                                               globalName, 
+                                                                               destName,
+                                                                               globalName,
+                                                                               referenceCount,
                                                                                new SimpleServiceStateListener(this.clojureRuntimeInjector.getValue(), 
                                                                                                               callback)));
     }
