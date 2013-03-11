@@ -38,7 +38,7 @@
   "Default reload-paths to all directories in the classpath, whether
   they exist at time of deployment or not"
   [options]
-  (let [cp (map io/file (dynapath.util/all-classpath-urls))
+  (let [cp (map io/file (dynapath.util/all-classpath-urls (clojure.lang.RT/baseLoader)))
         dirs (map str (remove #(and (.exists %) (not (.isDirectory %))) cp))]
     (:reload-paths options dirs)))
 
