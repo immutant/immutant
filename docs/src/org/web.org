@@ -86,7 +86,7 @@
 * Registering Handlers
 
   To register a Ring handler, you simply call the [[./apidoc/immutant.web.html#var-start][immutant.web/start]], which
-  takes one or two arguments:
+  takes one or two arguments, plus some options:
 
   - =sub-context-path= - the sub-context path within the application's context
     path where the handler should be attached. Optional - if omitted,
@@ -96,9 +96,24 @@
   - =handler= - the Ring handler to invoke when requests come in on the
     sub context path.
 
-  It also accepts an optional named argument =:reload= that, when
-  true, monitors your application =src/= directory for changes and
-  reloads the corresponding namespace. Its default value is false.
+  The options are a subset of those provided by the popular [[https://github.com/weavejester/ring-server][ring-server]]:  
+
+   | Option        | Default        | Description                         |
+   |---------------+----------------+-------------------------------------|
+   |               | <c>            | <35>                                |
+   | :init         | nil            | A function called immediately after the handler is mounted |
+   | :destroy      | nil            | A function called immediately after the handler is stopped |
+   | :stacktraces? | true in :dev   | Display stacktraces in browser when exception is thrown |
+   | :auto-reload? | true in :dev   | Automatically reload source files   |
+   | :reload-paths | all dirs on CP | A seq of src paths to monitor for changes |
+
+  Auto-reloading is enabled by default in development mode, which is
+  determined by the presence of the =:dev= profile among the active
+  ones in your Leiningen project. The [[https://github.com/immutant/lein-immutant][lein-immutant]] plugin activates
+  =:dev= by default when you deploy your app, but you can override
+  this using the =with-profile= higher-order task. You can also set
+  the environment variable, =LEIN_NO_DEV=, to disable these defaults,
+  regardless of whether =:dev= is active.
 
   Let's take a look at =start= in use. For the following example, assume
   the application has a top-level context path of =/my-app=:
@@ -118,10 +133,10 @@
     ;; receives at /my-app/somewhere/*.
     (web/start "/somewhere" my-other-handler)
     
-    ;; When you are developing, you want to see your changes immediately,
-    ;; so pass the var quoted handler symbol so it can be reloaded,
-    ;; and set :reload
-    (web/start #'your-handler :reload true)
+    ;; If you want to see your changes immediately while in a REPL, pass a
+    ;; var-quoted handler. You only need to explicitly set :auto-reload?
+    ;; when not in development mode.
+    (web/start #'your-handler :auto-reload? true)
   #+end_src
 
   You can deregister a registered handler at any time. Immutant will deregister
