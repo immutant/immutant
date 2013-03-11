@@ -18,13 +18,12 @@
 (ns immutant.web
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
-  (:require [immutant.registry      :as registry]
-            [clojure.tools.logging  :as log]
+  (:require [clojure.tools.logging  :as log]
             [immutant.util          :as util]
-            [ring.middleware.reload :as ring]
-            [ring.util.codec :as codec]
-            [ring.util.response :as response])
+            [ring.util.codec        :as codec]
+            [ring.util.response     :as response])
   (:use [immutant.web.internal :exclude [current-servlet-request]])
+  (:use [immutant.web.middleware :only [add-middleware]])
   (:import javax.servlet.http.HttpServletRequest))
 
 (declare stop)
@@ -36,50 +35,46 @@
   []
   immutant.web.internal/current-servlet-request)
 
-(def
-  ^{:arglists '([handler & {:keys [reload init destroy]}]
-                [sub-context-path handler & {:keys [reload init destroy]}])
-    :doc "Registers a Ring handler that will be called when requests
+(defn start
+  "Registers a Ring handler that will be called when requests
    are received on the given sub-context-path. If no sub-context-path
    is given, \"/\" is assumed.
 
-   The following options are supported [default]:
-     :reload    monitors the app's src/ dir for changes [false]
-     :init      a function called after handler is initialized [nil]
-     :destroy   a function called after handler is stopped [nil]"}
-  start
-  (fn [& args]
-    (util/if-in-immutant
-     (let [[sub-context-path args] (if (string? (first args))
-                                     [(first args) (next args)]
-                                     ["/" args])
-           [handler & {:keys [reload init destroy]}] args
-           handler (if reload
-                     (ring/wrap-reload
-                      handler
-                      {:dirs [(util/app-relative "src")]})
-                     handler)
-           sub-context-path (normalize-subcontext-path sub-context-path)
-           servlet-name (servlet-name sub-context-path)]
-       (if-let [existing-info (get-servlet-info servlet-name)]
-         (do
-           (log/info "Updating ring handler at sub-context path:" sub-context-path)
-           (store-servlet-info!
-            servlet-name
-            (assoc existing-info :handler handler)))
-         (do
-           (log/info "Registering ring handler at sub-context path:" sub-context-path)
-           (store-servlet-info!
-            servlet-name
-            {:wrapper (install-servlet "org.immutant.web.servlet.RingServlet"
-                                       sub-context-path)
-             :sub-context sub-context-path
-             :handler handler
-             :destroy destroy})
-           (util/at-exit #(stop sub-context-path))
-           (and init (init))))
-       nil)
-     (log/warn "web/start called outside of Immutant, ignoring"))))
+   The options are a subset of those for ring-server [default]:
+     :init          function called after handler is initialized [nil]
+     :destroy       function called after handler is stopped [nil]
+     :stacktraces?  display stacktraces when exception is thrown [true in :dev]
+     :auto-reload?  automatically reload source files [true in :dev]
+     :reload-paths  seq of src-paths to reload on change [dirs on classpath]"
+  {:arglists '([handler] [handler options] [path handler options])}
+  [& args]
+  (util/if-in-immutant
+   (let [[sub-context-path args] (if (string? (first args))
+                                   [(first args) (next args)]
+                                   ["/" args])
+         [handler & {:keys [init destroy] :as opts}] args
+         handler (add-middleware handler opts)
+         sub-context-path (normalize-subcontext-path sub-context-path)
+         servlet-name (servlet-name sub-context-path)]
+     (if-let [existing-info (get-servlet-info servlet-name)]
+       (do
+         (log/debug "Updating ring handler at sub-context path:" sub-context-path)
+         (store-servlet-info!
+          servlet-name
+          (assoc existing-info :handler handler)))
+       (do
+         (log/info "Registering ring handler at sub-context path:" sub-context-path)
+         (store-servlet-info!
+          servlet-name
+          {:wrapper (install-servlet "org.immutant.web.servlet.RingServlet"
+                                     sub-context-path)
+           :sub-context sub-context-path
+           :handler handler
+           :destroy destroy})
+         (util/at-exit #(stop sub-context-path))
+         (and init (init))))
+     nil)
+   (log/warn "web/start called outside of Immutant, ignoring")))
 
 
 (defn stop

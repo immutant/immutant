@@ -45,6 +45,12 @@
       </exclusions>
     </dependency>
 
+    <dependency>
+      <groupId>org.tcrawley</groupId>
+      <artifactId>dynapath</artifactId>
+      <version>${version.dynapath}</version>
+    </dependency>
+
   </dependencies>
 
   <build>

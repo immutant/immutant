@@ -44,6 +44,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.tcrawley</groupId>
+      <artifactId>dynapath</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
       <groupId>ring</groupId>
       <artifactId>ring-servlet</artifactId>
       <version>${version.ring}</version>

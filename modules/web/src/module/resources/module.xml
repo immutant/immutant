@@ -38,6 +38,7 @@
         <resource-root path="ns-tracker.jar"/>
         <resource-root path="tools.namespace.jar"/>
         <resource-root path="java.classpath.jar"/>
+        <resource-root path="hiccup.jar"/>
     </resources>
 
     <dependencies>
