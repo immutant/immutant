@@ -28,7 +28,12 @@
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="immutant-common.jar"/>
         <resource-root path="tools.logging.jar"/>
-        <resource-root path="tools.reader.jar"/>
+        <!--
+        tools.reader imports clojure.lang.RT, and an gen-classed Exception class, so has to
+        be able to find the clojure classes, which only exist in the deployment ClassLaoder,
+        so we don't load it as a resource-root here, and add it directly to each deployment's
+        effective classpath in AppDependenciesProcessor instead.
+        <resource-root path="tools.reader.jar"/> -->
         <resource-root path="cheshire.jar"/>
         <resource-root path="jackson-core.jar"/>
         <resource-root path="jackson-dataformat-smile.jar"/>

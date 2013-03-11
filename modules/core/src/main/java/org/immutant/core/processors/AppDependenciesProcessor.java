@@ -92,7 +92,11 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
 
             //mount the runtime jar
             mounter.mount( findInModulePath( "org/immutant/core/main/immutant-runtime-impl.jar" ), false );
-           
+            
+            // tools.reader imports clojure.lang.RT, and an gen-classed Exception class, so has to
+            // be able to find the clojure classes, which only exist in the deployment ClassLaoder,
+            // so we don't load it as a resource-root in the common module, and add it here instead.
+            mounter.mount(findInModulePath("org/immutant/common/main/tools.reader.jar"), false);
         } catch (Exception e) {
             throw new DeploymentUnitProcessingException( e );
         }
