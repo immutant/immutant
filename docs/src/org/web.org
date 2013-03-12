@@ -226,7 +226,7 @@
 * Sessions
 
   Immutant provides a session store that can be used with the
-  [[https://github.com/mmcgrana/ring/blob/master/ring-core/src/ring/middleware/session.clj][Ring session middleware]] (and any other middleware that uses =ring.middleware.sesion=,
+  [[https://github.com/mmcgrana/ring/blob/master/ring-core/src/ring/middleware/session.clj][Ring session middleware]] (and any other middleware that uses =ring.middleware.session=,
   like [[https://github.com/brentonashworth/sandbar][Sandbar]]). The Immutant session store uses the session provided by
   the underlying JBoss AS7 servlet container, which automatically replicates
   session data across a cluster. You create the store by calling 

@@ -312,6 +312,13 @@
       => 41
     #+end_src
 
+    Note that even if the contents within =#()= are identical, the actual
+    functions are still different. If you want idempotent topic
+    listeners, you should pass the same var to each. And even then,
+    during development, you may inadvertently redefine the var and
+    create multiple, redundant versions of the topic listener. Hijinks
+    may ensue.
+
 *** Accessing Listeners via JMX
 
    Each message listener has a MBean exposed via JMX. Currently, you
