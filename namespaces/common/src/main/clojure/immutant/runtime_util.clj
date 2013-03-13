@@ -55,7 +55,8 @@
 (defn ^{:internal true} read-descriptor
   "Reads a deployment descriptor and returns the resulting map."
   [^File file]
-  (load-string (slurp (.getAbsolutePath file))))
+  (if (and file (.exists file))
+    (load-string (slurp (.getAbsolutePath file)))))
 
 (defn ^{:internal true} read-and-stringify-descriptor
   "Reads a deployment descriptor and returns the resulting stringified map."

@@ -72,7 +72,7 @@
      =target/native=, =classes=, and =target/classes= dirs, as well as
      the =project.clj=.
 
-  The archive process honors the =:library-path=, =:source-path(s)=, =:resources-path(s)=
+  The archive process honors the =:source-paths=, =:resources-paths=
   =:native-path=, and =:compile-path= options of =project.clj=, allowing you to 
   override the default directories.
 
@@ -88,8 +88,7 @@
       $ lein immutant deploy --archive path/to/project
   #+end_src
 
-  If no =.ima= archive exists in the current working directory, it will be generated
-  before being deployed.
+  A new =.ima= archive will be generated each time deploy is invoked.
 
   In addition to deploying an =.ima= directly, you can also manually deploy a 
   deployment descriptor that refers to the location of the archive. See the

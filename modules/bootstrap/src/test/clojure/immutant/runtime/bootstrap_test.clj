@@ -131,24 +131,49 @@
   (facts "read-full-app-config"
     (let [project-root (io/file (io/resource "project-root"))
           non-project-root (io/file (io/resource "non-project-root"))
+          id-project-root (io/file (io/resource "id-project-root"))
+          id-non-project-root (io/file (io/resource "id-non-project-root"))
           descriptor (io/file (io/resource "simple-descriptor.clj"))]
+
+      (facts "with a project"
+        (fact "should work"
+          (read-full-app-config descriptor project-root) => {:init "my.namespace/init"
+                                                             :ham "biscuit"
+                                                             :biscuit "gravy"
+                                                             :resolve-dependencies false
+                                                             :lein-profiles [:cheese]})
+
+        (fact "should work with an internal dd"
+          (read-full-app-config descriptor id-project-root) => {:init "my.namespace/init"
+                                                                :ham "biscuit"
+                                                                :biscuit "gravy"
+                                                                :resolve-dependencies false
+                                                                :lein-profiles [:biscuit :gravy]})
+        (fact "should work with no descriptor"
+          (read-full-app-config nil project-root) => {:ham "basket"
+                                                      :biscuit "gravy"
+                                                      :init 'some.namespace/init
+                                                      :resolve-dependencies false
+                                                      :lein-profiles [:cheese]})
+
+        (fact "should work with no descriptor and an internal dd"
+          (read-full-app-config nil id-project-root) => {:ham "basket"
+                                                         :biscuit "gravy"
+                                                         :init 'some.namespace/init
+                                                         :resolve-dependencies false
+                                                         :lein-profiles [:biscuit :gravy]}))
+
+      (facts "with no project"
+        (fact "should work"
+          (read-full-app-config descriptor non-project-root) => {:init "my.namespace/init"
+                                                                 :ham "biscuit"})
+
+        (fact "should work with an internal dd"
+          (read-full-app-config descriptor id-non-project-root) => {:init "my.namespace/init"
+                                                                    :ham "biscuit"
+                                                                    :lein-profiles [:biscuit :gravy]}))
       
-      (fact "should work"
-        (read-full-app-config descriptor project-root) => {:init "my.namespace/init"
-                                                           :ham "biscuit"
-                                                           :biscuit "gravy"
-                                                           :resolve-dependencies false
-                                                           :lein-profiles [:cheese]})
-      (fact "should work with no project"
-        (read-full-app-config descriptor non-project-root) => {:init "my.namespace/init"
-                                                               :ham "biscuit"})
-      
-      (fact "should work with no descriptor"
-        (read-full-app-config nil project-root) => {:ham "basket"
-                                                    :biscuit "gravy"
-                                                    :init 'some.namespace/init
-                                                    :resolve-dependencies false
-                                                    :lein-profiles [:cheese]})
+
       
       (fact "should work with no descriptor and no project"
         (read-full-app-config nil non-project-root) => {}))))

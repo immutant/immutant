@@ -109,16 +109,19 @@
            (string/split value #",")))))
 
 (defn generate-archives [dest-dir & app-dirs]
-  (doseq [app app-dirs]
-    (println "Generating archive for" app)
+  (doseq [[app opts] app-dirs]
+    (println "Generating archive for" app opts)
     (archive/create (project/read (str app "/project.clj"))
                     (io/file app)
                     (io/file dest-dir)
-                    {})))
+                    opts)))
 
 (let [integs (io/file (.getParentFile (io/file *file*)) "integs")
       namespaces (or (ns-from-property) (find-namespaces-in-dir integs))]
-  (generate-archives "target/apps" "apps/ring/basic-ring")
+  (generate-archives "target/apps"
+                     ["apps/ring/basic-ring"]
+                     ["apps/ring/basic-ring" {:name "basic-ring-id"
+                                              :context-path "/basic-id"}])
   (println "\nTesting namespaces:" namespaces)
   (when-not *compile-files*
     (let [results (atom [])

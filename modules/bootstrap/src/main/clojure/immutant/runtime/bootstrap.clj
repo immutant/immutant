@@ -66,14 +66,18 @@
           (vary-meta #(update-in % [:without-profiles] strip-reduce-metadata))))))
 
 (defn ^{:internal true} read-full-app-config
-  "Returns the full configuration for an app. This consists of the :immutant map
-from project.clj (if any) with the contents of the descriptor map merged onto it (if any). Returns
-nil if neither are available."
-  [descriptor-file app-root]
-  (let [from-descriptor (and descriptor-file
-                             (read-descriptor descriptor-file))
-        from-project (:immutant (read-project app-root (:lein-profiles from-descriptor)))]
-    (merge {} from-project from-descriptor)))
+  "Returns the full configuration for an app. This consists of
+the :immutant map from project.clj (if any) with the contents of the
+internal descriptor map merged onto it (if any) followed by the
+descriptor map (if any). Returns {} if none are available."
+[descriptor-file app-root]
+(let [external (read-descriptor descriptor-file)
+      internal (read-descriptor (io/file app-root ".immutant.clj"))
+      profiles (:lein-profiles external (:lein-profiles internal))]
+    (merge {}
+           (:immutant (read-project app-root profiles))
+           internal
+           external)))
 
 (defn ^{:internal true} read-and-stringify-full-app-config
   "Loads the full app config and stringifies the keys."
