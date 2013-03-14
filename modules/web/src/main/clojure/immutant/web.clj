@@ -26,7 +26,7 @@
   (:use [immutant.web.middleware :only [add-middleware]])
   (:import javax.servlet.http.HttpServletRequest))
 
-(declare stop)
+(declare stop start*)
 
 (defn ^HttpServletRequest current-servlet-request
   "Returns the currently active HttpServletRequest. This will only
@@ -35,7 +35,7 @@
   []
   immutant.web.internal/current-servlet-request)
 
-(defn start
+(defmacro start
   "Registers a Ring handler that will be called when requests
    are received on the given sub-context-path. If no sub-context-path
    is given, \"/\" is assumed.
@@ -48,12 +48,18 @@
      :reload-paths  seq of src-paths to reload on change [dirs on classpath]"
   {:arglists '([handler] [handler options] [path handler options])}
   [& args]
+  (let [[path args] (if (string? (first args))
+                      [(first args) (next args)]
+                      ["/" args])
+        [handler & {:as opts}] args]
+    (if (symbol? handler)
+      `(start* ~path (var ~handler) ~opts)
+      `(start* ~path ~handler ~opts))))
+
+(defn ^{:no-doc true} start*
+  [sub-context-path handler {:keys [init destroy] :as opts}]
   (util/if-in-immutant
-   (let [[sub-context-path args] (if (string? (first args))
-                                   [(first args) (next args)]
-                                   ["/" args])
-         [handler & {:keys [init destroy] :as opts}] args
-         handler (add-middleware handler opts)
+   (let [handler (add-middleware handler opts)
          sub-context-path (normalize-subcontext-path sub-context-path)
          servlet-name (servlet-name sub-context-path)]
      (if-let [existing-info (get-servlet-info servlet-name)]
