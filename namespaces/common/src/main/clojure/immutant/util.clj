@@ -46,7 +46,8 @@
 (defn app-relative
   "Returns a file relative to app-root"
   [& path]
-  (apply io/file (app-root) path))
+  (if-let [root (app-root)]
+    (apply io/file root path)))
 
 (defn at-exit
   "Registers a function to be called when the application is undeployed.
@@ -80,12 +81,14 @@
 (defn http-port
   "Returns the HTTP port for the embedded web server"
   []
-  (.getPort (registry/get "jboss.web.connector.http")))
+  (if-let [server (registry/get "jboss.web.connector.http")]
+    (.getPort server)))
 
 (defn context-path
   "Returns the HTTP context path for the deployed app"
   []
-  (.getName (immutant.registry/get "web-context")))
+  (if-let [context (immutant.registry/get "web-context")]
+    (.getName context)))
 
 (defn app-uri
   "Returns the base URI for the app, given a host [localhost]"
