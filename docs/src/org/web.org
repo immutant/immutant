@@ -126,16 +126,16 @@
     ;; this handler will receive any request that the app
     ;; receives at /my-app/* *except* for anything captured by another
     ;; sub-context.
-    (web/start my-root-handler)
+    (web/start #'my-root-handler)
     
     ;; handle requests at the /somewhere sub-context.
     ;; this handler will receive any request that the app
     ;; receives at /my-app/somewhere/*.
-    (web/start "/somewhere" my-other-handler)
+    (web/start "/somewhere" #'my-other-handler)
     
-    ;; If you want to see your changes immediately while in a REPL, pass a
-    ;; var-quoted handler. You only need to explicitly set :auto-reload?
-    ;; when not in development mode.
+    ;; If you want to see your changes immediately while in a REPL, be
+    ;; sure to pass a var-quoted handler. You only need to explicitly
+    ;; set :auto-reload? when not in development mode.
     (web/start #'your-handler :auto-reload? true)
   #+end_src
 
@@ -241,7 +241,7 @@
     
     (web/start
      (ring-session/wrap-session
-      my-handler
+      #'my-handler
       {:store (immutant-session/servlet-store)}))
   #+end_src
 
