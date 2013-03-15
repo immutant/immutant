@@ -48,7 +48,7 @@
      :reload-paths  seq of src-paths to reload on change [dirs on classpath]"
   {:arglists '([handler] [handler options] [path handler options])}
   [& args]
-  (let [[path args] (if (string? (first args))
+  (let [[path args] (if (even? (count args))
                       [(first args) (next args)]
                       ["/" args])
         [handler & {:as opts}] args]
