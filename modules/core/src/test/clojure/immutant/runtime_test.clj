@@ -84,7 +84,8 @@
                                   :destroy guestbook.handler/destroy}})
   (try
     (initialize nil nil)
-    (let [[handler & {:keys [init destroy]}]  @a-value]
+    (let [[path handler {:keys [init destroy]}]  @a-value]
+      (is (= "/" path))
       (is (= "war-handler" (handler)))
       (is (= "init"  (init)))
       (is (= "destroy" (destroy))))
