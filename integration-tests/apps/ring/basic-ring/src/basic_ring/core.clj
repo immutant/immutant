@@ -28,6 +28,9 @@
               :handler :handler
               :ham-biscuit-location hb/location
               :current-servlet-request? (not (nil? (web/current-servlet-request)))}]
+    (when (> (:minor *clojure-version*) 3)
+      (require '[cljs.closure :as cljs])
+      (eval '(cljs/get-upstream-deps))) ;; verify clojurescript likes our classloader
     (reset! a-value "not-default")
     (response body)))
 

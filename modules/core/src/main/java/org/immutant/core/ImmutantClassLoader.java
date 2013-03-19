@@ -20,11 +20,13 @@
 package org.immutant.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import org.immutant.common.ClassLoaderFactory;
@@ -56,6 +58,35 @@ public class ImmutantClassLoader extends ClassLoader {
         return stripVFS( url );
     }
 
+    @Override
+    public URL findResource(String name) {
+        return stripVFS(((ModuleClassLoader)getParent()).findResource(name, false));
+    }
+    
+    @Override 
+    public Enumeration<URL> findResources(String name) {
+        final Enumeration<URL> urls;
+        try {
+            urls = ((ModuleClassLoader)getParent()).findResources(name, false);
+        } catch (IOException e) {
+            e.printStackTrace();
+            
+            return null;
+        }
+        
+        return new Enumeration<URL>() {
+            @Override
+            public boolean hasMoreElements() {
+                return urls.hasMoreElements();
+            }
+
+            @Override
+            public URL nextElement() {
+                return stripVFS(urls.nextElement());
+            }
+        };
+    }
+    
     public List<URL> getResourcePaths() {
         ArrayList<URL> urls = new ArrayList<URL>();
         try {
