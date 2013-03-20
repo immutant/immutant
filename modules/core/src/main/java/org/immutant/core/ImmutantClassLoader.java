@@ -60,31 +60,12 @@ public class ImmutantClassLoader extends ClassLoader {
 
     @Override
     public URL findResource(String name) {
-        return stripVFS(((ModuleClassLoader)getParent()).findResource(name, false));
+        return super.findResource(name);
     }
     
     @Override 
-    public Enumeration<URL> findResources(String name) {
-        final Enumeration<URL> urls;
-        try {
-            urls = ((ModuleClassLoader)getParent()).findResources(name, false);
-        } catch (IOException e) {
-            e.printStackTrace();
-            
-            return null;
-        }
-        
-        return new Enumeration<URL>() {
-            @Override
-            public boolean hasMoreElements() {
-                return urls.hasMoreElements();
-            }
-
-            @Override
-            public URL nextElement() {
-                return stripVFS(urls.nextElement());
-            }
-        };
+    public Enumeration<URL> findResources(String name) throws IOException {
+        return super.findResources(name);
     }
     
     public List<URL> getResourcePaths() {
