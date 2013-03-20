@@ -23,7 +23,7 @@
 (defn run-tests? []
   (not (.startsWith 
         (:full immutant.integs/*current-clojure-version*)
-        "1.5.0")))
+        "1.5")))
 
 (let [file *file*]
   (use-fixtures :once #(if (run-tests?)
