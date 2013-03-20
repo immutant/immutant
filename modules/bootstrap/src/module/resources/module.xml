@@ -30,6 +30,8 @@
         <resource-root path="tools.logging.jar"/>
         <resource-root path="tools.macro.jar"/>
         <resource-root path="leiningen-core.jar"/>
+        <resource-root path="dynapath.jar"/>
+        <resource-root path="io.jar"/>
         <resource-root path="pomegranate.jar"/>
         <resource-root path="aether-impl.jar"/>
         <resource-root path="aether-spi.jar"/>
