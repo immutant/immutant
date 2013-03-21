@@ -106,14 +106,30 @@
        (:jboss (versions)) "/jboss-as-dist-"
        (:jboss (versions)) ".zip"))
 
-(def immutant-modules
-  (memoize #(reduce (fn [acc file]
-                      (assoc acc
-                        (extract-module-name file)
-                        file))
-                    {}
-                    (glob/glob (str (.getAbsolutePath root-dir)
-                                    "/modules/*/target/*-module")))))
+(defn subsystem-module? [f]
+  (->> f
+       .getParentFile
+       .getParentFile
+       file-seq
+       (filter #(= "Namespace.java" (.getName %)))
+       seq
+       nil?
+       not))
+
+(defn immutant-modules []
+  (reduce (fn [acc file]
+            (assoc acc
+              (extract-module-name file)
+              {:file       file
+               :subsystem? (subsystem-module? file)}))
+          {}
+          (glob/glob (str (.getAbsolutePath root-dir)
+                          "/modules/*/target/*-module"))))
+
+(defn immutant-subsystems []
+  (->> (immutant-modules)
+       (filter (comp :subsystem? second))
+       (map first)))
 
 (defmacro with-assembly-root [assembly-root & body]
   `(binding [root-dir  (-> ~assembly-root .getCanonicalFile .getParentFile .getParentFile)
@@ -161,7 +177,7 @@
 
 (defn add-extensions [loc]
   (add-polyglot-extensions
-   (reduce (partial add-extension "org.immutant.") loc (keys (immutant-modules)))))
+   (reduce (partial add-extension "org.immutant.") loc (immutant-subsystems))))
 
 (defn add-subsystem [prefix loc name]
   (let [module-name (str "urn:jboss:domain:" prefix name ":1.0")]
@@ -172,7 +188,7 @@
 
 (defn add-subsystems [loc]
   (add-polyglot-subsystems
-   (reduce (partial add-subsystem "immutant-") loc (keys (immutant-modules)))))
+   (reduce (partial add-subsystem "immutant-") loc (immutant-subsystems))))
 
 (defn fix-profile [loc]
   (let [name (get-in (zip/node loc) [:attrs :name])]
@@ -410,7 +426,7 @@
 
 (defn install-modules []
   (with-message "Installing modules"
-    (doseq [mod (vals (immutant-modules))]
+    (doseq [mod (map :file (vals (immutant-modules)))]
       (install-module mod))))
 
 (defn install-polyglot-modules []
