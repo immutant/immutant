@@ -39,4 +39,4 @@
     (let [result (client/get "http://localhost:8080/noir-app/welcome")]
       ;; (println "RESPONSE" result)
       (is (.contains (result :body) "Welcome to noir-app, jim")))
-    (println "==> skipping noir tests under 1.5.0 since noir itself is broken under 1.5.0")))
+    (println "==> skipping noir tests under 1.5.x since noir itself is broken under 1.5.x")))
