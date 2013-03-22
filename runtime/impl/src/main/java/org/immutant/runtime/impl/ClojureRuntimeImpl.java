@@ -37,10 +37,11 @@ public class ClojureRuntimeImpl extends ClojureRuntime {
         ClassLoader origLoader = preInvoke();
         try {
             Var require = RT.var( "clojure.core", "require" );
+            clojure.lang.Compiler.LOADER.bindRoot(this.classLoader);
             require.invoke( Symbol.create( "immutant.registry" ) );
             require.invoke( Symbol.create( "immutant.runtime" ) );
         } finally {
-            postInvoke( origLoader );
+            postInvoke(origLoader);
         }
     }
 

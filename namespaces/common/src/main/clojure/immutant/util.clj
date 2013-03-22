@@ -96,6 +96,18 @@
   (let [host (or host "localhost")]
     (str "http://" host ":" (http-port) (context-path))))
 
+(defmacro with-tccl [& body]
+  ;; not everything uses baseLoader like it should, and expects
+  ;; the TCCL to be set instead, so we do so
+  ;; I'm glaring at you, clojurescript
+  `(let [thread# (Thread/currentThread)
+         original# (.getContextClassLoader thread#)]
+     (.setContextClassLoader thread# (clojure.lang.RT/baseLoader))
+     (try
+       ~@body
+       (finally
+         (.setContextClassLoader thread# original#)))))
+
 (defn try-resolve
   "Tries to resolve the given namespace-qualified symbol"
   [sym]

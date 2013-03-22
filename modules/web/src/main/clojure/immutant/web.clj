@@ -19,21 +19,28 @@
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
   (:require [clojure.tools.logging  :as log]
-            [immutant.util          :as util]
             [ring.util.codec        :as codec]
-            [ring.util.response     :as response])
-  (:use [immutant.web.internal :exclude [current-servlet-request]])
-  (:use [immutant.web.middleware :only [add-middleware]])
+            [ring.util.response     :as response]
+            [immutant.web.servlet   :as servlet])
+  (:use [immutant.web.internal :only [start* stop*]]
+        [immutant.web.middleware :only [add-middleware]])
   (:import javax.servlet.http.HttpServletRequest))
 
-(declare stop start*)
+(defn start-servlet
+  "Can be used to mount a servlet in lieu of a typical Ring handler"
+  [sub-context-path servlet]
+  (log/info "Registering servlet at sub-context path:" sub-context-path)
+  (start* sub-context-path
+          (servlet/proxy-servlet servlet)
+          {}))
 
-(defn ^HttpServletRequest current-servlet-request
-  "Returns the currently active HttpServletRequest. This will only
-  return a value within an active ring handler. Standard ring handlers
-  should never need to access this value."
-  []
-  immutant.web.internal/current-servlet-request)
+(defn start-handler
+  "Typically not called directly; use start instead"
+  [sub-context-path handler & {:keys [init destroy] :as opts}]
+  (log/info "Registering ring handler at sub-context path:" sub-context-path)
+  (start* sub-context-path
+          (servlet/create-servlet (add-middleware handler opts))
+          opts))
 
 (defmacro start
   "Registers a Ring handler that will be called when requests
@@ -51,53 +58,25 @@
   (let [[path args] (if (even? (count args))
                       [(first args) (next args)]
                       ["/" args])
-        [handler & {:as opts}] args]
+        [handler & opts] args]
     (if (symbol? handler)
-      `(start* ~path (var ~handler) ~opts)
-      `(start* ~path ~handler ~opts))))
-
-(defn ^{:no-doc true} start*
-  [sub-context-path handler {:keys [init destroy] :as opts}]
-  (util/if-in-immutant
-   (let [handler (add-middleware handler opts)
-         sub-context-path (normalize-subcontext-path sub-context-path)
-         servlet-name (servlet-name sub-context-path)]
-     (if-let [existing-info (get-servlet-info servlet-name)]
-       (do
-         (log/debug "Updating ring handler at sub-context path:" sub-context-path)
-         (store-servlet-info!
-          servlet-name
-          (assoc existing-info :handler handler)))
-       (do
-         (log/info "Registering ring handler at sub-context path:" sub-context-path)
-         (store-servlet-info!
-          servlet-name
-          {:wrapper (install-servlet "org.immutant.web.servlet.RingServlet"
-                                     sub-context-path)
-           :sub-context sub-context-path
-           :handler handler
-           :destroy destroy})
-         (util/at-exit #(stop sub-context-path))
-         (and init (init))))
-     nil)
-   (log/warn "web/start called outside of Immutant, ignoring")))
-
+      `(start-handler ~path (var ~handler) ~@opts)
+      `(start-handler ~path ~handler ~@opts))))
 
 (defn stop
-  "Deregisters the Ring handler attached to the given sub-context-path.
+  "Deregisters the Ring handler or servlet mounted at the given sub-context-path.
    If no sub-context-path is given, \"/\" is assumed."
   ([]
      (stop "/"))
   ([sub-context-path]
-     (util/if-in-immutant
-      (let [sub-context-path (normalize-subcontext-path sub-context-path)]
-        (if-let [{:keys [wrapper destroy]} (remove-servlet-info! (servlet-name sub-context-path))]
-          (do
-            (log/info "Deregistering ring handler at sub-context path:" sub-context-path)
-            (remove-servlet sub-context-path wrapper)
-            (and destroy (destroy)))
-          (log/warn "Attempted to deregister ring handler at sub-context path:" sub-context-path ", but none found")))
-      (log/warn "web/stop called outside of Immutant, ignoring"))))
+     (stop* sub-context-path)))
+
+(defn ^HttpServletRequest current-servlet-request
+  "Returns the currently active HttpServletRequest. This will only
+  return a value within an active ring handler. Standard ring handlers
+  should never need to access this value."
+  []
+  immutant.web.internal/current-servlet-request)
 
 (defn wrap-resource
   "Temporary workaround for its non-context-aware namesake from

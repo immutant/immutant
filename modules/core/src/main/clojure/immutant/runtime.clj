@@ -63,11 +63,11 @@ bootstrapping process. Applications shouldn't use anything here."
   []
   (let [project (registry/get :project)]
     (when-let [handler (get-in project [:ring :handler])]
-      (require-and-invoke "immutant.web/start*"
+      (require-and-invoke "immutant.web/start-handler"
                           "/"
                           (util/try-resolve handler)
-                          {:init    (util/try-resolve (get-in project [:ring :init]))
-                           :destroy (util/try-resolve (get-in project [:ring :destroy]))})
+                          :init    (util/try-resolve (get-in project [:ring :init]))
+                          :destroy (util/try-resolve (get-in project [:ring :destroy])))
       (log/info "Initialized" (util/app-name) "from :ring options in project.clj")
       true)))
 

@@ -1,4 +1,4 @@
 (ns immutant.web)
 
-(defn start* [& args]
+(defn start-handler [& args]
   (reset! immutant.runtime-test/a-value args))
