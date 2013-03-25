@@ -98,6 +98,14 @@
 (defmacro for-each-version [& body]
   `(for-each-version* (fn [] ~@body)))
 
+(defn version? [v]
+  (.startsWith 
+   (:full *current-clojure-version*)
+   (str v)))
+
+(defn version []
+  (:full *current-clojure-version*))
+
 (defn ns-from-property []
   "Gets the namespace to test from the system property 'ns'"
   (let [value (System/getProperty "ns")]

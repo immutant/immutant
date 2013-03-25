@@ -15,27 +15,22 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.web.noir
+(ns immutant.integs.web.pedestal
   (:use fntest.core
         clojure.test
         immutant.integs)
   (:require [clj-http.client :as client]))
 
-(defn run-tests? []
-  (not (version? 1.5)))
-
-(let [file *file*]
-  (use-fixtures :once #(if (run-tests?)
-                         ((with-deployment file
-                            {
-                             :root "target/apps/ring/noir-app/"
-                             :context-path "/noir-app"
-                             }) %)
-                         (%))))
-
-(deftest simple "it should work"
-  (if (run-tests?)
-    (let [result (client/get "http://localhost:8080/noir-app/welcome")]
-      ;; (println "RESPONSE" result)
-      (is (.contains (result :body) "Welcome to noir-app, jim")))
-    (println "==> skipping noir tests under 1.5.x since noir itself is broken under 1.5.x")))
+(deftest get-hello
+  (if (every? (complement version?) [1.3 1.4])
+    ((with-deployment "hello"
+       {
+        :root "target/apps/pedestal/hello"
+        :context-path "/"
+        })
+     (fn []
+       (is (= (:body (client/get "http://localhost:8080/"))
+              "Hello World!"))
+       (is (= (:body (client/get "http://localhost:8080/about"))
+              (str "Clojure " (version))))))
+    (println "==> skipping pedestal tests since it requires 1.5 or higher")))
