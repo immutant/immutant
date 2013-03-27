@@ -123,16 +123,16 @@
   nil)
 
 (defn stop*
-  "Deregisters the Ring handler attached to the given sub-context-path."
+  "Deregisters the request handler attached to the given sub-context-path."
   [sub-context-path]
   (util/if-in-immutant
    (let [sub-context-path (normalize-subcontext-path sub-context-path)]
      (if-let [{:keys [wrapper destroy]} (remove-servlet-info! (servlet-name sub-context-path))]
        (do
-         (log/info "Deregistering ring handler at sub-context path:" sub-context-path)
+         (log/info "Deregistering request handler at sub-context path:" sub-context-path)
          (remove-servlet sub-context-path wrapper)
          (and destroy (destroy)))
-       (log/warn "Attempted to deregister ring handler at sub-context path:" sub-context-path ", but none found")))
+       (log/warn "Attempted to deregister request handler at sub-context path:" sub-context-path ", but none found")))
    (log/warn "web/stop called outside of Immutant, ignoring")))
 
 (defn start*
