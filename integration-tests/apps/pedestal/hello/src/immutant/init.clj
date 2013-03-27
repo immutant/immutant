@@ -1,6 +1,6 @@
 (ns immutant.init
   (:require [immutant.web             :as web]
-            [io.pedestal.service.http :as bootstrap]
+            [io.pedestal.service.http :as http]
             [hello.service            :as service]))
 
-(web/start-servlet "/" (::bootstrap/servlet (bootstrap/create-servlet service/service)))
+(web/start-servlet "/" (::http/servlet (http/create-servlet service/service)))
