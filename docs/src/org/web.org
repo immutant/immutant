@@ -306,7 +306,7 @@
   This works because the =resources/= directory is automatically added
   to the application's effective class path at deployment.
 
-* Mounting Servlets instead of Ring handlers, i.e. Pedestal apps
+* Mounting Servlets instead of Ring handlers
 
   Though mounting a Ring handler at a particular [sub] context path
   will suffice for the majority of Clojure web apps, some may find it
@@ -318,7 +318,7 @@
 
 ** Pedestal
 
-   Pedestal is a brand-new Clojure web framework for building rich
+   [[http://pedestal.io][Pedestal]] is a brand-new Clojure web framework for building rich
    client applications requiring asynchronous processing, server-sent
    events, response streaming, etc. As such, its entry-point is not a
    simple Ring handler but a special servlet comprised of a stack of
@@ -337,7 +337,7 @@
    
    The =io.pedestal.service.http/create-servlet= function returns a
    map of many things, including the actual Servlet instance
-   associated with the keyword, =::io.pedestal.service.http/servlet=.
+   associated with the keyword, =:io.pedestal.service.http/servlet=.
 
    During development, you might alternatively mount the =dev/service=
    var similarly at a REPL after including =:immutant {:nrepl-port
