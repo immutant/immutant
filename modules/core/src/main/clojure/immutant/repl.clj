@@ -85,17 +85,27 @@ stop-nrepl to shut it down manually."
      (when-let [server ((util/try-resolve 'clojure.tools.nrepl.server/start-server)
                         :handler ((util/try-resolve 'clojure.tools.nrepl.server/default-handler) #'nrepl-init-handler)
                         :port (fix-port port) :bind interface-address)]
-       (log/info "Bound to " (str interface-address ":" (-> server deref :ss .getLocalPort)))
        (util/at-exit (partial stop-nrepl server))
        server))
   ([port]
      (start-nrepl (util/management-interface-address) port)))
+
+(defn ^:private spit-nrepl-file
+  [server file]
+  (let [ss (-> server deref :ss)
+        port (.getLocalPort ss)
+        host (-> ss .getInetAddress .getHostAddress)
+        file (util/app-relative (or file "target/repl-port"))]
+    (log/info "Bound to" (str host ":" port))
+    (.mkdirs (.getParentFile file))
+    (spit file port)
+    (.deleteOnExit file)))
 
 (defn ^{:internal true :no-doc true} init-repl
   "Looks for nrepl-port and swank-port values in the given config, and starts
 the appropriate servers."
   [config]
   (when-let [port (config "nrepl-port")]
-    (start-nrepl port))
+    (spit-nrepl-file (start-nrepl port) (config "nrepl-port-file")))
   (when-let [port (config "swank-port")]
     (start-swank port)))
