@@ -33,8 +33,8 @@ import org.jboss.modules.ModuleLoader;
 
 public class JobsDependenciesProcessor implements DeploymentUnitProcessor {
     
-	private static ModuleIdentifier IMMUTANT_JOBS_ID = ModuleIdentifier.create("org.immutant.jobs");
-	private static ModuleIdentifier POLYGLOT_JOBS_ID = ModuleIdentifier.create("org.projectodd.polyglot.jobs");
+    private static ModuleIdentifier IMMUTANT_JOBS_ID = ModuleIdentifier.create("org.immutant.jobs");
+    private static ModuleIdentifier POLYGLOT_JOBS_ID = ModuleIdentifier.create("org.projectodd.polyglot.jobs");
 
     @Override
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
@@ -44,8 +44,8 @@ public class JobsDependenciesProcessor implements DeploymentUnitProcessor {
         final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
         if (unit.hasAttachment( ClojureMetaData.ATTACHMENT_KEY )) {
-        	addDependency( moduleSpecification, moduleLoader, IMMUTANT_JOBS_ID );
-        	addDependency( moduleSpecification, moduleLoader, POLYGLOT_JOBS_ID );
+            addDependency( moduleSpecification, moduleLoader, IMMUTANT_JOBS_ID );
+            addDependency( moduleSpecification, moduleLoader, POLYGLOT_JOBS_ID );
         }
     }
 
