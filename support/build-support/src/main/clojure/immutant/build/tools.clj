@@ -30,7 +30,7 @@
   (:use [clojure.pprint :only [pprint]]))
 
 (def polyglot-modules
-    ["hasingleton" "cache" "core" "web"])
+    ["hasingleton" "cache" "core" "web" "jobs" "messaging" "xa"])
 
 (def polyglot-extensions
   ["hasingleton" "cache"])

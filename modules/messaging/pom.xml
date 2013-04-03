@@ -30,6 +30,7 @@
       <groupId>org.projectodd</groupId>
       <artifactId>polyglot-messaging</artifactId>
       <version>${version.polyglot}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.jboss.spec.javax.jms</groupId>

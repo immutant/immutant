@@ -26,7 +26,6 @@
 
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
-        <resource-root path="polyglot-messaging.jar"/>
     </resources>
 
     <dependencies>
@@ -45,9 +44,10 @@
         <module name="org.jboss.msc"/>
         <module name="org.jboss.logging"/>
         <module name="org.jboss.vfs"/>
+        <module name="org.projectodd.polyglot.core"/>
+        <module name="org.projectodd.polyglot.messaging"/>
         <module name="org.immutant.core"/>
         <module name="org.immutant.xa"/>
-        <module name="org.projectodd.polyglot.core"/>
     </dependencies>
 </module>
 

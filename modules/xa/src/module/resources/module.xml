@@ -26,7 +26,6 @@
 
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
-        <resource-root path="polyglot-xa.jar"/>
         <resource-root path="java.jdbc.jar"/>
     </resources>
 
@@ -47,7 +46,8 @@
         <module name="org.jboss.metadata"/>
         <module name="org.jboss.ironjacamar.api"/>
         <module name="org.jboss.ironjacamar.impl"/>
-        <module name="org.immutant.core"/>
         <module name="org.projectodd.polyglot.core"/>
+        <module name="org.projectodd.polyglot.xa"/>
+        <module name="org.immutant.core"/>
     </dependencies>
 </module>

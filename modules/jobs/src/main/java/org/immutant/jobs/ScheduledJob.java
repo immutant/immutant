@@ -34,7 +34,7 @@ public class ScheduledJob extends BaseScheduledJob implements ScheduledJobMBean,
 
     @SuppressWarnings("rawtypes")
     public ScheduledJob(Callable handler, String group, String name, String cronExpression, boolean singleton) {
-        super( ClojureJob.class, group, name, "", cronExpression, singleton );
+        super( ClojureJob.class, group, name, "", cronExpression, singleton, false );
         this.handler = handler;
     }
 

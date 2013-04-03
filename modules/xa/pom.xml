@@ -26,7 +26,7 @@
       <groupId>org.projectodd</groupId>
       <artifactId>polyglot-xa</artifactId>
       <version>${version.polyglot}</version>
-      <scope>compile</scope>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
