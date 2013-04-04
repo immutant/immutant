@@ -346,6 +346,13 @@
         <artifactId>clj-http</artifactId>
         <version>${version.clj-http}</version>
       </dependency>
+
+      <dependency>
+        <groupId>s3-wagon-private</groupId>
+        <artifactId>s3-wagon-private</artifactId>
+        <version>${version.s3-wagon-private}</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 
@@ -383,6 +390,7 @@
     <version.codox>0.6.3</version.codox>
     <version.fntest>0.3.10</version.fntest>
     <version.clj-http>0.5.8</version.clj-http>
+    <version.s3-wagon-private>1.1.2</version.s3-wagon-private>
 
     <warn-on-reflection>false</warn-on-reflection>
   </properties>

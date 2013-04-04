@@ -52,6 +52,10 @@
         <resource-root path="wagon-provider-api.jar"/>
         <resource-root path="wagon-http.jar"/>
         <resource-root path="wagon-http-shared4.jar"/>
+        <resource-root path="s3-wagon-private.jar"/>
+        <resource-root path="org.springframework.build.aws.maven.jar"/>
+        <resource-root path="jets3t.jar"/>
+        <resource-root path="commons-httpclient.jar"/>
     </resources>
 
     <dependencies>

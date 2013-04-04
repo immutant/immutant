@@ -53,6 +53,12 @@
       <scope>compile</scope>
     </dependency>
 
+    <dependency>
+      <groupId>s3-wagon-private</groupId>
+      <artifactId>s3-wagon-private</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
   </dependencies>
 
   <build>

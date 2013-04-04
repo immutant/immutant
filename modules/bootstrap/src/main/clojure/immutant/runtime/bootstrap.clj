@@ -98,6 +98,11 @@ to gracefully handle missing dependencies."
   [project]
   (when project
     (project/load-certificates project)
+    ;; trigger loading of s3-wagon-private, but don't load any other
+    ;; plugins, since load-plugins tries to add them to the current
+    ;; classloader, which will be the shared bootstrap classloader,
+    ;; not the application's CL, and we don't want that to happen.
+    (project/load-plugins project :no-plugins) 
     (try
       (->> (update-in project [:dependencies]
                       (fn [deps] (remove #(and
