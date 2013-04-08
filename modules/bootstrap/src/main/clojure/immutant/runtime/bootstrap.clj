@@ -54,7 +54,8 @@
           (keys v)))
 
 (defn ^{:internal true} read-project-to-string
-  "Returns the project map as a pr string with metadata so it can be moved across runtimes."
+  "Returns the project map as a pr string with metadata so it can be
+  moved across runtimes."
   [app-root profiles]
   ;; reduce metadata points to a function, which won't serialize, so
   ;; we have to strip it out. pre-1.5, walk/postwalk worked, but it
@@ -88,7 +89,8 @@ descriptor map (if any). Returns {} if none are available."
       stringify-lein-profiles))
 
 (defn ^{:internal true} read-full-app-config-to-string
-  "Returns the full configuration for an app as a pr string that can move across runtimes."
+  "Returns the full configuration for an app as a pr string that can
+  move across runtimes."
   [descriptor-file app-root]
   (pr-str (read-full-app-config descriptor-file app-root)))
 
@@ -106,28 +108,52 @@ to gracefully handle missing dependencies."
     (try
       (->> (update-in project [:dependencies]
                       (fn [deps] (remove #(and
-                                           (= "org.immutant" (namespace (first %)))
-                                           (.startsWith (name (first %)) "immutant"))
+                                          (= "org.immutant" (namespace (first %)))
+                                          (.startsWith (name (first %)) "immutant"))
                                         deps)))
            (classpath/resolve-dependencies :dependencies))
       (catch clojure.lang.ExceptionInfo e
         (log/error "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
         nil))))
 
+(defn- ensure-checkout-deps-shares [project]
+  (if (:checkout-deps-shares project)
+    project
+    (assoc project
+      :checkout-deps-shares [:source-paths
+                             :resource-paths
+                             :compile-path])))
+
+(defn ^:internal resource-paths-for-project
+  [project]
+  ;; get the classpath w/o the deps, since we resolve those
+  ;; elsewhere. Pull in the checkout deps as well.
+  (-> project
+      (dissoc :dependencies)
+      ensure-checkout-deps-shares
+      classpath/get-classpath))
+
+(defn ^:internal resource-paths-for-project-string-as-string
+  [project-as-string]
+  (-> project-as-string
+      read-string
+      resource-paths-for-project
+      pr-str-with-meta))
 
 (defn ^{:internal true} resource-paths
   "Resolves the resource paths (in the AS7 usage of the term) for an application."
   [app-root profiles]
   (if-let [project (read-project app-root profiles)]
-    (add-default-lein1-paths app-root
-                             (resource-paths-from-project project))
+    (resource-paths-for-project project)
     (resource-paths-for-projectless-app app-root)))
 
 (defn ^{:internal true} get-dependencies
-  "Resolves the dependencies for an application. It concats bundled jars with any aether resolved
-dependencies, with bundled jars taking precendence. If resolve-deps is false, dependencies aren't
-resolved via aether and only bundled jars are returned. This strips any org.immutant/immutant-*
-deps from the list before resolving to prevent conflicts with internal jars."
+  "Resolves the dependencies for an application. It concats bundled
+jars with any aether resolved dependencies, with bundled jars taking
+precendence. If resolve-deps is false, dependencies aren't resolved
+via aether and only bundled jars are returned. This strips any
+org.immutant/immutant-* deps from the list before resolving to prevent
+conflicts with internal jars."
   ([app-root profiles resolve-deps?]
      (get-dependencies (or (read-project app-root profiles)
                            {:root app-root})

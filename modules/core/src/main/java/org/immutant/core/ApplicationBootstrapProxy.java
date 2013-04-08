@@ -35,6 +35,9 @@ public class ApplicationBootstrapProxy {
         return ApplicationBootstrapUtils.readProjectAsString( applicationRoot, profiles );
     }
     
+    public static String getResourceDirsAsString(String projectAsString) throws Exception {
+        return ApplicationBootstrapUtils.resourceDirsAsString(projectAsString);
+    }
 }
 
 

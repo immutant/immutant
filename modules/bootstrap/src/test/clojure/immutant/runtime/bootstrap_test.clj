@@ -55,10 +55,21 @@
       ((read-and-stringify-full-app-config nil app-root) "init") => "some.namespace/init"
       ((read-and-stringify-full-app-config nil another-app-root) "init") => "some.namespace/string")
 
-    (fact "resource-paths should work"
-      (let [paths (map #(.getAbsolutePath (io/file app-root %))
-                       ["test" "resources" "target/native" "src" "classes" "target/classes"])]
-        (resource-paths app-root nil) => (just paths :in-any-order)))
+    (facts "resource-paths"
+      (fact "should return the proper paths"
+        (let [paths (map #(.getAbsolutePath (io/file app-root %))
+                         ["test" "resources" "src" "target/classes"])]
+          (resource-paths app-root nil) => (just paths :in-any-order)))
+
+      (fact "should include checkout deps"
+        (let [app-root (io/file (io/resource "project-with-checkout-deps"))
+              subdirs #{"test" "resources" "src" "target/classes"}
+              paths (concat
+                     (map #(.getAbsolutePath (io/file app-root %))
+                          subdirs)
+                     (map #(.getAbsolutePath (io/file app-root "checkouts/other-project" %))
+                          (disj subdirs "test")))]
+          (resource-paths app-root nil) => (just paths :in-any-order))))
     
     (facts "get-dependencies"
       (let [deps (get-dependencies app-root nil true)]

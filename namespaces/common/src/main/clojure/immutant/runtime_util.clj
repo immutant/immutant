@@ -80,33 +80,11 @@
   (io/file (:library-path project
                           (io/file (:root project) "lib"))))
 
-(defn ^{:internal true} resource-paths-from-project
-  "Resolves the resource paths (in the AS7 usage of the term) for a leiningen application. Handles
-lein1/lein2 differences for project keys that changed from strings to vectors."
-  [project]
-  (remove nil?
-          (flatten
-           ((juxt :text-path      ;; lein1
-                  :test-paths     ;; lein2
-                  :compile-path   ;; lein1 and 2
-                  :resources-path ;; lein1
-                  :resource-paths ;; lein2
-                  :source-path    ;; lein1
-                  :source-paths   ;; lein2
-                  :native-path)   ;; lein2
-            project))))
-
 (defn ^{:internal true} resource-paths-for-projectless-app
   "Resolves the resource paths (in the AS7 usage of the term) for a non-leiningen application."
   [app-root]
   (map #(.getAbsolutePath (io/file app-root %))
        ["test" "src" "resources" "classes" "native"]))
-
-(defn ^{:internal true} add-default-lein1-paths
-  "lein1 assumes classes/, 2 assumes target/classes/, so getting it from the project will return the wrong default for lein1 projects."
-  [app-root paths]
-  (conj paths
-        (.getAbsolutePath (io/file app-root "classes"))))
 
 (defn ^{:internal true} bundled-jars
   "Returns a set of any jars that are bundled in the application's lib-dir."

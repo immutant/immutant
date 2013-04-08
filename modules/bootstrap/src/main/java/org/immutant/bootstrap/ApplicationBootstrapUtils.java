@@ -124,6 +124,15 @@ public class ApplicationBootstrapUtils {
         } );
     }
     
+    @SuppressWarnings({ "rawtypes" })
+    public static String resourceDirsAsString(final String projectAsString) throws Exception {
+        return (String) inCL( new Callable() {
+            public Object call() throws Exception {
+                return bootstrapVar( "resource-paths-for-project-string-as-string" ).invoke( projectAsString ); 
+            }
+        } );
+    }
+    
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static List<File> getDependencies(final File applicationRoot, final boolean resolveDeps, final List profiles) throws Exception {
         return (List<File>) inCL( new Callable() {

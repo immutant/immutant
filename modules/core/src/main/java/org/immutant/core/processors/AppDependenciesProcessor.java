@@ -61,7 +61,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         File root = metaData.getRoot();
         
         try {
-
+            
             for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles() )) {
                 final ResourceRoot childResource = ResourceLoaderUtil.createResourceRoot(each, true);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
@@ -79,7 +79,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
                 }
                 mounter.mount( each );
             }
-
+            
             if (!clojureProvided) {
                 Immutant immutant = (Immutant)phaseContext.getServiceRegistry().getService( CoreServices.IMMUTANT ).getValue();
 
@@ -89,11 +89,11 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
                 // borrow the shipped clojure.jar
                 mounter.mount( findInModulePath( "org/immutant/bootstrap/main/clojure.jar" ), false );
             }
-
+            
             //mount the runtime jar
             mounter.mount( findInModulePath( "org/immutant/core/main/immutant-runtime-impl.jar" ), false );
             
-            // tools.reader imports clojure.lang.RT, and an gen-classed Exception class, so has to
+            // tools.reader imports clojure.lang.RT, and a gen-classed Exception class, so has to
             // be able to find the clojure classes, which only exist in the deployment ClassLaoder,
             // so we don't load it as a resource-root in the common module, and add it here instead.
             mounter.mount(findInModulePath("org/immutant/common/main/tools.reader.jar"), false);

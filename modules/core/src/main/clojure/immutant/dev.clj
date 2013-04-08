@@ -74,9 +74,10 @@ that weren't unmounted."
 
 (defn ^:private get-project-paths [project]
   (map #(ResourceLoaderUtil/createResourceRoot % true)
-       (->> (runtime/resource-paths-from-project project)
-            (runtime/add-default-lein1-paths (util/app-root))
-            (absolutize-paths))))
+       (-> project
+           runtime/pr-str-with-meta
+           ApplicationBootstrapProxy/getResourceDirsAsString
+           read-string)))
 
 (defn ^:private get-existing-resources []
   (remove nil?
