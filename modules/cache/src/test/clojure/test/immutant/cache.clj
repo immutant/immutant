@@ -165,8 +165,8 @@
     (is (= 0 (count c)))))
 
 (deftest test-seeding
-  (let [c (cache "foo" :seed {:a 1})
-        d (cache "foo")]
+  (let [c (cache "foo")
+        d (cache "foo" :seed {:a 1})]
     (is (= (:a c) (:a d) 1))
     (put c :b 2)
     (is (= (:b c) (:b d) 2))

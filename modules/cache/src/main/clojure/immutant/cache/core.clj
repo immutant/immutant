@@ -77,11 +77,10 @@
 (defn reconfigure
   [manager name opts]
   (let [cache (.getCache manager name)]
-    (when-not (= (cache-mode opts) (.. cache getCacheConfiguration clustering cacheMode))
-      (log/info "Reconfiguring cache" name)
-      (.stop cache)
-      (.defineConfiguration manager name (build-config opts))
-      (.start cache))
+    (log/info "Reconfiguring cache" name)
+    (.stop cache)
+    (.defineConfiguration manager name (build-config opts))
+    (.start cache)
     cache))
 
 (defn configure
