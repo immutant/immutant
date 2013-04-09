@@ -25,7 +25,6 @@
              org.infinispan.transaction.lookup.GenericTransactionManagerLookup
              org.infinispan.util.concurrent.IsolationLevel))
 
-(def file-store-path (str (io/file (System/getProperty "jboss.server.data.dir") "immutant-cache-persist")))
 (def service (registry/get org.projectodd.polyglot.cache.as.CacheService/CACHE))
 (def manager (delay (or (and service (.getCacheContainer service)) (DefaultCacheManager.))))
 
@@ -67,29 +66,43 @@
         (cacheMode (cache-mode opts)))
     (if persist
       (let [store (.. builder loaders addFileCacheStore)]
-        (.. store (location (if (string? persist) persist file-store-path)))))
+        (if (.exists (io/file (str persist)))
+          (.. store (location persist)))))
     (cond
       (= locking :pessimistic) (set-pessimistic-locking! builder)
       (= locking :optimistic) (set-optimistic-locking! builder)
       locking (throw (IllegalArgumentException. (str "Invalid locking mode: " locking))))
     (.build builder)))
 
+(defn same-config?
+  [c1 c2]
+  (and (= (.. c1 clustering cacheMode) (.. c2 clustering cacheMode))
+       (= (.. c1 transaction transactionMode) (.. c2 transaction transactionMode))
+       (= (.. c1 transaction lockingMode) (.. c2 transaction lockingMode))
+       (or (= (.. c1 loaders) (.. c2 loaders))
+           (and (= (.. c1 loaders cacheLoaders size)
+                   (.. c2 loaders cacheLoaders size))
+                (= (.. c1 loaders cacheLoaders (get 0) location)
+                   (.. c2 loaders cacheLoaders (get 0) location))))))
+
 (defn reconfigure
   [manager name opts]
-  (let [cache (.getCache manager name)]
-    (log/info "Reconfiguring cache" name)
-    (.stop cache)
-    (.defineConfiguration manager name (build-config opts))
-    (.start cache)
+  (let [cache (.getCache manager name)
+        current (.getCacheConfiguration cache)
+        desired (build-config opts)]
+    (when-not (same-config? current desired)
+      (log/info "Reconfiguring cache" name)
+      (.stop cache)
+      (.defineConfiguration manager name desired)
+      (.start cache))
     cache))
 
 (defn configure
   [manager name opts]
   (log/info "Configuring cache" name)
-  (.defineConfiguration manager name
-                        (build-config (merge {:template (.getDefaultCacheConfiguration manager)} opts)))
-  (doto (.getCache manager name)
-    (.start)))
+  (let [config (.getDefaultCacheConfiguration manager)]
+    (.defineConfiguration manager name (build-config (merge {:template config} opts))))
+  (.getCache manager name))
 
 (defn default-mode []
   (if (and service (.isClustered service))

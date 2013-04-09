@@ -165,8 +165,8 @@
     (is (= 0 (count c)))))
 
 (deftest test-seeding
-  (let [c (cache "foo")
-        d (cache "foo" :seed {:a 1})]
+  (let [c (cache "foo" :seed {:a 1})
+        d (cache "foo")]
     (is (= (:a c) (:a d) 1))
     (put c :b 2)
     (is (= (:b c) (:b d) 2))
@@ -182,7 +182,15 @@
 (deftest test-persist-file-store
   (try
     (cache "mike" :persist true)
-    (is (.exists (io/file "immutant-cache-persist/mike")))
+    (is (.exists (io/file "Infinispan-FileCacheStore/mike")))
     (finally
-     (io/delete-file "immutant-cache-persist/mike")
-     (io/delete-file "immutant-cache-persist"))))
+     (io/delete-file "Infinispan-FileCacheStore/mike")
+     (io/delete-file "Infinispan-FileCacheStore"))))
+
+(deftest test-locking-change-restarts
+  (let [c (cache "terrence" :locking :optimistic)]
+    (put c :a 1)
+    (is (= 1 (:a c)))
+    (cache "terrence" :locking :pessimistic)
+    (is (empty? c))))
+
