@@ -30,6 +30,7 @@ import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core.AtRuntimeInstaller;
+import org.projectodd.polyglot.hasingleton.HASingletonInstaller;
 import org.projectodd.polyglot.jobs.BaseJob;
 
 
@@ -39,15 +40,12 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
         super( unit );
     }
 
-    public JobScheduler createScheduler(boolean singleton) {
+    public JobScheduler createScheduler() {
         String name = "JobScheduler$" + getUnit().getName();
-        if (singleton) {
-            name += ":singleton";
-        }
         JobScheduler scheduler = new JobScheduler( name );
-        ServiceName serviceName = JobsServices.scheduler( getUnit(), singleton );
+        ServiceName serviceName = JobsServices.scheduler( getUnit() );
 
-        deploy( serviceName, scheduler, singleton );
+        deploy( serviceName, scheduler, false );
 
         return scheduler;
     }
@@ -88,10 +86,13 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
                         new Runnable() {
             @SuppressWarnings({ "unchecked", "rawtypes" })
             public void run() {
-                ServiceBuilder builder = build( serviceName, job, false );
+                String haName = "job-" + job.getName();
+                HASingletonInstaller.deployOnce(getUnit(), getTarget(), haName);
+                
+                ServiceBuilder builder = build(serviceName, job, true, haName);
 
                 builder.addDependency( CoreServices.runtime( getUnit() ), ((HasImmutantRuntimeInjector)job).getClojureRuntimeInjector() )
-                .addDependency( JobsServices.scheduler( getUnit(), job.isSingleton() ), job.getJobSchedulerInjector() )
+                .addDependency( JobsServices.scheduler( getUnit() ), job.getJobSchedulerInjector() )
                 .install();
 
             }

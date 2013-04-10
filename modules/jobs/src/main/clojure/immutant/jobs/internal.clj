@@ -25,20 +25,18 @@
   (registry/get "job-schedulizer"))
 
 (defn ^{:internal true} create-scheduler
-  "Creates a scheduler for the current application.
-A singleton scheduler will participate in a cluster, and will only execute its jobs on one node."
-  [singleton]
-  (let [singleton (boolean singleton)]
-    (log/info "Creating job scheduler for"  (app-name) "singleton:" singleton)
-    (.createScheduler (job-schedulizer) singleton)))
+  "Creates a scheduler for the current application."
+  []
+  (log/info "Creating job scheduler for"  (app-name))
+  (.createScheduler (job-schedulizer)))
 
 (defn ^{:internal true} scheduler
   "Retrieves the appropriate scheduler, creating it if necessary"
-  [singleton]
-  (let [name (str (if singleton "singleton-" "") "job-scheduler")]
+  []
+  (let [name "job-scheduler"]
     (if-let [scheduler (registry/get name)]
       scheduler
-      (registry/put name (create-scheduler singleton)))))
+      (registry/put name (create-scheduler)))))
 
 (defn ^{:private true} wait-for-scheduler
   "Waits for the scheduler to start before invoking f"
@@ -56,9 +54,8 @@ A singleton scheduler will participate in a cluster, and will only execute its j
 
 (defn ^:internal quartz-scheduler
   "Returns the internal quartz scheduler"
-  [singleton]
-  (let [s (scheduler singleton)]
-    (wait-for-scheduler s #(.getScheduler s))))
+  []
+  (wait-for-scheduler (scheduler) #(.getScheduler (scheduler))))
 
 (defn ^:internal date
   "A wrapper around Date. to facilitate testing"
@@ -97,7 +94,7 @@ A singleton scheduler will participate in a cluster, and will only execute its j
 (defn ^{:internal true} create-job
   "Instantiates and starts a job"
   [f name spec singleton]
-  (scheduler singleton) ;; creates the scheduler if necessary
+  (scheduler) ;; creates the scheduler if necessary
   ((if (map? spec)
      create-at-job
      create-scheduled-job) f name spec singleton))

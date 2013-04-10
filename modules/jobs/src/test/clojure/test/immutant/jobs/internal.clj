@@ -24,22 +24,16 @@
 
 (background (before :facts 
               (do 
-                 (registry/put "job-scheduler" nil)
-                 (registry/put "singleton-job-scheduler" nil))))
+                 (registry/put "job-scheduler" nil))))
 
-(deffact "non-singleton scheduler lookup should do the right thing"
-  (scheduler false) => :scheduler
+(deffact "scheduler lookup should do the right thing"
+  (scheduler) => :scheduler
   (provided
     (registry/get "job-scheduler") => :scheduler))
 
-(deffact "singleton scheduler lookup should do the right thing"
-  (scheduler true) => :scheduler
-  (provided
-    (registry/get "singleton-job-scheduler") => :scheduler))
-
 (deffact "scheduler creation should occur if the scheduler is not available"
-  (scheduler true) => :scheduler
-  (scheduler true) => :scheduler
+  (scheduler) => :scheduler
+  (scheduler) => :scheduler
   (against-background
-    (create-scheduler true) => :scheduler :times 1))
+    (create-scheduler) => :scheduler :times 1))
 

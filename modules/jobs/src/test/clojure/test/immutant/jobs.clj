@@ -32,7 +32,7 @@
 
 (registry/put "job-schedulizer"
               (proxy [JobSchedulizer] [nil]
-                (createScheduler [_])
+                (createScheduler [])
                 (createJob [& args]
                   (reset! job-args
                           (zipmap [:handler :name :cron-ex :singleton?] args))
