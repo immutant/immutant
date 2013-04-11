@@ -81,7 +81,7 @@
 
 (defmethod decode :clojure [message]
   "Turn a string into a clojure data structure"
-  (core/decode (message-text message)))
+  (core/decode (message-text message) :clojure))
 
 (defmethod decode :edn [message]
   "Turn a string into an edn data structure"
