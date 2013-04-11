@@ -172,6 +172,7 @@
    The following options are supported [default]:
      :mode     Replication mode [:distributed or :local]
                  :local, :invalidated, :distributed, or :replicated
+     :sync     Whether replication occurs synchronously [true]
      :persist  If non-nil, data persists across server restarts in a file
                  store; a string value names the directory [nil]
      :seed     A hash of initial entries [nil]
