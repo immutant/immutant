@@ -239,3 +239,10 @@
             p1
             dollarizer)]
     (is (= "FANTA$TIC" @(p2 "fantastic")))))
+
+(defrecord TestRecord [a])
+
+(deftest with-a-record
+  (let [pl (pl/pipeline :with-a-record #(update-in % [:a] inc))]
+    (is (= (->TestRecord 2) (deref (pl (->TestRecord 1)) 10000 :timeout)))))
+  

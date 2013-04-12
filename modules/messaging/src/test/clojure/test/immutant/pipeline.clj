@@ -97,6 +97,7 @@
         (immutant.messaging/start anything) => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) => nil
         (immutant.messaging/publish "queue.app.pipeline-bar" :ham
+                                    :encoding :clojure
                                     :properties {"step" "0"}
                                     :correlation-id anything) => anything))
 
@@ -106,6 +107,7 @@
         (immutant.messaging/start anything) => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) => nil
         (immutant.messaging/publish anything :ham
+                                    :encoding :clojure
                                     :properties {"step" "onesies"}
                                     :correlation-id anything) => anything))
         
@@ -129,6 +131,7 @@
         (immutant.messaging/start anything :result-ttl -1) => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) => nil
         (immutant.messaging/publish "queue.app.pipeline-boom" :foo
+                                    :encoding :clojure
                                     :properties {"step" "0"}
                                     :correlation-id anything) => anything))))
 

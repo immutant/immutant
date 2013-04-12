@@ -136,6 +136,7 @@
                             (format "Timed out after %d ms when dereferencing the result of step %s"
                                     timeout current-step)))
           (msg/publish pl m
+                       :encoding :clojure
                        :correlation-id (.getJMSCorrelationID msg/*raw-message*)
                        :properties {"step" next-step}))))
     f))
@@ -179,7 +180,10 @@
        (when-not (some #{step} step-names)
          (throw (IllegalArgumentException. 
                  (format "'%s' is not one of the available steps: %s" step (vec step-names)))))
-       (msg/publish pl m :properties {"step" step} :correlation-id id)
+       (msg/publish pl m
+                    :encoding :clojure
+                    :properties {"step" step}
+                    :correlation-id id)
        (create-delay pl id keep-result?)))
    assoc
    :pipeline pl))
@@ -200,6 +204,7 @@
   "Returns a function that publishes the result of the pipeline so it can be deref'ed"
   [pl ttl]
   #(msg/publish pl %
+                :encoding :clojure
                 :ttl ttl
                 :correlation-id (.getJMSCorrelationID msg/*raw-message*)
                 :properties {"result" true}))
