@@ -87,55 +87,26 @@
       locking (throw (IllegalArgumentException. (str "Invalid locking mode: " locking))))
     (.build builder)))
 
-(defn same-config?
-  [c1 c2]
-  (and (= (.. c1 clustering cacheMode) (.. c2 clustering cacheMode))
-       (= (.. c1 transaction transactionMode) (.. c2 transaction transactionMode))
-       (= (.. c1 transaction lockingMode) (.. c2 transaction lockingMode))
-       (= (.. c1 eviction maxEntries) (.. c2 eviction maxEntries))
-       (= (.. c1 eviction strategy) (.. c2 eviction strategy))
-       (or (= (.. c1 loaders) (.. c2 loaders))
-           (and (= (.. c1 loaders cacheLoaders size)
-                   (.. c2 loaders cacheLoaders size))
-                (= (.. c1 loaders cacheLoaders (get 0) location)
-                   (.. c2 loaders cacheLoaders (get 0) location))))))
-
-(defn reconfigure
-  [manager name opts]
-  (let [cache (.getCache manager name)
-        current (.getCacheConfiguration cache)
-        desired (build-config opts)]
-    (when-not (same-config? current desired)
-      (log/info "Reconfiguring cache" name)
-      (.stop cache)
-      (.defineConfiguration manager name desired)
-      (.start cache))
-    cache))
-
-(defn configure
-  [manager name opts]
-  (log/info "Configuring cache" name)
-  (let [config (.getDefaultCacheConfiguration manager)]
-    (.defineConfiguration manager name (build-config (merge {:template config} opts))))
-  (.getCache manager name))
-
 (defn default-mode []
   (if (and service (.isClustered service))
     :distributed
     :local))
 
+(defn get-cache
+  "Returns the named cache if it exists, otherwise nil"
+  [name]
+  (if (.isRunning @manager name)
+    (.getCache @manager name)))
+  
 (defn configure-cache
-  "Defaults to :distributed, with :sync=true, for a clustered cache"
-  [manager name opts]
-  (let [opts (merge {:mode (default-mode), :sync true} opts)]
-    (if (.isRunning manager name)
-      (reconfigure manager name opts)
-      (configure manager name opts))))
-
-(defn raw-cache
-  "Returns the raw Infinispan cache, clustered if possible, otherwise local"
-  [name {:as opts}]
-  (configure-cache @manager name opts))
+  "Defaults to :distributed with :sync=true for a clustered cache, otherwise :local"
+  [name opts]
+  (log/info "Configuring cache" name)
+  (.defineConfiguration @manager name (build-config (merge {:mode (default-mode), :sync true} opts)))
+  (when-let [cache (get-cache name)]
+    (.stop cache)
+    (.start cache))
+  (.getCache @manager name))
 
 (defn lifespan-params [{:keys [ttl idle units] :or {ttl -1 idle -1 units :seconds}}]
   (let [u (.toUpperCase (name units))

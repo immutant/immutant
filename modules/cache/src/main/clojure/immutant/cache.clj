@@ -18,7 +18,7 @@
 (ns immutant.cache
   "Infinispan-backed implementations of core.cache and core.memoize
    protocols supporting multiple replication options and more."
-  (:use [immutant.cache.core]
+  (:use [immutant.cache.core :exclude [get-cache]]
         [immutant.codecs :only [encode decode]])
   (:require [clojure.core.cache :as cc]
             [clojure.core.memoize :as cm])
@@ -164,10 +164,12 @@
          (for [[k v] (seq cache)]
            (clojure.lang.MapEntry. k (cc/lookup this k))))))
 
-(defn cache
+(defn create
   "Returns an object that implements both Mutable and
-   core.cache/CacheProtocol. A name is the only required argument. The
-   following options are supported:
+   core.cache/CacheProtocol. A name is the only required argument. If
+   a cache by that name already exists, it will be restarted and all
+   its entries lost. Use get-cache to obtain a reference to an
+   existing cache. The following options are supported:
 
    The following options are supported [default]:
      :mode        Replication mode [:distributed or :local]
@@ -190,26 +192,43 @@
    not clustered, the value of :mode is ignored, and the cache will
    be :local.
 
-   If :persist is true, cache entries will persist in the directory
-   named by immutant.cache.core/file-store-path. Override this by
-   setting :persist to a string naming the desired directory.
+   If :persist is true, cache entries will persist in the current
+   directory. Override this by setting :persist to a string naming the
+   desired directory.
 
-   Seeding the cache will delete any existing entries.
+   A negative value for any numeric option means \"unlimited\".
 
    The lifespan-oriented options (:ttl :idle :units) become the
    default options for the functions of the Mutable protocol. But any
    options passed to those functions take precedence over these."
-  [name & {:keys [mode seed] :as options}]
-  (cc/seed (InfinispanCache. (raw-cache name options) options) seed))
+  [name & {:keys [seed] :as options}]
+  (cc/seed (InfinispanCache. (configure-cache name options) options) seed))
 
+(def ^{:doc "Deprecated; use create instead" :no-doc true} cache #'create)
+
+(defn get-cache
+  "Returns the cache if it exists, otherwise nil.
+
+   All but the :encoding and lifespan options (:ttl :idle :units) to
+   create are ignored if passed here."
+  [name & {:as options}]
+  (if-let [c (immutant.cache.core/get-cache name)]
+    (InfinispanCache. c options)))
+
+(defn get-or-create
+  "A convenience method for creating a cache only if it doesn't
+   already exist. Takes the same options as create"
+  [name & opts]
+  (or (apply get-cache name opts) (apply create name opts)))
+  
 (defn memo
   "Memoize a function by associating its arguments with return values
    stored in a possibly-clustered Infinispan-backed cache. Other than
    the function to be memoized, arguments are the same as for the
-   cache function."
+   create function."
   [f name & options]
   (cm/build-memoizer
-   #(PluggableMemoization. %1 (DelayedCache. (apply cache %2 %3) (atom {})))
+   #(PluggableMemoization. %1 (DelayedCache. (apply get-or-create %2 %3) (atom {})))
    f
    name
    options))
