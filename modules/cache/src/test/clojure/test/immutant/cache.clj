@@ -17,12 +17,12 @@
 
 (ns test.immutant.cache
   (:use immutant.cache
-        clojure.test
-        clojure.core.cache
-        [clojure.java.io :as io]))
+        clojure.test)
+  (:require [clojure.core.cache :as core]
+            [clojure.java.io :as io]))
 
 (deftest test-lookup-by-list
-  (is (= :foo (lookup (miss (create "foo") '(bar) :foo) '(bar)))))
+  (is (= :foo (core/lookup (core/miss (create "foo") '(bar) :foo) '(bar)))))
 
 (deftest test-local-infinispan-cache
   (testing "counts"
@@ -166,7 +166,7 @@
 
 (deftest test-seeding
   (let [c (create "foo" :seed {:a 1})
-        d (get-cache "foo")]
+        d (lookup "foo")]
     (is (= (:a c) (:a d) 1))
     (put c :b 2)
     (is (= (:b c) (:b d) 2))

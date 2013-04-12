@@ -56,9 +56,11 @@
 * The API
 ** Creating
 
-   Caches are defined using the =immutant.cache/cache= function. Its
-   only required argument is a name. Creating two caches with the same
-   name means each is backed by the same Infinispan cache.
+   All Infinispan caches have a name scoped to the app server (or
+   cluster) hence the names are global for all practical purposes.
+   Caches are created using the =immutant.cache/create= function. Its
+   only required argument is a name. Calling =create= for an existing
+   cache restarts it, clearing all its data.
 
    Additional options may be passed as in-line keyword arguments. The
    following are supported:
@@ -81,8 +83,7 @@
    =:local=.
 
    If =:persist= is =true= (or any non-nil, non-string value), cache
-   entries will persist in the directory named by
-   =immutant.cache.core/file-store-path=. Override this by
+   entries will persist in the current directory. Override this by
    setting =:persist= to a string naming the desired directory, the
    parents of which will be created, if necessary.
 
@@ -102,17 +103,26 @@
        (:use [immutant.cache]))
      
      ;; Obtain a cache in :distributed mode if clustered, :local otherwise
-     (def c1 (cache "jimi"))
+     (def c1 (create "jimi"))
      
      ;; A cache in :invalidated mode if clustered, :local otherwise
-     (def c2 (cache "jeff" :mode :invalidated))
+     (def c2 (create "jeff" :mode :invalidated))
      
      ;; Initialize a replicated cache, if clustered, with a seed
-     (def c3 (cache "billy" :mode :replicated, :seed {:a 1 :b 2}))
+     (def c3 (create "billy" :mode :replicated, :seed {:a 1 :b 2}))
      
      ;; Expire all entries after 10 minutes and any not accessed after 1 minute
-     (def c4 (cache "jerry" :ttl 10, :idle 1, :units :minutes))
+     (def c4 (create "jerry" :ttl 10, :idle 1, :units :minutes))
    #+end_src
+
+   Often, you'll share caches with other applications or services
+   running in the same Immutant or cluster. The
+   =immutant.cache/lookup= function is provided to obtain a reference
+   to an existing cache without having to recreate it and clear all
+   its data. If the cache doesn't exist, nil is returned. There is
+   also a convenience function, =immutant.cache/lookup-or-create= that
+   will only create the cache if it doesn't already exist. It accepts
+   the same options as =create=.
 
 ** Writing
 
@@ -131,7 +141,7 @@
    used to override the values specified when the cache was created.
 
    #+begin_src clojure
-     (def c (cache "foo" :ttl 300))
+     (def c (create "foo" :ttl 300))
      
      ;;; Put an entry in the cache
      (put c :a 1)
@@ -165,7 +175,7 @@
    To remove entries from the cache, use =delete=.
 
    #+begin_src clojure
-     (def c (cache "bar" :seed {:a 1 :b 2}))
+     (def c (create "bar" :seed {:a 1 :b 2}))
      
      ;;; Deleting a missing key is harmless
      (delete c :missing)                     ;=> nil
@@ -187,7 +197,7 @@
    any standard Clojure map, i.e. using core Clojure functions.
 
    #+begin_src clojure
-     (def c (cache "baz" :seed {:a 1, :b {:c 3, :d 4}}))
+     (def c (create "baz" :seed {:a 1, :b {:c 3, :d 4}}))
      
      ;;; Use get to obtain associated values
      (get c :a)                              ;=> 1

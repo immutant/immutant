@@ -18,7 +18,7 @@
 (ns immutant.cache
   "Infinispan-backed implementations of core.cache and core.memoize
    protocols supporting multiple replication options and more."
-  (:use [immutant.cache.core :exclude [get-cache]]
+  (:use [immutant.cache.core]
         [immutant.codecs :only [encode decode]])
   (:require [clojure.core.cache :as cc]
             [clojure.core.memoize :as cm])
@@ -168,8 +168,8 @@
   "Returns an object that implements both Mutable and
    core.cache/CacheProtocol. A name is the only required argument. If
    a cache by that name already exists, it will be restarted and all
-   its entries lost. Use get-cache to obtain a reference to an
-   existing cache. The following options are supported:
+   its entries lost. Use lookup to obtain a reference to an existing
+   cache. The following options are supported:
 
    The following options are supported [default]:
      :mode        Replication mode [:distributed or :local]
@@ -206,20 +206,20 @@
 
 (def ^{:doc "Deprecated; use create instead" :no-doc true} cache #'create)
 
-(defn get-cache
-  "Returns the cache if it exists, otherwise nil.
+(defn lookup
+  "Looks up a cache by name and returns it; returns nil if the cache doesn't exist.
 
-   All but the :encoding and lifespan options (:ttl :idle :units) to
-   create are ignored if passed here."
+   All but the :encoding and lifespan-oriented create
+   options (:ttl :idle :units) are ignored if passed here."
   [name & {:as options}]
-  (if-let [c (immutant.cache.core/get-cache name)]
+  (if-let [c (get-cache name)]
     (InfinispanCache. c options)))
 
-(defn get-or-create
+(defn lookup-or-create
   "A convenience method for creating a cache only if it doesn't
    already exist. Takes the same options as create"
   [name & opts]
-  (or (apply get-cache name opts) (apply create name opts)))
+  (or (apply lookup name opts) (apply create name opts)))
   
 (defn memo
   "Memoize a function by associating its arguments with return values
@@ -228,7 +228,7 @@
    create function."
   [f name & options]
   (cm/build-memoizer
-   #(PluggableMemoization. %1 (DelayedCache. (apply get-or-create %2 %3) (atom {})))
+   #(PluggableMemoization. %1 (DelayedCache. (apply lookup-or-create %2 %3) (atom {})))
    f
    name
    options))
