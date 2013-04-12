@@ -170,18 +170,21 @@
    following options are supported:
 
    The following options are supported [default]:
-     :mode     Replication mode [:distributed or :local]
-                 :local, :invalidated, :distributed, or :replicated
-     :sync     Whether replication occurs synchronously [true]
-     :persist  If non-nil, data persists across server restarts in a file
-                 store; a string value names the directory [nil]
-     :seed     A hash of initial entries [nil]
-     :locking  Infinispan locking schemes [nil]
-                 :optimisitic or :pessimistic
-     :encoding :edn :json or :none [:edn]
-     :ttl      The max time the entry will live before expiry [-1]
-     :idle     The time after which an entry will expire if not accessed [-1]
-     :units    The units for the values of :ttl and :idle [:seconds]
+     :mode        Replication mode [:distributed or :local]
+                    :local, :invalidated, :distributed, or :replicated
+     :sync        Whether replication occurs synchronously [true]
+     :persist     If non-nil, data persists across server restarts in a file
+                    store; a string value names the directory [nil]
+     :seed        A hash of initial entries [nil]
+     :locking     Infinispan locking schemes [nil]
+                    :optimisitic or :pessimistic
+     :encoding    :edn :json or :none [:edn]
+     :max-entries The maximum number of entries allowed in the cache [-1]
+     :eviction    How entries are evicted when :max-entries is exceeded [:lirs]
+                    :lru, :lirs, or :unordered
+     :ttl         The max time the entry will live before expiry [-1]
+     :idle        The time after which an entry will expire if not accessed [-1]
+     :units       The units for the values of :ttl and :idle [:seconds]
 
    The replication mode defaults to :distributed when clustered. When
    not clustered, the value of :mode is ignored, and the cache will

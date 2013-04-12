@@ -194,3 +194,11 @@
     (cache "terrence" :locking :pessimistic)
     (is (empty? c))))
 
+(deftest test-eviction
+  (let [c (cache "nelly" :max-entries 2)]
+    (put c :a 1)
+    (put c :b 2)
+    (put c :c 3)
+    (is (nil? (:a c)))
+    (is (= 2 (count c)))))
+

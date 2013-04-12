@@ -21,6 +21,7 @@
               [clojure.tools.logging :as log])
     (:import [org.infinispan.configuration.cache ConfigurationBuilder VersioningScheme CacheMode]
              [org.infinispan.transaction TransactionMode LockingMode]
+             org.infinispan.eviction.EvictionStrategy
              org.infinispan.manager.DefaultCacheManager
              org.infinispan.transaction.lookup.GenericTransactionManagerLookup
              org.infinispan.util.concurrent.IsolationLevel))
@@ -35,6 +36,14 @@
     (= :distributed mode) (if sync CacheMode/DIST_SYNC CacheMode/DIST_ASYNC)
     (= :replicated mode) (if sync CacheMode/REPL_SYNC CacheMode/REPL_ASYNC)
     :else CacheMode/LOCAL))
+
+(defn eviction-strategy
+  [mode]
+  (cond
+   (= :lru mode) EvictionStrategy/LRU
+   (= :lirs mode) EvictionStrategy/LIRS
+   (= :unordered mode) EvictionStrategy/UNORDERED
+   :else (throw (IllegalArgumentException. (str "Invalid eviction strategy: " mode)))))
 
 (defn set-optimistic-locking!
   [builder]
@@ -55,7 +64,7 @@
   builder)
 
 (defn build-config
-  [{:keys [locking template persist] :as opts}]
+  [{:keys [locking template persist max-entries eviction] :as opts}]
   (let [builder (ConfigurationBuilder.)]
     (if template (.read builder template))
     (.classLoader builder (.getContextClassLoader (Thread/currentThread)))
@@ -68,6 +77,10 @@
       (let [store (.. builder loaders addFileCacheStore)]
         (if (.exists (io/file (str persist)))
           (.. store (location persist)))))
+    (if max-entries
+      (.. builder eviction (maxEntries max-entries)))
+    (if eviction
+      (.. builder eviction (strategy (eviction-strategy eviction))))
     (cond
       (= locking :pessimistic) (set-pessimistic-locking! builder)
       (= locking :optimistic) (set-optimistic-locking! builder)
@@ -79,6 +92,8 @@
   (and (= (.. c1 clustering cacheMode) (.. c2 clustering cacheMode))
        (= (.. c1 transaction transactionMode) (.. c2 transaction transactionMode))
        (= (.. c1 transaction lockingMode) (.. c2 transaction lockingMode))
+       (= (.. c1 eviction maxEntries) (.. c2 eviction maxEntries))
+       (= (.. c1 eviction strategy) (.. c2 eviction strategy))
        (or (= (.. c1 loaders) (.. c2 loaders))
            (and (= (.. c1 loaders cacheLoaders size)
                    (.. c2 loaders cacheLoaders size))
