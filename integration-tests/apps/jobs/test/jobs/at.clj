@@ -11,6 +11,13 @@
      ~@body
      (finally (job/unschedule "a-job"))))
 
+(deftest should-accept-a-keyword-name
+  (let [q (random-queue)]
+    (try
+      (job/schedule :job #(msg/publish q "ping"))
+      (is (= "ping" (msg/receive q :timeout 10000)))
+      (finally (job/unschedule :job)))))
+
 (deftest an-empty-hash-should-fire-once
   (let [q (random-queue)]
     (with-job #(msg/publish q "ping") []

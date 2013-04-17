@@ -24,7 +24,7 @@
                    "*/5 * * * * ?"
                    :singleton false)
     
-    (jobs/schedule "my-at-job-name"  
+    (jobs/schedule :my-at-job-name  
                    #(println "I fire 4 times with a 10ms delay between each, starting in 500ms.")
                    :in 500   ; ms
                    :every 10 ; ms
@@ -38,7 +38,9 @@
   + =name= - the name of the job. If the given name is the same as the
     name of previously scheduled job in the application's runtime, the
     prior job will be unscheduled and the new job will be scheduled in
-    its place.
+    its place. The name can be either a keyword or a string, but
+    keywords will be converted to strings internally, so =:foo= and
+    ="foo"= will refer to the same job.
   + =f= - the zero argument function that will be invoked each time
     the job fires.
   + =spec= - the optional cron-style specification string if you are

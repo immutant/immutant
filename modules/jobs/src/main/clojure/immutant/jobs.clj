@@ -28,11 +28,12 @@
 (defn unschedule
   "Removes the named job from the scheduler"
   [name]
-  (when-let [job (@current-jobs name)]
-    (log/info "Unscheduling job" name)
-    (internal/stop-job job)
-    (swap! current-jobs dissoc name)
-    true))
+  (let [name (clojure.core/name name)]
+    (when-let [job (@current-jobs name)]
+      (log/info "Unscheduling job" name)
+      (internal/stop-job job)
+      (swap! current-jobs dissoc name)
+      true)))
 
 (def
   ^{:arglists '([name f spec & {:keys [singleton] :or {singleton true}}]
@@ -64,7 +65,8 @@ will replace that job."}
   schedule
   (fn
     [name & opts]
-    (let [{:keys [fn spec] :as opts} (internal/extract-spec opts)]
+    (let [{:keys [fn spec] :as opts} (internal/extract-spec opts)
+          name (clojure.core/name name)]
       (unschedule name)
       (log/info "Scheduling job" name "with" spec)
       (letfn [(job [ctx] (binding [*job-execution-context* ctx] (fn)))]

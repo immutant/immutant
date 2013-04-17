@@ -15,6 +15,13 @@
     (with-job #(msg/publish q "ping")
       (is (= ["ping" "ping" "ping"] (take 3 (msg/message-seq q)))))))
 
+(deftest jobs-should-work-with-a-keyword-name
+  (let [q (random-queue)]
+    (try
+      (job/schedule :kw-job #(msg/publish q "ping") "*/1 * * * * ?")
+      (is (= ["ping" "ping" "ping"] (take 3 (msg/message-seq q))))
+     (finally (job/unschedule :kw-job)))))
+
 (deftest rescheduling
   (let [q1 (random-queue)
         q2 (random-queue)]
