@@ -57,6 +57,10 @@ public class CoreServices {
     public static ServiceName runtime(DeploymentUnit unit) {
         return unit.getServiceName().append( CORE ).append( "clojure-runtime" );
     }
+
+    public static ServiceName appInitializer(DeploymentUnit unit) {
+        return unit.getServiceName().append( CORE ).append( "application-initializer" );
+    }
     
     public static ServiceName tmpResourceMounter(DeploymentUnit unit) {
         return unit.getServiceName().append( "resource-mounter" );

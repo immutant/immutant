@@ -19,40 +19,29 @@
 
 package org.immutant.jobs.processors;
 
-import java.util.concurrent.ConcurrentMap;
-
-import org.immutant.core.processors.RegisteringProcessor;
-import org.immutant.jobs.JobSchedulizer;
+import org.immutant.jobs.JobScheduler;
 import org.immutant.jobs.as.JobsServices;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.msc.service.ServiceController.Mode;
-import org.projectodd.polyglot.core.util.ClusterUtil;
-import org.projectodd.polyglot.hasingleton.CoordinationMapService;
 
 
-public class JobSchedulizerInstaller extends RegisteringProcessor {
+public class JobSchedulerInstaller implements DeploymentUnitProcessor {
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public RegistryEntry registryEntry(DeploymentPhaseContext context) {
+    @Override
+    public void deploy(DeploymentPhaseContext context) {
         DeploymentUnit unit = context.getDeploymentUnit();
-                
-        JobSchedulizer service = new JobSchedulizer(unit);
-                
-        ServiceBuilder builder = context.getServiceTarget().
-                addService(JobsServices.schedulizer( unit ), service)
-                .setInitialMode(Mode.ACTIVE);
-        
-        if (ClusterUtil.isClustered(context)) {
-            builder.addDependency(CoordinationMapService.serviceName(unit),
-                            ConcurrentMap.class,
-                            service.getCoordinationMapInjector());
-        }
-        
-        builder.install();
-        
-        return new RegistryEntry( "job-schedulizer", service );
+
+        JobScheduler scheduler = new JobScheduler("JobScheduler$" + unit.getName());
+
+        context.getServiceTarget()
+            .addService(JobsServices.scheduler(unit), scheduler)
+            .setInitialMode(Mode.ON_DEMAND)
+            .install();
     }
 
+    @Override
+    public void undeploy(DeploymentUnit unit) {
+    }
 }

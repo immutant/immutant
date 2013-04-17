@@ -74,5 +74,5 @@ will replace that job."}
 
 (defn internal-scheduler
   "Returns the internal Quartz scheduler for use with other libs, e.g. Quartzite"
-  [& {:keys [singleton] :or {singleton true}}]
-  (internal/quartz-scheduler singleton))
+  []
+  (internal/quartz-scheduler))

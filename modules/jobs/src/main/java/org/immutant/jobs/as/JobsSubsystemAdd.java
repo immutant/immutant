@@ -25,6 +25,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 
 import java.util.List;
 
+import org.immutant.jobs.processors.JobSchedulerInstaller;
 import org.immutant.jobs.processors.JobSchedulizerInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
@@ -59,9 +60,13 @@ public class JobsSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
 
-        processorTarget.addDeploymentProcessor( JobsExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 1, new JobsDependenciesProcessor() );
+        processorTarget.addDeploymentProcessor(JobsExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 1, 
+                                                new JobsDependenciesProcessor());
 
-        processorTarget.addDeploymentProcessor( JobsExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, new JobSchedulizerInstaller() );
+        processorTarget.addDeploymentProcessor(JobsExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, 
+                                                new JobSchedulizerInstaller());
+        processorTarget.addDeploymentProcessor(JobsExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 200, 
+                                               new JobSchedulerInstaller());
     }
 
     static ModelNode createOperation(ModelNode address) {

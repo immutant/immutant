@@ -34,7 +34,7 @@ import org.immutant.core.ImmutantMBean;
 import org.immutant.core.processors.AppDependenciesProcessor;
 import org.immutant.core.processors.AppNameRegisteringProcessor;
 import org.immutant.core.processors.AppRootRegisteringProcessor;
-import org.immutant.core.processors.ApplicationInitializer;
+import org.immutant.core.processors.ApplicationInitializerInstaller;
 import org.immutant.core.processors.ArchiveRecognizer;
 import org.immutant.core.processors.ClojureRuntimeInstaller;
 import org.immutant.core.processors.CloserInstaller;
@@ -107,7 +107,7 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 141, new AppRootRegisteringProcessor() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 142, new TmpResourceMounterRegisteringInstaller() );
         
-        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.INSTALL, 10000, new ApplicationInitializer() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.INSTALL, 10000, new ApplicationInitializerInstaller() );
     }
 
     @SuppressWarnings("serial")

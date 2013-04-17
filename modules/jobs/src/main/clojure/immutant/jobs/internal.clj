@@ -21,41 +21,36 @@
             [clojure.tools.logging :as log])
   (:import java.util.Date))
 
-(defn ^:internal job-schedulizer  []
-  (registry/get "job-schedulizer"))
 
-(defn ^{:internal true} create-scheduler
-  "Creates a scheduler for the current application."
-  []
-  (log/info "Creating job scheduler for"  (app-name))
-  (.createScheduler (job-schedulizer)))
+
+(defn ^{:private true} wait-for
+  "Waits for the item to start before invoking f"
+  ([item]
+     (wait-for item (constantly item)))
+  ([item f]
+     (wait-for item f 300))
+  ([item f attempts]
+     (cond
+      (.isStarted item) (f)
+      (< attempts 0)         (throw (IllegalStateException.
+                                     (str "Gave up waiting for " (.getName item) " to start")))
+      :default               (do
+                               (log/debug "Waiting for" (.getName item) "to start")
+                               (Thread/sleep 100)
+                               (recur item f (dec attempts))))))
+
+(defn ^:internal job-schedulizer []
+  (wait-for (registry/get "job-schedulizer")))
 
 (defn ^{:internal true} scheduler
-  "Retrieves the appropriate scheduler, creating it if necessary"
+  "Retrieves the appropriate scheduler, starting it if necessary"
   []
-  (let [name "job-scheduler"]
-    (if-let [scheduler (registry/get name)]
-      scheduler
-      (registry/put name (create-scheduler)))))
-
-(defn ^{:private true} wait-for-scheduler
-  "Waits for the scheduler to start before invoking f"
-  ([scheduler f]
-     (wait-for-scheduler scheduler f 30))
-  ([scheduler f attempts]
-     (cond
-      (.isStarted scheduler) (f)
-      (< attempts 0)         (throw (IllegalStateException.
-                                     (str "Gave up waiting for " (.getName scheduler) " to start")))
-      :default               (do
-                               (log/debug "Waiting for scheduler" (.getName scheduler) "to start")
-                               (Thread/sleep 1000)
-                               (recur scheduler f (dec attempts))))))
+  (wait-for (.activateScheduler (job-schedulizer))))
 
 (defn ^:internal quartz-scheduler
   "Returns the internal quartz scheduler"
   []
-  (wait-for-scheduler (scheduler) #(.getScheduler (scheduler))))
+  (.getScheduler (scheduler)))
 
 (defn ^:internal date
   "A wrapper around Date. to facilitate testing"
@@ -94,7 +89,6 @@
 (defn ^{:internal true} create-job
   "Instantiates and starts a job"
   [f name spec singleton]
-  (scheduler) ;; creates the scheduler if necessary
   ((if (map? spec)
      create-at-job
      create-scheduled-job) f name spec singleton))

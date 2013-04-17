@@ -21,6 +21,7 @@ package org.immutant.jobs;
 
 import java.util.Date;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentMap;
 
 import org.immutant.core.HasImmutantRuntimeInjector;
 import org.immutant.core.as.CoreServices;
@@ -28,9 +29,13 @@ import org.immutant.jobs.as.JobsServices;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core.AtRuntimeInstaller;
+import org.projectodd.polyglot.hasingleton.CoordinationMapService;
 import org.projectodd.polyglot.hasingleton.HASingletonInstaller;
+import org.projectodd.polyglot.jobs.BaseAtJob;
 import org.projectodd.polyglot.jobs.BaseJob;
 
 
@@ -40,14 +45,15 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
         super( unit );
     }
 
-    public JobScheduler createScheduler() {
-        String name = "JobScheduler$" + getUnit().getName();
-        JobScheduler scheduler = new JobScheduler( name );
-        ServiceName serviceName = JobsServices.scheduler( getUnit() );
+    @SuppressWarnings("rawtypes")
+    public synchronized JobScheduler activateScheduler() {
+        ServiceController controller = 
+            getUnit().getServiceRegistry().getService(JobsServices.scheduler(getUnit()));
+        if (controller.getMode() != Mode.ACTIVE) {
+          controller.setMode(Mode.ACTIVE);
+        }
 
-        deploy( serviceName, scheduler, false );
-
-        return scheduler;
+        return (JobScheduler)controller.getValue();
     }
 
     @SuppressWarnings("rawtypes")
@@ -80,6 +86,7 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
     }
     
     private void installJob(final BaseJob job) {
+        activateScheduler();
         final ServiceName serviceName = JobsServices.job( getUnit(), job.getName() );
 
         replaceService( serviceName,
@@ -89,11 +96,20 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
                 String haName = "job-" + job.getName();
                 HASingletonInstaller.deployOnce(getUnit(), getTarget(), haName);
                 
-                ServiceBuilder builder = build(serviceName, job, true, haName);
-
-                builder.addDependency( CoreServices.runtime( getUnit() ), ((HasImmutantRuntimeInjector)job).getClojureRuntimeInjector() )
-                .addDependency( JobsServices.scheduler( getUnit() ), job.getJobSchedulerInjector() )
-                .install();
+                ServiceBuilder builder = build(serviceName, job, job.isSingleton(), haName);
+                
+                builder.addDependency(CoreServices.runtime(getUnit()), 
+                                      ((HasImmutantRuntimeInjector)job).getClojureRuntimeInjector())
+                    .addDependency(JobsServices.scheduler(getUnit()), job.getJobSchedulerInjector());
+                
+                if (inCluster() 
+                    && job instanceof BaseAtJob
+                    && job.isSingleton()) {
+                    builder.addDependency(CoordinationMapService.serviceName(getUnit()),
+                            ConcurrentMap.class,
+                            ((BaseAtJob)job).getCoordinationMapInjector());
+                }
+                builder.install();
 
             }
         } );
