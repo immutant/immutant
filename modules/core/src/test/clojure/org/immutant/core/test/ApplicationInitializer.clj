@@ -15,17 +15,19 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns org.immutant.core.processors.test.ApplicationInitializer
+(ns org.immutant.core.test.ApplicationInitializer
   (:use clojure.test
         immutant.test.as.helpers)
-  (:import org.immutant.core.processors.ApplicationInitializer
+  (:import org.immutant.core.ApplicationInitializer
+           [org.immutant.core.processors ApplicationInitializerInstaller ClojureRuntimeInstaller]
            org.immutant.core.ClojureMetaData
            [org.immutant.runtime ClojureRuntime ClojureRuntimeService]))
 
 (def a-value (atom "not-called"))
 
 (use-fixtures :each
-              (harness-with [(ApplicationInitializer.)]))
+  (harness-with [(ApplicationInitializerInstaller.)
+                 (ClojureRuntimeInstaller.)]))
 
 (deftest it-should-call-the-initialize-function-with-the-init-function
   (let [phase-context (.createPhaseContext *harness*)
