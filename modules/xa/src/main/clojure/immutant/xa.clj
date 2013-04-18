@@ -39,6 +39,7 @@
     :username  the username for the database connection
     :password  the password associated with the username
     :pool      the maximum number of simultaneous connections used
+    :url       a jdbc connection url (not supported by all adapters)
 
     :subprotocol an alias for :adapter
     :subname     an alias for :database

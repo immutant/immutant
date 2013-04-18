@@ -21,16 +21,12 @@
 (defonce h2 (future (ixa/datasource "h2" {:adapter "h2" :database "mem:foo"})))
 ;;; rds-create-db-instance oracle -s 10 -c db.m1.small -e oracle-se -u myuser -p mypassword --db-name mydb
 (defonce oracle (future (ixa/datasource "oracle" {:adapter "oracle"
-                                                  :host "oracle.cpct4icp7nye.us-east-1.rds.amazonaws.com"
+                                                  :url "jdbc:oracle:thin:@//oracle.cpct4icp7nye.us-east-1.rds.amazonaws.com:1521/mydb"
                                                   :username "myuser"
-                                                  :password "mypassword"
-                                                  :database "mydb"})))
+                                                  :password "mypassword"})))
 ;;; rds-create-db-instance mysql -s 10 -c db.m1.small -e mysql -u myuser -p mypassword --db-name mydb
 (defonce mysql (future (ixa/datasource "mysql" {:adapter "mysql"
-                                                :host "mysql.cpct4icp7nye.us-east-1.rds.amazonaws.com"
-                                                :username "myuser"
-                                                :password "mypassword"
-                                                :database "mydb"})))
+                                                :url "jdbc:mysql://mysql.cpct4icp7nye.us-east-1.rds.amazonaws.com/mydb?user=myuser&password=mypassword"})))
 ;;; configured locally
 (defonce postgres (future (ixa/datasource "postgres" {:adapter "postgresql"
                                                       :username "myuser"
