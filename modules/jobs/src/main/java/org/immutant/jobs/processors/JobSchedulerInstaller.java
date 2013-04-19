@@ -19,6 +19,7 @@
 
 package org.immutant.jobs.processors;
 
+import org.immutant.core.ClojureMetaData;
 import org.immutant.jobs.JobScheduler;
 import org.immutant.jobs.as.JobsServices;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
@@ -32,6 +33,10 @@ public class JobSchedulerInstaller implements DeploymentUnitProcessor {
     @Override
     public void deploy(DeploymentPhaseContext context) {
         DeploymentUnit unit = context.getDeploymentUnit();
+
+        if (!unit.hasAttachment(ClojureMetaData.ATTACHMENT_KEY)) {
+            return;
+        }
 
         JobScheduler scheduler = new JobScheduler("JobScheduler$" + unit.getName());
 
