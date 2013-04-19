@@ -57,7 +57,9 @@ bootstrapping process. Applications shouldn't use anything here."
       ;; make sure it's a failure to find immutant.init, and not
       ;; something within init throwing a FNFE
       (if-not (re-find #"immutant/init" (.getMessage e))
-        (throw e)))))
+        (throw e)))
+    (catch Throwable e
+      (log/error e "Unexpected error occurred loading immutant.init"))))
 
 (defn ^{:internal true} init-by-ring
   []
