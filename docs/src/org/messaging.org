@@ -59,6 +59,20 @@
    takes a destination name. It's common to separate sections of the
    destination name with =.= or =/=, but is not required.
 
+   The =start= function accepts the following options:
+
+   | Option      | Default | Description                         |
+   |-------------+---------+-------------------------------------|
+   |             | <c>     | <35>                                |
+   | =:durable=  | =true=  | Whether messages persist across restarts |
+   | =:selector= | =nil=   | A JMS expression used to filter messages by their metadata/properties |
+
+   If a =:selector= is provided, then only messages with
+   metadata/properties matching that expression will be accepted for
+   delivery.
+
+   Some examples:
+
    #+begin_src clojure
      (require '[immutant.messaging :as msg])
      
@@ -82,6 +96,10 @@
      ;; wrap an ambiguous topic name in as-topic
      (msg/start (msg/as-topic "no-t-word"))
      
+     ;; only blue messages will be queued for delivery
+     (msg/start "/queue/blue" :selector "color = 'blue'")
+     ;; like this one...
+     (msg/publish "/queue/blue" "success" :properties {:color "blue"})
    #+end_src
 
    Starting a destination is dynamic, and can occur anywhere in your

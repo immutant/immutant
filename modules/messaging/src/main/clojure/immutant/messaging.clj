@@ -44,11 +44,14 @@
 
 (defn start
   "Create a message destination; name should begin with either 'queue'
-   or 'topic', or be the result of calling as-queue or as-topic.
+   or 'topic', or be the result of calling as-queue or as-topic. If
+   a :selector is provided, then only messages with
+   metadata/properties matching that expression will be accepted for
+   delivery.
 
    The following options are supported [default]:
-     :durable    whether queue items persist across restarts [true]
-     :selector   A JMS (SQL 92) expression matching message metadata/properties [\"\"]"
+     :durable    whether messages persist across restarts [true]
+     :selector   a JMS (SQL 92) expression to filter published messages [nil]"
   [name & opts]
   (cond
    (queue-name? name) (apply start-queue (.toString name) opts)
@@ -100,12 +103,14 @@
 (defn receive
   "Receive a message from a destination. dest can either be the name
    of the destination, a javax.jms.Destination, or the result of
-   as-queue or as-topic.
+   as-queue or as-topic. If a :selector is provided, then only
+   messages having metadata/properties matching that expression may be
+   received.
 
    The following options are supported [default]:
      :timeout    time in ms, after which nil is returned. 0 means wait forever,
                  -1 means don't wait at all [10000]
-     :selector   A JMS (SQL 92) expression matching message metadata/properties
+     :selector   A JMS (SQL 92) expression matching message metadata/properties [nil]
      :decode?    if true, the decoded message body is returned. Otherwise, the
                  javax.jms.Message object is returned [true]
      :client-id  identifies a durable topic subscriber, ignored for queues [nil]
@@ -161,11 +166,13 @@
 (defn listen
   "The handler function, f, will receive each message sent to dest.
    dest can either be the name of the destination, a
-   javax.jms.Destination, or the result of as-queue or as-topic.
+   javax.jms.Destination, or the result of as-queue or as-topic. If
+   a :selector is provided, then only messages having
+   metadata/properties matching that expression may be received.
 
    The following options are supported [default]:
      :concurrency  the number of threads handling messages [1]
-     :selector     A JMS (SQL 92) expression matching message metadata/properties
+     :selector     A JMS (SQL 92) expression matching message metadata/properties [nil]
      :decode?      if true, the decoded message body is passed to f. Otherwise, the
                    javax.jms.Message object is passed [true]
      :client-id    identifies a durable topic subscriber, ignored for queues [nil]
