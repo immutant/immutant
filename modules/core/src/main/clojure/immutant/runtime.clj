@@ -59,7 +59,8 @@ bootstrapping process. Applications shouldn't use anything here."
       (if-not (re-find #"immutant/init" (.getMessage e))
         (throw e)))
     (catch Throwable e
-      (log/error e "Unexpected error occurred loading immutant.init"))))
+      (log/error "Unexpected error occurred loading immutant.init" e)
+      (throw e))))
 
 (defn ^{:internal true} init-by-ring
   []
