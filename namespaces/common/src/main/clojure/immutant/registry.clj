@@ -20,8 +20,8 @@
   (:refer-clojure :exclude (get))
   (:import org.jboss.msc.service.ServiceName))
 
-(def ^{:private true} registry (atom {}))
-(def ^{:private true} msc-registry (atom nil))
+(defonce ^{:private true} registry (atom {}))
+(defonce ^{:private true} msc-registry (atom nil))
 
 (defn set-msc-registry [v]
   (reset! msc-registry v))
