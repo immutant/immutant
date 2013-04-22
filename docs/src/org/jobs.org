@@ -56,7 +56,7 @@
     | :every     | /none/                              | Specifies the delay interval between *at* job firings, in ms. If specified without a =:repeat= or =:until=, the job will fire indefinitely. Can't be specified with a =spec=. |
     | :repeat    | /none/                              | Specifies the number of times an *at* job should repeat beyond its initial firing. Can't be specified with a =spec=, and requires =:every= to be provided.               |
     | :until     | /none/                              | Specifies when the *at* job should stop firing. Can be a java.util.Date or ms since epoch. Can't be specified with a =spec=.                                             |
-    | :singleton | /true/                              | Marks the job as a *singleton* in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node.                                 |
+    | :singleton | =true=                              | Marks the job as a *singleton* in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node.                                 |
 
   If you specify a job without a cron spec or any *at* options, it
   will fire once, immediately:

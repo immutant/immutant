@@ -226,13 +226,14 @@
   
 * Sessions
 
-  Immutant provides a session store that can be used with the
-  [[https://github.com/mmcgrana/ring/blob/master/ring-core/src/ring/middleware/session.clj][Ring session middleware]] (and any other middleware that uses =ring.middleware.session=,
-  like [[https://github.com/brentonashworth/sandbar][Sandbar]]). The Immutant session store uses the session provided by
-  the underlying JBoss AS7 servlet container, which automatically replicates
-  session data across a cluster. You create the store by calling 
-  [[./apidoc/immutant.web.session.html#var-servlet-store][immutant.web.session/servlet-store]], and use it by passing it as the =:store=
-  option to =ring.middleware.session/wrap-session=:
+  Immutant provides a session store that can be used with the [[https://github.com/mmcgrana/ring/blob/master/ring-core/src/ring/middleware/session.clj][Ring
+  session middleware]] (and any other middleware that uses
+  =ring.middleware.session=, like [[https://github.com/brentonashworth/sandbar][Sandbar]]). The Immutant session store
+  uses the session provided by the underlying JBoss AS7 servlet
+  container, which automatically replicates session data across a
+  cluster. You create the store by calling
+  [[./apidoc/immutant.web.session.html#var-servlet-store][immutant.web.session/servlet-store]], and use it by passing it as the
+  =:store= option to =ring.middleware.session/wrap-session=:
 
   #+begin_src clojure
     (ns my.ns
@@ -246,11 +247,62 @@
       {:store (immutant-session/servlet-store)}))
   #+end_src
 
-  *Note:* since this store is managed by the servlet container, the session cookie
-  (=jsessionid= by default) is itself managed at the servlet level. Any options
-  other than =:store= passed to =ring.middleware.session/wrap-session= (=:cookie-attrs=,
-  =:cookie-name=, or =:root=) will therefore be ignored.
+  *Note:* since this store is managed by the servlet container, the
+  session cookie (=JSESSIONID= by default) is itself managed at the
+  servlet level. Any options other than =:store= passed to
+  =ring.middleware.session/wrap-session= (=:cookie-attrs=,
+  =:cookie-name=, or =:root=) will therefore be ignored. To set the
+  cookie name or attributes, see [[#web-session-options][session options]].
 
+** Setting session timeout and cookie attributes
+   :PROPERTIES:
+   :CUSTOM_ID: web-session-options
+   :END:
+   
+   By default, sessions using the [[./apidoc/immutant.web.session.html#var-servlet-store][servlet-store]] time out after 30
+   minutes. To alter that for an application, call
+   [[./apidoc/immutant.web.session.html#var-set-session-timeout!][immutant.web.session/set-session-timeout!]] and pass it a new minute
+   value:
+
+   #+begin_src clojure
+     (ns my.ns
+       (:require [immutant.web.session :as session]))
+     
+     (session/set-session-timeout! 1440) ;; 1 day
+   #+end_src
+
+   You can also override the attributes used for the session cookie
+   via [[./apidoc/immutant.web.session.html#var-set-session-cookie-attributes!][immutant.web.session/set-session-cookie-attributes!]], giving it
+   the following keyword arguments:
+
+    | Attribute    | Default                 | Description                                                                 |
+    |--------------+-------------------------+-----------------------------------------------------------------------------|
+    | :cookie-name | "JSESSIONID"            | The name used for the cookie.                                               |
+    | :domain      | /none/                  | The domain name where the cookie is valid.                                  |
+    | :http-only   | =false=                 | Should the cookie be used only for http?                                    |
+    | :max-age     | ~=-1=~ /(never expire)/ | The amount of time the cookie should be retained by the client, in seconds. |
+    | :path        | /the context path/      | The path where the cookie is valid.                                         |
+    | :secure      | =false=                 | Should the cookie be used only for secure connections?                      |
+
+
+   This function can be called multiple times, and will only alter the
+   attributes passed to it:
+
+   #+begin_src clojure
+     (ns my.ns
+       (:require [immutant.web.session :as session]))
+     
+     (session/set-session-cookie-attributes! :cookie-name "my-session")
+     
+     (session/set-session-cookie-attributes!
+      :http-only true
+      :max-age   86400)
+   #+end_src
+
+   Changes made by either of these functions apply to all of the web
+   endpoints deployed within application, since they all share the
+   same session.
+   
 * Locating dirs within the application root
 
   When a web server is embedded within an application, it's fine to

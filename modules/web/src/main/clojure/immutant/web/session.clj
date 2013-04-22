@@ -19,7 +19,8 @@
   "Functions for using the cluster-wide servlet store for sessions."
   (:use ring.middleware.session.store
         [immutant.web.internal :only [current-servlet-request]])
-  (:require [ring.middleware.session :as ring-session])
+  (:require [ring.middleware.session :as ring-session]
+            [immutant.registry       :as registry])
   (:import javax.servlet.http.HttpSession))
 
 (def ^{:private true} session-key ":immutant.web.session/session-data")
@@ -45,8 +46,9 @@
         data
         {})))
   (write-session [_ _ data]
-    ;; TODO: it may be useful to store data as entries directly in the session. TorqueBox does
-    ;; this to share the session data with java servlet components.
+    ;; TODO: it may be useful to store data as entries directly in the
+    ;; session. TorqueBox does this to share the session data with
+    ;; java servlet components.
     (when-let [session (servlet-session)]
       (.setAttribute session session-key data)
       (.getId session)))
@@ -60,6 +62,44 @@
   []
   (ServletStore.))
 
+(defn set-session-timeout!
+  "Sets the session timeout (in minutes), overriding the default of 30
+  minutes. Applies to all of the web endpoints deployed within an
+  application, since they all share the same session."
+  [minutes]
+  (when-let [ctx (registry/get "web-context")]
+    (.setSessionTimeout ctx minutes)))
+
+(defn set-session-cookie-attributes!
+  "Set session cookie attributes. Accepts the following kwargs, many
+   of which are analagous to the ring session cookie attributes
+   [default]:
+
+   :cookie-name  The name of the cookie [JSESSIONID]
+   :domain       The domain name where the cookie is valid [nil]
+   :path         The path where the cookie is valid [the context path]
+   :http-only    Should the cookie be used only for http? [false]
+   :secure       Should the cookie be used only for secure connections? [false]
+   :max-age      The amount of time the cookie should be retained by the
+                 client, in seconds [-1, meaning 'never expire']
+
+   This function can be called multiple times, and will only alter the
+   attributes passed to it.
+
+   These attributes apply to all of the web endpoints deployed within
+   application, since they all share the same session."
+  [& {:as attrs}]
+  (when-let [ctx (registry/get "web-context")]
+    (let [cookie (.getSessionCookie ctx)
+          set-param (fn [key f]
+                      (when (contains? attrs key)
+                        (f cookie (attrs key))))]
+      (set-param :cookie-name #(.setName %1 %2))
+      (set-param :domain      #(.setDomain %1 %2))
+      (set-param :path        #(.setPath %1 %2))
+      (set-param :http-only   #(.setHttpOnly %1 (boolean %2)))
+      (set-param :secure      #(.setSecure %1 (boolean %2)))
+      (set-param :max-age     #(.setMaxAge %1 %2)))))
 
 
 
