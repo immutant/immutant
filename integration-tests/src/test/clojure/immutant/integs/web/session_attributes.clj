@@ -18,8 +18,7 @@
 (ns immutant.integs.web.session-attributes
   (:use fntest.core
         clojure.test
-        [immutant.integs.integ-helper :only [get-as-data get-as-data*]]
-        [ring.util.codec :only [url-encode]]))
+        [immutant.integs.integ-helper :only [get-as-data get-as-data*]]))
 
 
 (def cookies (atom {}))
