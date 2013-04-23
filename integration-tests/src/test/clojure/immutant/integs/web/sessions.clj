@@ -59,6 +59,15 @@
    (get-with-cookies "immutant" "ham=biscuit")
    (is (= #{"JSESSIONID" "a-cookie" "ring-session"} (set (keys @cookies)))))
 
+(deftest session-clearing-for-immutant-sessions-using-jsessionid
+  (is (= {"ham" "biscuit"} (get-with-cookies "immutant-jsessionid" "ham=biscuit")))
+  (is (not (seq (get-with-cookies "clear-jsessionid"))))
+  (is (not (seq (get-with-cookies "immutant-jsessionid")))))
+
+(deftest immutant-session-with-jssessionid-name-should-not-have-a-ring-session-cookie
+   (get-with-cookies "immutant-jsessionid" "ham=biscuit")
+   (is (= #{"JSESSIONID" "a-cookie"} (set (keys @cookies)))))
+
 (deftest basic-ring-session-test
   (are [expected query-string] (= expected (get-with-cookies "ring" query-string))
        {"ham" "biscuit"}                    "ham=biscuit"

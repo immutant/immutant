@@ -70,6 +70,12 @@
   (when-let [ctx (registry/get "web-context")]
     (.setSessionTimeout ctx minutes)))
 
+(defn session-timeout
+  "Returns the current session timeout in minutes."
+  []
+  (when-let [ctx (registry/get "web-context")]
+    (.getSessionTimeout ctx)))
+
 (defn set-session-cookie-attributes!
   "Set session cookie attributes. Accepts the following kwargs, many
    of which are analagous to the ring session cookie attributes
@@ -77,11 +83,11 @@
 
    :cookie-name  The name of the cookie [JSESSIONID]
    :domain       The domain name where the cookie is valid [nil]
-   :path         The path where the cookie is valid [the context path]
    :http-only    Should the cookie be used only for http? [false]
-   :secure       Should the cookie be used only for secure connections? [false]
    :max-age      The amount of time the cookie should be retained by the
                  client, in seconds [-1, meaning 'never expire']
+   :path         The path where the cookie is valid [the context path]
+   :secure       Should the cookie be used only for secure connections? [false]
 
    This function can be called multiple times, and will only alter the
    attributes passed to it.
@@ -96,10 +102,25 @@
                         (f cookie (attrs key))))]
       (set-param :cookie-name #(.setName %1 %2))
       (set-param :domain      #(.setDomain %1 %2))
-      (set-param :path        #(.setPath %1 %2))
       (set-param :http-only   #(.setHttpOnly %1 (boolean %2)))
-      (set-param :secure      #(.setSecure %1 (boolean %2)))
-      (set-param :max-age     #(.setMaxAge %1 %2)))))
+      (set-param :max-age     #(.setMaxAge %1 %2))
+      (set-param :path        #(.setPath %1 %2))
+      (set-param :secure      #(.setSecure %1 (boolean %2))))))
+
+;; TODO: this gets called for each request, so should be type hinted
+;; doing so may require bringing in a jbossweb jar as a dependency to
+;; the public web artifact. See IMMUTANT-271
+(defn session-cookie-attributes
+  "Returns a map of the current session cookie attributes."
+  []
+  (when-let [ctx (registry/get "web-context")]
+    (let [cookie (.getSessionCookie ctx)]
+      {:cookie-name (.getName cookie)
+       :domain      (.getDomain cookie)
+       :http-only   (.isHttpOnly cookie)
+       :max-age     (.getMaxAge cookie)
+       :path        (.getPath cookie)
+       :secure      (.isSecure cookie)})))
 
 
 

@@ -35,12 +35,14 @@
                       (apply hash-map (clojure.string/split sess-data #":"))
                       {})))))
 
-(defn init-immutant-session []
-  (web/start "/immutant"
-             (ring-session/wrap-session
-              handler
-              {:store (immutant-session/servlet-store)})))
-
+(defn init-immutant-session [path & [cookie-name]]
+  (let [opts {:store (immutant-session/servlet-store)}]
+    (web/start path
+               (ring-session/wrap-session
+                handler
+                (if cookie-name
+                  (assoc opts :cookie-name cookie-name)
+                  opts)))))
 
 (defn init-ring-session [store]
   (web/start "/ring"
@@ -58,11 +60,14 @@
               clear-handler
               {:store store})))
 
-(defn init-immutant-clearer []
-  (web/start "/clear"
-             (ring-session/wrap-session
-              clear-handler
-              {:store (immutant-session/servlet-store)})))
+(defn init-immutant-clearer [path & [cookie-name]]
+  (let [opts  {:store (immutant-session/servlet-store)}]
+    (web/start path
+               (ring-session/wrap-session
+                clear-handler
+                (if cookie-name
+                  (assoc opts :cookie-name cookie-name)
+                  opts)))))
 
 (defn init-session-attrs []
   (web/start "/session-attrs"
@@ -73,6 +78,8 @@
 (defn init-all []
   (let [ring-mem-store (ring.middleware.session.memory/memory-store)]
     (init-ring-session ring-mem-store)
-    (init-immutant-session)
+    (init-immutant-session "/immutant")
+    (init-immutant-session "/immutant-jsessionid" "JSESSIONID")
     (init-ring-clearer ring-mem-store)
-    (init-immutant-clearer)))
+    (init-immutant-clearer "/clear")
+    (init-immutant-clearer "/clear-jsessionid" "JSESSIONID")))

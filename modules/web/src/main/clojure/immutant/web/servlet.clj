@@ -17,6 +17,7 @@
 
 (ns ^{:no-doc true} immutant.web.servlet
   (:use [immutant.web.internal :only [current-servlet-request]]
+        [immutant.web.session.internal :only [servlet-session-wrapper]]
         [immutant.util :only [with-tccl]])
   (:require [ring.util.servlet :as servlet])
   (:import javax.servlet.http.HttpServletRequest))
@@ -39,7 +40,7 @@
       (with-tccl
         (.setCharacterEncoding response "UTF-8")
         (if-let [response-map (binding [current-servlet-request request]
-                                (handler
+                                ((servlet-session-wrapper handler)
                                  (assoc (servlet/build-request-map request)
                                    :context (context request)
                                    :path-info (path-info request))))]

@@ -251,8 +251,9 @@
   session cookie (=JSESSIONID= by default) is itself managed at the
   servlet level. Any options other than =:store= passed to
   =ring.middleware.session/wrap-session= (=:cookie-attrs=,
-  =:cookie-name=, or =:root=) will therefore be ignored. To set the
-  cookie name or attributes, see [[#web-session-options][session options]].
+  =:cookie-name=, or =:root=) won't affect the actual cookie used to
+  store the session id client-side. To set the cookie name or
+  attributes, see [[#web-session-options][session options]].
 
 ** Setting session timeout and cookie attributes
    :PROPERTIES:
@@ -266,9 +267,9 @@
 
    #+begin_src clojure
      (ns my.ns
-       (:require [immutant.web.session :as session]))
+       (:require [immutant.web.session :as immutant-session]))
      
-     (session/set-session-timeout! 1440) ;; 1 day
+     (immutant-session/set-session-timeout! 1440) ;; 1 day
    #+end_src
 
    You can also override the attributes used for the session cookie
@@ -290,19 +291,67 @@
 
    #+begin_src clojure
      (ns my.ns
-       (:require [immutant.web.session :as session]))
+       (:require [immutant.web.session :as immutant-session]))
      
-     (session/set-session-cookie-attributes! :cookie-name "my-session")
+     (immutant-session/set-session-cookie-attributes!
+      :cookie-name "my-session")
      
-     (session/set-session-cookie-attributes!
+     (immutant-session/set-session-cookie-attributes!
       :http-only true
       :max-age   86400)
+     
    #+end_src
 
    Changes made by either of these functions apply to all of the web
    endpoints deployed within application, since they all share the
    same session.
    
+** Duplicate session cookies
+
+   Since sessions using the [[./apidoc/immutant.web.session.html#var-servlet-store][servlet-store]] are managed at the container
+   level, the cookie used to convey the session id to the client is
+   managed outside of Ring. However, Ring is unaware of this
+   management, and will attempt to send its own cookie (named
+   "ring-session" by default). This can cause to cookies with the same
+   value (the session id) but different names ("JSESSIONID" and
+   "ring-session") to be sent to the client. This situation is
+   harmless, other than the extra few bytes needed for each request.
+
+   You can prevent this by ensuring Ring's =:cookie-name= is the same
+   name used by the session container. Immutant will detect this case,
+   and prevent the cookie duplication. 
+
+   There are three options for achieving this cookie name parity:
+
+   #+begin_src clojure
+     (ns my.ns
+       (:require [ring.middleware.session :as ring-session]
+                 [immutant.web :as web]
+                 [immutant.web.session :as immutant-session]))
+     
+     ;; option 1: pass the default "JSESSIONID" name to Ring's wrap-session
+     (web/start
+      (ring-session/wrap-session
+       #'my-handler
+       {:store       (immutant-session/servlet-store)
+        :cookie-name "JSESSIONID"}))
+     
+     ;; option 2: set the container's cookie name to Ring's default of "ring-session"
+     (immutant-session/set-session-cookie-attributes!
+      :cookie-name "ring-session")
+     
+     ;; option 3: use a non-default cookie name
+     (web/start
+      (ring-session/wrap-session
+       #'my-handler
+       {:store       (immutant-session/servlet-store)
+        :cookie-name "session-schmession"}))
+     
+     (immutant-session/set-session-cookie-attributes!
+      :cookie-name "session-schmession")
+   #+end_src
+
+
 * Locating dirs within the application root
 
   When a web server is embedded within an application, it's fine to

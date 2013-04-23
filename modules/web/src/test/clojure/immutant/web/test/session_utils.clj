@@ -19,20 +19,21 @@
   (:require [immutant.web.internal :as webint]))
 
 (defn create-mock-session [session-id]
-  (let [store (java.util.Hashtable.)]
-    (proxy [javax.servlet.http.HttpSession]
-        []
-      (getAttribute [key]
-        (.get store key))
-      (removeAttribute [key]
-        (.remove store key))
-      (setAttribute [key value]
-        (.put store key value))
-      (invalidate []
-        (.clear store)
-        nil)
-      (getId []
-        session-id))))
+  (doto (let [store (java.util.Hashtable.)]
+          (proxy [javax.servlet.http.HttpSession]
+              []
+            (getAttribute [key]
+              (.get store key))
+            (removeAttribute [key]
+              (.remove store key))
+            (setAttribute [key value]
+              (.put store key value))
+            (invalidate []
+              (.clear store)
+              nil)
+            (getId []
+              session-id)))
+    (.setAttribute @#'immutant.web.session/session-key true)))
 
 (def ^{:dynamic true} mock-session nil)
 
