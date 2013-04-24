@@ -1,0 +1,14 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+
+if [ "$1" == "" ]; then
+    echo "Usage: smoke VERSION"
+    exit -1
+else
+    VERSION=$1
+fi
+
+pushd $DIR >/dev/null
+LEIN_JVM_OPTS="-Dversion=${VERSION}" lein do clean, test
+popd >/dev/null
