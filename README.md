@@ -1,19 +1,27 @@
-Requirements
-------------
+# Immutant
+
+Immutant is an application server for Clojure based off of
+JBossAS/WildFly. This README covers building Immutant. 
+For usage and more details, see http://immutant.org/. 
+
+To file an issue, see https://issues.jboss.org/browse/IMMUTANT
+
+## Requirements
+
 * Maven 3
 * Configuration of the JBoss Maven repository in settings.xml
 
 
-Dependencies
-------------
+## Dependencies
 
 Immutant depends on polyglot: https://github.com/projectodd/jboss-polyglot
 
-Polyglot is published as a snapshot, so you may need to run mvn with the
--U option to check for updates if you run into build issues.
+Polyglot is published as a incremantal builds from our CI server. If
+you need to make changes to polyglot, you'll need to build it
+separately and adjust the `version.polyglot` property in Immutant's
+`pom.xml` to use that local snapshot.
 
-Building
---------
+## Building
 
 Install the project using the provided settings.xml:
 
@@ -34,15 +42,41 @@ Once your repositories are configured, simply type:
 
     mvn install
 
+## Testing 
 
-SLIME/SWANK Integration
------------------
+All unit tests will be run during the build process, but tests can be
+run independently with the following command:
 
-If you are using emacs, you can fire up swank via:
-  
-    mvn clojure:swank
-    
-Install slime from marmalade via the instructions at https://github.com/technomancy/swank-clojure
-under 'Connecting with SLIME'. Install clojure-mode, and connect with:
+    mvn -s support/settings.xml test
 
-    M-x slime-connect
+The integration tests (a.k.a. integs), which are not run as part of
+the main build, can be run like this:
+
+    cd integration-tests
+    mvn test -s ../support/settings.xml
+
+Or a single integration test can be run like this:
+
+    mvn test -s ../support/settings.xml -Dns=namespace-of-test
+
+where 'namespace-of-test' is the portion of the ns without the
+'immutant.integs' prefix.
+
+If you wish to skip the unit tests during the build process (to speed
+things up) you can add the `-Dmaven.test.skip=true` option when
+running the `mvn install` command.
+
+## Running
+
+To run your local build, set `IMMUTANT_HOME` and the lein-immutant
+plugin will use it:
+
+    export IMMUTANT_HOME=/path/to/immutant/build/assembly/target/stage/
+
+
+## License
+
+Immutant is licensed under the GNU Lesser General Public License v3.
+See [LICENSE.txt](licenses/LICENSE.txt) for details.
+
+
