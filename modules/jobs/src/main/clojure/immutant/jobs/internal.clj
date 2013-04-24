@@ -96,8 +96,9 @@
 (defn ^{:internal true} stop-job
   "Stops (unschedules) a job, removing it from the scheduler."
   [job]
-  (if (.isStarted job)
-    (.stop job)))
+  (cond
+   (.isStarted job) (.stop job)
+   (.isPending job) (wait-for job (partial stop-job job))))
 
 
 (defmulti extract-spec #(class (fnext %)))
