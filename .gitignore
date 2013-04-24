@@ -21,3 +21,4 @@ TAGS
 .repository
 .DS_Store
 /integration-tests/apps/tx/.lein-repl-history
+/support/smoketest/.lein-failures
