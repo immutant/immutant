@@ -63,12 +63,12 @@
   (tabular
    (fact "normalize-profiles"
      (normalize-profiles ?given) => ?expected)
-   ?expected    ?given
-   #{:dev}      nil
-   #{:dev}      []
-   #{:foo}      [:foo]
-   #{:foo}      [":foo"]
-   #{:foo}      ["foo"]
-   #{:foo :bar} [:foo :bar]
-   #{:foo :bar} [":foo" :bar]))
+   ?expected           ?given
+   #{:dev :base :user} nil
+   #{:dev :base :user} []
+   #{:foo}             [:foo]
+   #{:foo}             [":foo"]
+   #{:foo}             ["foo"]
+   #{:foo :bar}        [:foo :bar]
+   #{:foo :bar}        [":foo" :bar]))
 

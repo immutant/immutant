@@ -116,21 +116,13 @@ to gracefully handle missing dependencies."
         (log/error "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
         nil))))
 
-(defn- ensure-checkout-deps-shares [project]
-  (if (:checkout-deps-shares project)
-    project
-    (assoc project
-      :checkout-deps-shares [:source-paths
-                             :resource-paths
-                             :compile-path])))
 
 (defn ^:internal resource-paths-for-project
   [project]
   ;; get the classpath w/o the deps, since we resolve those
-  ;; elsewhere. Pull in the checkout deps as well.
+  ;; elsewhere.
   (-> project
       (dissoc :dependencies)
-      ensure-checkout-deps-shares
       classpath/get-classpath))
 
 (defn ^:internal resource-paths-for-project-string-as-string

@@ -20,5 +20,8 @@
         clojure.test))
 
 (deftest verify-in-container-tests
-  (is (test-in-container "checkout-deps" "target/apps/checkout-deps/")))
+  (is (test-in-container "checkout-deps" "target/apps/checkout-deps/"
+                         ;; we explicitly need to bring in the :base
+                         ;; profile to activate checkout-deps
+                         :profiles [:dev :base :test])))
 

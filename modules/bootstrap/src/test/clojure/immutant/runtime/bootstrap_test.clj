@@ -17,6 +17,7 @@
 
 (ns immutant.runtime.bootstrap-test
   (:use immutant.runtime.bootstrap
+        immutant.runtime-util
         clojure.test
         midje.sweet
         immutant.test.helpers
@@ -63,13 +64,13 @@
 
       (fact "should include checkout deps"
         (let [app-root (io/file (io/resource "project-with-checkout-deps"))
-              subdirs #{"test" "resources" "src" "target/classes"}
+              subdirs #{"test" "resources" "src" "target/classes" "dev-resources"}
               paths (concat
                      (map #(.getAbsolutePath (io/file app-root %))
                           subdirs)
                      (map #(.getAbsolutePath (io/file app-root "checkouts/other-project" %))
-                          (disj subdirs "test")))]
-          (resource-paths app-root nil) => (just paths :in-any-order))))
+                          (disj subdirs "test" "dev-resources")))]
+          (resource-paths app-root default-profiles) => (just paths :in-any-order))))
     
     (facts "get-dependencies"
       (let [deps (get-dependencies app-root nil true)]

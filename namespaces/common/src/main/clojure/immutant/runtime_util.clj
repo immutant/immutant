@@ -66,13 +66,26 @@
       stringify-init-symbol
       stringify-lein-profiles))
 
-(defn ^{:internal true} normalize-profiles [profiles]
+(def
+  ^{:internal true
+    :doc "Our default is [:dev :base :user], which is a subset of
+          the :default composite profile. We don't use :default since
+          it also includes :provided, which is used to provide
+          dependencies that are provided by a container, but needed
+          outside of a container (analagous to maven's 'provided'
+          scope)."}
+  default-profiles [:dev :base :user])
+
+(defn ^{:internal true} normalize-profiles
+  "Converts given profiles into keywords. If no keywords are provided,
+  returns the default-profiles."
+  [profiles]
   (set (if (seq profiles)
          (map #(if (keyword? %)
                  %
                  (keyword (str/replace % ":" "")))
               profiles)
-         [:dev])))
+         default-profiles)))
 
 (defn ^{:internal true} lib-dir
   "Resolve the library dir for the application."

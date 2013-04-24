@@ -84,10 +84,10 @@
     defaults to /true/. See [[#initialization-dependencies][Dependencies & Resources]] for more details on the dependency
     resolution process.
 
-  - =:lein-profiles= - If the application is a Leiningen 2 (or greater) project, 
-    you can specify the [[https://github.com/technomancy/leiningen/blob/master/doc/PROFILES.md][Leiningen profiles]] (as a collection) to apply when loading 
-    =project.clj=. If no profiles are specified, only the =:dev= profile is 
-    loaded.
+  - =:lein-profiles= - You can specify the [[https://github.com/technomancy/leiningen/blob/master/doc/PROFILES.md][Leiningen profiles]] (as a
+    collection) to apply when loading =project.clj=. If no profiles
+    are specified, only the =:dev=, =:base=, and =:user= profiles are
+    loaded. For production usage, [[#initialization-profiles][see the note below regarding profiles]].
 
   - =:swank-port= & =:nrepl-port= - Immutant can provide a
     per-application repl, either via [[https://github.com/technomancy/swank-clojure][Swank]] or [[https://github.com/clojure/tools.nrepl][nREPL]]. Immutant will
@@ -148,6 +148,19 @@
      (registry/get :project)
    #+end_src
    
+** A note on profiles
+   :PROPERTIES:
+   :CUSTOM_ID: initialization-profiles
+   :END:
+
+   To ease the development process, the =:dev=, =:base=, and =:user=
+   profiles are loaded by default. For production deployments, we
+   strongly urge you to [[#initialization-configuration][explicitly specify]] the profiles you want
+   active, which will override the default set. Neither =:base= nor
+   =:user= are appropriate profiles for production, since =:base= will
+   bring in [[https://github.com/technomancy/leiningen/blob/stable/doc/TUTORIAL.md#checkout-dependencies][checkout dependencies]], and =:user= will [[https://github.com/technomancy/leiningen/blob/stable/doc/PROFILES.md#declaring-profiles][apply user level
+   settings]] from =~/.lein/profiles.clj=.
+
 * Files Used In Configuration & Initialization
 
 ** Deployment Descriptor
