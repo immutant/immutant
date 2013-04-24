@@ -28,7 +28,7 @@ Install the project using the provided settings.xml:
     mvn -s support/settings.xml install
 
 If you will be building the project often, you'll want to
-create/modify your own ~/.m2/settings.xml file.
+create/modify your own `~/.m2/settings.xml` file.
 
 If you're a regular JBoss developer, see:
 
@@ -77,6 +77,6 @@ plugin will use it:
 ## License
 
 Immutant is licensed under the GNU Lesser General Public License v3.
-See [LICENSE.txt](licenses/LICENSE.txt) for details.
+See [licenses/LICENSE-LGPL.txt](licenses/LICENSE-LGPL.txt) for details.
 
 

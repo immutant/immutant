@@ -1,4 +1,0 @@
-
-Immutant itself is licensed under the LGPL Version 3
-- Please see LICENSE-LGPL.txt.
-
