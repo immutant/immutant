@@ -19,8 +19,8 @@
 (msg/start "topic.198")
 
 ;;; Topic listeners are additive, not idempotent
-(msg/listen "topic.198" #(msg/publish "queue.198" (inc %)))
-(msg/listen "topic.198" #(msg/publish "queue.198" (dec %)))
+@(msg/listen "topic.198" #(msg/publish "queue.198" (inc %)))
+@(msg/listen "topic.198" #(msg/publish "queue.198" (dec %)))
 
 (msg/start "queue.result")
 (msg/start "topic.echo")
@@ -32,7 +32,7 @@
        (do
          (msg/unlisten @responder)
          (reset! responder nil))
-       (reset! responder (msg/listen "topic.echo" #(msg/publish "queue.result"
-                                                                (identity %)))))
+       (reset! responder @(msg/listen "topic.echo" #(msg/publish "queue.result"
+                                                                 (identity %)))))
      {:status 200
       :body ":success"})))
