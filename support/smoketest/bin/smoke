@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR=`dirname $0`
+DIR=`dirname $0`/..
 
 if [ "$1" == "" ]; then
     echo "Usage: smoke VERSION"
@@ -10,5 +10,18 @@ else
 fi
 
 pushd $DIR >/dev/null
+# First check namespace loading out-of-container 
 LEIN_JVM_OPTS="-Dversion=${VERSION}" lein do clean, test
+if [ $? == 0 ]; then
+    # Next install it 
+    lein immutant install $VERSION
+    # And deploy an app that exercises all the namespaces
+    git clone https://github.com/immutant/feature-demo.git target/demo
+    lein immutant test target/demo
+    EXIT_CODE=$?
+else
+    EXIT_CODE=$?
+fi
 popd >/dev/null
+
+exit $EXIT_CODE
