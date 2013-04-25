@@ -357,7 +357,8 @@
   </dependencyManagement>
 
   <properties>
-    <version.polyglot>1.x.incremental.37</version.polyglot>
+    <version.polyglot>1.13.0</version.polyglot>
+    <!-- <version.polyglot>1.x.incremental.37</version.polyglot> -->
     <!-- <version.polyglot>1.13.0-SNAPSHOT</version.polyglot> -->
     <version.junit>4.7</version.junit>
     <version.jmock>2.5.1</version.jmock>
