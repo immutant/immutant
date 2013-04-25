@@ -16,36 +16,18 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns ^{:no-doc true} immutant.jobs.internal
-  (:use [immutant.util :only [app-name]])
+  (:use [immutant.util :only [app-name wait-for-start]])
   (:require [immutant.registry :as registry]
             [clojure.tools.logging :as log])
   (:import java.util.Date))
 
-
-
-(defn ^{:private true} wait-for
-  "Waits for the item to start before invoking f"
-  ([item]
-     (wait-for item (constantly item)))
-  ([item f]
-     (wait-for item f 300))
-  ([item f attempts]
-     (cond
-      (.isStarted item) (f)
-      (< attempts 0)         (throw (IllegalStateException.
-                                     (str "Gave up waiting for " (.getName item) " to start")))
-      :default               (do
-                               (log/debug "Waiting for" (.getName item) "to start")
-                               (Thread/sleep 100)
-                               (recur item f (dec attempts))))))
-
 (defn ^:internal job-schedulizer []
-  (wait-for (registry/get "job-schedulizer")))
+  (wait-for-start (registry/get "job-schedulizer")))
 
 (defn ^{:internal true} scheduler
   "Retrieves the appropriate scheduler, starting it if necessary"
   []
-  (wait-for (.activateScheduler (job-schedulizer))))
+  (wait-for-start (.activateScheduler (job-schedulizer))))
 
 (defn ^:internal quartz-scheduler
   "Returns the internal quartz scheduler"
@@ -97,8 +79,9 @@
   "Stops (unschedules) a job, removing it from the scheduler."
   [job]
   (cond
-   (.isStarted job) (.stop job)
-   (.isPending job) (wait-for job (partial stop-job job))))
+   (.isStarted job)               (.stop job)
+   (not
+    (.hasStartedAtLeastOnce job)) (wait-for-start job (partial stop-job job))))
 
 
 (defmulti extract-spec #(class (fnext %)))

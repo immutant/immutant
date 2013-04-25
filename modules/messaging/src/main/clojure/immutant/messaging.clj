@@ -19,7 +19,7 @@
   "Easily publish and receive messages containing any type of nested
    data structure to dynamically-created topics and queues. Message
    distribution is automatically load-balanced when clustered."
-  (:use [immutant.util :only (at-exit mapply)]
+  (:use [immutant.util :only (at-exit mapply waiting-derefable maybe-deref)]
         [immutant.messaging.core])
   (:require [immutant.messaging.codecs :as codecs]
             [immutant.registry         :as registry]
@@ -170,6 +170,9 @@
    a :selector is provided, then only messages having
    metadata/properties matching that expression may be received.
 
+   listen is asynchronous - if you need to synchronize on its
+   completion, you should deref the result.
+
    The following options are supported [default]:
      :concurrency  the number of threads handling messages [1]
      :selector     A JMS (SQL 92) expression matching message metadata/properties [nil]
@@ -228,19 +231,17 @@
 
      (destination-exists? connection dest)
      ;; we're inside the container, and the dest is valid
-     (let [complete (promise)
-           group (.createGroup izer
+     (let [group (.createGroup izer
                                dest-name
                                false ;; TODO: singleton
                                concurrency
                                (not (nil? (:client-id opts)))
-                               (str (:selector opts) (if (topic? dest) (str (:client-id opts) f)))
+                               (str (:selector opts)
+                                    (if (topic? dest)
+                                      (str (:client-id opts) f)))
                                connection
-                               setup-fn
-                               #(deliver complete %))]
-       (if (= "up" (deref complete 10000 nil))
-         group
-         (log/error "Setting up a listener for" dest-name "*may* have failed")))
+                               setup-fn)]
+       (waiting-derefable #(.hasStartedAtLeastOnce group) group))
 
      :else
      (throw (IllegalStateException. (str "Destination " dest-name " does not exist."))))))
@@ -297,14 +298,14 @@
    You only need to do this if you wish to stop the handler's
    destination before your app is undeployed."
   [listener]
-  (when listener
-    (if (or (instance? java.io.Closeable listener)
-            (instance? javax.jms.Connection listener))
-      (.close listener)
+  (let [group (maybe-deref listener)]
+    (if (or (instance? java.io.Closeable group)
+            (instance? javax.jms.Connection group))
+      (.close group)
       (let [complete (promise)]
-        (.remove listener #(deliver complete %))
+        (.remove group #(deliver complete %))
         (when-not (= "removed" (deref complete 5000 nil))
-          (log/error "Failed to remove listener" listener))))))
+          (log/error "Failed to remove group" group))))))
 
 (defn stop
   "Destroy a message destination. Typically not necessary since it

@@ -25,8 +25,8 @@
 (msg/listen "queue.listen-id.request"
             (fn [_]
               (future
-                (msg/listen "queue.listen-id.request"
-                            (fn [_] (msg/publish "queue.listen-id.response" :new-listener)))
+                @(msg/listen "queue.listen-id.request"
+                             (fn [_] (msg/publish "queue.listen-id.response" :new-listener)))
                 (msg/publish "queue.listen-id.response" :release))
               (msg/publish "queue.listen-id.response" :old-listener)))
 

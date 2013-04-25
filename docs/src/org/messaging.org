@@ -274,6 +274,10 @@
    | =:max-retry-interval=        | =2000=  | The max retry interval that will be used. |
    | =:reconnect-attempts=        | =0=     | Total number of reconnect attempts to make before giving up and shutting down. (-1: unlimited) |
 
+
+   =listen= is asynchronous - if you need to synchronize on its
+   completion, you should deref the result.
+
    By default, message handlers are transactional, so the function
    invoked in response to a message effectively demarcates a
    transaction that will be automatically committed if no exceptions

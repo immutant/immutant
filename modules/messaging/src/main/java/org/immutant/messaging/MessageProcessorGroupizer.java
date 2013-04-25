@@ -19,11 +19,11 @@
 
 package org.immutant.messaging;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.net.URLEncoder;
 
 import javax.jms.XAConnection;
 
@@ -46,9 +46,13 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-        public MessageProcessorGroup createGroup(final String destinationName, final boolean singleton, final int concurrency, 
-                                                 final boolean durable, final String handlerName, final XAConnection connection, final Object setupHandler, 
-                                                 final Object startCallback) {
+        public MessageProcessorGroup createGroup(final String destinationName, 
+                                                 final boolean singleton, 
+                                                 final int concurrency, 
+                                                 final boolean durable, 
+                                                 final String handlerName, 
+                                                 final XAConnection connection, 
+                                                 final Object setupHandler) {
         
         final ServiceName pointerDestName = DestinationUtils.destinationPointerName(getUnit(), destinationName);
         ServiceController pointerDest = getUnit().getServiceRegistry().getService( pointerDestName );
@@ -59,8 +63,9 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
         
         final String name = destinationName + "." + URLEncoder.encode(handlerName);
         final ServiceName serviceName = MessagingServices.messageProcessor( getUnit(),  name );
-        final MessageProcessorGroup group = new MessageProcessorGroup( getUnit().getServiceRegistry(), serviceName,
-                                                                       destinationName, connection, setupHandler, startCallback );
+        final MessageProcessorGroup group = 
+            new MessageProcessorGroup( getUnit().getServiceRegistry(), serviceName,
+                                       destinationName, connection, setupHandler );
 
         group.setConcurrency( concurrency );
         group.setDurable( durable );

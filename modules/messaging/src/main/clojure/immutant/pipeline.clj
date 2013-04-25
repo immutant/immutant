@@ -69,13 +69,12 @@
    (pl/stop foo-pipeline)
  
    This API is alpha, and subject to change."
-  (:use [immutant.util :only (mapply app-name)])
+  (:use [immutant.util :only (mapply app-name maybe-deref)])
   (:require [clojure.tools.logging   :as log]
             [immutant.messaging      :as msg]
             [immutant.xa.transaction :as tx])
   (:import java.util.UUID
-           java.util.concurrent.TimeoutException
-           clojure.lang.IDeref))
+           java.util.concurrent.TimeoutException))
 
 (def ^:dynamic *pipeline*
   "The currently active pipeline fn. Will be bound within the
@@ -118,11 +117,6 @@
   (binding [*current-step* current
             *next-step* next]
     (bound-fn* f)))
-
-(defn- maybe-deref [v timeout timeout-val]
-  (if (instance? IDeref v)
-    (deref v timeout timeout-val)
-    v))
 
 (defn- wrap-result-passing
   [f pl current-step next-step opts]

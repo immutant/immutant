@@ -42,20 +42,15 @@ import org.projectodd.polyglot.messaging.BaseMessageProcessorGroup;
 
 public class MessageProcessorGroup extends BaseMessageProcessorGroup implements MessageProcessorGroupMBean, HasImmutantRuntimeInjector {
 
-    public MessageProcessorGroup(ServiceRegistry registry, ServiceName baseServiceName,
-            String destinationName, XAConnection connection, Object setupHandler, Object afterStartCallback) {
+    public MessageProcessorGroup(ServiceRegistry registry, 
+                                 ServiceName baseServiceName,
+                                 String destinationName, 
+                                 XAConnection connection, 
+                                 Object setupHandler) {
         super( registry, baseServiceName, destinationName, MessageProcessor.class );
         setStartAsynchronously( false );
         setConnection( connection );
         this.setupHandler = setupHandler;
-        this.afterStartCallback = afterStartCallback;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void start(StartContext context) throws StartException {
-        context.getController().addListener( new SimpleServiceStateListener( getRuntime(), this.afterStartCallback ) );
-        super.start( context );    
     }
     
     @Override
@@ -119,7 +114,6 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
     
     private final InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
     private Object setupHandler;
-    private Object afterStartCallback;
     @SuppressWarnings("rawtypes")
     private Map setupData;
 }
