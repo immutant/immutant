@@ -8,6 +8,7 @@
 (let [p (promise)
       l (msg/listen "/topic/gravy" (fn [v] (deliver p v)))]
   (try
+    @l
     (msg/publish "/topic/gravy" :success)
     (let [delivery (deref p 1000 :fail)]
       (if-not (= :success delivery)
