@@ -63,9 +63,18 @@ public class Immutant extends ProjectInfo implements ImmutantMBean, Service<Immu
     public void start(StartContext context) throws StartException {
     }
 
+    public String getVersionWithCodeName() {
+        String codeName = getComponentValue("Immutant", "codename");
+        if (codeName == null || codeName.trim().isEmpty()) {
+            return getVersion();
+        } else {
+            return getVersion() + " (" + codeName + ")";
+        }
+    }
+
     public void printVersionInfo(Logger log) {
         log.info( "Welcome to Immutant AS - http://immutant.org/" );
-        log.info( formatOutput( "version", getVersion() ) );
+        log.info( formatOutput( "version", getVersionWithCodeName() ) );
         String buildNo = getBuildNumber();
         if (buildNo != null && !buildNo.trim().equals( "" )) {
             log.info( formatOutput( "build", getBuildNumber() ) );

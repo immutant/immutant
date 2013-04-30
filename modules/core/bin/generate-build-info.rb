@@ -16,8 +16,11 @@ class BuildInfo
     git_output = `git status -s`.lines
     build_revision << ' +modifications' if git_output.any? {|line| line =~ /^ M/ }
 
+    codename = from_parent_pom("project/properties/codename")
+    
     @versions['Immutant'] = { 
       'version' => version,
+      'codename' => codename,
       'build.revision' => build_revision,
       'build.user' => ENV['USER'],
       'build.number' => ENV['BUILD_NUMBER']
