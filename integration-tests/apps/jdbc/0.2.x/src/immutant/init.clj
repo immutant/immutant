@@ -1,11 +1,9 @@
 (ns immutant.init
   (:require [immutant.xa :as xa]
             [immutant.web :as web]
-            [clojure.java.jdbc :as sql]
-            clojure.java.jdbc.internal)) ; ensure project dep wins
+            [clojure.java.jdbc :as sql]))
 
-(defonce ds (xa/datasource "foo" {:adapter "h2" :database "mem:foo"}))
-(def spec {:datasource ds})
+(def spec {:datasource (xa/datasource "foo" {:adapter "h2" :database "mem:foo"})})
 
 (sql/with-connection spec
   (sql/create-table :things

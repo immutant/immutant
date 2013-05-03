@@ -17,7 +17,8 @@
 
 (ns immutant.xa
   "Distributed XA transactional support"
-  (:import javax.naming.InitialContext)
+  (:import javax.naming.InitialContext
+           java.sql.PreparedStatement)
   (:require [immutant.registry       :as registry]
             [immutant.util           :as util]
             [immutant.xa.transaction :as tx]))
@@ -50,8 +51,26 @@
                :database (:database spec (:subname spec))
                :username (:username spec (:user spec)))
         params (into {} (for [[k v] spec] [(name k) v]))
-        name (.createDataSource (registry/get "xaifier") id params)]
-    (util/backoff 10 10000 (.lookup ^javax.naming.InitialContext (InitialContext.) name))))
+        name (.createDataSource (registry/get "xaifier") id params)
+        ds (util/backoff 10 10000 (.lookup (InitialContext.) name))]
+    (reify javax.sql.DataSource
+      (getConnection [_]
+        (let [con (.getConnection ds)]
+          (reify java.sql.Connection
+            (setAutoCommit [& _])
+            (commit [_])
+            (rollback [_])
+            (close [_] (.close con))
+            (getAutoCommit [_] (.getAutoCommit con))
+            (createStatement [_] (.createStatement con))
+            (^PreparedStatement prepareStatement [_ ^String a]
+              (.prepareStatement con a))
+            (^PreparedStatement prepareStatement [_ ^String a ^int b]
+              (.prepareStatement con a b))
+            (^PreparedStatement prepareStatement [_ ^String a ^int b ^int c]
+              (.prepareStatement con a b c))
+            (^PreparedStatement prepareStatement [_ ^String a ^int b ^int c ^int d]
+              (.prepareStatement con a b c d))))))))
 
 (defmacro transaction
   "Execute body within the current transaction, if available,
@@ -65,4 +84,3 @@
   annotation."
   [& body]
   `(tx/required ~@body))
-

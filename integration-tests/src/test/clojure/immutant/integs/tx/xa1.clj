@@ -15,18 +15,16 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.tx.xa
+(ns immutant.integs.tx.xa1
   (:use fntest.core
         clojure.test
         [immutant.integs.integ-helper :only [get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
                       {
-                       :root "target/apps/xa/"
+                       :root "target/apps/jdbc/0.1.x"
                        }))
 
 (deftest simple "it should work"
-  (is (= "apple" (get-as-data "/xa/thing?id=1")))
-  (is (= "peach" (get-as-data "/xa/thing?id=2")))
-  (is (= "grape" (get-as-data "/xa/thing?id=3"))))
+  (is (= "success" (get-as-data "/xa1/thing"))))
 

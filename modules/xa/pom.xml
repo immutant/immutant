@@ -30,18 +30,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>java.jdbc</artifactId>
-      <version>${version.clojure.java.jdbc}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.clojure</groupId>
-          <artifactId>clojure</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
       <groupId>org.jboss.as</groupId>
       <artifactId>jboss-as-jmx</artifactId>
       <scope>provided</scope>

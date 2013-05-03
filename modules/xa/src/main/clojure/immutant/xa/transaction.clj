@@ -19,17 +19,7 @@
   "Fine-grained XA transactional control"
   (:require [immutant.registry     :as registry]
             [immutant.util         :as util]
-            [clojure.tools.logging :as log]
-            clojure.java.jdbc))
-
-(if (resolve 'clojure.java.jdbc/with-transaction-strategy)
-  (log/info "Using proper version of java.jdbc to set transaction strategy")
-  (try
-    (require 'immutant.xa.jdbc-2)
-    (log/debug "Patching java.jdbc 0.2.x to set transaction strategy")
-    (catch Throwable e
-      (require 'immutant.xa.jdbc-1)
-      (log/debug "Patching java.jdbc 0.1.x to set transaction strategy"))))
+            [clojure.tools.logging :as log]))
 
 (def ^javax.transaction.TransactionManager
   manager (registry/get "jboss.txn.TransactionManager"))
@@ -73,27 +63,21 @@
      (beforeCompletion [_])))
   (log/warn "transaction/after-completion called outside of Immutant, ignoring.")))
 
-(defn no-tx-strategy
-  "Pass this to java.jdbc to prevent it from managing the tx on its connection"
-  [f]
-  (f))
-
 
 ;;; The functions that enable the various transactional scope macros
 
 (defn begin
   "Begin, invoke func, commit, rollback if error"
   [func]
-  (clojure.java.jdbc/with-transaction-strategy no-tx-strategy
-    (.begin manager)
-    (try
-      (let [result (func)]
-        (.commit manager)
-        result)
-      (catch javax.transaction.RollbackException ignored)
-      (catch Throwable e
-        (.rollback manager)
-        (throw e)))))
+  (.begin manager)
+  (try
+    (let [result (func)]
+      (.commit manager)
+      result)
+    (catch javax.transaction.RollbackException ignored)
+    (catch Throwable e
+      (.rollback manager)
+      (throw e))))
 
 (defn suspend
   "Suspend, invoke func, resume"

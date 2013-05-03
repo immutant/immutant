@@ -26,7 +26,6 @@
 
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
-        <resource-root path="java.jdbc.jar"/>
     </resources>
 
     <dependencies>

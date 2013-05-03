@@ -15,10 +15,16 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(in-ns 'clojure.java.jdbc)
-(use '[clojure.java.jdbc.internal :only [transaction*]])
-(def ^{:dynamic true} *tx-strategy* @(resolve 'transaction*))
-(intern 'clojure.java.jdbc.internal 'transaction* (fn [f] (*tx-strategy* f)))
-(defmacro with-transaction-strategy
-  [strategy & body]
-  `(binding [*tx-strategy* ~strategy] ~@body))
+(ns immutant.integs.tx.xa2
+  (:use fntest.core
+        clojure.test
+        [immutant.integs.integ-helper :only [get-as-data]]))
+
+(use-fixtures :once (with-deployment *file*
+                      {
+                       :root "target/apps/jdbc/0.2.x"
+                       }))
+
+(deftest simple "it should work"
+  (is (= "success" (get-as-data "/xa2/thing"))))
+
