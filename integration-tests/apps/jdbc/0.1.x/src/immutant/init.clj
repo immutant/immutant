@@ -14,6 +14,18 @@
  (sql/with-connection spec
    (sql/insert-records :things {:name "success"})))
 
+(xa/transaction
+ (sql/with-connection spec
+   (sql/set-rollback-only)
+   (sql/delete-rows :things [true])))
+
+(try
+  (xa/transaction
+   (sql/with-connection spec
+     (sql/delete-rows :things [true])
+     (throw (NegativeArraySizeException. "test rollback by exception"))))
+  (catch NegativeArraySizeException _))
+
 (defn read-names []
   (sql/with-connection spec
     (sql/with-query-results rows ["select name from things"]

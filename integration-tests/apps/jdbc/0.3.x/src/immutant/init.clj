@@ -12,6 +12,17 @@
 (xa/transaction
  (sql/insert! spec :things {:name "success"}))
 
+(xa/transaction
+ (sql/db-transaction [con spec]
+  (sql/delete! con :things [true])
+  (sql/db-set-rollback-only! con)))
+
+(try
+  (xa/transaction
+   (sql/delete! spec :things [true])
+   (throw (NegativeArraySizeException. "test rollback by exception")))
+  (catch NegativeArraySizeException _))
+
 (defn read-names []
   (-> (sql/query spec ["select name from things"])
       first
