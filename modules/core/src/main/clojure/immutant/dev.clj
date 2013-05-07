@@ -22,32 +22,9 @@ shouldn't be used in production."
             [immutant.util         :as util]
             [immutant.runtime-util :as runtime]
             [clojure.java.io       :as io])
+  (:use immutant.resource-util)
   (:import org.immutant.core.ApplicationBootstrapProxy
            org.projectodd.polyglot.core.util.ResourceLoaderUtil))
-
-(defn ^:private reset-classloader-resources [resources]
-  (ResourceLoaderUtil/refreshAndRelinkResourceLoaders
-   clojure.lang.Var
-   (map (fn [r] (ResourceLoaderUtil/createLoaderSpec r)) resources)
-   false))
-
-(defn ^:private unmount-resources
-  "Attempts to unmount the given resources. Returns a collection of the resources
-that weren't unmounted."
-  [resources]
-  (let [mounter (registry/get "resource-mounter")]
-    (reduce (fn [acc resource]
-              (if (and resource (.unmount mounter (.getURL resource)))
-                acc
-                (conj acc resource)))
-            []
-            resources)))
-
-(defn ^:private mount-paths
-  "Mounts the given paths and returns a collection of the resulting resources."
-  [paths]
-  (let [mounter (registry/get "resource-mounter")]
-    (map #(.mount mounter (io/file %)) paths)))
 
 (defn ^:private read-project
   "Reads the lein project in the current app dir."
@@ -78,12 +55,6 @@ that weren't unmounted."
            runtime/pr-str-with-meta
            ApplicationBootstrapProxy/getResourceDirsAsString
            read-string)))
-
-(defn ^:private get-existing-resources []
-  (remove nil?
-          (map #(.getResource % "/")
-               (ResourceLoaderUtil/getExistingResourceLoaders
-                clojure.lang.Var))))
 
 (defn current-project
   "Returns the map representing the currently active leiningen project.

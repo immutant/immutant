@@ -24,6 +24,7 @@ bootstrapping process. Applications shouldn't use anything here."
             [dynapath.dynamic-classpath :as dc]
             [immutant.repl              :as repl]
             [immutant.util              :as util]
+            [immutant.resource-util     :as rutil]
             [immutant.registry          :as registry]))
 
 (defn ^{:internal true} require-and-invoke 
@@ -37,8 +38,12 @@ bootstrapping process. Applications shouldn't use anything here."
   (extend-type org.immutant.core.ImmutantClassLoader
      dc/DynamicClasspath
      (can-read? [_] true)
-     (can-add? [_] false)
-     (classpath-urls [cl] (seq (.getResourcePaths cl)))))
+     (can-add? [_] true)
+     (classpath-urls [cl] (seq (.getResourcePaths cl)))
+     (add-classpath-url [_ url]
+       (rutil/reset-classloader-resources
+        (concat (rutil/get-existing-resources)
+                (rutil/mount-paths [url]))))))
 
 (defn ^{:internal true} init-by-fn
   [init-fn]
