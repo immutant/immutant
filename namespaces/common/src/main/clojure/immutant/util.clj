@@ -19,7 +19,8 @@
   "Various utility functions."
   (:require [immutant.registry :as registry]
             [clojure.string    :as str]
-            [clojure.java.io   :as io])
+            [clojure.java.io   :as io]
+            [dynapath.util     :as dp])
   (:import clojure.lang.IDeref))
 
 (defn in-immutant?
@@ -49,6 +50,11 @@
   [& path]
   (if-let [root (app-root)]
     (apply io/file root path)))
+
+(defn classpath
+  "Returns the effective classpath for the app"
+  []
+  (dp/all-classpath-urls))
 
 (defn at-exit
   "Registers a function to be called when the application is undeployed.

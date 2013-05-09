@@ -21,3 +21,6 @@
 
 (deftest outside-immutant
   (is (not (in-immutant?))))
+
+(deftest classpath-not-empty
+  (is (not (empty? (classpath)))))
