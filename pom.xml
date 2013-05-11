@@ -379,7 +379,7 @@
     <version.ring>1.1.8</version.ring>
     <version.dynapath>0.2.3</version.dynapath>
     <version.swank-clojure>1.4.3</version.swank-clojure>
-    <version.nrepl>0.2.1</version.nrepl>
+    <version.nrepl>0.2.3</version.nrepl>
     <version.wagon-provider-api>2.2</version.wagon-provider-api>
     <version.commons-io>2.0.1</version.commons-io>
     <version.clj-glob>1.0.0</version.clj-glob>
