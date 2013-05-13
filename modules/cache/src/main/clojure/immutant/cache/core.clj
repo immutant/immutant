@@ -101,12 +101,14 @@
 (defn configure-cache
   "Defaults to :distributed with :sync=true for a clustered cache, otherwise :local"
   [name opts]
-  (log/info "Configuring cache" name)
-  (.defineConfiguration @manager name (build-config (merge {:mode (default-mode), :sync true} opts)))
-  (when-let [cache (get-cache name)]
-    (.stop cache)
-    (.start cache))
-  (.getCache @manager name))
+  (let [config (merge {:mode (default-mode), :sync true} opts)]
+    (log/info "Configuring cache" name "as"
+              (select-keys config [:mode :sync :locking :persist :max-entries :eviction]))
+    (.defineConfiguration @manager name (build-config config))
+    (when-let [cache (get-cache name)]
+      (.stop cache)
+      (.start cache))
+    (.getCache @manager name)))
 
 (defn lifespan-params [{:keys [ttl idle units] :or {ttl -1 idle -1 units :seconds}}]
   (let [u (.toUpperCase (name units))
