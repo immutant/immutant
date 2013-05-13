@@ -18,7 +18,7 @@
 (ns ^{:no-doc true} immutant.messaging.core
   "Internal utilities used by messaging. You should only need to dip
    into here in advanced cases."
-  (:use [immutant.util :only (at-exit if-in-immutant in-immutant?)]
+  (:use [immutant.util :only (at-exit in-immutant?)]
         immutant.messaging.internal)
   (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]
@@ -267,7 +267,7 @@
   `(with-connection* ~options (fn [] ~@body)))
 
 (defn ^{:internal true} create-listener [handler]
-  (if-in-immutant
+  (if (in-immutant?)
    (.newMessageListener (registry/get "message-listener-factory") handler)
    (reify javax.jms.MessageListener
      (onMessage [_ message]

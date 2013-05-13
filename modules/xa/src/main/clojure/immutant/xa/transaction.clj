@@ -53,7 +53,7 @@
 (defn after-completion
  "Register a callback to fire when the current transaction is complete"
  [f]
- (util/if-in-immutant
+ (if (util/in-immutant?)
   (.registerSynchronization
    (current)
    (reify

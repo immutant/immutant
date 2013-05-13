@@ -125,8 +125,8 @@
 (defn stop*
   "Deregisters the request handler attached to the given sub-context-path."
   [sub-context-path]
-  (util/if-in-immutant
-   (let [sub-context-path (normalize-subcontext-path sub-context-path)]
+  (if (util/in-immutant?)
+    (let [sub-context-path (normalize-subcontext-path sub-context-path)]
      (if-let [{:keys [wrapper destroy]} (remove-servlet-info! (servlet-name sub-context-path))]
        (do
          (log/info "Deregistering request handler at sub-context path:" sub-context-path)
@@ -137,7 +137,7 @@
 
 (defn start*
   [sub-context-path servlet {:keys [init destroy] :as opts}]
-  (util/if-in-immutant
+  (if (util/in-immutant?)
    (let [sub-context-path (normalize-subcontext-path sub-context-path)
          servlet-name (servlet-name sub-context-path)]
      (when (get-servlet-info servlet-name)

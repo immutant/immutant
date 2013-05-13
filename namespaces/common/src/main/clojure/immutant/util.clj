@@ -28,13 +28,6 @@
   []
   (not (nil? (registry/get "housekeeper"))))
 
-(defmacro if-in-immutant
-  "Executes the 'yes' branch if inside immutant, the 'no' branch otherwise."
-  [yes no]
-  `(if (in-immutant?)
-     ~yes
-     ~no))
-
 (defn app-root
   "Returns a file pointing to the root dir of the application"
   []
