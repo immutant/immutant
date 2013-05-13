@@ -38,7 +38,6 @@
   (reify javax.servlet.Servlet
     (service [_ request response]
       (with-tccl
-        (.setCharacterEncoding response "UTF-8")
         (if-let [response-map (binding [current-servlet-request request]
                                 ((servlet-session-wrapper handler)
                                  (assoc (servlet/build-request-map request)
