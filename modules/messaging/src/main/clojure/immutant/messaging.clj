@@ -20,11 +20,12 @@
    data structure to dynamically-created topics and queues. Message
    distribution is automatically load-balanced when clustered."
   (:use [immutant.util :only (at-exit mapply waiting-derefable maybe-deref)]
-        [immutant.messaging.core])
+        immutant.messaging.core
+        immutant.messaging.internal)
   (:require [immutant.messaging.codecs :as codecs]
             [immutant.registry         :as registry]
             [clojure.tools.logging     :as log])
-  (:import [immutant.messaging.core QueueMarker TopicMarker]))
+  (:import [immutant.messaging.internal QueueMarker TopicMarker]))
 
 (defn as-queue
   "Marks the given queue name as a queue. Useful for working with queues that

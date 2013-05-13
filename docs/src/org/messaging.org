@@ -114,25 +114,54 @@
    =stop= will silently fail if the endpoint is in use by any other
    application.
 
-** Accessing Destinations via JMX
+** Accessing Destinations Controllers
 
-   Messaging destinations have MBeans exposed via JMX using the
-   HornetQ subsystem built into AS7. From there, you can see message
-   counts, list & remove messages, and perform other operations. Two
-   different MBeans are provided for each destination, each with
-   slightly different operations. One is a JMS MBean, and the other is
-   HornetQ specific.
+   Each messaging destination has associated controllers that can be
+   used to see message counts, list & remove messages, and perform
+   other operations. Two different controllers are provided by HornetQ
+   for queues, and one for topics, each with slightly different
+   controls. All are available via JMX or from
+   [[./apidoc/immutant.messaging.hornetq.html#var-destination-controller][immutant.messaging.hornetq/destination-controller]].
    
-   For a given destination name (=queue.example= in this case), you
-   can access the MBeans with the following addresses:
+   For a given destination name (=queue.example= and =topic.example=
+   in this case), you can access the MBeans via JMX with the following
+   addresses:
 
    #+begin_src text
-   # to access the JMS MBean
+   # to access the JMS Queue MBean
    org.hornetq:module=JMS,type=Queue,name="queue.example"
+
+   # to access the JMS Topic MBean
+   org.hornetq:module=JMS,type=Topic,name="topic.example"
      
-   # to access the HornetQ MBean
+   # to access the HornetQ 'core' Queue MBean
    org.hornetq:module=Core,type=Queue,address="jms.queue.queue.example",name="jms.queue.queue.example"
    #+end_src
+
+   or via code with:
+
+   #+BEGIN_SRC clojure
+     (require '[immutant.messaging.hornetq :as hq])
+     
+     ;; for the JMS queue controller
+     (hq/destination-controller "queue.example")
+
+     ;; for the JMS topic controller
+     (hq/destination-controller "queue.topic")
+     
+     ;; for the HornetQ 'core' queue controller
+     (hq/destination-controller "queue.example" :core)
+   #+END_SRC
+
+   The returned controller depends on the type of the given
+   destination and, for queues, the requested control-type (which
+   defaults to :jms):
+
+   | destination | control-type | controller                                     |
+   |-------------+--------------+------------------------------------------------|
+   | Queue       | :jms         | [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/JMSQueueControl.html][org.hornetq.api.jms.management.JMSQueueControl]] |
+   | Queue       | :core        | [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-client/org/hornetq/api/core/management/QueueControl.html][org.hornetq.core.management.impl.QueueControl]]  |
+   | Topic       | /ignored/    | [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/TopicControl.html][org.hornetq.api.jms.management.TopicControl]]    |
 
 * Messages
 

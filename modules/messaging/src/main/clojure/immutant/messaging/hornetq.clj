@@ -15,12 +15,43 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns ^{:no-doc true} immutant.messaging.hornetq
-    (:import org.hornetq.jms.client.HornetQDestination
-             org.hornetq.api.core.TransportConfiguration
-             (org.hornetq.api.jms HornetQJMSClient JMSFactoryType)))
+(ns immutant.messaging.hornetq
+  "HornetQ specific messaging functionality."
+  (:use immutant.messaging.internal)
+  (:require [immutant.registry :as registry])
+  (:import org.hornetq.jms.client.HornetQDestination
+           org.hornetq.api.core.TransportConfiguration
+           (org.hornetq.api.jms HornetQJMSClient JMSFactoryType)))
 
-(defn set-retry-options
+(defn destination-controller
+  "Returns the destination controller for the given name, or nil if
+   the destination doesn't exist. name can either be a String or the
+   result of calling messaging/as-queue or messaging/as-topic.
+
+   The returned controller depends on the type of the given
+   destination and, for queues, the requested control-type (which
+   defaults to :jms):
+
+   destination  control-type  controller
+   -------------------------------------------------------------------------
+   Queue        :jms          org.hornetq.api.jms.management.JMSQueueControl
+   Queue        :core         org.hornetq.core.management.impl.QueueControl
+   Topic        <ignored>     org.hornetq.api.jms.management.TopicControl
+
+   Refer to the javadocs for those control classes for details on the
+   available operations."
+  ([name]
+     (destination-controller name :jms))
+  ([name control-type]
+     (let [queue? (queue-name? name)
+           jms-name (format "jms.%s.%s" (if queue? "queue" "topic") name)]
+       (when-let [default (registry/get "jboss.messaging.default")]
+         (.getResource (.getManagementService default)
+                       (if (and queue? (= :core control-type)) 
+                           (format "core.queue.%s" jms-name)
+                         jms-name))))))
+
+(defn ^:no-doc set-retry-options
   "Call retry setters on connection factory"
   [factory opts]
   (let [fmap {:retry-interval #(.setRetryInterval factory %)
@@ -32,7 +63,7 @@
       ((setter fmap) val)))
   factory)
 
-(defn connection-factory
+(defn ^:no-doc connection-factory
  "Create a connection factory, typically invoked when outside container"
  ([]
     (connection-factory nil))

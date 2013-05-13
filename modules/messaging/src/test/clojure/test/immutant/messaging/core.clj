@@ -17,8 +17,7 @@
 
 (ns test.immutant.messaging.core
   (:use [immutant.messaging.core])
-  (:import [javax.jms DeliveryMode]
-           [immutant.messaging.core QueueMarker TopicMarker])
+  (:import [javax.jms DeliveryMode])
   (:use [clojure.test]))
 
 (def producer (proxy [javax.jms.MessageProducer] []
@@ -99,45 +98,3 @@
                    {:literal "{}"
                     :hashmap {}}
                    (partial = "{}")))
-
-(deftest queue-names
-  (are [name q?] (= q? (queue-name? name))
-       "/queue"             true
-       "/queuebar"          true
-       "/queue/foo"         true
-       "/queue.ham"         true
-       ".queue"             true
-       ".queuebar"          true
-       ".queue/foo"         true
-       ".queue.ham"         true
-       "..queue"            true
-       "..queuebar"         true
-       "..queue/foo"        true
-       "..queue.ham"        true
-       "queue"              true
-       "queuebar"           true
-       "queue/foo"          true
-       "queue.ham"          true
-       (QueueMarker. "foo") true
-       "que"                false))
-
-(deftest topic-names
-  (are [name q?] (= q? (topic-name? name))
-       "/topic"             true
-       "/topicbar"          true
-       "/topic/foo"         true
-       "/topic.ham"         true
-       ".topic"             true
-       ".topicbar"          true
-       ".topic/foo"         true
-       ".topic.ham"         true
-       "..topic"            true
-       "..topicbar"         true
-       "..topic/foo"        true
-       "..topic.ham"        true
-       "topic"              true
-       "topicbar"           true
-       "topic/foo"          true
-       "topic.ham"          true
-       (TopicMarker. "foo") true
-       "top"                false))

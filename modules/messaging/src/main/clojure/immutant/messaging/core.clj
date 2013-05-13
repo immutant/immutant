@@ -18,7 +18,8 @@
 (ns ^{:no-doc true} immutant.messaging.core
   "Internal utilities used by messaging. You should only need to dip
    into here in advanced cases."
-  (:use [immutant.util :only (at-exit if-in-immutant in-immutant?)])
+  (:use [immutant.util :only (at-exit if-in-immutant in-immutant?)]
+        immutant.messaging.internal)
   (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]
             [immutant.xa.transaction    :as tx]
@@ -29,7 +30,6 @@
 (def factory-name "jboss.naming.context.java.ConnectionFactory")
 ;;; Default subscriber name, which can't be null, apparently
 (def default-subscriber-name "default")
-
 
 ;;; Thread-local connection set
 (def ^{:private true, :dynamic true} *connections* nil)
@@ -59,46 +59,17 @@
       (hornetq/connection-factory opts)
       local-connection-factory)))
 
-(defrecord QueueMarker [name]
-  Object
-  (toString [_] name))
-
-(defrecord TopicMarker [name]
-  Object
-  (toString [_] name))
-
 (defn destination-name-error [name]
   (IllegalArgumentException.
    (str \' name \'
         " is ambiguous. Destination names must contain 'queue' or 'topic',"
         " or be wrapped in a call to as-queue or as-topic.")))
 
-(defn queue-name? [name]
-  (or (instance? QueueMarker name)
-      (and (instance? String name) 
-           (.contains name "queue"))))
-
-(defn queue? [queue]
-  (or (instance? Queue queue)
-      (queue-name? queue)))
-
-(defn topic-name? [name]
-  (or (instance? TopicMarker name)
-      (and (instance? String name) 
-           (.contains name "topic"))))
-
-(defn topic? [topic]
-  (or (instance? Topic topic)
-      (topic-name? topic)))
-
 (defn destination-name [name-or-dest]
   (condp instance? name-or-dest
-    javax.jms.Queue (.getQueueName name-or-dest)
-    javax.jms.Topic (.getTopicName name-or-dest)
+    Queue (.getQueueName name-or-dest)
+    Topic (.getTopicName name-or-dest)
     (str name-or-dest)))
-
-(defn jms-name [dest-name]
-  (str "jms." (if (queue-name? dest-name) "queue." "topic.") dest-name))
 
 (defn wash-publish-options
   "Wash publish options relative to default values from a producer"
@@ -174,44 +145,42 @@
 (defn stop-queue [name & {:keys [force]}]
   (if force
     (stop-destination name)
-    (if-let [default (registry/get "jboss.messaging.default")]
-      (if-let [queue (.getResource (.getManagementService default) (jms-name name))]
-        (cond
-         (and (.isDurable queue) (< 0 (.getMessageCount queue))) (log/warn "Won't stop non-empty durable queue:" name)
-         (< 0 (.getConsumerCount queue)) (throw (IllegalStateException. "Can't stop queue with active consumers"))
-         :else (stop-destination name))
-        (log/warn "Stop failed - no management interface found for queue:" name)))))
+    (if-let [queue (hornetq/destination-controller name)]
+      (cond
+       (and (.isDurable queue) (< 0 (.getMessageCount queue))) (log/warn "Won't stop non-empty durable queue:" name)
+       (< 0 (.getConsumerCount queue)) (throw (IllegalStateException. "Can't stop queue with active consumers"))
+       :else (stop-destination name))
+      (log/warn "Stop failed - no management interface found for queue:" name))))
 
 (defn stop-topic [name & {:keys [force]}]
   (if force
     (stop-destination name)
-    (if-let [default (registry/get "jboss.messaging.default")]
-      (if-let [topic (.getResource (.getManagementService default) (jms-name name))]
-        (condp > 0
-          (.getMessageCount topic) (log/warn "Won't stop topic with messages for durable subscribers:" name)
-          (.getSubscriptionCount topic) (throw (IllegalStateException. "Can't stop topic with active subscribers"))
-          (stop-destination name))
-        (log/warn "Stop failed - no management interface found for topic:" name)))))
+    (if-let [topic (hornetq/destination-controller name)]
+      (condp > 0
+        (.getMessageCount topic) (log/warn "Won't stop topic with messages for durable subscribers:" name)
+        (.getSubscriptionCount topic) (throw (IllegalStateException. "Can't stop topic with active subscribers"))
+        (stop-destination name))
+      (log/warn "Stop failed - no management interface found for topic:" name))))
+
+(defn start-destination [name type f]
+  (if-let [izer (registry/get "destinationizer")]
+    (let [complete (promise)
+          service-created (f izer complete)]
+      (if service-created
+        (when-not (= "up" (deref complete 5000 nil))
+          (throw (Exception. (format "Unable to start %s: %s" type name))))
+        (log/info (format "%s already exists: %s" type name))))
+    (throw (Exception. (format "Unable to start %s: %s" type name)))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
-  (if-let [izer (registry/get "destinationizer")]
-    (let [complete (promise)
-          service-created (.createQueue izer name durable selector #(deliver complete %))]
-      (if service-created
-        (when (not= "up" (deref complete 5000 nil))
-          (throw (Exception. (str "Unable to start queue: " name))))
-        (log/info "Queue already exists:" name)))
-    (throw (Exception. (str "Unable to start queue: " name)))))
+  (start-destination name "queue"
+                     (fn [izer complete]
+                       (.createQueue izer name durable selector #(deliver complete %)))))
 
 (defn start-topic [name & opts]
-  (if-let [izer (registry/get "destinationizer")]
-    (let [complete (promise)
-          service-created (.createTopic izer name #(deliver complete %))]
-      (if service-created
-        (when (not= "up" (deref complete 5000 nil))
-          (throw (Exception. (str "Unable to start topic: " name))))
-        (log/info "Topic already exists:" name)))
-    (throw (Exception. (str "Unable to start topic: " name)))))
+  (start-destination name "topic"
+                     (fn [izer complete]
+                       (.createTopic izer name #(deliver complete %)))))
 
 (defprotocol Sessionator
   "Function for obtaining a session"
