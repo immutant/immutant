@@ -20,10 +20,8 @@
   (:require [clojure.java.io                :as io]
             [clojure.java.shell             :as shell]
             [clojure.set                    :as set]
-            [clojure.string                 :as str]
             [clojure.zip                    :as zip]
-            [clojure.contrib.zip-filter     :as zf]
-            [clojure.contrib.zip-filter.xml :as zfx]
+            [clojure.data.zip.xml           :as zfx]
             [clojure.xml                    :as xml]
             [clojure.contrib.lazy-xml       :as lazy-xml]
             [org.satta.glob                 :as glob])
@@ -326,6 +324,16 @@
       (zip/insert-right loc (polyglot-cache-container)))
     loc))
 
+(defn insert-jgroups-config [loc]
+  (-> loc
+      (zip/insert-child {:tag :jgroups-channel :content ["hq-cluster"]})
+      (zip/insert-child {:tag :jgroups-stack :content ["udp"]})))
+
+(defn replace-socket-with-jgroups [loc]
+  (if-let [socket-binding (zfx/xml1-> loc :socket-binding)]
+    (insert-jgroups-config (zip/remove socket-binding))
+    loc))
+
 (defn extract-extensions [path]
   (for [x (xml-seq (xml/parse (io/file (jboss-dir) path)))
         :when (= :extension (:tag x))]
@@ -364,6 +372,8 @@
                 :socket-binding-group           (fix-socket-binding-group loc)
                 :socket-binding                 (fix-socket-binding loc)
                 :cache-container                (fix-cache-container loc)
+                :broadcast-group                (replace-socket-with-jgroups loc)
+                :discovery-group                (replace-socket-with-jgroups loc)
                 loc))))))
   
 (defn transform-config [file]
