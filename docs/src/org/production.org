@@ -1,0 +1,142 @@
+#+TITLE:    Production Setup
+
+* Introduction
+
+  We expect this document to evolve as more Immutant installations are
+  put into production. Of course, "production" means something
+  different to every organization, so it's difficult to be too
+  specific, but we hope to present some general guidelines that can be
+  successfully adapted to any environment.
+
+* Configuring JBoss as a Service
+
+  JBoss AS7 ships with an example System V style startup script:
+  =$IMMUTANT_HOME/jboss/bin/init.d/jboss-as-standalone.sh=. You'll
+  also find a =jboss-as.conf= file in that same directory to which you
+  can copy to =/etc/jboss-as/= and edit to further configure your
+  service.
+
+  To have Immutant start when your server boots:
+
+  #+begin_src sh
+    $ ln -s $IMMUTANT_HOME/jboss/bin/init.d/jboss-as-standalone.sh /etc/init.d/immutant
+    $ chkconfig --add immutant
+    $ service immutant start
+  #+end_src
+
+  Obviously, you'll need to tweak the above if you're using one of the
+  more modern init daemon alternatives, e.g. upstart, systemd, etc.
+
+  To have it come up in clustered mode, set the following in
+  =/etc/jboss-as/jboss-as.conf=:
+
+  #+begin_src sh
+    JBOSS_CONFIG=standalone-ha.xml
+  #+end_src
+
+* Clustering without Multicast
+
+  By default, a clustered Immutant will attempt to discover and
+  connect to its peers using IP multicast. When it's enabled, forming
+  an Immutant cluster is easy, peasy, lemon squeezy!
+
+  But often, especially in cloud environments, IP multicast is not
+  available, or perhaps even undesired when a system administrator
+  requires direct control over the members of a cluster. In these
+  cases it's possible to configure Immutant to use a predefined set of
+  cluster members. And on Amazon EC2, in particular, it's even
+  possible to configure dynamic discovery of peers in the absence of
+  multicast using the JGroups =S3_PING= protocol.
+
+  When you want to set the hosts for your cluster, replace the =MPING=
+  protocol in the default configuration with =TCPPING=. You'll also
+  want to change the =default-stack= attribute of the JGroups
+  =subsystem= to "tcp". Edit
+  =$IMMUTANT_HOME/jboss/standalone/configuration/standalone-ha.xml= to
+  make it look similar to this:
+
+  #+begin_src xml
+    ...
+    <subsystem xmlns="urn:jboss:domain:jgroups:1.1" default-stack="tcp">
+      ...
+      <stack name="tcp">
+          <transport type="TCP" socket-binding="jgroups-tcp"/>
+    
+          <protocol type="TCPPING">
+            <property name="initial_hosts">
+              10.100.10.2[7600],10.100.10.3[7600]
+            </property>
+          </protocol>
+    
+          <protocol type="MERGE2"/>
+          <protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
+          ...
+      </stack>
+    </subsystem>
+    </stack> 
+  #+end_src
+
+** Clustering on Amazon EC2
+
+   Enabling clustering with dynamic discovery on EC2 amounts to
+   replacing the =MPING= protocol element of the "tcp" stack
+   configured in
+   =$IMMUTANT_HOME/jboss/standalone/configuration/standalone-ha.xml=
+   with the =S3_PING= protocol, e.g.
+
+   #+begin_src xml
+     ...
+     <stack name="tcp">
+       <transport type="TCP" socket-binding="jgroups-tcp"/>
+     
+       <protocol type="S3_PING">
+         <property name="secret_access_key">YOUR_SECRET_ACCESS_KEY</property>
+         <property name="access_key">YOUR_ACCESS_KEY</property>
+         <property name="location">SOME_BUCKET_PATH</property>
+       </protocol>
+     
+       <protocol type="MERGE2"/>
+       <protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
+     ...
+     </stack>
+   #+end_src
+
+* Application Configuration
+
+  Often, applications require environment-specific configuration when
+  deployed. Clojure makes this pretty simple. We recommend using
+  Clojure syntax or EDN for your config files, storing them in a known
+  location, and slurping them in during your application's
+  initialization.
+
+  Use some sort of "dev ops" system, e.g. Pallet/Chef/Puppet, for
+  transferring the config files along with your application archives
+  to your target hosts, and in your initialization, do something along
+  these lines:
+
+  #+begin_src clojure
+    (def config (read-string (slurp "/etc/yourapp/config.clj")))
+  #+end_src
+
+  This assumes the contents of =/etc/yourapp/config.clj= look
+  something like this:
+
+  #+begin_src clojure
+    {
+     :db-host 1.2.3.4
+     :db-user "myuser"
+     :db-pass "mypass"
+     }
+  #+end_src
+  
+  Alternatively, you might take advantage Immutant's registry
+  namespace, through which you can access your Leiningen project hash
+  and your application's deployment descriptor. These are resolved
+  according to whatever Leiningen profiles are active when you deploy
+  the application (or are specified in the deployment descriptor).
+
+  #+begin_src clojure
+    (immutant.registry/get :config)
+    (immutant.registry/get :project)
+  #+end_src
+
