@@ -12,9 +12,9 @@
 
   JBoss AS7 ships with an example System V style startup script:
   =$IMMUTANT_HOME/jboss/bin/init.d/jboss-as-standalone.sh=. You'll
-  also find a =jboss-as.conf= file in that same directory to which you
-  can copy to =/etc/jboss-as/= and edit to further configure your
-  service.
+  also find =jboss-as.conf= in that same directory. You may copy it to
+  =/etc/jboss-as/= and edit further configuration for your Immutant
+  service there.
 
   To have Immutant start when your server boots:
 
@@ -36,6 +36,8 @@
 
 * Clustering without Multicast
 
+  Immutant uses [[http://www.jgroups.org/][JGroups]] for clustering.
+
   By default, a clustered Immutant will attempt to discover and
   connect to its peers using IP multicast. When it's enabled, forming
   an Immutant cluster is easy, peasy, lemon squeezy!
@@ -44,9 +46,9 @@
   available, or perhaps even undesired when a system administrator
   requires direct control over the members of a cluster. In these
   cases it's possible to configure Immutant to use a predefined set of
-  cluster members. And on Amazon EC2, in particular, it's even
-  possible to configure dynamic discovery of peers in the absence of
-  multicast using the JGroups =S3_PING= protocol.
+  cluster members. Dynamic peer discovery is possible in a
+  non-multicast environment using a gossip router or, if on Amazon
+  EC2, the =S3_PING= JGroups protocol (see below).
 
   When you want to set the hosts for your cluster, replace the =MPING=
   protocol in the default configuration with =TCPPING=. You'll also
@@ -73,7 +75,6 @@
           ...
       </stack>
     </subsystem>
-    </stack> 
   #+end_src
 
 ** Clustering on Amazon EC2
@@ -82,23 +83,26 @@
    replacing the =MPING= protocol element of the "tcp" stack
    configured in
    =$IMMUTANT_HOME/jboss/standalone/configuration/standalone-ha.xml=
-   with the =S3_PING= protocol, e.g.
+   with =S3_PING=. And be sure to change the =default-stack= attribute
+   of the =subsystem= to "tcp".
 
    #+begin_src xml
      ...
-     <stack name="tcp">
-       <transport type="TCP" socket-binding="jgroups-tcp"/>
-     
-       <protocol type="S3_PING">
-         <property name="secret_access_key">YOUR_SECRET_ACCESS_KEY</property>
-         <property name="access_key">YOUR_ACCESS_KEY</property>
-         <property name="location">SOME_BUCKET_PATH</property>
-       </protocol>
-     
-       <protocol type="MERGE2"/>
-       <protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
-     ...
-     </stack>
+     <subsystem xmlns="urn:jboss:domain:jgroups:1.1" default-stack="tcp">
+       <stack name="tcp">
+         <transport type="TCP" socket-binding="jgroups-tcp"/>
+       
+         <protocol type="S3_PING">
+           <property name="secret_access_key">YOUR_SECRET_ACCESS_KEY</property>
+           <property name="access_key">YOUR_ACCESS_KEY</property>
+           <property name="location">SOME_BUCKET_PATH</property>
+         </protocol>
+       
+         <protocol type="MERGE2"/>
+         <protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
+         ...
+       </stack>
+     </subsystem>
    #+end_src
 
 * Application Configuration
@@ -129,14 +133,14 @@
      }
   #+end_src
   
-  Alternatively, you might take advantage Immutant's registry
+  Alternatively, you might take advantage of Immutant's registry
   namespace, through which you can access your Leiningen project hash
   and your application's deployment descriptor. These are resolved
   according to whatever Leiningen profiles are active when you deploy
   the application (or are specified in the deployment descriptor).
 
   #+begin_src clojure
-    (immutant.registry/get :config)
-    (immutant.registry/get :project)
+    (def deploy-descriptor (immutant.registry/get :config))
+    (def leiningen-project (immutant.registry/get :project))
   #+end_src
 
