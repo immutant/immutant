@@ -24,7 +24,7 @@
   (:require [immutant.registry :as registry])
   (:import org.immutant.jobs.JobSchedulizer
            org.projectodd.polyglot.jobs.BaseJob
-           java.util.Date))
+           (java.util Calendar Date)))
 
 (defn fun [] :from-fun)
 
@@ -84,22 +84,88 @@
         (with-redefs [date (fn [_] d)]
           (schedule "name" fun :in 5000)
           (is (= d (:start-at @job-args))))))
-    
+
+    (testing "it should convert a keyword :in"
+      (let [now (System/currentTimeMillis)]
+        (doseq [[alias val] {:second 1000
+                             :minute 60000
+                             :hour   3600000
+                             :day    86400000
+                             :week   604800000}]
+          (with-redefs [now->millis (fn [] now)]
+            (schedule "name" fun :in alias))
+          (is (= (Date. (+ val now))
+                 (:start-at @job-args))))))
+
+    (testing "it should throw if given an invalid alias for :in"
+      (is (thrown? IllegalArgumentException
+                   (schedule "name" fun :in :booger))))
+
     (testing "it should turn a long :at into a date"
       (let [at (System/currentTimeMillis)]
         (schedule "name" fun :at at)
         (is (= (Date. at) (:start-at @job-args)))))
 
+    (testing "it should turn a string :at into a date"
+      (doseq [[time [hour min day-offset]]
+              {"1630"  [16 30 0]
+               "16:30" [16 30 0]
+               "0900"  [9  0  0]
+               "09:00" [9  0  0]
+               "0700"  [7  0  1]
+               "07:00" [7  0  1]
+               "0831"  [8  31 1]}]
+        (let [base-time (doto (now->calendar)
+                          (.setTimeZone (java.util.TimeZone/getTimeZone "UTC"))
+                          (.setTimeInMillis 1368779513752))] ;; 2013-05-17T08:31:53.752-00:00
+          (with-redefs [now->calendar (fn [] (.clone base-time))]
+            (schedule "name" fun :at time))
+          (is (= (.getTime (doto (.clone base-time)
+                             (.set Calendar/HOUR_OF_DAY hour)
+                             (.set Calendar/MINUTE      min)
+                             (.set Calendar/SECOND      0)
+                             (.add Calendar/DAY_OF_YEAR day-offset)))
+                 (:start-at @job-args))))))
+
+    (testing "it should raise with an invalid :at time format"
+      (is (thrown? IllegalArgumentException
+                   (schedule "name" fun :at "1"))))
+    
     (testing "it should pass through a Date :at"
       (let [at (Date.)]
         (schedule "name" fun :at at)
         (is (= at (:start-at @job-args)))))
-
+    
     (testing "it should turn a long :until into a date"
       (let [until (System/currentTimeMillis)]
         (schedule "name" fun :until until :every 5)
         (is (= (Date. until) (:end-at @job-args)))))
 
+    (testing "it should turn a string :until into a date"
+      (doseq [[time [hour min day-offset]]
+              {"1630"  [16 30 0]
+               "16:30" [16 30 0]
+               "0900"  [9  0  0]
+               "09:00" [9  0  0]
+               "0700"  [7  0  1]
+               "07:00" [7  0  1]
+               "0831"  [8  31 1]}]
+        (let [base-time (doto (now->calendar)
+                          (.setTimeZone (java.util.TimeZone/getTimeZone "UTC"))
+                          (.setTimeInMillis 1368779513752))] ;; 2013-05-17T08:31:53.752-00:00
+          (with-redefs [now->calendar (fn [] (.clone base-time))]
+            (schedule "name" fun :until time :every :second))
+          (is (= (.getTime (doto (.clone base-time)
+                             (.set Calendar/HOUR_OF_DAY hour)
+                             (.set Calendar/MINUTE      min)
+                             (.set Calendar/SECOND      0)
+                             (.add Calendar/DAY_OF_YEAR day-offset)))
+                 (:end-at @job-args))))))
+
+    (testing "it should raise with an invalid :until time format"
+      (is (thrown? IllegalArgumentException
+                   (schedule "name" fun :until "1" :every :second))))
+    
     (testing "it should pass through a Date :until"
       (let [until (Date.)]
         (schedule "name" fun :until until :every 5)
@@ -108,6 +174,19 @@
     (testing "it should pass through a non-nil :every"
       (schedule "name" fun :every 5)
       (is (= 5 (:every @job-args))))
+
+    (testing "it should convert a keyword :every"
+      (doseq [[alias val] {:second 1000
+                           :minute 60000
+                           :hour   3600000
+                           :day    86400000
+                           :week   604800000}]
+        (schedule "name" fun :every alias)
+        (is (= val (:every @job-args)))))
+
+    (testing "it should throw if given an invalid alias for :every"
+      (is (thrown? IllegalArgumentException
+                   (schedule "name" fun :every :booger))))
     
     (testing "it should pass through a non-nil :repeat"
       (schedule "name" fun :repeat 5 :every 5)
@@ -119,8 +198,8 @@
     
     (testing "it should treat a nil :repeat as 0"
       (schedule "name" fun :repeat nil)
-      (is (= 0 (:repeat @job-args))))
+      (is (= 0 (:repeat @job-args)))))
 
-    (testing "it should allow no opts"
-      (schedule "name" fun)
-      (is (= "name" (:name @job-args))))))
+  (testing "it should allow no opts"
+    (schedule "name" fun)
+    (is (= "name" (:name @job-args)))))

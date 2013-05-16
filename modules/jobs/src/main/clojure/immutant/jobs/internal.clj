@@ -19,7 +19,7 @@
   (:use [immutant.util :only [app-name wait-for-start]])
   (:require [immutant.registry :as registry]
             [clojure.tools.logging :as log])
-  (:import java.util.Date))
+  (:import (java.util Calendar Date)))
 
 (defn ^:internal job-schedulizer []
   (wait-for-start (registry/get "job-schedulizer")))
@@ -39,12 +39,84 @@
   [ms]
   (Date. ms))
 
-;; TODO: use defmulti/protocol?
-(defn ^:internal as-date
-  [ms-or-date]
-  (cond
-   (instance? Date ms-or-date)       ms-or-date
-   (and ms-or-date (< 0 ms-or-date)) (date ms-or-date)))
+(defn ^:internal now->millis
+  "A wrapper around System/currentTimeMillis to facilitate testing"
+  []
+  (System/currentTimeMillis))
+
+(defn ^:internal now->calendar
+  "A wrapper around Calendar/getInstance to facilitate testing"
+  []
+  (Calendar/getInstance))
+
+(def period-aliases
+  {:second 1000
+   :minute (* 60 1000)
+   :hour   (* 60 60 1000)
+   :day    (* 24 60 60 1000)
+   :week   (* 7 24 60 60 1000)})
+
+(defprotocol AsPeriod
+  (as-period [x]))
+
+(extend-type nil
+  AsPeriod
+  (as-period [_]
+    nil))
+
+(extend-type java.lang.Long
+  AsPeriod
+  (as-period [x]
+    (when (< 0 x) x)))
+
+(extend-type clojure.lang.Keyword
+  AsPeriod
+  (as-period [x]
+    (if-let [period (x period-aliases)]
+      period
+      (throw
+       (IllegalArgumentException.
+        (format
+         "%s is not a valid period alias. Valid choices are: %s"
+         x (keys period-aliases)))))))
+
+(defn- next-occurrence-of-time [hour min]
+  (let [now (now->calendar)
+        then (doto (now->calendar)
+               (.set Calendar/HOUR_OF_DAY hour)
+               (.set Calendar/MINUTE      min)
+               (.set Calendar/SECOND      0))]
+    (when (> 0 (.compareTo then now))
+      (.add then Calendar/DAY_OF_YEAR 1))
+    (.getTime then)))
+
+(defprotocol AsDate
+  (as-date [x]))
+
+(extend-type nil
+  AsDate
+  (as-date [_] nil))
+
+(extend-type Date
+  AsDate
+  (as-date [x] x))
+
+(extend-type java.lang.Long
+  AsDate
+  (as-date [x]
+    (when (< 0 x) (date x))))
+
+(extend-type String
+  AsDate
+  (as-date [x]
+    (if-let [match (re-find #"(\d\d):?(\d\d)" x)]
+      (->> (rest match)
+           (map #(Integer/parseInt %))
+           (apply next-occurrence-of-time))
+      (throw (IllegalArgumentException.
+              (format
+               "%s is not a valid time specification. Valid specifications are: HH:MM, HHMM"
+               x))))))
 
 (defn ^:private create-scheduled-job [f name spec singleton]
   (.createJob (job-schedulizer) f name spec (boolean singleton)))
@@ -57,16 +129,19 @@
   (and until (not every)
        (throw (IllegalArgumentException. "You can't specify :until without :every")))
   
-  (.createAtJob (job-schedulizer)
-                f
-                name
-                (or (as-date at)
-                    (and in (< 0 in)
-                         (as-date (+ in (System/currentTimeMillis)))))
-                (as-date until)
-                (or every 0)
-                (or repeat 0)
-                (boolean singleton)))
+  (.createAtJob
+   (job-schedulizer)
+   f
+   name
+   (or (as-date at)
+       (if-let [in (as-period in)]
+         (as-date (+ in (now->millis)))))
+   (as-date until)
+   (if-let [every (as-period every)]
+     every
+     0)
+   (or repeat 0)
+   (boolean singleton)))
 
 (defn ^{:internal true} create-job
   "Instantiates and starts a job"
@@ -82,7 +157,6 @@
    (.isStarted job)               (.stop job)
    (not
     (.hasStartedAtLeastOnce job)) (wait-for-start job (partial stop-job job))))
-
 
 (defmulti extract-spec #(class (fnext %)))
 
