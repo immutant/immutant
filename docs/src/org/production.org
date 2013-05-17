@@ -105,6 +105,59 @@
      </subsystem>
    #+end_src
 
+* Apache =mod_cluster= Reverse Proxy
+
+  An Immutant production server will typically have a request
+  dispatching reverse proxy fronting the application, accepting web
+  requests and handing them off to your application. There are many
+  common reverse proxies, e.g. [[http://haproxy.1wt.eu/][HAProxy]] and [[http://nginx.org][nginx]], and they'll all work
+  fine with Immutant, but the JBoss =mod_cluster= project is worth
+  special mention because it is aware of the deployment state of each
+  peer in your cluster. It is not enough for the node to simply be
+  "up": requests won't be routed to nodes that don't have the
+  corresponding application fully deployed.
+
+  Download and install =mod_cluster= using the instructions linked
+  from its [[http://www.jboss.org/mod_cluster/downloads/][downloads page]].
+
+  After installing it, check the configuration file,
+  =/etc/httpd/conf.d/mod_cluster.conf=. With something similar to the
+  following settings, you should have Apache's httpd daemon accepting
+  web requests on your host and =mod_cluster= dispatching those
+  requests to your Immutant[s]:
+
+  #+begin_src text
+    LoadModule slotmem_module       modules/mod_slotmem.so
+    LoadModule proxy_cluster_module modules/mod_proxy_cluster.so
+    LoadModule advertise_module     modules/mod_advertise.so
+    LoadModule manager_module       modules/mod_manager.so
+    
+    <Location /mod_cluster_manager>
+        SetHandler mod_cluster-manager
+        AllowDisplay On
+    </Location>
+    
+    Listen 127.0.0.1:6666
+    <VirtualHost 127.0.0.1:6666>
+     
+      <Directory />
+        Order deny,allow
+        Deny from all
+        Allow from all
+      </Directory>
+     
+      KeepAliveTimeout 60
+      MaxKeepAliveRequests 0
+    
+      EnableMCPMReceive
+     
+      ManagerBalancerName immutant-balancer
+      AllowDisplay On
+      AdvertiseFrequency 5
+     
+    </VirtualHost>
+  #+end_src
+
 * Application Configuration
 
   Often, applications require environment-specific configuration when
