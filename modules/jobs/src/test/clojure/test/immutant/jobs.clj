@@ -87,16 +87,31 @@
 
     (testing "it should convert a keyword :in"
       (let [now (System/currentTimeMillis)]
-        (doseq [[alias val] {:second 1000
-                             :minute 60000
-                             :hour   3600000
-                             :day    86400000
-                             :week   604800000}]
+        (doseq [[alias val] {:second  1000
+                             :seconds 1000
+                             :minute  60000
+                             :minutes 60000
+                             :hour    3600000
+                             :hours   3600000
+                             :day     86400000
+                             :days    86400000
+                             :week    604800000
+                             :weeks   604800000}]
           (with-redefs [now->millis (fn [] now)]
             (schedule "name" fun :in alias))
           (is (= (Date. (+ val now))
                  (:start-at @job-args))))))
 
+    (testing "it should convert a coll :in"
+      (let [now (System/currentTimeMillis)]
+        (doseq [[coll val] {[1 :second]   1000
+                            [5 :seconds]  5000
+                            '(3 :minutes) 180000}]
+          (with-redefs [now->millis (fn [] now)]
+            (schedule "name" fun :in coll))
+          (is (= (Date. (+ val now))
+                 (:start-at @job-args))))))
+        
     (testing "it should throw if given an invalid alias for :in"
       (is (thrown? IllegalArgumentException
                    (schedule "name" fun :in :booger))))

@@ -52,8 +52,8 @@
     | Option     | Default                             | Description                                                                                                                                                                   |
     |------------+-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
     | :at        | /none/, /now/ if no =spec= provided | Specifies when the /at/ job should start firing. Can be a java.util.Date, ms since epoch, or a time in HH:MM format (see below). Can't be specified with a =spec= or =:in=.   |
-    | :in        | /none/                              | Specifies when the /at/ job should start firing, in ms from now. Can't be specified with a =spec= or =:at=.                                                                   |
-    | :every     | /none/                              | Specifies the delay interval between /at/ job firings, in ms. If specified without a =:repeat= or =:until=, the job will fire indefinitely. Can't be specified with a =spec=. |
+    | :in        | /none/                              | Specifies when the /at/ job should start firing, in ms from now, a period alias, or a period spec (see below). Can't be specified with a =spec= or =:at=.                                                                   |
+    | :every     | /none/                              | Specifies the delay interval between /at/ job firings, in ms, a period alias, or a period spec (see below). If specified without a =:repeat= or =:until=, the job will fire indefinitely. Can't be specified with a =spec=.  |
     | :repeat    | /none/                              | Specifies the number of times an /at/ job should repeat beyond its initial firing. Can't be specified with a =spec=, and requires =:every= to be provided.                    |
     | :until     | /none/                              | Specifies when the /at/ job should stop firing. Can be a java.util.Date, ms since epoch, or a time in HH:MM format (see below). Can't be specified with a =spec=.             |
     | :singleton | =true=                              | Marks the job as a /singleton/ in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node.                                      |
@@ -63,9 +63,12 @@
   interpreted as the next occurence of "HH:MM:00" in the currently
   active timezone.
 
-  You can also pass one of the following period aliases for =:in= or
-  =:repeat=: =:second=, =:minute=, =:hour=, =:day=, =:week=. Each will
-  be converted into the corresponding milliseconds.
+  You can also pass a period alias or period spec for =:in= or
+  =:repeat=. A period alias is one of: =:second=, =:minute=, =:hour=,
+  =:day=, =:week=. A period spec is a vector or list with a number
+  followed by a period alias (including plural variants): =[1
+  :second]=, =[5 :minutes]=. Each will be converted into the
+  corresponding milliseconds.
 
   Example:
 
@@ -74,12 +77,11 @@
       (:require [immutant.jobs :as jobs]))
       
     (jobs/schedule :my-at-job-name  
-                   #(println "I every minute until 4:30pm, starting in 1 hour.")
-                   :in :hour
+                   #(println "I every minute until 4:30pm, starting in 2 hours.")
+                   :in [2 :hours]
                    :every :minute
                    :until "16:30")
   #+end_src
-
 
   If you specify a job without a cron spec or any /at/ options, it
   will fire once, immediately:

@@ -50,11 +50,16 @@
   (Calendar/getInstance))
 
 (def period-aliases
-  {:second 1000
-   :minute (* 60 1000)
-   :hour   (* 60 60 1000)
-   :day    (* 24 60 60 1000)
-   :week   (* 7 24 60 60 1000)})
+  {:second  1000
+   :seconds :second
+   :minute  (* 60 1000)
+   :minutes :minute
+   :hour    (* 60 60 1000)
+   :hours   :hour
+   :day     (* 24 60 60 1000)
+   :days    :day
+   :week    (* 7 24 60 60 1000)
+   :weeks   :week})
 
 (defprotocol AsPeriod
   (as-period [x]))
@@ -72,13 +77,20 @@
 (extend-type clojure.lang.Keyword
   AsPeriod
   (as-period [x]
-    (if-let [period (x period-aliases)]
-      period
-      (throw
-       (IllegalArgumentException.
-        (format
-         "%s is not a valid period alias. Valid choices are: %s"
-         x (keys period-aliases)))))))
+    (let [period (x period-aliases)]
+      (cond
+       (nil? period) (throw
+                      (IllegalArgumentException.
+                       (format
+                        "%s is not a valid period alias. Valid choices are: %s"
+                        x (keys period-aliases))))
+       (keyword? period) (as-period period)
+       :default period))))
+
+(extend-type clojure.lang.Sequential
+  AsPeriod
+  (as-period [[n alias]]
+    (* n (as-period alias))))
 
 (defn- next-occurrence-of-time [hour min]
   (let [now (now->calendar)

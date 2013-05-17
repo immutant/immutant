@@ -45,21 +45,21 @@
 Available options [default]:
   :at        Specifies when the 'at' job should start firing. Can be a
              java.util.Date, ms since epoch, or a time in HH:MM
-             format (see below). Can't be specified with a spec or :in
-             [none, now if no spec provided]
+             format (see below). Can't be specified with a cron spec or
+             :in [none, now if no cron spec provided]
   :in        Specifies when the 'at' job should start firing, in ms from
-             now or a period alias (see below). Can't be specified with
-             a spec or :at [none]
+             now, a period alias, or a period spec (see below). Can't be 
+             specified with a cron spec or :at [none]
   :every     Specifies the delay interval between 'at' job firings, in
-             ms or period alias (see below). If specified without a
-             :repeat or :until, the job will fire indefinitely. Can't
-             be specified with a spec [none]
+             ms, a period alias, or a period spec (see below). If 
+             specified without a :repeat or :until, the job will fire
+             indefinitely. Can't be specified with a cron spec [none]
   :repeat    Specifies the number of times an 'at' job should repeat
              beyond its initial firing. Can't be specified with a
              spec, and requires :every to be provided [none]
   :until     Specifies when the 'at' job should stop firing. Can be a
              java.util.Date, ms since epoch, or a time in HH:MM format
-             (see below). Can't be specified with a spec [none]
+             (see below). Can't be specified with a cron spec [none]
   :singleton Marks the job as a singleton in a cluster. Singleton
              jobs will only execute on one node. If false, the job will
              execute on every node [true]
@@ -69,9 +69,11 @@ As a convenience, you can pass a time as a String (in \"HH:MM\" or
 interpreted as the next occurence of \"HH:MM:00\" in the currently
 active timezone.
 
-You can also pass one of the following period aliases for :in or :repeat:
-:second, :minute, :hour, :day, :week. Each will be converted into the
-corresponding milliseconds.
+You can also pass a period alias or period spec for :in or :repeat. A
+period alias is one of: :second, :minute, :hour, :day, :week. A period
+spec is a vector or list with a number followed by a period
+alias (including plural variants): [1 :second], [5 :minutes]. Each will
+be converted into the corresponding milliseconds.
 
 Calling this function with the same name as a previously scheduled job
 will replace that job."}
