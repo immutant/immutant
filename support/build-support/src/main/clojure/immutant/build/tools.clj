@@ -326,8 +326,8 @@
 
 (defn insert-jgroups-config [loc]
   (-> loc
-      (zip/insert-child {:tag :jgroups-channel :content ["hq-cluster"]})
-      (zip/insert-child {:tag :jgroups-stack :content ["udp"]})))
+      (zip/insert-child {:tag :jgroups-channel :content ["${msg.jgroups.channel:hq-cluster}"]})
+      (zip/insert-child {:tag :jgroups-stack :content ["${msg.jgroups.stack:udp}"]})))
 
 (defn replace-socket-with-jgroups [loc]
   (if-let [socket-binding (zfx/xml1-> loc :socket-binding)]
