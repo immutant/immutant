@@ -1,6 +1,6 @@
 <assembly>
   <id>slim</id>
-  <baseDirectory>immutant-${project.version}</baseDirectory>
+  <baseDirectory>immutant-${project.version}-slim</baseDirectory>
   <formats>
     <format>zip</format>
   </formats>

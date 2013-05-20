@@ -1,6 +1,6 @@
 <assembly>
   <id>full</id>
-  <baseDirectory>immutant-${project.version}</baseDirectory>
+  <baseDirectory>immutant-${project.version}-full</baseDirectory>
   <formats>
     <format>zip</format>
   </formats>
