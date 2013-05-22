@@ -111,7 +111,7 @@
   dispatching reverse proxy fronting the application, accepting web
   requests and handing them off to your application. There are many
   common reverse proxies, e.g. [[http://haproxy.1wt.eu/][HAProxy]] and [[http://nginx.org][nginx]], and they'll all work
-  fine with Immutant, but the JBoss =mod_cluster= project is worth
+  fine with Immutant, but the JBoss [[http://www.jboss.org/mod_cluster][mod_cluster]] project is worth
   special mention because it is aware of the deployment state of each
   peer in your cluster. It is not enough for the node to simply be
   "up": requests won't be routed to nodes that don't have the
@@ -197,3 +197,6 @@
     (def leiningen-project (immutant.registry/get :project))
   #+end_src
 
+  See [[./initialization.html#initialization-configuration-values][Initialization - Arbitrary Configuration Values]] for more on
+  providing configuration values via the deployment descriptor or
+  =project.clj=.

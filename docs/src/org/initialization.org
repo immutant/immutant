@@ -5,9 +5,9 @@
   The initialization and configuration of applications deployed to 
   Immutant can potentially involve multiple files:
 
-  - the [[./deployment.html#deployment-descriptor][deployment descriptor]] (if used)
-  - the Leiningen [[#initialization-project-clj][project.clj]] (if present at the application root)
-  - the [[#initialization-immutant-init][immutant.init]] namespace (if present beneath =src/=)
+  * the [[./deployment.html#deployment-descriptor][deployment descriptor]] (if used)
+  * the Leiningen [[#initialization-project-clj][project.clj]] (if present at the application root)
+  * the [[#initialization-immutant-init][immutant.init]] namespace (if present on the application's effective classpath)
 
   Each of these files have the opportunity to contribute to the configuration
   or initialization of the application.
@@ -17,13 +17,13 @@
   When an Immutant detects a Clojure deployment (either a [[./deployment.html#deployment-descriptor][deployment descriptor]]
   or an [[./deployment.html#deployment-archive][Immutant archive]]), it begins the application initialization process:
 
-  1. If the deployment is a descriptor file, this file is loaded in a
-     global Clojure runtime to parse the map from the file. The
-     =:root= entry from that map is then used to determine the actual
-     root of the application, and can refer to the application
-     directory or the path to an Immutant archive. Any additional
-     configuration information from the descriptor is stored for later
-     merging with data from other configuration sources.
+  1. If the deployment is a descriptor file, this file is evaluated in
+     a global Clojure runtime, and must evaluate to a map. The =:root=
+     entry from that map is then used to determine the actual root of
+     the application, and can refer to the application directory or
+     the path to an Immutant archive. Any additional configuration
+     information from the descriptor is stored for later merging with
+     data from other configuration sources.
 
   2. If the deployment is an archive, or the =:root= from the descriptor
      points to an archive, the archive is expanded on disk to a temporary
@@ -37,12 +37,12 @@
 
   4. Once the application root has been determined, Immutant looks for
      a [[http://leiningen.org/][Leiningen]] =project.clj= in the root. If present, the project
-     file is loaded and if an =:immutant= key is preset in the
+     file is loaded and if an =:immutant= key is present in the
      resulting =project=, it is merged with the configuration data
      from the descriptor with the configuration from the descriptor
      taking precedence. Leiningen is then used to resolve the
-     dependencies present in the =project= via Maven (this behavior
-     can be overridden - see [[#initialization-configuration][:resolve-dependencies]]).
+     dependencies present in the =project= via [[https://github.com/cemerick/pomegranate][Pomegranate]] (this
+     behavior can be overridden - see [[#initialization-configuration][:resolve-dependencies]]).
 
   5. If a =lib/= directory is present in the application root, any jars
      within it are merged with the dependencies calculated in the previous
@@ -50,9 +50,10 @@
      application, along with source and resource directories within the
      application root (see [[#initialization-dependencies][Dependencies & Resources]] for more information). 
 
-  6. At this point, Immutant creates a Clojure runtime 
-     for the application. Runtimes in Immutant are isolated from each other,
-     and can each load their own versions of Clojure or any other jar.
+  6. At this point, Immutant creates a Clojure runtime for the
+     application. Runtimes in Immutant are isolated from each other,
+     each with an effective classpath based on the application's
+     dependencies.
 
   7. If an initialization function was specified in either the
      descriptor or the =:immutant= map in the project (via the
@@ -75,7 +76,7 @@
   - =:root= - specifies the path to the 'root' of the application. This can 
     either be the path to the application directory, or the path to an 
     [[./deployment.html#deployment-archive][Immutant archive]]. =:root= is only valid in a deployment descriptor, and
-    is ignored if specified in =project.clj=.
+    is ignored if specified in =project.clj= or =.immutant.clj=.
 
   - =:resolve-dependencies= - determines if dependencies defined in 
     =project.clj= will be resolved via [[https://github.com/cemerick/pomegranate][Pomegranate]]. This resolution process
@@ -95,11 +96,11 @@
     using either =:swank-port= or =:nrepl-port=.  See [[./interactive.html][Interactive Development]] 
     for more details.
 
-  - =:init= - optionally specifies a function to call to initialize your
-    application. It can be either a namespace-qualified symbol
+  - =:init= - optionally specifies a function to call to initialize
+    your application. It can be either a namespace-qualified symbol
     (=my.app/do-something=) or a string ("my.app/do-something").
-    Because the [[./deployment.html#deployment-descriptor][deployment descriptor]] is evaluated, it must be quoted (or
-    a string) if present there.
+    Because the [[./deployment.html#deployment-descriptor][deployment descriptor]] is evaluated, it must either be
+    a quoted symbol or a string if present there.
 
   - =:context-path= - overrides the default web context path that is generated
     based on the deployment name. See [[./web.html#web-context-path][Web - Context Paths]] for more details.
@@ -122,6 +123,9 @@
   #+end_src
 
 ** Arbitrary Configuration Values
+  :PROPERTIES:
+  :CUSTOM_ID: initialization-configuration-values
+  :END:
 
    Since Immutant can host multiple apps, using system properties
    or environment variables may not be a practical way to provide per app 
@@ -228,7 +232,7 @@
      (repl/start-swank 4321)
           
      ;; schedule a job
-     (jobs/schedule "my-job" "*/5 * * * * ?" core/process-tps-reports)
+     (jobs/schedule "my-job" core/process-tps-reports "*/5 * * * * ?")
      
      ;; start a daemon
      (deamons/daemonize "my-daemon" core/daemon-start core/daemon-stop)
@@ -247,9 +251,10 @@
   :CUSTOM_ID: initialization-dependencies
   :END:
 
-  Immutant generates a unique classpath for each deployed application
-  based upon dependencies and source & resource directories defined in
-  [[#initialization-project-clj][project.clj]] and any jars found in the =lib/= at the application root. 
+  Immutant generates a unique effective classpath for each deployed
+  application based upon dependencies and source & resource
+  directories defined in [[#initialization-project-clj][project.clj]] and any jars found in the =lib/=
+  at the application root.
 
   The =lib/= directory can be used to bundle dependencies with your
   application, and can be useful in the following situations:

@@ -59,7 +59,8 @@
    takes a destination name. It's common to separate sections of the
    destination name with =.= or =/=, but is not required.
 
-   The =start= function accepts the following options:
+   In addition to the destination name, the =start= function accepts
+   the following options:
 
    | Option      | Default | Description                         |
    |-------------+---------+-------------------------------------|
@@ -90,7 +91,6 @@
      (msg/start "topic/infotainment")
      (msg/start ".topic")
      (msg/start "topicality")
-     (msg/start "topicality")
      (msg/start "some.kinda.topic")
      
      ;; wrap an ambiguous topic name in as-topic
@@ -106,13 +106,16 @@
    application code.  You can invoke =start= anytime during the
    lifecycle of your application.
 
-   While =start= has a complement, [[./apidoc/immutant.messaging.html#var-stop][immutant.messaging/stop]], you needn't 
-   call it directly. It will be invoked when your application is
-   undeployed. And it's important to note that =start= is idempotent:
-   if an endpoint has already been started, likely by a cooperating
-   application, the call is effectively a no-op. Similarly, a call to
-   =stop= will silently fail if the endpoint is in use by any other
-   application.
+   While =start= has a complement, [[./apidoc/immutant.messaging.html#var-stop][immutant.messaging/stop]], you
+   needn't call it directly. It will be invoked when your application
+   is undeployed. And it's important to note that =start= is
+   idempotent: if an destination has already been started, likely by a
+   cooperating application, the call is effectively a
+   no-op. Similarly, a call to =stop= will silently fail if the
+   destination is in use by any other application. Note that in cases
+   where a destination is started by another application, you will
+   still need to =start= it locally for it to be visible to other
+   messaging functions within your application.
 
 ** Accessing Destinations Controllers
 
@@ -155,12 +158,12 @@
 
    The returned controller depends on the type of the given
    destination and, for queues, the requested control-type (which
-   defaults to :jms):
+   defaults to =:jms=):
 
    | destination | control-type | controller                                     |
    |-------------+--------------+------------------------------------------------|
-   | Queue       | :jms         | [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/JMSQueueControl.html][org.hornetq.api.jms.management.JMSQueueControl]] |
-   | Queue       | :core        | [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-client/org/hornetq/api/core/management/QueueControl.html][org.hornetq.core.management.impl.QueueControl]]  |
+   | Queue       | =:jms=       | [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/JMSQueueControl.html][org.hornetq.api.jms.management.JMSQueueControl]] |
+   | Queue       | =:core=      | [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-client/org/hornetq/api/core/management/QueueControl.html][org.hornetq.core.management.impl.QueueControl]]  |
    | Topic       | /ignored/    | [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/TopicControl.html][org.hornetq.api.jms.management.TopicControl]]    |
 
 * Messages
@@ -197,8 +200,8 @@
    |                   | <c>                                | <35>                                |
    | =:encoding=       | =:edn=                             | One of =:clojure=, =:edn=, =:json=, or =:text= |
    | =:priority=       | =4=                                | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively |
-   | =:ttl=            | =0=                                | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed. A 0 indicates that the message should be held indefinitely. |
-   | =:persistent=     | =true=                             | If true, undelivered messages survive restarts. |
+   | =:ttl=            | =0=                                | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed. A =0= indicates that the message should be held indefinitely. |
+   | =:persistent=     | =true=                             | If true, undelivered messages survive restarts (if the destination is durable). |
    | =:properties=     | ={}=                               | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages |
    | =:correlation-id= | =nil=                              | Used to set the JMSCorrelationID (see [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html#setJMSCorrelationID(java.lang.String)][setJMSCorrelationID]]) |
    | =:host=           | =nil=                              | A remote HornetQ host to connect to. |
@@ -281,18 +284,18 @@
    | =:username=  | =nil=                              | The username to authenticate the connection with (if the broker has authentication enabled). Requires =:password= to be set. |
    | =:password=  | =nil=                              | The password to authenticate the connection with (if the broker has authentication enabled). Requires =:username= to be set. |
 
-   By default, the dynamic variable, =clojure.core/*read-eval*= is set
+   By default, the dynamic variable, [[http://clojure.github.io/clojure/clojure.core-api.html#clojure.core/*read-eval*][clojure.core/*read-eval*]] is set
    to false when decoding messages. To override this, you should set
    =:decode?= to false and bind =*read-eval*= to true before passing
    the encoded message to
-   =immutant.messaging.codecs/decode-with-metadata= yourself.
+   [[./apidoc/immutant.messaging.codecs.html#var-decode-with-metadata][immutant.messaging.codecs/decode-with-metadata]] yourself.
 
    For more details on message selectors, see [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html][javax.jms.Message]]. 
 
    The =listen= function takes two parameters: the destination name
    and a function accepting one parameter which will be applied to any
-   received message. All of the above options except =:timeout= are
-   supported, plus =listen= also accepts the following:
+   received message. All of the above options for =receive= except
+   =:timeout= are supported, plus =listen= also accepts the following:
 
    | Option                       | Default | Description                         |
    |------------------------------+---------+-------------------------------------|
@@ -303,9 +306,8 @@
    | =:max-retry-interval=        | =2000=  | The max retry interval that will be used. |
    | =:reconnect-attempts=        | =0=     | Total number of reconnect attempts to make before giving up and shutting down. (-1: unlimited) |
 
-
-   =listen= is asynchronous - if you need to synchronize on its
-   completion, you should deref the result.
+   =listen= is asynchronous - if you need to synchronize on the
+   completion of its initialization, you should deref the result.
 
    By default, message handlers are transactional, so the function
    invoked in response to a message effectively demarcates a
@@ -315,7 +317,7 @@
    Any messages published within the handler automatically become part
    of its transaction, by default. So they won't be delivered until
    that transaction commits. To override this behavior, wrap your
-   handler inside the [[./apidoc/immutant.messaging.html#var-not-supported][immutant.xa.transaction/not-supported]] macro.
+   handler inside the [[./apidoc/immutant.xa.transaction.html#var-not-supported][immutant.xa.transaction/not-supported]] macro.
 
    See [[./transactions.html][Distributed Transactions]] for more details.
 
@@ -340,7 +342,8 @@
 
     The complement of =listen= is [[./apidoc/immutant.messaging.html#var-unlisten][immutant.messaging/unlisten]], to
     which you pass the value returned by =listen= to cease the flow of
-    messages to that handler.
+    messages to that handler. Note that =unlisten= will be called for
+    you automatically when your application is undeployed.
 
     Queues and topics behave differently when you map a handler to the
     same destination. For queues, the current handler, if any, is
@@ -363,12 +366,12 @@
       => 41
     #+end_src
 
-    Note that even if the contents within =#()= are identical, the actual
-    functions are still different. If you want idempotent topic
-    listeners, you should pass the same var to each. And even then,
-    during development, you may inadvertently redefine the var and
-    create multiple, redundant versions of the topic listener. Hijinks
-    may ensue.
+    Note that even if the contents within =#()= are identical, the
+    actual anonymous functions are still different objects. If you
+    want idempotent topic listeners, you should pass the same var to
+    each. And even then, during development, you may inadvertently
+    redefine the var and create multiple, redundant versions of the
+    topic listener. Hijinks may ensue.
 
 *** Accessing Listeners via JMX
 
@@ -380,7 +383,7 @@
    a topic, the =:client-id= and the handler function name will be
    included as well.
 
-   The names are so gross-looking that I'm loathe to include any
+   The names are so gross-looking that we're loathe to include any
    examples at this time.
 
 * Request/Response
@@ -409,7 +412,7 @@
    optional list of options. It sets up a listener (via the =listen=
    function) that applies the given function to any received message and publishes
    the result back to the queue for the delay returned by =request= to receive.
-   It accepts the same options as listen.
+   It accepts the same options as =listen=.
 
 ** Some Examples
 
@@ -464,9 +467,6 @@
   data has to be in a format that can be encoded as clojure via
   [[http://clojuredocs.org/clojure_core/clojure.core/pr][pr]]. See the above [[#messaging-publishing-encodings-note][note about encodings]].
 
-  Pipeline support is currently in an alpha state, and may be subject
-  to massive changes.
-
 ** Creating a pipeline
 
    You create a pipeline with the [[./apidoc/immutant.pipeline.html#var-pipeline][immutant.pipeline/pipeline]]
@@ -518,7 +518,7 @@
     |                       | <c>                   | <35>                                |
     | =:name=               | /the index of the fn/ | A name to use for the step          |
     | =:concurrency=        | =1=                   | The number of threads to use, overriding the pipeline setting |
-    | =:error-handler=      | =nil=                 | An error handler function that can override the pipeline setting |
+    | =:error-handler=      | =nil=                 | An error handler function, overriding the pipeline setting                 |
     | =:step-deref-timeout= | /10 seconds/          | The amount of time to wait when dereferencing the result of a step that returns a delay, in ms. Overrides the pipeline setting |
    
    #+BEGIN_SRC clojure
@@ -563,7 +563,7 @@
    pipeline within a pipeline. The amount of time to wait for the
    =deref= is controlled by the =:step-deref-timeout= option, and
    defaults to 10 seconds. Setting it to =0= will cause it to wait
-   forever, which will tie up a thread 
+   forever, which will tie up a thread indefinitely.
 
    #+BEGIN_SRC clojure
      (require '[immutant.pipeline :as pl])
@@ -649,7 +649,7 @@
    #+END_SRC
 
    If no error-handler function is provided, the error handling
-   semantics provided my HornetQ are used, which causes the offending
+   semantics provided by HornetQ are used, which causes the offending
    step to be retried up to ten times before giving up.
 
 ** Halting the pipeline for a particular message

@@ -44,7 +44,7 @@
 
 Available options [default]:
   :at        Specifies when the 'at' job should start firing. Can be a
-             java.util.Date, ms since epoch, or a time in HH:MM
+             java.util.Date, ms since epoch, or a time in HH:mm
              format (see below). Can't be specified with a cron spec or
              :in [none, now if no cron spec provided]
   :in        Specifies when the 'at' job should start firing, in ms from
@@ -58,15 +58,15 @@ Available options [default]:
              beyond its initial firing. Can't be specified with a
              spec, and requires :every to be provided [none]
   :until     Specifies when the 'at' job should stop firing. Can be a
-             java.util.Date, ms since epoch, or a time in HH:MM format
+             java.util.Date, ms since epoch, or a time in HH:mm format
              (see below). Can't be specified with a cron spec [none]
   :singleton Marks the job as a singleton in a cluster. Singleton
              jobs will only execute on one node. If false, the job will
              execute on every node [true]
 
-As a convenience, you can pass a time as a String (in \"HH:MM\" or
-\"HHMM\" format) for the :at and :until options. It will be
-interpreted as the next occurence of \"HH:MM:00\" in the currently
+As a convenience, you can pass a time as a String (in \"HH:mm\" or
+\"HHmm\" format) for the :at and :until options. It will be
+interpreted as the next occurence of \"HH:mm:00\" in the currently
 active timezone.
 
 You can also pass a period alias or period spec for :in or :repeat. A

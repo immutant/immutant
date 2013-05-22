@@ -69,26 +69,28 @@
 
 * Deploying
 
-  Each runtime mode has a =deployments/= subdirectory, the contents of which 
-  determine the applications and services JBoss runs. These apps and services
-  are represented as archives, "exploded" folders, or text files called 
-  "deployment descriptors". The JBoss deployment scanner operates  in two different
-  modes: *auto-deploy* and *manual deploy*.
+  Each runtime mode has a =deployments/= subdirectory, the contents of
+  which determine the applications and services JBoss runs. These apps
+  and services are represented as archives, "exploded" folders, or
+  text files called "deployment descriptors". The JBoss deployment
+  scanner operates in two different modes: *auto-deploy* and *manual
+  deploy* (the default).
 
-  Auto-deploy mode works like in previous releases of AS, in that a resource will
-  be redeployed every time its timestamp changes. The scanner creates a marker 
-  file with a ".deployed" suffix, and if the resource gets deleted the scanner will 
-  not trigger an undeployment.
+  Auto-deploy mode works like in previous releases of AS, in that a
+  resource will be redeployed every time its timestamp changes. The
+  scanner creates a marker file with a ".deployed" suffix, and if the
+  resource gets deleted the scanner will not trigger an undeployment.
 
-  In manual deploy mode the scanner will rely on addition or removal of a marker 
-  files. To learn more about this deployment method, see the marker files section of
-  the [[https://docs.jboss.org/author/display/AS7/Admin%2BGuide#AdminGuide-DeploymentCommands][administrator guide]].
+  In manual deploy mode the scanner will rely on addition or removal
+  of a marker files. To learn more about this deployment method, see
+  the marker files section of the [[https://docs.jboss.org/author/display/AS7/Admin%2BGuide#AdminGuide-DeploymentCommands][administrator guide]].
 
   [[./images/jboss-deploy.png]]
 
-  The [[https://github.com/immutant/lein-immutant][lein-immutant Leiningen plugin]] provides commands to create and copy a 
-  deployment descriptor for your Clojure application to 
-  =$IMMUTANT_HOME/standalone/deployments/=. See [[./deployment.html][Deployment]] for more details.
+  The [[https://github.com/immutant/lein-immutant][lein-immutant Leiningen plugin]] provides commands to create and
+  copy a deployment descriptor for your Clojure application to
+  =$IMMUTANT_HOME/standalone/deployments/= along with the requored
+  deployment markers. See [[./deployment.html][Deployment]] for more details.
 
 * Logging
 

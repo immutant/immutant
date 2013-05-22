@@ -8,14 +8,15 @@
 
 * Starting a Daemon
 
-  The primary abstraction is the =Daemon= protocol, which prescribes
-  two methods: =start= and =stop=. Daemon instances are passed to the
-  [[./apidoc/immutant.daemons.html#var-create][immutant.daemons/create]] function along with a name. A JMX MBean
-  is then created and started asynchronously. The stop function is
-  automatically invoked when your application is undeployed.
+  The primary abstraction is the [[./apidoc/immutant.daemons.html#var-Daemon][immutant.daemons/Daemon]] protocol,
+  which prescribes two methods: [[./apidoc/immutant.daemons.html#var-start][start]] and [[./apidoc/immutant.daemons.html#var-stop][stop]]. Daemon instances are
+  passed to the [[./apidoc/immutant.daemons.html#var-create][immutant.daemons/create]] function along with a name. A
+  JMX MBean is then created and the daemon started asynchronously. The
+  stop function is automatically invoked when your application is
+  undeployed.
 
   A convenience function, [[./apidoc/immutant.daemons.html#var-daemonize][immutant.daemons/daemonize]], may be used to
-  encapsulate the creation of a Daemon from two functions. It takes
+  encapsulate the creation of a =Daemon= from two functions. It takes
   three parameters:
 
   - =name= - a name for referencing as a JMX MBean

@@ -58,7 +58,7 @@
 
    All Infinispan caches have a name scoped to the app server (or
    cluster) hence the names are global for all practical purposes.
-   Caches are created using the =immutant.cache/create= function. Its
+   Caches are created using the [[./apidoc/immutant.cache.html#var-create][immutant.cache/create]] function. Its
    only required argument is a name. Calling =create= for an existing
    cache restarts it, clearing all its data.
 
@@ -67,7 +67,7 @@
 
     | Option         | Default    | Description                                                                                                                            |
     |----------------+------------+----------------------------------------------------------------------------------------------------------------------------------------|
-    | =:mode=        | =:local=   | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. Defaults to =:distributed= if clustered.           |
+    | =:mode=        | =:local=, =:distributed= in a cluster | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. |
     | =:sync=        | =true=     | Whether replication occurs synchronously during the write.                                                                             |
     | =:persist=     | =nil=      | Enables entries to persist across server restarts in a file-backed store.                                                              |
     | =:seed=        | =nil=      | A hash of initial entries to replace the existing ones.                                                                                |
@@ -116,13 +116,13 @@
    #+end_src
 
    Often, you'll share caches with other applications or services
-   running in the same Immutant or cluster. The
-   =immutant.cache/lookup= function is provided to obtain a reference
-   to an existing cache without having to recreate it and clear all
-   its data. If the cache doesn't exist, nil is returned. There is
-   also a convenience function, =immutant.cache/lookup-or-create= that
-   will only create the cache if it doesn't already exist. It accepts
-   the same options as =create=.
+   running in the same Immutant or cluster. The [[./apidoc/immutant.cache.html#var-lookup][immutant.cache/lookup]]
+   function is provided to obtain a reference to an existing cache
+   without having to recreate it and clear all its data. If the cache
+   doesn't exist, nil is returned. There is also a convenience
+   function, [[./apidoc/immutant.cache.html#var-lookup-or-create][immutant.cache/lookup-or-create]] that will only create the
+   cache if it doesn't already exist. It accepts the same options as
+   =create=.
 
 ** Writing
 
@@ -132,7 +132,7 @@
    effectively shift the responsibility of "sane data management",
    i.e. MVCC, from Clojure to Infinispan.
 
-   Immutant caches implement the =immutant.cache/Mutable= protocol,
+   Immutant caches implement the [[./apidoc/immutant.cache.html#var-Mutable][immutant.cache/Mutable]] protocol,
    through which Infinispan's cache manipulation features are exposed.
 
    Data is inserted into an Immutant cache using one of the =put=
@@ -190,7 +190,7 @@
      ;;; Clear all keys, returning the empty cache
      (delete-all c)                          ;=> c
    #+end_src
-
+   
 ** Reading
 
    Data is read from an Immutant cache the same way data is read from
@@ -228,10 +228,10 @@
    the function.
 
    Because an Immutant cache implements
-   =clojure.core.cache/CacheProtocol=, it can act as an underlying
-   implementation for =clojure.core.memoize/PluggableMemoization=.
-   Immutant includes a higher-order =memo= function for doing exactly
-   that:
+   [[https://github.com/clojure/core.cache][clojure.core.cache/CacheProtocol]], it can act as an underlying
+   implementation for [[https://github.com/clojure/core.memoize][clojure.core.memoize/PluggableMemoization]].
+   Immutant includes a higher-order [[./apidoc/immutant.cache.html#var-memo][immutant.cache/memo]] function for
+   doing exactly that:
 
    #+begin_src clojure
      (require '[immutant.cache :as ic])

@@ -8,7 +8,7 @@
   application, so have access to any shared state.
 
   Jobs are built on top of the [[http://quartz-scheduler.org][Quartz]] library, and support scheduling
-  via a cron-like specification or a more finer-grained /at/-style
+  via a /cron/-like specification or a more finer-grained /at/-style
   syntax.
 
 * Scheduling Jobs
@@ -43,29 +43,29 @@
     "foo" will refer to the same job.
   + =f= - the zero argument function that will be invoked each time
     the job fires.
-  + =spec= - the optional cron-style specification string if you are
-    scheduling a cron-style job. It is an error to provide a spec
+  + =spec= - the optional /cron/-style specification string if you are
+    scheduling a /cron/-style job. It is an error to provide a spec
     along with any of the /at/ options. See [[#jobs-cron-syntax][Cron Syntax]].
   + =options= - options are specified as alternating key & value
     literals. Valid options are:
 
-    | Option     | Default                             | Description                                                                                                                                                                   |
-    |------------+-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-    | :at        | /none/, /now/ if no =spec= provided | Specifies when the /at/ job should start firing. Can be a java.util.Date, ms since epoch, or a time in HH:MM format (see below). Can't be specified with a =spec= or =:in=.   |
-    | :in        | /none/                              | Specifies when the /at/ job should start firing, in ms from now, a period alias, or a period spec (see below). Can't be specified with a =spec= or =:at=.                                                                   |
-    | :every     | /none/                              | Specifies the delay interval between /at/ job firings, in ms, a period alias, or a period spec (see below). If specified without a =:repeat= or =:until=, the job will fire indefinitely. Can't be specified with a =spec=.  |
-    | :repeat    | /none/                              | Specifies the number of times an /at/ job should repeat beyond its initial firing. Can't be specified with a =spec=, and requires =:every= to be provided.                    |
-    | :until     | /none/                              | Specifies when the /at/ job should stop firing. Can be a java.util.Date, ms since epoch, or a time in HH:MM format (see below). Can't be specified with a =spec=.             |
-    | :singleton | =true=                              | Marks the job as a /singleton/ in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node.                                      |
+    | Option     | Default                             | Description                                                                                                                                                                                                                 |
+    |------------+-------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+    | :at        | /none/, /now/ if no =spec= provided | Specifies when the /at/ job should start firing. Can be a java.util.Date, ms since epoch, or a time in HH:mm format (see below). Can't be specified with a =spec= or =:in=.                                                 |
+    | :in        | /none/                              | Specifies when the /at/ job should start firing, in ms from now, as a period alias, or as a period spec (see below). Can't be specified with a =spec= or =:at=.                                                             |
+    | :every     | /none/                              | Specifies the delay interval between /at/ job firings, in ms, as a period alias, or as a period spec (see below). If specified without a =:repeat= or =:until=, the job will fire indefinitely. Can't be specified with a =spec=. |
+    | :repeat    | /none/                              | Specifies the number of times an /at/ job should repeat beyond its initial firing. Can't be specified with a =spec=, and requires =:every= to be provided.                                                                  |
+    | :until     | /none/                              | Specifies when the /at/ job should stop firing. Can be a java.util.Date, ms since epoch, or a time in HH:mm format (see below). Can't be specified with a =spec=.                                                           |
+    | :singleton | =true=                              | Marks the job as a /singleton/ in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node.                                                                                    |
 
-  As a convenience, you can pass a time as a String (in "HH:MM" or
-  "HHMM" format) for the =:at= and =:until= options. It will be
-  interpreted as the next occurence of "HH:MM:00" in the currently
+  As a convenience, you can pass a time as a String (in "HH:mm" or
+  "HHmm" format) for the =:at= and =:until= options. It will be
+  interpreted as the next occurence of "HH:mm:00" in the currently
   active timezone.
 
   You can also pass a period alias or period spec for =:in= or
   =:repeat=. A period alias is one of: =:second=, =:minute=, =:hour=,
-  =:day=, =:week=. A period spec is a vector or list with a number
+  =:day=, or =:week=. A period spec is a vector or list with a number
   followed by a period alias (including plural variants): =[1
   :second]=, =[5 :minutes]=. Each will be converted into the
   corresponding milliseconds.
@@ -83,7 +83,7 @@
                    :until "16:30")
   #+end_src
 
-  If you specify a job without a cron spec or any /at/ options, it
+  If you specify a job without a /cron/ spec or any /at/ options, it
   will fire once, immediately:
 
   #+begin_src clojure
@@ -110,8 +110,9 @@
    :CUSTOM_ID: jobs-cron-syntax
    :END:
 
-  The spec attribute should contain a crontab-like entry. This is similar to cron specifications
-  used by Vixie cron, anacron and friends, but includes an additional field for specifying seconds.
+  The =spec= argument should contain a crontab-like entry. This is
+  similar to cron specifications used by Vixie cron, anacron and
+  friends, but includes an additional field for specifying seconds.
   It is composed of 7 fields (6 are required):
 
   | Seconds | Minutes | Hours | Day of Month | Month           | Day of Week    | Year                 |

@@ -6,13 +6,13 @@
   via [[https://github.com/mmcgrana/ring][Ring]] handlers, but standard Java Servlets are supported, too.
   Each application can dynamically register any number of handlers,
   each with a unique context path. This allows you to have multiple
-  Ring webapps that share the same deployment lifecycle.
+  Ring endpoints that share the same deployment lifecycle.
 
   Immutant provides a session implementation that provides automatic data
   sharing across nodes in a cluster.
 
   In this chapter, the term /application/ refers to the full deployment itself,
-  and /webapp/ refers to a particular web application based around a single 
+  and /endpoint/ refers to a particular web application based around a single 
   Ring handler as its entry point. For most applications, the two will be the
   same thing.
 
@@ -21,17 +21,19 @@
   :CUSTOM_ID: web-context-path
   :END:
 
-  The *context path* is a prefix on the path portion of a url that is used as
-  a mechanism to route requests to the proper webapp when more than
-  one webapp is being served by the same 'container'. If you are running only
-  one webapp in a container (which is the typical strategy when deploying
-  Clojure webapp via [[http://jetty.codehaus.org/jetty/][Jetty]]), the context path is the /root/ context - =/=.
+  The *context path* is a prefix on the path portion of a url that is
+  used as a mechanism to route requests to the proper endpoint when
+  more than one endpoint is being served by the same 'container'. If
+  you are running only one endpoint in a container (which is the
+  typical strategy when deploying a Clojure endpoint via [[http://jetty.codehaus.org/jetty/][Jetty]]), the
+  context path is the /root/ context - =/=.
 
-  A properly constructed webapp needs no knowledge of the context path it is
-  mounted under - the container is responsible for routing requests to the webapp
-  and providing the webapp specific fragment of the url's path to it. This
-  allows the webapp to be moved between contexts (or mounted at multiple
-  contexts at once) without any modification to the webapp code itself.
+  A properly constructed endpoint needs no knowledge of the context
+  path it is mounted under - the container is responsible for routing
+  requests to the endpoint and providing the endpoint specific
+  fragment of the url's path to it. This allows the endpoint to be
+  moved between contexts (or mounted at multiple contexts at once)
+  without any modification to the endpoint code itself.
 
 ** The Top-Level Context Path
 
@@ -64,7 +66,7 @@
    When you register a handler with Immutant, you can optionally provide a
    sub-context path for which the handler will be responsible. This sub-context
    path is appended to the top-level context path for purposes of routing
-   requests to the handler, and allows you to have multiple webapps within
+   requests to the handler, and allows you to have multiple endpoints within
    a single application.
 
    See below for an [[#web-context-path-example][example]] demonstrating how the context path, sub-context path,
@@ -86,7 +88,7 @@
 
 * Registering Handlers
 
-  To register a Ring handler, you simply call the [[./apidoc/immutant.web.html#var-start][immutant.web/start]], which
+  To register a Ring handler, you simply call [[./apidoc/immutant.web.html#var-start][immutant.web/start]], which
   takes one or two arguments, plus some options:
 
   - =sub-context-path= - the sub-context path within the application's context
@@ -281,7 +283,7 @@
     | :cookie-name | "JSESSIONID"            | The name used for the cookie.                                               |
     | :domain      | /none/                  | The domain name where the cookie is valid.                                  |
     | :http-only   | =false=                 | Should the cookie be used only for http?                                    |
-    | :max-age     | ~=-1=~ /(never expire)/ | The amount of time the cookie should be retained by the client, in seconds. |
+    | :max-age     | -1 /(never expire)/     | The amount of time the cookie should be retained by the client, in seconds. |
     | :path        | /the context path/      | The path where the cookie is valid.                                         |
     | :secure      | =false=                 | Should the cookie be used only for secure connections?                      |
 
@@ -394,7 +396,7 @@
   functions do not support applications mounted at a context path
   other than the root. So until 1.2 is released, you can use
   [[./apidoc/immutant.web.html#var-wrap-resource][immutant.web/wrap-resource]], which is a drop-in replacement for
-  [[http://mmcgrana.github.com/ring/ring.middleware.resource.html#var-wrap-resource]].
+  [[http://mmcgrana.github.com/ring/ring.middleware.resource.html#var-wrap-resource][ring.middleware.resource/wrap-resource]].
 
   The recommended approach is to store your resources beneath
   =resources/public/= and then reference that path when adding the

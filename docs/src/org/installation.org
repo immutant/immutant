@@ -1,25 +1,30 @@
 #+TITLE:     Installing Immutant
 
 * Introduction
+
   There are currently two options for installing Immutant: using the 
   Leiningen plugin and downloading a zip file.
 
+* Distribution variants
+
+  Starting with release *0.9.0* (and incremental build *750*),
+  there are two release distributions available:
+
+  - /slim/ - a smaller, lighter weight distribution that only
+    includes the functionality needed to run Immutant Clojure
+    applications, but not JavaEE applications. 
+  - /full/ - the full JBossAS distribution with Immutant
+    included. If you need to run JavaEE applications alongside
+    Clojure apps in the same AS, this is the distribution for
+    you. 
+
 * Installation via Leiningen
 
-  To install Immutant via the [[http://leiningen.org/][Leiningen]] plugin, you'll need to
-  first install Leiningen, followed by the [[https://github.com/immutant/lein-immutant/][lein-immutant]] plugin.
-  The plugin supports both Leiningen 1.x and 2.x, but the method for
-  installing the plugin is different for each version.
-
-  To install the plugin under Leiningen 1.x (version 1.6.2 or greater),
-  you'll use the =lein plugin install= command:
-  
-  #+begin_src sh
-   $ lein plugin install lein-immutant VERSION
-  #+end_src
-
-  To install the plugin under 2.x, you'll need to add it to the plugin
-  list in =~/.lein/profiles.clj=:
+  To install Immutant via the [[http://leiningen.org/][Leiningen]] plugin, you'll need to first
+  install Leiningen, followed by the [[https://github.com/immutant/lein-immutant/][lein-immutant]] plugin.  The plugin
+  supports both Leiningen 2.0.0 or higher.  To install the plugin
+  under 2.x, you'll need to add it to the plugin list in
+  =~/.lein/profiles.clj=:
 
   #+begin_src clojure
     {:user {:plugins [[lein-immutant "VERSION"]]}}
@@ -35,12 +40,13 @@
    $ lein immutant install [VERSION]
   #+end_src
   
-  Without a VERSION specified, the LATEST successful incremental build
-  will be installed. To obtain fixes
-  released in subsequent incremental builds, simply run =install= again.
+  Without a VERSION specified, the most recent versioned release
+  will be installed. 
 
-  To obtain a specific version, you can specify an incremental build 
-  number (ex: 123) or a released version (ex: 0.2.0).
+  To obtain a specific version, you can specify an incremental build
+  number (ex: =123=) or a released version (ex: =1.0.0.Beta1=). As a
+  shortcut, you can install the latest incremental build by specifying
+  =:latest=.
 
   Releases installed via the plugin are installed by default under
   =~/.lein/immutant/releases=, and =~/.lein/immutant/current= is 
@@ -57,6 +63,13 @@
   This installed version of Immutant is shared across all Immutant applications
   on your machine, and does not need to be installed for each application.
 
+  By default, the /slim/ variant will be installed. If you need the
+  /full/ variant, pass the =--full= option to the =install= subtask:
+
+  #+begin_src sh
+   $ lein immutant install --full [VERSION]
+  #+end_src
+
   See [[./deployment.html][Deployment]] for more details about the plugin.
 
 * Installation via Zip Download
@@ -71,6 +84,6 @@
   #+begin_src sh
     $ mkdir immutant-releases
     $ cd immutant-releases
-    $ unzip path/to/immutant-dist-bin.zip
-    $ export $IMMUTANT_HOME=~/immutant-releases/0.2.0/
+    $ unzip path/to/immutant-dist-slim.zip
+    $ export $IMMUTANT_HOME=~/immutant-releases/immutant-0.10.0-slim/
   #+end_src

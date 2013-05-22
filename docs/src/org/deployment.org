@@ -42,7 +42,7 @@
   This generates and deploys a /deployment descriptor/ that refers to the location
   of the application on disk. See the [[#deployment-descriptor][descriptor]] section below for more details.
 
-  The =lein-immutant= plugin provides additional deploy options - see [[https://github.com/immutant/lein-immutant#lein-immutant][its README]]
+  The =lein-immutant= plugin provides additional deploy options - see [[https://github.com/immutant/lein-immutant#lein-immutant-][its README]]
   for details.
 
 * Archive-based Deployment
@@ -78,7 +78,7 @@
      =target/native=, =classes=, and =target/classes= dirs, as well as
      the =project.clj=.
 
-  The archive process honors the =:source-paths=, =:resources-paths=
+  The archive process honors the =:source-paths=, =:resources-paths=,
   =:native-path=, and =:compile-path= options of =project.clj=, allowing you to 
   override the default directories.
 
@@ -101,7 +101,7 @@
   [[#deployment-descriptor][descriptor]] section below for more details.
 
   The =lein-immutant= plugin provides additional archive and deploy options - see 
-  [[https://github.com/immutant/lein-immutant#lein-immutant][its README]] for details.
+  [[https://github.com/immutant/lein-immutant#lein-immutant-][its README]] for details.
 
 * Deployment Descriptor
   :PROPERTIES:
@@ -143,7 +143,7 @@
   other and, for example, easily distribute work via a message queue
   across a linearly-scalable data grid.
 
-  Just by doing this:
+  To run in clustered mode, pass the =--clustered= option:
 
   #+begin_src sh
     $ lein immutant run --clustered

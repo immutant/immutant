@@ -31,7 +31,7 @@
 
   In order for your database to participate in an XA transaction, an
   XA DataSource must be created for it. In Immutant, you have two
-  options: either 1) call =immutant.xa/datasource= from your
+  options: either 1) call [[./apidoc/immutant.xa.html#var-datasource][immutant.xa/datasource]] from your
   application, or 2) use the JBoss AS7 configuration facilities. The
   former is simple and recommended for most deployments, but the
   latter can be easier to manage when multiple applications share the
@@ -39,7 +39,7 @@
 
 ** For use with =clojure.java.jdbc=
 
-   The spec you pass to =clojure.java.jdbc/with-connection= depends on
+   The spec you pass to [[http://clojure.github.io/java.jdbc/#clojure.java.jdbc/with-connection][clojure.java.jdbc/with-connection]] depends on
    how you create the DataSource. If you call
    =immmutant.xa/datasource=, then associate the =:datasource= key to its
    result. 
@@ -47,7 +47,7 @@
    Otherwise, set the =:name= key to the JNDI name you set for the
    =xa-datasource= in the JBoss AS7 configuration.
 
-   And any library based on =clojure.java.jdbc= should work just fine
+   And any library based on [[https://github.com/clojure/java.jdbc][clojure.java.jdbc]] should work just fine
    with that spec.
 
 *** Using =immutant.xa/datasource=
@@ -101,7 +101,7 @@
 
 * Defining Transactions
 
-  A transaction is easily defined using the =immutant.xa/transaction=
+  A transaction is easily defined using the [[./apidoc/immutant.xa.html#var-transaction][immutant.xa/transaction]] 
   macro:
 
   #+begin_src clojure
@@ -135,10 +135,10 @@
 
    But annotations are gross, right? :)
 
-   So instead, [[./apidoc/immutant.xa.html#var-/docs.oracle.com/javaee/6/tutorial/doc/bncij.html][the JEE transaction attributes]] in the form of Clojure macros. In fact, the
-   =xa/transaction= macro shown above is merely an alias for
-   =immutant.xa.transaction/required=, which is the implicit attribute
-   used in JEE. There are a total of 6 macros:
+   So instead, [[./apidoc/immutant.xa.html#var-/docs.oracle.com/javaee/6/tutorial/doc/bncij.html][the JEE transaction attributes]] in the form of Clojure
+   macros. In fact, the =xa/transaction= macro shown above is merely
+   an alias for [[./apidoc/immutant.xa.transaction.html#var-required][immutant.xa.transaction/required]], which is the
+   implicit attribute used in JEE. There are a total of 6 macros:
 
    | =required=      | Execute within current transaction, if any, otherwise start a new one, execute, commit or rollback.              |
    | =requires-new=  | Suspend current transaction, if any, start a new one, execute, commit or rollback, and resume the suspended one. |
