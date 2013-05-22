@@ -56,7 +56,7 @@
     | :every     | /none/                              | Specifies the delay interval between /at/ job firings, in ms, as a period alias, or as a period spec (see below). If specified without a =:repeat= or =:until=, the job will fire indefinitely. Can't be specified with a =spec=. |
     | :repeat    | /none/                              | Specifies the number of times an /at/ job should repeat beyond its initial firing. Can't be specified with a =spec=, and requires =:every= to be provided.                                                                  |
     | :until     | /none/                              | Specifies when the /at/ job should stop firing. Can be a java.util.Date, ms since epoch, or a time in HH:mm format (see below). Can't be specified with a =spec=.                                                           |
-    | :singleton | =true=                              | Marks the job as a /singleton/ in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node.                                                                                    |
+    | :singleton | =true=                              | Marks the job as a /singleton/ in a cluster. Singleton jobs will only execute on one node. If false, the job will execute on every node on which it is scheduled (see below).                                               |
 
   As a convenience, you can pass a time as a String (in "HH:mm" or
   "HHmm" format) for the =:at= and =:until= options. It will be
@@ -96,7 +96,7 @@
   #+end_src
 
   Job scheduling is dynamic, and can occur anytime during your
-  application's lifecycle.
+  application's lifecycle. 
 
   You can safely call =schedule= multiple times with the same job
   name - the named job will be rescheduled.
@@ -119,24 +119,53 @@
   |---------+---------+-------+--------------+-----------------+----------------+----------------------|
   |    0-59 |    0-59 |  0-23 | 1-31         | 1-12 or JAN-DEC | 1-7 or SUN-SAT | 1970-2099 (optional) |
 
-  For several fields, you may denote subdivision by using the forward-slash (/) character. To execute a job 
-  every 5 minutes, */5 in the minutes field would specify this condition.
+  For several fields, you may denote subdivision by using the
+  forward-slash (/) character. To execute a job every 5 minutes, */5
+  in the minutes field would specify this condition.
 
-  Spans may be indicated using the dash (-) character. To execute a job Monday through Friday, MON-FRI 
-  should be used in the day-of-week field.
+  Spans may be indicated using the dash (-) character. To execute a
+  job Monday through Friday, MON-FRI should be used in the day-of-week
+  field.
 
-  Multiple values may be separated using the comma (,) character. The specification of 1,15 in the 
-  day-of-month field would result in the job firing on the 1st and 15th of each month.
+  Multiple values may be separated using the comma (,) character. The
+  specification of 1,15 in the day-of-month field would result in the
+  job firing on the 1st and 15th of each month.
 
-  Either day-of-month or day-of-week must be specified using the ? character, since specifying
-  both is contradictory.
+  Either day-of-month or day-of-week must be specified using the ?
+  character, since specifying both is contradictory.
 
   See the [[http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06][Quartz cron specification]] for additional details.
 
+
+** A Note On Dynamic Singleton Jobs
+   
+   The singleton functionality is ensures that a job that is scheduled
+   on multiple nodes only runs on one at a time, and, for /at/ jobs
+   that have a finite execution count, ensures that the job only
+   executes the intended number of times in a cluster.
+
+   The singleton makes no effort to /distribute/ jobs across a
+   cluster - for a job to take advantage of the singleton guarantees,
+   it will need to be scheduled on every node of the cluster by your
+   application code calling =schedule=.
+
+   For jobs that are started as part of your application
+   initialization process, this should be no problem, since the
+   application initialization will occur on every node where the
+   application is deployed. However, for jobs that are scheduled
+   dynamically after initialization based upon an external event, you
+   will need to implement a mechanism to schedule that job on each
+   node.
+
+   One option for doing so is to create a [[./messaging.html][topic listener]] that runs on
+   each node, and is responsible for scheduling the job when a message
+   is received containing the job details. 
+
 ** Job MBeans
    
-   Each job scheduled gets its own mbean under the =immutant.jobs= namespace. This mbean can be used
-   to stop, start, and reschedule the job.
+   Each job scheduled gets its own mbean under the =immutant.jobs=
+   namespace. This mbean can be used to stop, start, and reschedule
+   the job.
 
 * Unscheduling Jobs
   
