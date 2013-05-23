@@ -500,7 +500,8 @@
        acc))
    #{}
    ["standalone/configuration/standalone.xml"
-    "standalone/configuration/standalone-ha.xml"]))
+    "standalone/configuration/standalone-ha.xml"
+    "domain/configuration/domain.xml"]))
 
 (defn slim-modules []
   (let [all-modules (extract-all-module-deps (jboss-dir))
@@ -508,6 +509,7 @@
                              (conj 
                               ;; add a few modules that aren't mentioned in any config,
                               ;; but are required at runtime
+                              "org.jboss.as.host-controller"
                               "org.jboss.as.standalone"
                               "org.jboss.as.domain-http-error-context"
                               "com.h2database.h2"
@@ -524,7 +526,7 @@
                 "bin/appclient.conf" "bin/appclient.sh" "bin/client"
                 "bin/jconsole.bat" "bin/jconsole.sh" "bin/jdr.bat" "bin/jdr.sh"
                 "bin/wsconsume.bat" "bin/wsconsome.sh" "bin/wsprovide.bat" "bin/wsprovide.sh"
-                "bundles" "docs/examples" "docs/schema" "domain" "welcome-content"]]
+                "bundles" "docs/examples" "docs/schema" "welcome-content"]]
     (let [f (io/file (jboss-dir) path)]
       (with-message (str"Deleting " path)
         (if (.isDirectory f)
