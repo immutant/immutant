@@ -96,7 +96,15 @@
    releasing at commit/rollback. See [[https://docs.jboss.org/author/display/ISPN51/Infinispan%2Btransactions][the Infinispan docs]] for more
    details.
 
-   Some examples are in order.
+   The =:units= option applies to both =:idle= and =:ttl=, but to
+   achieve finer granularity you may alternatively pass a two element
+   vector containing the amount and units, e.g.
+
+   #+begin_src clojure
+     (cache/create "my-cache" :ttl [42 :days] :idle [42 :minutes])
+   #+end_src
+
+   Some more examples are in order:
 
    #+begin_src clojure
      (ns example.test
@@ -147,7 +155,7 @@
      (put c :a 1)
      
      ;;; Override its time-to-live
-     (put c :a 1 {:ttl 1, :units :hours})
+     (put c :a 1 {:ttl [1 :hour]})
      
      ;;; Add all the entries in the map to the cache
      (put-all c {:b 2, :c 3})

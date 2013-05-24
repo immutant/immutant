@@ -38,6 +38,10 @@
    Possible values for :units -- :days, :hours, :minutes, :seconds,
                                  :milliseconds, :microseconds :nanoseconds
 
+   The :units option applies to both :idle and :ttl, but to achieve
+   finer granularity you may alternatively pass a two element vector
+   containing the amount and units, e.g. {:ttl [5 :hours]}.
+
    The conditional functions, e.g. put-if-*, are all atomic."
   (put [cache key value] [cache key value options]
     "Put an entry in the cache")
@@ -200,7 +204,8 @@
 
    The lifespan-oriented options (:ttl :idle :units) become the
    default options for the functions of the Mutable protocol. But any
-   options passed to those functions take precedence over these."
+   options passed to those functions take precedence over these. See
+   the Mutable doc for more info."
   [name & {:keys [seed] :as options}]
   (cc/seed (InfinispanCache. (configure-cache name options) options) seed))
 

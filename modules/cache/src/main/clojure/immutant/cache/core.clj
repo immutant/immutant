@@ -24,7 +24,8 @@
              org.infinispan.eviction.EvictionStrategy
              org.infinispan.manager.DefaultCacheManager
              org.infinispan.transaction.lookup.GenericTransactionManagerLookup
-             org.infinispan.util.concurrent.IsolationLevel))
+             org.infinispan.util.concurrent.IsolationLevel
+             java.util.concurrent.TimeUnit))
 
 (def service (registry/get org.projectodd.polyglot.cache.as.CacheService/CACHE))
 (def manager (delay (or (and service (.getCacheContainer service)) (DefaultCacheManager.))))
@@ -110,10 +111,21 @@
       (.start cache))
     (.getCache @manager name)))
 
-(defn lifespan-params [{:keys [ttl idle units] :or {ttl -1 idle -1 units :seconds}}]
-  (let [u (.toUpperCase (name units))
-        tu (java.util.concurrent.TimeUnit/valueOf u)]
-    (list ttl tu idle tu)))
+(defn time-unit
+  [kw]
+  (let [n (name kw)
+        n (if (.endsWith n "s") n (str n "s"))]
+    (TimeUnit/valueOf (.toUpperCase n))))
+
+(defn duration
+  [v units]
+  (if (coll? v)
+    [(first v) (time-unit (second v))]
+    [v (time-unit units)]))
+
+(defn lifespan-params
+  [{:keys [ttl idle units] :or {ttl -1 idle -1 units :seconds}}]
+  (concat (duration ttl units) (duration idle units)))
 
 (defmacro expire [form]
   `(apply (fn [e# eu# i# iu#]

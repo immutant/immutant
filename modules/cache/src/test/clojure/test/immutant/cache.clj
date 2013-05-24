@@ -17,9 +17,11 @@
 
 (ns test.immutant.cache
   (:use immutant.cache
-        clojure.test)
+        clojure.test
+        [immutant.cache.core :only [lifespan-params]])
   (:require [clojure.core.cache :as core]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io])
+  (:import java.util.concurrent.TimeUnit))
 
 (deftest test-lookup-by-list
   (is (= :foo (core/lookup (core/miss (create "foo") '(bar) :foo) '(bar)))))
@@ -92,7 +94,7 @@
 
 (deftest test-put-ttl
   (let [c (create "ttl" :seed {})]
-    (put c :a 1 {:ttl 500 :units :milliseconds})
+    (put c :a 1 {:ttl [500 :milliseconds]})
     (is (= 1 (get c :a)))
     (Thread/sleep 550)
     (is (nil? (get c :a)))))
@@ -106,7 +108,7 @@
 
 (deftest test-put-idle
   (let [c (create "idle")]
-    (put c :a 1 {:idle 500 :units :milliseconds})
+    (put c :a 1 {:idle [500 :milliseconds]})
     (Thread/sleep 300)
     (is (= 1 (get c :a)))
     (Thread/sleep 300)
@@ -117,7 +119,7 @@
 (deftest test-put-if-absent-ttl
   (let [c (create "absent")]
     (is (nil? (:a c)))
-    (is (nil? (put-if-absent c :a 1 {:ttl 300 :units :milliseconds})))
+    (is (nil? (put-if-absent c :a 1 {:ttl [300 :milliseconds]})))
     (is (= 1 (:a c)))
     (is (= 1 (put-if-absent c :a 2)))
     (is (= 1 (:a c)))
@@ -127,7 +129,7 @@
 (deftest test-put-all-ttl
   (let [c (create "all")]
     (is (= 0 (count c)))
-    (put-all c {:a 1 :b 2} {:ttl 300 :units :milliseconds})
+    (put-all c {:a 1 :b 2} {:ttl [300 :milliseconds]})
     (is (= 1 (:a c)))
     (is (= 2 (:b c)))
     (Thread/sleep 400)
@@ -202,3 +204,12 @@
     (is (nil? (:a c)))
     (is (= 2 (count c)))))
 
+(deftest test-lifespan-params
+  (is (= (lifespan-params {})                                [-1 TimeUnit/SECONDS -1 TimeUnit/SECONDS]))
+  (is (= (lifespan-params {:ttl 42 :idle 7 :units :minutes}) [42 TimeUnit/MINUTES  7 TimeUnit/MINUTES]))
+  (is (= (lifespan-params {:ttl 42 :units :hours})           [42 TimeUnit/HOURS   -1 TimeUnit/HOURS]))
+  (is (= (lifespan-params {:idle 3})                         [-1 TimeUnit/SECONDS  3 TimeUnit/SECONDS]))
+  (is (= (lifespan-params {:ttl [3 :hours] :idle [6 :days]}) [ 3 TimeUnit/HOURS    6 TimeUnit/DAYS]))
+  (is (= (lifespan-params {:ttl [60 :minutes]})              [60 TimeUnit/MINUTES -1 TimeUnit/SECONDS]))
+  (is (= (lifespan-params {:idle [60 :minutes]})             [-1 TimeUnit/SECONDS 60 TimeUnit/MINUTES]))
+  (is (= (lifespan-params {:ttl [1 :day] :idle [1 :hour]})   [ 1 TimeUnit/DAYS     1 TimeUnit/HOURS])))
