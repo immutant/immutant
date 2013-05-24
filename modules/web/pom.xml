@@ -118,7 +118,7 @@
     <plugins> 
 
       <plugin>
-        <groupId>com.theoryinpractise</groupId>
+        <groupId>org.clojars.tcrawley</groupId>
         <artifactId>clojure-maven-plugin</artifactId>
         <executions>
           <execution>

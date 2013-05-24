@@ -172,7 +172,7 @@
             </executions>
           </plugin>
           <plugin>
-            <groupId>com.theoryinpractise</groupId>
+            <groupId>org.clojars.tcrawley</groupId>
             <artifactId>clojure-maven-plugin</artifactId>
             <configuration>
               <testScript>src/test/clojure/immutant/integs.clj</testScript>
@@ -241,7 +241,7 @@
             </executions>
           </plugin>
           <plugin>
-            <groupId>com.theoryinpractise</groupId>
+            <groupId>org.clojars.tcrawley</groupId>
             <artifactId>clojure-maven-plugin</artifactId>
             <configuration>
               <testScript>src/test/clojure/immutant/integs.clj</testScript>
