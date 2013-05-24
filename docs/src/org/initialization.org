@@ -56,12 +56,13 @@
      dependencies.
 
   7. If an initialization function was specified in either the
-     descriptor or the =:immutant= map in the project (via the
-     =:init= key), it is loaded and invoked within the application's
-     runtime (see [[#initialization-configuration][:init]] for more details). If no init function was
-     specified, Immutant will attempt to load an =immutant.init=
-     namespace. See [[#initialization-immutant-init][immutant.init]] for more information on using this
-     initialization method. At this point, the application is fully
+     descriptor or the =:immutant= map in the project (via the [[#initialization-configuration][:init]]
+     key), it is loaded and invoked within the application's runtime.
+     If no init function was specified, Immutant will attempt to load
+     an [[#initialization-immutant-init][immutant.init]] namespace. Lacking that, the [[https://github.com/weavejester/lein-ring][lein-ring]] plugin's
+     configuration in =project.clj= will be used, so any application
+     configured for lein-ring should run in Immutant without any
+     further changes. At this point, the application is fully
      initialized.
 
 * Configuration Options

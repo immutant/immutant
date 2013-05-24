@@ -97,7 +97,8 @@
     sub-context path - providing an already attached sub-context will
     replace the previously registered handler.
   - =handler= - the Ring handler to invoke when requests come in on the
-    sub context path.
+    sub context path. If a symbol is passed, it'll be resolved to a
+    var to facilitate auto-reloading.
 
   The options are a subset of those provided by the popular [[https://github.com/weavejester/ring-server][ring-server]]:  
 
@@ -136,9 +137,10 @@
     ;; receives at /my-app/somewhere/*.
     (web/start "/somewhere" my-other-handler)
     
-    ;; If you want to see your changes immediately while in a REPL, be
-    ;; sure to pass a var-quoted handler. You only need to explicitly
-    ;; set :auto-reload? when not in development mode.
+    ;; If you want to see your changes immediately while in a REPL,
+    ;; the symbol referring to your handler should resolve to a var.
+    ;; You only need to explicitly set :auto-reload? when not in
+    ;; development mode.
     (web/start #'your-handler :auto-reload? true)
   #+end_src
 
@@ -446,7 +448,3 @@
    var similarly at a REPL after including =:immutant {:nrepl-port
    7888}= in your =project.clj= and deploying it to a running Immutant
    instance.
-
-   NOTE: As of this writing, Pedestal route tables are not
-   context-aware, so unless you deploy them to the root context, you
-   must hard-code the context path in your routes.

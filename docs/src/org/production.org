@@ -48,10 +48,10 @@
   cases it's possible to configure Immutant to use a predefined set of
   cluster members. Dynamic peer discovery is possible in a
   non-multicast environment using a gossip router or, if on Amazon
-  EC2, the =S3_PING= JGroups protocol (see below).
+  EC2, the [[http://www.jgroups.org/javadoc/org/jgroups/protocols/S3_PING.html][S3_PING]] JGroups protocol (see below).
 
-  When you want to set the hosts for your cluster, replace the =MPING=
-  protocol in the default configuration with =TCPPING=. You'll also
+  When you want to set the hosts for your cluster, replace the [[http://www.jgroups.org/javadoc/org/jgroups/protocols/MPING.html][MPING]]
+  protocol in the default configuration with [[http://www.jgroups.org/javadoc/org/jgroups/protocols/TCPPING.html][TCPPING]]. You'll also
   want to change the =default-stack= attribute of the JGroups
   =subsystem= to "tcp". Edit
   =$IMMUTANT_HOME/jboss/standalone/configuration/standalone-ha.xml= to
@@ -80,10 +80,10 @@
 ** Clustering on Amazon EC2
 
    Enabling clustering with dynamic discovery on EC2 amounts to
-   replacing the =MPING= protocol element of the "tcp" stack
+   replacing the [[http://www.jgroups.org/javadoc/org/jgroups/protocols/MPING.html][MPING]] protocol element of the "tcp" stack
    configured in
    =$IMMUTANT_HOME/jboss/standalone/configuration/standalone-ha.xml=
-   with =S3_PING=. And be sure to change the =default-stack= attribute
+   with [[http://www.jgroups.org/javadoc/org/jgroups/protocols/S3_PING.html][S3_PING]]. And be sure to change the =default-stack= attribute
    of the =subsystem= to "tcp".
 
    #+begin_src xml
