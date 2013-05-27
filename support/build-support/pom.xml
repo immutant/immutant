@@ -91,7 +91,7 @@
       </plugin>
 
       <plugin>
-        <groupId>org.clojars.tcrawley</groupId>
+        <groupId>com.theoryinpractise</groupId>
         <artifactId>clojure-maven-plugin</artifactId>
         <configuration>
           <temporaryOutputDirectory>false</temporaryOutputDirectory>

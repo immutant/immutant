@@ -135,7 +135,7 @@
       </plugin>
 
       <plugin>
-        <groupId>org.clojars.tcrawley</groupId>
+        <groupId>com.theoryinpractise</groupId>
         <artifactId>clojure-maven-plugin</artifactId>
         <version>${version.clojure-maven-plugin}</version>
         <configuration>

@@ -31,7 +31,7 @@
     <plugins> 
 
       <plugin>
-        <groupId>org.clojars.tcrawley</groupId>
+        <groupId>com.theoryinpractise</groupId>
         <artifactId>clojure-maven-plugin</artifactId>
         <executions>
           <execution>

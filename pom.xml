@@ -374,7 +374,7 @@
     <version.clojure.core.cache>0.6.1</version.clojure.core.cache>
     <version.clojure.core.memoize>0.5.2</version.clojure.core.memoize>
     <version.clojure.java.jmx>0.3.0</version.clojure.java.jmx>
-    <version.clojure-maven-plugin>1.3.15.1</version.clojure-maven-plugin>
+    <version.clojure-maven-plugin>1.3.17</version.clojure-maven-plugin>
     <version.clojure-complete>0.2.2</version.clojure-complete>
     <version.ring>1.1.8</version.ring>
     <version.dynapath>0.2.3</version.dynapath>
@@ -735,7 +735,7 @@
           </configuration>
         </plugin>
         <plugin>
-          <groupId>org.clojars.tcrawley</groupId>
+          <groupId>com.theoryinpractise</groupId>
           <artifactId>clojure-maven-plugin</artifactId>
           <version>${version.clojure-maven-plugin}</version>
           <extensions>true</extensions>
