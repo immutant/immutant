@@ -36,7 +36,9 @@
                     :snapshots true}]
                   ["projectodd"
                    {:url "https://repository-projectodd.forge.cloudbees.com/release"
-                    :snapshots false}]]})
+                    :snapshots false}]]
+   :scm {:name "git"
+         :url "https://github.com/immutant/immutant/"}})
 
 (defn read-deps [file]
   (filter seq
@@ -64,9 +66,10 @@
                   (map (fn [d] [(symbol (:group d) (:name d))
                                 (:version d)]))
                   (apply-exclusions exclusions))
-        project (assoc base-project
-                  :dependencies deps
-                  :description description)
+        project (-> base-project
+                    (assoc :dependencies deps
+                           :description description)
+                    (assoc-in [:scm :tag] version))
         root-jar (or root-jar (str "target/" project-name ".jar"))]
     (println "Generating" (.getAbsolutePath project-file))
     (.mkdirs dir)

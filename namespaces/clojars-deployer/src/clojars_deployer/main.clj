@@ -15,13 +15,15 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.build.deploy-to-clojars
+(ns clojars-deployer.main
   (:require [clojure.java.io :as io]
             [leiningen.core.project :as project]
             [leiningen.core.user :as user]
             [leiningen.deploy :as deploy]
-            [cemerick.pomegranate.aether :as aether])
-  (:gen-class))
+            [cemerick.pomegranate.aether :as aether]
+            clojure.pprint)
+  ;(:gen-class)
+  )
 
 (def key-id "BFC757F9")
 
@@ -33,31 +35,33 @@
                                                 (format "%s-%s.jar"
                                                         (:name project)
                                                         (:version project))))}]
-    ;; TODO: use the immutant cert
     (reduce merge artifacts
             (map #(deploy/signature-for-artifact % {:gpg-key key-id})
                  artifacts))))
 
 (defn deploy [project artifacts]
   (println "Publishing artifacts for" (:name project))
+  (clojure.pprint/pprint (deploy/repo-for project "clojars"))
   (aether/deploy
-   :coordinates [(symbol (:group project) (:name project))
-                 project]
-   :artifact-map artifacts
-   :transfer-listener :stdout
-   :repository (deploy/repo-for project "clojars")))
+   ;clojure.pprint/pprint
+    :coordinates [(symbol (:group project) (:name project))
+                  (:version project)]
+    :artifact-map artifacts
+    :transfer-listener :stdout
+    :repository (apply hash-map (deploy/repo-for project "clojars"))))
 
 (defn process-artifacts [base-dir]
   (println "Looking for artifacts in" base-dir)
-  (for [dir (file-seq (io/file base-dir))
-        :let [project-file (io/file dir "project.clj")]
-        :when (.exists project-file)]
+  (doseq [dir (file-seq (io/file base-dir))
+          :let [project-file (io/file dir "project.clj")]
+          :when (.exists project-file)]
     (let [project (project/read (.getAbsolutePath project-file))]
       (deploy project (artifacts dir project)))))
 
-(defn -main []
-  (println "Pushing artifacts to clojars...")
-  (if-let [dir (System/getProperty "dir")]
-    (process-artifacts dir)
-    (println "No dir provided - use -Ddir=/path/to/artifacts"))
+(defn -main [& [dir]]
+  (if dir
+    (do
+      (println "Pushing artifacts to clojars...")
+      (process-artifacts dir))
+    (println "No path to the artifacts dir provided. exiting."))
   (shutdown-agents))
