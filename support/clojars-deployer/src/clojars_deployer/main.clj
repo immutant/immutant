@@ -20,10 +20,7 @@
             [leiningen.core.project :as project]
             [leiningen.core.user :as user]
             [leiningen.deploy :as deploy]
-            [cemerick.pomegranate.aether :as aether]
-            clojure.pprint)
-  ;(:gen-class)
-  )
+            [cemerick.pomegranate.aether :as aether]))
 
 (def key-id "BFC757F9")
 
@@ -43,7 +40,6 @@
   (println "Publishing artifacts for" (:name project))
   (clojure.pprint/pprint (deploy/repo-for project "clojars"))
   (aether/deploy
-   ;clojure.pprint/pprint
     :coordinates [(symbol (:group project) (:name project))
                   (:version project)]
     :artifact-map artifacts
