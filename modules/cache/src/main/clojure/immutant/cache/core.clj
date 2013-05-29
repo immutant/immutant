@@ -49,7 +49,8 @@
 (defn set-optimistic-locking!
   [builder]
   (.. builder transaction
-      (lockingMode LockingMode/OPTIMISTIC))
+      (lockingMode LockingMode/OPTIMISTIC)
+      (useSynchronization false))
   (.. builder versioning
       (enabled true)
       (scheme VersioningScheme/SIMPLE))
@@ -61,7 +62,8 @@
 (defn set-pessimistic-locking!
   [builder]
   (.. builder transaction
-      (lockingMode LockingMode/PESSIMISTIC))
+      (lockingMode LockingMode/PESSIMISTIC)
+      (useSynchronization false))
   builder)
 
 (defn build-config
