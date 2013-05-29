@@ -189,11 +189,11 @@
      (io/delete-file "Infinispan-FileCacheStore/mike")
      (io/delete-file "Infinispan-FileCacheStore"))))
 
-(deftest test-locking-change-restarts
-  (let [c (create "terrence" :locking :optimistic)]
+(deftest test-create-restarts
+  (let [c (create "terrence")]
     (put c :a 1)
     (is (= 1 (:a c)))
-    (create "terrence" :locking :pessimistic)
+    (create "terrence")
     (is (empty? c))))
 
 (deftest test-eviction
