@@ -262,7 +262,8 @@
 (defn add-logger-levels [loc]
   (-> loc
       (zip/insert-right (logger "org.jboss.as.dependency.private" "ERROR"))
-      (zip/insert-right (logger "immutant.web" "DEBUG"))))
+      (zip/insert-right (logger "immutant.web" "DEBUG"))
+      (zip/insert-right (logger "immutant.cache" "DEBUG"))))
 
 (defn disable-hq-security [loc]
   (zip/append-child loc {:tag :security-enabled :content ["false"]}))

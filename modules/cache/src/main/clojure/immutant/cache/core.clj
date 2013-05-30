@@ -104,10 +104,13 @@
 (defn configure-cache
   "Defaults to :distributed with :sync=true for a clustered cache, otherwise :local"
   [name opts]
-  (let [config (merge {:mode (default-mode), :sync true} opts)]
-    (log/info "Configuring cache" name "as"
-              (select-keys config [:mode :sync :locking :persist :max-entries :eviction]))
-    (.defineConfiguration @manager name (build-config config))
+  (let [default (.getDefaultCacheConfiguration @manager)
+        settings (merge {:template default, :mode (default-mode), :sync true} opts)
+        config (build-config settings)]
+    (log/info (str "Configuring cache [" name "] as "
+                   (select-keys settings [:mode :sync :locking :persist :max-entries :eviction])))
+    (log/debug (str "Infinispan options for cache [" name "]: " config))
+    (.defineConfiguration @manager name config)
     (when-let [cache (get-cache name)]
       (.stop cache)
       (.start cache))
