@@ -45,7 +45,7 @@
   (is (nil? (:a core/cache)))
   (is (= 10 (:deliveries core/cache))))
 
-(deftest non-transactional-writes-in-listener-should-work-on-exception
+(deftest non-transactional-writes-in-listener-with-exception
   (deref (imsg/listen "/queue/trigger-no-tx" listener :xa false))
   (imsg/publish "/queue/trigger-no-tx" {:throw? true})
   (is (= "kiwi" (imsg/receive "/queue/test" :timeout 10000)))
