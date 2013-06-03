@@ -176,6 +176,7 @@
 
    The following options are supported [default]:
      :concurrency  the number of threads handling messages [1]
+     :xa           Whether the handler demarcates an XA transaction [true]
      :selector     A JMS (SQL 92) expression matching message metadata/properties [nil]
      :decode?      if true, the decoded message body is passed to f. Otherwise, the
                    javax.jms.Message object is passed [true]
@@ -197,7 +198,7 @@
      :reconnect-attempts         total number of reconnect attempts to make before giving
                                  up and shutting down (-1 for unlimited) [0]"
   [dest f & {:keys [concurrency decode? host] :or {concurrency 1 decode? true} :as opts}]
-  (let [connection (create-connection (assoc opts :xa (nil? host)))
+  (let [connection (create-connection (merge {:xa (nil? host)} opts))
         dest-name (destination-name dest)
         izer (registry/get "message-processor-groupizer")
         setup-fn (fn []

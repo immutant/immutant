@@ -6,6 +6,7 @@
             [tx.core :as core]))
 
 (imsg/start "/queue/trigger")
+(imsg/start "/queue/trigger-no-tx")
 
 (defn listener [m]
   (imsg/publish "/queue/test" "kiwi")
@@ -43,3 +44,12 @@
   (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000)))
   (is (nil? (:a core/cache)))
   (is (= 10 (:deliveries core/cache))))
+
+(deftest non-transactional-writes-in-listener-should-work-on-exception
+  (deref (imsg/listen "/queue/trigger-no-tx" listener :xa false))
+  (imsg/publish "/queue/trigger-no-tx" {:throw? true})
+  (is (= "kiwi" (imsg/receive "/queue/test" :timeout 10000)))
+  (is (= "starfruit" (imsg/receive "/queue/remote-test" :timeout 10000)))
+  (is (= 1 (:a core/cache)))
+  (is (= 1 (:deliveries core/cache))))
+

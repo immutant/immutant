@@ -49,10 +49,14 @@ public class MessageProcessor extends BaseMessageProcessor {
         try {
             try {
                 this.runtime.invoke(this.handler, message);
-                getTransactionManager().commit();
+                if (isXAEnabled()) {
+                    getTransactionManager().commit();
+                }
             } catch (javax.transaction.RollbackException ignored) {
             } catch (Throwable e) {
-                getTransactionManager().rollback();
+                if (isXAEnabled()) {
+                    getTransactionManager().rollback();
+                }
                 throw(e);
             }
         } catch (Throwable e) {

@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.jms.XAConnection;
+import javax.jms.Connection;
 
 import org.immutant.core.as.CoreServices;
 import org.immutant.messaging.as.MessagingServices;
@@ -51,7 +51,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
                                                  final int concurrency, 
                                                  final boolean durable, 
                                                  final String handlerName, 
-                                                 final XAConnection connection, 
+                                                 final Connection connection, 
                                                  final Object setupHandler) {
         
         final ServiceName pointerDestName = DestinationUtils.destinationPointerName(getUnit(), destinationName);

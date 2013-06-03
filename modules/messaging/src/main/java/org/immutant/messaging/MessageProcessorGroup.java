@@ -24,6 +24,7 @@ import java.util.Map;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
+import javax.jms.Connection;
 import javax.jms.XAConnection;
 
 import org.immutant.core.HasImmutantRuntimeInjector;
@@ -45,11 +46,12 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
     public MessageProcessorGroup(ServiceRegistry registry, 
                                  ServiceName baseServiceName,
                                  String destinationName, 
-                                 XAConnection connection, 
+                                 Connection connection, 
                                  Object setupHandler) {
         super( registry, baseServiceName, destinationName, MessageProcessor.class );
         setStartAsynchronously( false );
         setConnection( connection );
+        setXAEnabled(connection instanceof XAConnection);
         this.setupHandler = setupHandler;
     }
     

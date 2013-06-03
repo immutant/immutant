@@ -301,25 +301,39 @@
    |------------------------------+---------+-------------------------------------|
    |                              | <c>     | <35>                                |
    | =:concurrency=               | =1=     | The maximum number of listening threads that can simultaneouly call the function |
+   | =:xa=                        | =true=  | The handler demarcates an XA transaction |
    | =:retry-interval=            |         | The period in milliseconds between subsequent reconnection attempts. |
    | =:retry-interval-multiplier= |         | A multiplier to apply to the time since the last retry to compute the time to the next retry. |
    | =:max-retry-interval=        | =2000=  | The max retry interval that will be used. |
    | =:reconnect-attempts=        | =0=     | Total number of reconnect attempts to make before giving up and shutting down. (-1: unlimited) |
 
-   =listen= is asynchronous - if you need to synchronize on the
+   =listen= is asynchronous; if you need to synchronize on the
    completion of its initialization, you should deref the result.
 
-   By default, message handlers are transactional, so the function
-   invoked in response to a message effectively demarcates a
-   transaction that will be automatically committed if no exceptions
-   are raised in the handler, and otherwise rolled back.
+*** Transactional by default
 
-   Any messages published within the handler automatically become part
-   of its transaction, by default. So they won't be delivered until
-   that transaction commits. To override this behavior, wrap your
-   handler inside the [[./apidoc/immutant.xa.transaction.html#var-not-supported][immutant.xa.transaction/not-supported]] macro.
+    By default, message handlers are transactional, so the function
+    invoked in response to a message effectively demarcates a
+    transaction that will be automatically committed if no exceptions
+    are raised, and otherwise rolled back.
 
-   See [[./transactions.html][Distributed Transactions]] for more details.
+    Any messages published within the handler automatically become
+    part of its transaction. So they won't be delivered until that
+    transaction commits, i.e. the handler runs to completion
+    successfully. Operations on Immutant caches and datasources work
+    the same way when called from within a handler.
+
+    To override this behavior, set the =:xa= option to false when
+    invoking =listen=. You should probably do this for any handlers
+    you expect to take a long time to complete (>1 minute). By
+    default, a reaper process will abort any transaction taking longer
+    than 5 minutes.
+
+    For finer-grained control, another option is to wrap any
+    operations outside the scope of your handler's transaction inside
+    a call to [[./apidoc/immutant.xa.transaction.html#var-not-supported][immutant.xa.transaction/not-supported]].
+
+    See [[./transactions.html][Distributed Transactions]] for more details.
 
 *** Some Examples
 
