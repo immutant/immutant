@@ -1,6 +1,7 @@
 (ns tx.test.listen
   (:use clojure.test)
-  (:require [immutant.cache :as ic]
+  (:require [immutant.util :as util]
+            [immutant.cache :as ic]
             [immutant.messaging :as imsg]
             [immutant.xa.transaction :as tx]
             [tx.core :as core]))
@@ -51,5 +52,5 @@
   (is (= "kiwi" (imsg/receive "/queue/test" :timeout 10000)))
   (is (= "starfruit" (imsg/receive "/queue/remote-test" :timeout 10000)))
   (is (= 1 (:a core/cache)))
-  (is (= 1 (:deliveries core/cache))))
+  (is (util/wait-for #(= 10 (:deliveries core/cache)) (constantly true))))
 

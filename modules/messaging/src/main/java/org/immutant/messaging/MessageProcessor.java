@@ -60,7 +60,7 @@ public class MessageProcessor extends BaseMessageProcessor {
                 throw(e);
             }
         } catch (Throwable e) {
-            log.error("Unexpected error in " + getGroup().getName(), e);
+            throw new RuntimeException("Unexpected error processing message from: " + getGroup().getName(), e);
         }
     }
     
