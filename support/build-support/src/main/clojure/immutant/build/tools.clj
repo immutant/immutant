@@ -276,10 +276,14 @@
       disable-hq-security
       enable-hq-jmx))
 
-(defn disable-flow-control
-  "Assumes loc is :jms-connection-factories and its first child is the in-vm one"
+(defn update-hq-invmcf
+  "Assumes loc is :connection-factory"
   [loc]
-  (zip/append-child (zip/down loc) {:tag :consumer-window-size :content ["1"]}))
+  (if (= "InVmConnectionFactory" (-> loc zip/node :attrs :name))
+    (-> loc
+        (zip/append-child {:tag :consumer-window-size :content ["1"]})
+        (zip/append-child {:tag :connection-ttl :content ["1800000"]}))
+    loc))
 
 (defn append-system-properties [loc]
   (if (looking-at? :system-properties (zip/right loc))
@@ -367,7 +371,7 @@
                 :max-size-bytes                 (zip/edit loc assoc :content ["20971520"])
                 :address-full-policy            (zip/edit loc assoc :content ["PAGE"])
                 :hornetq-server                 (update-hq-server loc)
-                :jms-connection-factories       (disable-flow-control loc)
+                :connection-factory             (update-hq-invmcf loc)
                 :servers                        (replace-servers loc)
                 :server-groups                  (replace-server-groups loc)
                 :socket-binding-group           (fix-socket-binding-group loc)
