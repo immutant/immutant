@@ -195,3 +195,9 @@
   (if (instance? IDeref v)
     (apply deref v args)
     v))
+
+(defn dev-mode?
+  "Returns true if the app is running in dev mode."
+  []
+  (not (or (System/getenv "LEIN_NO_DEV")
+           (->> (registry/get :project) meta :active-profiles (not-any? #{:dev})))))
