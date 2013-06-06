@@ -19,6 +19,7 @@
     (:use ring.middleware.stacktrace
           ring.middleware.reload)
     (:require [immutant.registry :as registry]
+              [immutant.util     :as util]
               [clojure.java.io :as io]
               dynapath.util))
 
@@ -54,9 +55,7 @@
 
 (defn add-middleware
   [handler options]
-  (let [project (registry/get :project)]
-    (binding [*dev* (not (or (System/getenv "LEIN_NO_DEV")
-                             (->> project meta :active-profiles (not-any? #{:dev}))))]
-      (-> handler
-          (add-auto-reload options)
-          (add-stacktraces options)))))
+  (binding [*dev* (util/dev-mode?)]
+    (-> handler
+        (add-auto-reload options)
+        (add-stacktraces options))))
