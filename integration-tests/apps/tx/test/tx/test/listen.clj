@@ -28,7 +28,7 @@
 
 (deftest transactional-writes-in-listener-should-work
   (trigger-listener)
-  (is (= "kiwi" (imsg/receive "/queue/test" :timeout 10000)))
+  (is (= "kiwi" (imsg/receive "/queue/test")))
   (is (= "starfruit" (imsg/receive "/queue/remote-test")))
   (is (= 1 (:a core/cache))))
 
@@ -49,8 +49,8 @@
 (deftest non-transactional-writes-in-listener-with-exception
   (deref (imsg/listen "/queue/trigger-no-tx" listener :xa false))
   (imsg/publish "/queue/trigger-no-tx" {:throw? true})
-  (is (= "kiwi" (imsg/receive "/queue/test" :timeout 10000)))
-  (is (= "starfruit" (imsg/receive "/queue/remote-test" :timeout 10000)))
+  (is (util/wait-for #(= 10 (:deliveries core/cache)) (constantly true)))
   (is (= 1 (:a core/cache)))
-  (is (util/wait-for #(= 10 (:deliveries core/cache)) (constantly true))))
+  (is (every? #(= "kiwi" %) (take 10 (imsg/message-seq "/queue/test"))))
+  (is (every? #(= "starfruit" %) (take 10 (imsg/message-seq "/queue/remote-test")))))
 
