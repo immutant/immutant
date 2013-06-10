@@ -106,12 +106,10 @@
      </subsystem>
    #+end_src
 
-** JGroups config for HornetQ
+** HornetQ Configuration
 
-   HornetQ uses JGroups for its clustering protocol, so if multicast
-   is enabled, no changes are required. Without multicast, you must
-   change the config to use the "tcp" stack instead of the default
-   "udp" stack.
+   Without multicast, you must change the HornetQ config to use the
+   JGroups "tcp" stack instead of the default "udp" stack.
 
    Search for =jgroups-stack= in
    =$IMMUTANT_HOME/jboss/standalone/configuration/standalone-ha.xml=,
@@ -123,11 +121,11 @@
    #+end_src
    
    This =${property:default}= syntax refers to a Java system property
-   called =msg.jgroups.stack=. If unset, the value to the right of the
-   colon is used, so you must either set this system property to "tcp"
-   [[./jboss.html#jboss-run][on the command line]], e.g. =-Dmsg.jgroups.stack=tcp= or replace
-   "udp" with "tcp" in the config file for both the =broadcast-group=
-   and =discovery-group= elements.
+   called =msg.jgroups.stack=. If unset, the value following the colon
+   is used, so you must either set this system property to "tcp" [[./jboss.html#jboss-run][on
+   the command line]], e.g. =-Dmsg.jgroups.stack=tcp=, or replace "udp"
+   with "tcp" in the config file for both the =broadcast-group= and
+   =discovery-group= elements.
 
 * Apache =mod_cluster= Reverse Proxy
 
