@@ -40,6 +40,9 @@
   delete these when the server is not running to clear its persistent state.
 
 * Running
+  :PROPERTIES:
+  :CUSTOM_ID: jboss-run
+  :END:
 
   The =$JBOSS_HOME/bin/= directory contains the main JBoss entry point, 
   =standalone.sh= (or =standalone.bat=), along with its config file, 
@@ -49,11 +52,20 @@
    $ $JBOSS_HOME/bin/standalone.sh 
   #+end_src
 
+  In fact, this is exactly what the [[./deployment.html#lein-immutant-run][lein-immutant plugin's run task]]
+  does.
+
   Use the =--server-config= option to specify a different configuration. For 
   example, to put JBoss in "clustered" mode:
 
   #+begin_src sh
    $ $JBOSS_HOME/bin/standalone.sh --server-config=standalone-ha.xml
+  #+end_src
+
+  The lein plugin's =--clustered= option is shorthand for the above:
+
+  #+begin_src sh
+   $ lein immutant run --clustered
   #+end_src
 
   You may set Java system properties using the =-D= option. Pass =-h= for a 

@@ -51,9 +51,10 @@
   EC2, the [[http://www.jgroups.org/javadoc/org/jgroups/protocols/S3_PING.html][S3\_PING]] JGroups protocol (see below).
 
   When you want to set the hosts for your cluster, replace the [[http://www.jgroups.org/javadoc/org/jgroups/protocols/MPING.html][MPING]]
-  protocol in the default configuration with [[http://www.jgroups.org/javadoc/org/jgroups/protocols/TCPPING.html][TCPPING]]. You'll also
-  want to change the =default-stack= attribute of the JGroups
-  =subsystem= to "tcp". Edit
+  protocol in the default configuration with [[http://www.jgroups.org/javadoc/org/jgroups/protocols/TCPPING.html][TCPPING]]. You'll also want
+  to change both the =default-stack= attribute of the JGroups
+  =subsystem= and the =jgroups-stack= descendants of the
+  =hornetq-server= element from "udp" to "tcp". Edit
   =$IMMUTANT_HOME/jboss/standalone/configuration/standalone-ha.xml= to
   make it look similar to this:
 
@@ -104,6 +105,29 @@
        </stack>
      </subsystem>
    #+end_src
+
+** JGroups config for HornetQ
+
+   HornetQ uses JGroups for its clustering protocol, so if multicast
+   is enabled, no changes are required. Without multicast, you must
+   change the config to use the "tcp" stack instead of the default
+   "udp" stack.
+
+   Search for =jgroups-stack= in
+   =$IMMUTANT_HOME/jboss/standalone/configuration/standalone-ha.xml=,
+   and you'll see this beneath both the =broadcast-group= and
+   =discovery-group= elements:
+
+   #+begin_src xml
+     <jgroups-stack>${msg.jgroups.stack:udp}</jgroups-stack>
+   #+end_src
+   
+   This =${property:default}= syntax refers to a Java system property
+   called =msg.jgroups.stack=. If unset, the value to the right of the
+   colon is used, so you must either set this system property to "tcp"
+   [[./jboss.html#jboss-run][on the command line]], e.g. =-Dmsg.jgroups.stack=tcp= or replace
+   "udp" with "tcp" in the config file for both the =broadcast-group=
+   and =discovery-group= elements.
 
 * Apache =mod_cluster= Reverse Proxy
 

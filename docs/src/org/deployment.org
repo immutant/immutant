@@ -117,6 +117,9 @@
   format of the deployment descriptor, see [[./initialization.html#initialization-configuration][Configuration Options]].
 
 * Running Immutant
+  :PROPERTIES:
+  :CUSTOM_ID: lein-immutant-run
+  :END:
 
   Regardless of how you deploy your app, it will only run if Immutant
   itself is running. This is easily accomplished using the plugin:
@@ -124,6 +127,9 @@
   #+begin_src sh
     $ lein immutant run
   #+end_src
+
+  The =run= task is essentially an alias for the [[./jboss.html#jboss-run][JBoss standalone.sh
+  script]], so all of its options are supported.
 
   Simply type Ctrl-c to exit, but you may as well leave it up. You can
   deploy and undeploy as many applications as your RAM will allow to a
