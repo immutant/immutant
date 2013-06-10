@@ -48,7 +48,7 @@
   cases it's possible to configure Immutant to use a predefined set of
   cluster members. Dynamic peer discovery is possible in a
   non-multicast environment using a gossip router or, if on Amazon
-  EC2, the [[http://www.jgroups.org/javadoc/org/jgroups/protocols/S3_PING.html][S3_PING]] JGroups protocol (see below).
+  EC2, the [[http://www.jgroups.org/javadoc/org/jgroups/protocols/S3_PING.html][S3\_PING]] JGroups protocol (see below).
 
   When you want to set the hosts for your cluster, replace the [[http://www.jgroups.org/javadoc/org/jgroups/protocols/MPING.html][MPING]]
   protocol in the default configuration with [[http://www.jgroups.org/javadoc/org/jgroups/protocols/TCPPING.html][TCPPING]]. You'll also
@@ -83,7 +83,7 @@
    replacing the [[http://www.jgroups.org/javadoc/org/jgroups/protocols/MPING.html][MPING]] protocol element of the "tcp" stack
    configured in
    =$IMMUTANT_HOME/jboss/standalone/configuration/standalone-ha.xml=
-   with [[http://www.jgroups.org/javadoc/org/jgroups/protocols/S3_PING.html][S3_PING]]. And be sure to change the =default-stack= attribute
+   with [[http://www.jgroups.org/javadoc/org/jgroups/protocols/S3_PING.html][S3\_PING]]. And be sure to change the =default-stack= attribute
    of the =subsystem= to "tcp".
 
    #+begin_src xml
@@ -111,7 +111,7 @@
   dispatching reverse proxy fronting the application, accepting web
   requests and handing them off to your application. There are many
   common reverse proxies, e.g. [[http://haproxy.1wt.eu/][HAProxy]] and [[http://nginx.org][nginx]], and they'll all work
-  fine with Immutant, but the JBoss [[http://www.jboss.org/mod_cluster][mod_cluster]] project is worth
+  fine with Immutant, but the JBoss [[http://www.jboss.org/mod_cluster][mod\_cluster]] project is worth
   special mention because it is aware of the deployment state of each
   peer in your cluster. It is not enough for the node to simply be
   "up": requests won't be routed to nodes that don't have the
