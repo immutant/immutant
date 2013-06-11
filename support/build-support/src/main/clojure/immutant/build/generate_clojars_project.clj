@@ -16,10 +16,11 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.build.generate-clojars-project
-  (:require [clojure.java.io :as io]
-            [clojure.string :as str]
-            [leiningen.core.project :as project]
-            [leiningen.pom :as pom])
+  (:require [clojure.java.io             :as io]
+            [clojure.string              :as str]
+            [clojure.java.shell          :as sh]
+            [leiningen.core.project      :as project]
+            [cemerick.pomegranate.aether :as aether])
   (:gen-class))
 
 
@@ -87,9 +88,28 @@
        :project-file project-file
        :jar-file dest-jar})))
 
+(defn lein-classpath []
+  (->> (aether/resolve-dependencies
+        :coordinates '[[leiningen "2.2.0"]
+                       [org.clojure/clojure "1.5.1"]]
+        :repositories (merge aether/maven-central
+                             {"clojars" "https://clojars.org/repo/"}))
+       aether/dependency-files
+       (map #(.getAbsolutePath %))
+       (clojure.string/join ":" )))
+
+;; shell out to a lein subprocess to avoid bringing leiningen.jar into
+;; the build classpath, since it is AOT'd
 (defn generate-pom [{:keys [project-file] :as build-data}]
-  (assoc build-data :pom-file
-         (io/file (pom/pom (project/read (.getAbsolutePath project-file))))))
+  (let [r (sh/sh "java"
+                 "-classpath" (lein-classpath)
+                 "clojure.main" "-m" "leiningen.core.main" "pom"
+                 :dir (.getParent project-file))]
+  (print (:out r))
+  (print (:err r))
+  (if (= 0 (:exit r))
+    (assoc build-data :pom-file (io/file (.getParent project-file) "pom.xml"))
+    build-data)))
 
 (defn copy-to-parent [build-data]
   (let [target (io/file "../target/namespaces/" (:name build-data))]
@@ -115,4 +135,5 @@
             (str/trim version)
             opts)
            generate-pom
-           copy-to-parent))))
+           copy-to-parent))
+     (shutdown-agents)))

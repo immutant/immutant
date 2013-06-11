@@ -57,12 +57,6 @@
     </dependency>
 
     <dependency>
-      <groupId>leiningen</groupId>
-      <artifactId>leiningen</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.clojars.tcrawley</groupId>
       <artifactId>codox.core</artifactId>
       <scope>compile</scope>

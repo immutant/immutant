@@ -291,12 +291,6 @@
       </dependency>
 
       <dependency>
-        <groupId>leiningen</groupId>
-        <artifactId>leiningen</artifactId>
-        <version>${version.leiningen}</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.clojure</groupId>
         <artifactId>tools.nrepl</artifactId>
         <version>${version.nrepl}</version>
