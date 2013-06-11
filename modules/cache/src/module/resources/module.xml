@@ -28,6 +28,7 @@
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="core.cache.jar"/>
         <resource-root path="core.memoize.jar"/>
+        <resource-root path="data.priority-map.jar"/>
     </resources>
 
     <dependencies>
