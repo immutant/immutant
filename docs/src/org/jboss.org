@@ -9,6 +9,9 @@
   to skip this section if you're just getting started with Immutant, and use 
   it as a reference later.
 
+  You'll see references below to =$JBOSS_HOME=. Use the =env= subtask
+  of the [[https://github.com/immutant/lein-immutant][lein-immutant plugin]] to find yours.
+
   For more detailed documentation, please read the [[https://docs.jboss.org/author/display/AS7/Documentation][official AS7 docs]].
 
 * Configuring
@@ -23,10 +26,11 @@
   Immutant uses standalone mode by default but can be run in domain mode as 
   well.
   
-  JBoss AS 7 uses a modular architecture - libraries common to all server 
-  configurations are kept under the =modules/= directory. Configuration files
-  are stored inside =standalone/configuration/= and =domain/configuration/= 
-  folders.
+  JBoss AS 7 uses a modular architecture - libraries common to all
+  server configurations are kept under the =modules/= directory.
+  Configuration files are stored inside
+  =$JBOSS_HOME/standalone/configuration/= and
+  =$JBOSS_HOME/domain/configuration/= folders.
 
   Both standalone and domain modes have a common folder structure, including
   the following directories: =configuration/=, =deployments/=, and =lib/=. 
@@ -71,13 +75,16 @@
   You may set Java system properties using the =-D= option. Pass =-h= for a 
   list of all the available options.
 
-  Permanent runtime configuration of JBoss should go in =bin/standalone.conf=.
-  For example, your application may require more memory (RAM) than the default
-  allocated. Edit =standalone.conf= to increase the value of =-Xmx= to something
+  Permanent runtime configuration of JBoss should go in
+  =$JBOSS_HOME/bin/standalone.conf=. For example, your application may
+  require more memory (RAM) than the default allocated. Edit
+  =standalone.conf= to increase the value of =-Xmx= to something
   reasonable.
 
-  In production you may prefer to control JBoss via a Unix "init script", examples
-  of which may be found in =bin/=. Feel free to tweak one for your particular OS.
+  In production you may prefer to control JBoss via a Unix "init
+  script", examples of which may be found beneath
+  =$JBOSS_HOME/bin/init.d/=. Feel free to tweak one for your
+  particular OS.
 
 * Deploying
 
@@ -101,15 +108,16 @@
 
   The [[https://github.com/immutant/lein-immutant][lein-immutant Leiningen plugin]] provides commands to create and
   copy a deployment descriptor for your Clojure application to
-  =$IMMUTANT_HOME/standalone/deployments/= along with the requored
-  deployment markers. See [[./deployment.html][Deployment]] for more details.
+  =$JBOSS_HOME/standalone/deployments/= along with the
+  required deployment markers. See [[./deployment.html][Deployment]] for more details.
 
 * Logging
 
   The recommended way to integrate your applications with JBoss
   logging is to use [[https://github.com/clojure/tools.logging/][clojure.tools.logging]], which will discover and use
   the JBoss configuration automatically when your app is deployed on
-  Immutant.
+  Immutant. You'll find your log messages in
+  =$JBOSS_HOME/standalone/log/server.log=.
 
   JBoss provides a very sophisticated logging system that nobody
   completely understands. It's possible to configure hierarchical,
@@ -136,7 +144,7 @@
 
 ** JBoss Logging Configuration
 
-   The default AS 7.1 configuration is shown below. It includes two
+   The default AS7 configuration is shown below. It includes two
    handlers (one for the CONSOLE and one for the FILE), some loggers
    and a root logger. When a message is logged, here's what happens:
 
@@ -161,54 +169,54 @@
    =standalone/configuration/standalone.xml=:
 
    #+begin_src xml
-     <subsystem xmlns='urn:jboss:domain:logging:1.1'>
-         <console-handler name='CONSOLE'>
-             <level name='INFO'/>
+     <subsystem xmlns="urn:jboss:domain:logging:1.2">
+         <console-handler name="CONSOLE">
+             <level name="INFO"/>
              <formatter>
-                 <pattern-formatter pattern='%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'/>
+                 <pattern-formatter pattern="%K{level}%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
              </formatter>
          </console-handler>
-         <periodic-rotating-file-handler name='FILE'>
+         <periodic-rotating-file-handler name="FILE" autoflush="true">
              <formatter>
-                 <pattern-formatter pattern='%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n'/>
+                 <pattern-formatter pattern="%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
              </formatter>
-             <file relative-to='jboss.server.log.dir' path='server.log'/>
-             <suffix value='.yyyy-MM-dd'/>
-             <append value='true'/>
+             <file relative-to="jboss.server.log.dir" path="server.log"/>
+             <suffix value=".yyyy-MM-dd"/>
+             <append value="true"/>
          </periodic-rotating-file-handler>
-         <logger category='com.arjuna'>
-             <level name='WARN'/>
+         <logger category="com.arjuna">
+             <level name="WARN"/>
          </logger>
-         <logger category='org.apache.tomcat.util.modeler'>
-             <level name='WARN'/>
+         <logger category="org.apache.tomcat.util.modeler">
+             <level name="WARN"/>
          </logger>
-         <logger category='sun.rmi'>
-             <level name='WARN'/>
+         <logger category="org.jboss.as.config">
+             <level name="DEBUG"/>
          </logger>
-         <logger category='jacorb'>
-             <level name='WARN'/>
+         <logger category="sun.rmi">
+             <level name="WARN"/>
          </logger>
-         <logger category='jacorb.config'>
-             <level name='ERROR'/>
+         <logger category="jacorb">
+             <level name="WARN"/>
+         </logger>
+         <logger category="jacorb.config">
+             <level name="ERROR"/>
          </logger>
          <root-logger>
-             <level name='INFO'/>
+             <level name="INFO"/>
              <handlers>
-                 <handler name='CONSOLE'/>
-                 <handler name='FILE'/>
+                 <handler name="CONSOLE"/>
+                 <handler name="FILE"/>
              </handlers>
          </root-logger>
-         <logger category='org.jboss.jca.adapters.jdbc.extensions.mysql'>
-             <level name='ERROR'/>
-         </logger>
      </subsystem>
    #+end_src
 
    One thing to note about the default logging configuration is that
-   DEBUG messages won't show up anywhere. You could lower the default
-   level for the root logger to DEBUG, but that results in DEBUG
-   messages for every other category that doesn't match any of the
-   loggers, potentially a lot of messages. A better solution is to
+   your DEBUG messages won't show up anywhere. You could lower the
+   default level for the root logger to DEBUG, but that results in
+   DEBUG messages for every other category that doesn't match any of
+   the loggers, potentially a lot of messages. A better solution is to
    define a <logger> specifically for your namespace:
 
    #+begin_src xml
