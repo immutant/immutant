@@ -803,7 +803,7 @@
         </socket-binding-group>
     </socket-binding-groups>
     <server-groups>
-        <server-group profile="default" name="default">
+        <server-group profile="default" name="main-server-group">
             <socket-binding-group ref="standard-sockets"/>
         </server-group>
     </server-groups>

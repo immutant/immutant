@@ -453,8 +453,7 @@
   (doseq [cfg (map (partial io/file (jboss-dir))
                    ["standalone/configuration/standalone-ha.xml"
                     "standalone/configuration/standalone.xml"
-                    "domain/configuration/domain.xml"
-                    "domain/configuration/host.xml"])]
+                    "domain/configuration/domain.xml"])]
     (let [backup (io/file (.getParentFile cfg) (str "original-" (.getName cfg)))]
       (if-not (.exists backup)
         (io/copy cfg backup)))))
@@ -549,6 +548,4 @@
     (io/copy (io/file "src/resources/standalone-ha.xml")
              (io/file (jboss-dir) "standalone/configuration/standalone-ha.xml"))
     (io/copy (io/file "src/resources/domain.xml")
-             (io/file (jboss-dir) "domain/configuration/domain.xml"))
-    (io/copy (io/file "src/resources/host.xml")
-             (io/file (jboss-dir) "domain/configuration/host.xml"))))
+             (io/file (jboss-dir) "domain/configuration/domain.xml"))))
