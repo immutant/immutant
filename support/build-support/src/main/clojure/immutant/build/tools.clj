@@ -451,13 +451,11 @@
 
 (defn backup-configs []
   (doseq [cfg (map (partial io/file (jboss-dir))
-                   ["standalone/configuration/standalone-full.xml"
-                    "standalone/configuration/standalone-ha.xml"
-                    "standalone/configuration/standalone-full-ha.xml"
+                   ["standalone/configuration/standalone-ha.xml"
                     "standalone/configuration/standalone.xml"
                     "domain/configuration/domain.xml"
                     "domain/configuration/host.xml"])]
-    (let [backup (io/file "target" (.getName cfg))]
+    (let [backup (io/file (.getParentFile cfg) (str "original-" (.getName cfg)))]
       (if-not (.exists backup)
         (io/copy cfg backup)))))
 
@@ -544,3 +542,13 @@
          (not (seq (.listFiles d)))
          (FileUtils/deleteDirectory d))))
 
+(defn copy-static-config []
+  (with-message "Copying config files"
+    (io/copy (io/file "src/resources/standalone.xml")
+             (io/file (jboss-dir) "standalone/configuration/standalone.xml"))
+    (io/copy (io/file "src/resources/standalone-ha.xml")
+             (io/file (jboss-dir) "standalone/configuration/standalone-ha.xml"))
+    (io/copy (io/file "src/resources/domain.xml")
+             (io/file (jboss-dir) "domain/configuration/domain.xml"))
+    (io/copy (io/file "src/resources/host.xml")
+             (io/file (jboss-dir) "domain/configuration/host.xml"))))

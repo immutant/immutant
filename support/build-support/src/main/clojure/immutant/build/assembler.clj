@@ -32,9 +32,10 @@
     (install-modules)
     (install-polyglot-modules)
     (backup-configs)
-    (transform-configs)
-    (create-standalone-xml)
-    (create-standalone-ha-xml)
+    ;; (transform-configs)
+    ;; (create-standalone-xml)
+    ;; (create-standalone-ha-xml)
+    (copy-static-config)
     (when slim?
       (slim-modules)
       (slim-fs))))
