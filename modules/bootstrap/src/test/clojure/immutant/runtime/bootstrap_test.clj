@@ -69,7 +69,7 @@
                      (map #(.getAbsolutePath (io/file app-root %))
                           subdirs)
                      (map #(.getAbsolutePath (io/file app-root "checkouts/other-project" %))
-                          (disj subdirs "dev-resources")))]
+                          subdirs))]
           (resource-paths app-root default-profiles) => (just paths :in-any-order))))
     
     (facts "get-dependencies"
