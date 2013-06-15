@@ -86,7 +86,6 @@
   (second (re-find #"immutant-(.*)-module-module" (.getName dir))))
 
 (def version-paths {:immutant [:version]
-                    :jboss [:properties :version.jbossas]
                     :polyglot [:properties :version.polyglot]})
 
 (def m2-repo (if (System/getenv "M2_REPO")
@@ -97,7 +96,10 @@
 (def ^:dynamic build-dir nil)
 (def immutant-dir (memoize #(io/file build-dir "immutant")))
 (def jboss-dir (memoize #(io/file (immutant-dir) "jboss")))
-(def versions (memoize #(extract-versions (io/file root-dir "pom.xml") version-paths)))
+(def versions
+  (memoize
+   #(assoc (extract-versions (io/file root-dir "pom.xml") version-paths)
+      :jboss (System/getProperty "version.jbossas"))))
 
 (defn jboss-zip-file []
   (str m2-repo "/org/jboss/as/jboss-as-dist/"

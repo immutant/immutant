@@ -17,7 +17,6 @@
     <dependency>
       <groupId>org.jboss.as</groupId>
       <artifactId>jboss-as-dist</artifactId>
-      <version>${version.jbossas}</version>
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
@@ -30,19 +29,6 @@
     </dependency>
 
   </dependencies>
-
-  <properties>
-    <build.type>slim</build.type>
-  </properties>
-
-  <profiles>
-    <profile>
-      <id>full-dist</id>
-      <properties>
-        <build.type>full</build.type>
-      </properties>
-    </profile>
-  </profiles>
 
   <build>
     <plugins>
@@ -58,7 +44,11 @@
             </goals>
             <configuration>
               <mainClass>immutant.build.assembler</mainClass>
-              <args>. ${build.type}</args>
+              <args>.</args>
+              <vmargs>
+                -Dbuild.type=${build.type}
+                -Dversion.jbossas=${version.jbossas}
+              </vmargs>
             </configuration>
           </execution>
         </executions>

@@ -42,6 +42,14 @@
   </modules>
 
   <profiles>
+  
+    <profile>
+      <id>full-dist</id>
+      <properties>
+        <version.jbossas>7.x.incremental.673</version.jbossas>
+        <build.type>full</build.type>
+      </properties>
+    </profile>
 
     <profile>
       <id>bees</id>
@@ -170,14 +178,6 @@
       </dependency>
 
       <dependency>
-        <groupId>org.jboss.as</groupId>
-        <artifactId>jboss-as-parent</artifactId>
-        <version>${version.jbossas}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <dependency>
         <groupId>org.clojure</groupId>
         <artifactId>clojure</artifactId>
         <version>${version.clojure}</version>
@@ -214,6 +214,21 @@
       </dependency>
 
       <dependency>
+        <groupId>org.jboss.as</groupId>
+        <artifactId>jboss-as-dist</artifactId>
+        <version>${version.jbossas}</version>
+        <type>zip</type>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jboss.as</groupId>
+        <artifactId>jboss-as-parent</artifactId>
+        <version>${version.jbossas}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${version.junit}</version>
@@ -227,13 +242,6 @@
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-all</artifactId>
         <version>${version.hamcrest}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.jboss.jbossas</groupId>
-        <artifactId>jboss-as-distribution</artifactId>
-        <version>${version.jbossas}</version>
-        <type>zip</type>
       </dependency>
 
       <dependency>
@@ -352,14 +360,14 @@
 
   <properties>
     <codename>SpiderPig</codename>
-    <version.polyglot>1.13.0</version.polyglot>
-    <!-- <version.polyglot>1.x.incremental.37</version.polyglot> -->
+    <!-- <version.polyglot>1.13.0</version.polyglot> -->
+    <version.polyglot>1.x.incremental.43</version.polyglot>
     <!-- <version.polyglot>1.13.0-SNAPSHOT</version.polyglot> -->
     <version.junit>4.7</version.junit>
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>
     <version.hamcrest>1.1</version.hamcrest>
-    <version.jbossas>7.x.incremental.673</version.jbossas>
+    <version.jbossas>7.2.x.slim.incremental.4</version.jbossas>
     <version.clojure>1.5.1</version.clojure>
     <version.clojure-contrib>1.2.0</version.clojure-contrib>
     <version.clojure.tools.logging>0.2.3</version.clojure.tools.logging>
@@ -387,6 +395,7 @@
     <version.clj-http>0.7.2</version.clj-http>
     <version.s3-wagon-private>1.1.2</version.s3-wagon-private>
 
+    <build.type>slim</build.type>
     <warn-on-reflection>false</warn-on-reflection>
   </properties>
 
