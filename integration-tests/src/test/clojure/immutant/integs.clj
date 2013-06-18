@@ -144,11 +144,6 @@
          (apply require namespaces)
          (with-jboss
            (fn []
-             ;; wait for jboss to start before continuing in case the
-             ;; first test is an in-container test, which won't wait
-             ;; and will try to start up the AS again
-             (wait-for-ready? 30)
-             (apply run-tests namespaces))
-           :lazy)))
+             (apply run-tests namespaces)))))
       (shutdown-agents)
       (System/exit (if (empty? (filter #{:fail :error} @results)) 0 -1)))))

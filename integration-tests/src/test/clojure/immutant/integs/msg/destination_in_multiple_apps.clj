@@ -23,25 +23,25 @@
 
 (use-fixtures :once 
               (with-deployments {"q1"
-                                 '{
+                                 {
                                    :root "target/apps/messaging/queues/"
                                    :context-path "/q1"
-                                   }
+                                 }
                                  "q2"
-                                 '{
+                                 {
                                    :root "target/apps/messaging/queues/"
                                    :context-path "/q2"
-                                   }
+                                 }
                                  "t1"
-                                 '{
+                                 {
                                    :root "target/apps/messaging/topics/"
                                    :context-path "/t1"
-                                   }
+                                 }
                                  "t2"
-                                 '{
+                                 {
                                    :root "target/apps/messaging/topics/"
                                    :context-path "/t2"
-                                   }
+                                 }
                                  }))
 
 (deftest both-queue-apps-should-be-up
