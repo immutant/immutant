@@ -16,7 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.build.assembler
-  (:require [clojure.java.io :as io])
+  (:require [clojure.java.io :as io]
+            [clojure.string  :as str])
   (:use immutant.build.tools)
   (:gen-class))
 
@@ -32,15 +33,17 @@
     (install-modules)
     (install-polyglot-modules)
     (backup-configs)
+    ;; we no longer generate configs dynamically
     ;; (transform-configs)
     ;; (create-standalone-xml)
     ;; (create-standalone-ha-xml)
-    (copy-static-config)
+    (copy-static-config slim?)
     (when slim?
       (slim-modules)
       (slim-fs))))
 
 (defn -main [assembly-path]
-  (println "Assembling" type "Immutant...")
-  (assemble (io/file assembly-path) (= "slim" (System/getProperty "build.type")))
+  (let [type (str/trim (System/getProperty "build.type"))]
+    (println "Assembling" type "Immutant...")
+    (assemble (io/file assembly-path) (= "slim" type)))
   (shutdown-agents))

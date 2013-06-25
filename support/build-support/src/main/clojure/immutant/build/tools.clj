@@ -543,11 +543,12 @@
          (not (seq (.listFiles d)))
          (FileUtils/deleteDirectory d))))
 
-(defn copy-static-config []
-  (with-message "Copying config files"
-    (io/copy (io/file "src/resources/standalone.xml")
-             (io/file (jboss-dir) "standalone/configuration/standalone.xml"))
-    (io/copy (io/file "src/resources/standalone-ha.xml")
-             (io/file (jboss-dir) "standalone/configuration/standalone-ha.xml"))
-    (io/copy (io/file "src/resources/domain.xml")
-             (io/file (jboss-dir) "domain/configuration/domain.xml"))))
+(defn copy-static-config [slim?]
+  (let [type (if slim? "slim" "full")]
+    (with-message "Copying config files"
+      (io/copy (io/file (format "src/resources/standalone.%s.xml" type))
+               (io/file (jboss-dir) "standalone/configuration/standalone.xml"))
+      (io/copy (io/file (format "src/resources/standalone-ha.%s.xml" type))
+               (io/file (jboss-dir) "standalone/configuration/standalone-ha.xml"))
+      (io/copy (io/file (format "src/resources/domain.%s.xml" type))
+               (io/file (jboss-dir) "domain/configuration/domain.xml")))))
