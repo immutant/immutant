@@ -78,15 +78,7 @@
                 </root-logger>
             </subsystem>
             <subsystem xmlns="urn:jboss:domain:configadmin:1.0"/>
-            <subsystem xmlns="urn:jboss:domain:datasources:1.1">
-                <datasources>
-                    <drivers>
-                        <driver name="h2" module="com.h2database.h2">
-                            <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>
-                        </driver>
-                    </drivers>
-                </datasources>
-            </subsystem>
+            <subsystem xmlns="urn:jboss:domain:datasources:1.1"/>
             <subsystem xmlns="urn:jboss:domain:ee:1.1">
                 <spec-descriptor-property-replacement>false</spec-descriptor-property-replacement>
                 <jboss-descriptor-property-replacement>true</jboss-descriptor-property-replacement>
@@ -285,15 +277,7 @@
                 </root-logger>
             </subsystem>
             <subsystem xmlns="urn:jboss:domain:configadmin:1.0"/>
-            <subsystem xmlns="urn:jboss:domain:datasources:1.1">
-                <datasources>
-                    <drivers>
-                        <driver name="h2" module="com.h2database.h2">
-                            <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>
-                        </driver>
-                    </drivers>
-                </datasources>
-            </subsystem>
+            <subsystem xmlns="urn:jboss:domain:datasources:1.1"/>
             <subsystem xmlns="urn:jboss:domain:ee:1.1">
                 <spec-descriptor-property-replacement>false</spec-descriptor-property-replacement>
                 <jboss-descriptor-property-replacement>true</jboss-descriptor-property-replacement>
@@ -496,15 +480,7 @@
                 </root-logger>
             </subsystem>
             <subsystem xmlns="urn:jboss:domain:configadmin:1.0"/>
-            <subsystem xmlns="urn:jboss:domain:datasources:1.1">
-                <datasources>
-                    <drivers>
-                        <driver name="h2" module="com.h2database.h2">
-                            <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>
-                        </driver>
-                    </drivers>
-                </datasources>
-            </subsystem>
+            <subsystem xmlns="urn:jboss:domain:datasources:1.1"/>
             <subsystem xmlns="urn:jboss:domain:ee:1.1">
                 <spec-descriptor-property-replacement>false</spec-descriptor-property-replacement>
                 <jboss-descriptor-property-replacement>true</jboss-descriptor-property-replacement>
