@@ -58,7 +58,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
         ServiceController pointerDest = getUnit().getServiceRegistry().getService( pointerDestName );
         if (pointerDest == null ||
                !inValidState(pointerDest.getState())) {
-            throw new IllegalStateException( destinationName + " is not available" );
+            throw new IllegalStateException( destinationName + " is not available. Did you call immutant.messaging/start?" );
         }
         
         final String name = destinationName + "." + URLEncoder.encode(handlerName);

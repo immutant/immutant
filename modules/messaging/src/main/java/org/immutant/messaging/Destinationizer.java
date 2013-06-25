@@ -26,6 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.immutant.core.HasImmutantRuntimeInjector;
 import org.immutant.core.SimpleServiceStateListener;
 import org.immutant.runtime.ClojureRuntime;
+import org.jboss.as.messaging.jms.JMSQueueService;
+import org.jboss.as.messaging.jms.JMSTopicService;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.logging.Logger;
 import org.jboss.msc.inject.Injector;
@@ -55,7 +57,7 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
             return false;
         }
                             
-        DestroyableJMSQueueService queue =
+        JMSQueueService queue =
                 QueueInstaller.deployGlobalQueue(getUnit().getServiceRegistry(), 
                                                  getGlobalTarget(),
                                                  queueName, 
@@ -65,7 +67,9 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
         
         createDestinationService(queueName, callback,
                                  QueueInstaller.queueServiceName(queueName),
-                                 queue.getReferenceCount());
+                                 queue instanceof DestroyableJMSQueueService ?
+                                         ((DestroyableJMSQueueService)queue).getReferenceCount() :
+                                         null);
         
         return true;
     }
@@ -73,9 +77,9 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
     public boolean createTopic(String topicName, Object callback) {
         if (DestinationUtils.destinationPointerExists(getUnit(), topicName)) {
             return false;
-        } 
+        }
 
-        DestroyableJMSTopicService topic = 
+        JMSTopicService topic =
                 TopicInstaller.deployGlobalTopic(getUnit().getServiceRegistry(),
                                                  getGlobalTarget(),
                                                  topicName,
@@ -83,7 +87,9 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
         
         createDestinationService(topicName, callback,
                                  TopicInstaller.topicServiceName(topicName),
-                                 topic.getReferenceCount());
+                                 topic instanceof DestroyableJMSTopicService ?
+                                         ((DestroyableJMSTopicService) topic).getReferenceCount() :
+                                         null);
 
         return true;
     }
