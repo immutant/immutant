@@ -18,7 +18,7 @@
 (ns ^{:no-doc true} immutant.messaging.core
   "Internal utilities used by messaging. You should only need to dip
    into here in advanced cases."
-  (:use [immutant.util :only (at-exit in-immutant?)]
+  (:use [immutant.util :only (at-exit in-immutant? backoff)]
         immutant.messaging.internal)
   (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]
@@ -199,9 +199,15 @@
 (defn create-connection
   "Creates a connection and registers it in the *connections* map"
   [opts]
-  (let [conn (if (or (tx/active?) (and (in-immutant?) (:xa opts)))
-               (.createXAConnection (connection-factory opts) (:username opts) (:password opts))
-               (.createConnection (connection-factory opts) (:username opts) (:password opts)))]
+  (let [conn (backoff
+              10 60000
+              (if (or (tx/active?) (and (in-immutant?) (:xa opts)))
+                (.createXAConnection (connection-factory opts)
+                                     (:username opts)
+                                     (:password opts))
+                (.createConnection (connection-factory opts)
+                                   (:username opts)
+                                   (:password opts))))]
     (if (:client-id opts) (.setClientID conn (:client-id opts)))
     (if *connections* (set! *connections* (assoc *connections* (connection-key opts) conn)))
     conn))
