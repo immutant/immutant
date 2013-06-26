@@ -49,12 +49,8 @@
     `(with-redefs [unschedule ~f#]
        ~@body)))
 
-(deftest schedule-with-spec-first-works
-  (with-noop-unschedule
-    (schedule "name" "spec" fun)
-    (is (= "spec" (:cron-ex @job-args)))
-    ;; the f gets wrapped in another fn, so we have to call it to id it
-    (is (= :from-fun ((:handler @job-args) nil)))))
+(deftest schedule-with-spec-first-should-raise
+  (is (thrown? IllegalArgumentException (schedule "name" "spec" fun))))
 
 (deftest schedule-with-spec-after-f-works
   (with-noop-unschedule

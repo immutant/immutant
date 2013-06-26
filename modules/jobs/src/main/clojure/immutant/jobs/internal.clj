@@ -172,19 +172,17 @@
 
 (defmulti extract-spec #(class (fnext %)))
 
-(let [at-keys [:at :in :every :repeat :until]]
-  (defn ^:private throw-when-at-opts [opts]
-    (when (some (set at-keys) opts)
-      (throw (IllegalArgumentException.
-              "You can't specify a cron spec and 'at' options."))))
+(let [at-keys [:at :in :every :repeat :until]
+      throw-when-at-opts
+      (fn [opts]
+        (when (some (set at-keys) opts)
+          (throw (IllegalArgumentException.
+                  "You can't specify a cron spec and 'at' options."))))]
   
   (defmethod extract-spec clojure.lang.Fn [opts]
-    (log/warn "Supplying the cronspec before the fn is deprecated;"
-              "provide the cronspec after the fn argument.")
-    (throw-when-at-opts opts)
-    (assoc (apply hash-map (nnext opts))
-      :spec (first opts)
-      :fn (fnext opts)))
+    (throw (IllegalArgumentException.
+            (str "Supplying the cronspec before the fn is no longer supported; "
+                 "provide the cronspec after the fn argument."))))
 
   (defmethod extract-spec String [opts]
     (throw-when-at-opts opts)
