@@ -31,7 +31,6 @@ class Publisher
     publish_distribution()
     verify_distribution()
     publish_documentation()
-    copy_slim_to_bin() # TODO: remove me - see IMMUTANT-229
     publish_artifact_list()
     copy_to_latest()
     verify_distribution( :latest )
@@ -45,18 +44,6 @@ class Publisher
     BASE_URL + "/LATEST"
   end
 
-  def copy_slim_to_bin()
-    dest_url = build_base_url + "/immutant-dist-bin.zip"
-    puts_r @dav.copy( build_base_url + "/immutant-dist-slim.zip",
-                      dest_url )
-    @published_artifacts << dest_url
-    
-    dest_url = build_base_url + "/immutant-dist-bin.zip.sha1"
-    puts_r @dav.copy( build_base_url + "/immutant-dist-slim.zip.sha1",
-                      dest_url )
-    @published_artifacts << dest_url
-  end
-  
   def copy_to_latest()
     dav_remote_cp_r( build_base_url, latest_base_url )
   end
