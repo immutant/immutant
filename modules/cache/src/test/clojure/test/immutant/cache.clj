@@ -92,6 +92,12 @@
     (is (= v (get c :a)))
     (is (= v (put c :a "next")))))
 
+(deftest test-put-nil
+  (let [c (create "nilly")]
+    (is (= :right (:a c :right)))
+    (is (nil? (put c :a nil)))
+    (is (nil? (:a c :wrong)))))
+
 (deftest test-put-ttl
   (let [c (create "ttl" :seed {})]
     (put c :a 1 {:ttl [500 :milliseconds]})
@@ -213,3 +219,8 @@
   (is (= (lifespan-params {:ttl [60 :minutes]})              [60 TimeUnit/MINUTES -1 TimeUnit/SECONDS]))
   (is (= (lifespan-params {:idle [60 :minutes]})             [-1 TimeUnit/SECONDS 60 TimeUnit/MINUTES]))
   (is (= (lifespan-params {:ttl [1 :day] :idle [1 :hour]})   [ 1 TimeUnit/DAYS     1 TimeUnit/HOURS])))
+
+(deftest test-seqable
+  (let [seed {:a 1, :b {:c 42}}
+        c (create "seedy" :seed seed)]
+    (is (= seed (into {} (seq c))))))
