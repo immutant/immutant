@@ -360,9 +360,9 @@
 
   <properties>
     <codename>SpiderPig</codename>
-    <!-- <version.polyglot>1.13.0</version.polyglot> -->
-    <version.polyglot>1.x.incremental.44</version.polyglot>
-    <!-- <version.polyglot>1.14.0-SNAPSHOT</version.polyglot> -->
+    <version.polyglot>1.14.0</version.polyglot>
+    <!-- <version.polyglot>1.x.incremental.44</version.polyglot> -->
+    <!-- <version.polyglot>1.15.0-SNAPSHOT</version.polyglot> -->
     <version.junit>4.7</version.junit>
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>
