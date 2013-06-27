@@ -15,28 +15,31 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns ^{:no-doc true} immutant.cache.wrapper
-    (:require [immutant.codecs :as core]))
+(ns ^{:no-doc true} immutant.cache.wrapper)
 
-(def bytes-array-type (Class/forName "[B"))
+(defprotocol Wrapper
+  (wrap [data])
+  (unwrap [data]))
 
-(deftype ArrayKey [data]
+;;; Default implementation doesn't wrap
+(extend-type Object
+  Wrapper
+  (wrap [data] data)
+  (unwrap [data] data))
+
+(deftype ArrayWrapper [data]
   Object
   (equals [_ obj]
-    (and (instance? ArrayKey obj)
+    (and (instance? ArrayWrapper obj)
          (= (seq data) (seq (.data obj)))))
   (hashCode [_]
-    (.hashCode (seq data))))
+    (.hashCode (seq data)))
+  Wrapper
+  (unwrap [v] (.data v)))
 
-(defn encode
-  [data enc]
-  (let [v (core/encode data enc)]
-    (if (instance? bytes-array-type v)
-      (ArrayKey. v)
-      v)))
+;;; We only wrap byte arrays, by default. Clients may extend other
+;;; primitve array types, if necessary.
+(extend-type (Class/forName "[B")
+  Wrapper
+  (wrap [data] (ArrayWrapper. data)))
 
-(defn decode
-  [v enc]
-  (if (instance? ArrayKey v)
-    (core/decode (.data v) enc)
-    (core/decode v enc)))
