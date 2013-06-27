@@ -96,7 +96,9 @@
   (let [c (create "nilly")]
     (is (= :right (:a c :right)))
     (is (nil? (put c :a nil)))
-    (is (nil? (:a c :wrong)))))
+    (is (nil? (:a c :wrong)))
+    (is (nil? (put c nil :right)))
+    (is (= :right (get c nil :wrong)))))
 
 (deftest test-put-ttl
   (let [c (create "ttl" :seed {})]

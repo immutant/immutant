@@ -15,28 +15,18 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns ^{:no-doc true} immutant.cache.wrapper
-    (:require [immutant.codecs :as core]))
+(ns test.immutant.wrapper
+  (:use [immutant.cache]
+        [clojure.test])
+  (:require [immutant.codecs :as core]))
 
-(def bytes-array-type (Class/forName "[B"))
+(defmethod core/encode :bs [data & args]
+  (.getBytes (pr-str data)))
 
-(deftype ArrayKey [data]
-  Object
-  (equals [_ obj]
-    (and (instance? ArrayKey obj)
-         (= (seq data) (seq (.data obj)))))
-  (hashCode [_]
-    (.hashCode (seq data))))
+(defmethod core/decode :bs [data & args]
+  (and data (read-string (String. data))))
 
-(defn encode
-  [data enc]
-  (let [v (core/encode data enc)]
-    (if (instance? bytes-array-type v)
-      (ArrayKey. v)
-      v)))
-
-(defn decode
-  [v enc]
-  (if (instance? ArrayKey v)
-    (core/decode (.data v) enc)
-    (core/decode v enc)))
+(deftest storing-byte-arrays
+  (let [c (create "bytes" :encoding :bs)]
+    (is (nil? (put c :a 1)))
+    (is (= 1 (get c :a)))))
