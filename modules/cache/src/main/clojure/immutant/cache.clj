@@ -21,7 +21,8 @@
   (:use [immutant.cache.core]
         [immutant.codecs :only [encode decode]])
   (:require [clojure.core.cache :as cc]
-            [clojure.core.memoize :as cm])
+            [clojure.core.memoize :as cm]
+            [immutant.cache.wrapper :as key])
   (:import [clojure.core.memoize PluggableMemoization]))
 
 (defprotocol Mutable
@@ -64,7 +65,7 @@
   (lookup [this key]
     (.valAt this key))
   (has? [this key]
-    (.containsKey cache (encode key (:encoding options))))
+    (.containsKey cache (key/encode key (:encoding options))))
   (hit [this key] this)
   (miss [this key value]
     (put this key value)
@@ -81,30 +82,30 @@
   (put [_ k v opts]
     (let [opts (merge options opts)
           enc (:encoding opts)]
-      (decode (expire (.put cache (encode k enc) (encode v enc) opts)) enc)))
+      (decode (expire (.put cache (key/encode k enc) (encode v enc) opts)) enc)))
   (put-all [this m] (put-all this m {}))
   (put-all [_ m opts]
     (let [opts (merge options opts)
           enc (:encoding opts)]
-      (and m (expire (.putAll cache (into {} (for [[k v] m] [(encode k enc) (encode v enc)])) opts)))))
+      (and m (expire (.putAll cache (into {} (for [[k v] m] [(key/encode k enc) (encode v enc)])) opts)))))
   (put-if-absent [this k v] (put-if-absent this k v {}))
   (put-if-absent [_ k v opts]
     (let [opts (merge options opts)
           enc (:encoding opts)]
-      (decode (expire (.putIfAbsent cache (encode k enc) (encode v enc) opts)) enc)))
+      (decode (expire (.putIfAbsent cache (key/encode k enc) (encode v enc) opts)) enc)))
   (put-if-present [this k v] (put-if-present this k v {}))
   (put-if-present [_ k v opts]
     (let [opts (merge options opts)
           enc (:encoding opts)]
-      (decode (expire (.replace cache (encode k enc) (encode v enc) opts)) enc)))
+      (decode (expire (.replace cache (key/encode k enc) (encode v enc) opts)) enc)))
   (put-if-replace [this k old v] (put-if-replace this k old v {}))
   (put-if-replace [_ k old v opts]
     (let [opts (merge options opts)
           enc (:encoding opts)]
-      (expire (.replace cache (encode k enc) (encode old enc) (encode v enc) opts))))
+      (expire (.replace cache (key/encode k enc) (encode old enc) (encode v enc) opts))))
   (delete [_ key]
-    (and key (let [enc (:encoding options)] (decode (.remove cache (encode key enc)) enc))))
-  (delete [_ key value] (let [e (:encoding options)] (.remove cache (encode key e) (encode value e))))
+    (and key (let [enc (:encoding options)] (decode (.remove cache (key/encode key enc)) enc))))
+  (delete [_ key value] (let [e (:encoding options)] (.remove cache (key/encode key e) (encode value e))))
   (delete-all [this] (.clear cache) this)
 
   clojure.lang.Seqable
@@ -112,14 +113,14 @@
     (and (seq cache)
          (let [enc (:encoding options)]
            (for [[k v] (seq cache)]
-             (clojure.lang.MapEntry. (decode k enc) (decode v enc))))))
+             (clojure.lang.MapEntry. (key/decode k enc) (decode v enc))))))
 
   java.util.Map
   (containsKey [_ key]
-    (.containsKey cache (encode key (:encoding options))))
+    (.containsKey cache (key/encode key (:encoding options))))
   (get [_ key]
     (let [enc (:encoding options)]
-      (decode (.get cache (encode key enc)) enc)))
+      (decode (.get cache (key/encode key enc)) enc)))
   
   clojure.lang.ILookup
   (valAt [this key]
