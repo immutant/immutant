@@ -21,10 +21,10 @@ package org.immutant.messaging.processors;
 
 import org.immutant.core.processors.RegisteringProcessor;
 import org.immutant.messaging.MessageListenerFactory;
-import org.immutant.runtime.ClojureRuntime;
 import org.immutant.runtime.ClojureRuntimeService;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 
 public class MessageListenerFactoryInstaller extends RegisteringProcessor {
@@ -32,7 +32,7 @@ public class MessageListenerFactoryInstaller extends RegisteringProcessor {
     public RegistryEntry registryEntry(DeploymentPhaseContext context) {
         DeploymentUnit unit = context.getDeploymentUnit();
           
-        ClojureRuntime runtime = unit.getAttachment( ClojureRuntimeService.ATTACHMENT_KEY );
+        ClojureRuntimeShim runtime = unit.getAttachment( ClojureRuntimeService.ATTACHMENT_KEY );
                 
         return new RegistryEntry( "message-listener-factory", new MessageListenerFactory( runtime ) );
     }

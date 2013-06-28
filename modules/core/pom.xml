@@ -43,16 +43,14 @@
     </dependency>
 
     <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-runtime-api</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.tcrawley</groupId>
+      <artifactId>clojure-runtime-shim-api</artifactId>
       <scope>compile</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.immutant</groupId>
-      <artifactId>immutant-runtime-impl</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.tcrawley</groupId>
+      <artifactId>clojure-runtime-shim-impl</artifactId>
       <scope>compile</scope>
     </dependency>
 

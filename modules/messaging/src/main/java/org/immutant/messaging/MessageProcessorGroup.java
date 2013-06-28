@@ -29,7 +29,6 @@ import javax.jms.XAConnection;
 
 import org.immutant.core.HasImmutantRuntimeInjector;
 import org.immutant.core.SimpleServiceStateListener;
-import org.immutant.runtime.ClojureRuntime;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
@@ -40,6 +39,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.messaging.BaseMessageProcessor;
 import org.projectodd.polyglot.messaging.BaseMessageProcessorGroup;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 public class MessageProcessorGroup extends BaseMessageProcessorGroup implements MessageProcessorGroupMBean, HasImmutantRuntimeInjector {
 
@@ -105,16 +105,16 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
         remove( null );
     }
     
-    public ClojureRuntime getRuntime() {
+    public ClojureRuntimeShim getRuntime() {
         return this.clojureRuntimeInjector.getValue();
     }
     
     @Override
-    public Injector<ClojureRuntime> getClojureRuntimeInjector() {
+    public Injector<ClojureRuntimeShim> getClojureRuntimeInjector() {
         return clojureRuntimeInjector;
     }
     
-    private final InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
+    private final InjectedValue<ClojureRuntimeShim> clojureRuntimeInjector = new InjectedValue<ClojureRuntimeShim>();
     private Object setupHandler;
     @SuppressWarnings("rawtypes")
     private Map setupData;

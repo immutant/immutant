@@ -21,19 +21,19 @@ package org.immutant.jobs;
 
 import java.util.concurrent.Callable;
 
-import org.immutant.runtime.ClojureRuntime;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.PersistJobDataAfterExecution;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
 public class ClojureJob implements Job {
 
     @SuppressWarnings("rawtypes")
-    public ClojureJob(ClojureRuntime runtime, Callable fn) {
+    public ClojureJob(ClojureRuntimeShim runtime, Callable fn) {
         this.runtime = runtime;
         this.fn = fn;
     }
@@ -47,7 +47,7 @@ public class ClojureJob implements Job {
         }  
     }
 
-    private ClojureRuntime runtime;
+    private ClojureRuntimeShim runtime;
     @SuppressWarnings("rawtypes")
     private Callable fn;
 }

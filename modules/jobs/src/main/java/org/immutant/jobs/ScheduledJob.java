@@ -23,12 +23,12 @@ import java.text.ParseException;
 import java.util.concurrent.Callable;
 
 import org.immutant.core.HasImmutantRuntimeInjector;
-import org.immutant.runtime.ClojureRuntime;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.jobs.BaseJobScheduler;
 import org.projectodd.polyglot.jobs.BaseScheduledJob;
 import org.quartz.SchedulerException;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 public class ScheduledJob extends BaseScheduledJob implements ScheduledJobMBean, HasImmutantRuntimeInjector {
 
@@ -41,19 +41,19 @@ public class ScheduledJob extends BaseScheduledJob implements ScheduledJobMBean,
     @Override
     public void start() throws ParseException, SchedulerException {
         JobScheduler scheduler = (JobScheduler)((InjectedValue<BaseJobScheduler>)getJobSchedulerInjector()).getValue();
-        ClojureRuntime runtime = this.clojureRuntimeInjector.getValue();
+        ClojureRuntimeShim runtime = this.clojureRuntimeInjector.getValue();
         scheduler.addJob( getName(), getGroup(), new ClojureJob( runtime, this.handler ) );
         
         super.start();
     }
     
     @Override
-    public Injector<ClojureRuntime> getClojureRuntimeInjector() {
+    public Injector<ClojureRuntimeShim> getClojureRuntimeInjector() {
         return this.clojureRuntimeInjector;
     }
     
     @SuppressWarnings("rawtypes")
     private Callable handler;
-    private InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
+    private InjectedValue<ClojureRuntimeShim> clojureRuntimeInjector = new InjectedValue<ClojureRuntimeShim>();
     
 }

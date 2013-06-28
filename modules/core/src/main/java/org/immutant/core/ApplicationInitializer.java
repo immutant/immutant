@@ -19,12 +19,12 @@
 
 package org.immutant.core;
 
-import org.immutant.runtime.ClojureRuntime;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.core.AsyncService;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 public class ApplicationInitializer<Void> extends AsyncService<Void> {
 
@@ -38,7 +38,7 @@ public class ApplicationInitializer<Void> extends AsyncService<Void> {
 
     @Override
     public void startAsync(StartContext context) throws Exception {
-        ClojureRuntime runtime = this.clojureRuntimeInjector.getValue();
+        ClojureRuntimeShim runtime = this.clojureRuntimeInjector.getValue();
         Timer t = new Timer("setting app config");
         runtime.invoke("immutant.runtime/set-app-config", 
                        this.fullAppConfig, 
@@ -60,7 +60,7 @@ public class ApplicationInitializer<Void> extends AsyncService<Void> {
     public synchronized void stop(StopContext context) {
     }
 
-    public Injector<ClojureRuntime> getClojureRuntimeInjector() {
+    public Injector<ClojureRuntimeShim> getClojureRuntimeInjector() {
         return this.clojureRuntimeInjector;
     }
     
@@ -68,6 +68,6 @@ public class ApplicationInitializer<Void> extends AsyncService<Void> {
     private String leinProject;
     private ClojureMetaData metaData;
 
-    private InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
+    private InjectedValue<ClojureRuntimeShim> clojureRuntimeInjector = new InjectedValue<ClojureRuntimeShim>();
 
 }

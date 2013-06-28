@@ -21,7 +21,8 @@
   (:import org.immutant.core.ApplicationInitializer
            [org.immutant.core.processors ApplicationInitializerInstaller ClojureRuntimeInstaller]
            org.immutant.core.ClojureMetaData
-           [org.immutant.runtime ClojureRuntime ClojureRuntimeService]))
+           org.immutant.runtime.ClojureRuntimeService
+           org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim))
 
 (def a-value (atom "not-called"))
 
@@ -37,7 +38,7 @@
      (doto unit
        (.putAttachment ClojureRuntimeService/ATTACHMENT_KEY
                        (doto
-                           (proxy [ClojureRuntime] []
+                           (proxy [ClojureRuntimeShim] []
                              (invoke [initialize-fn args]
                                (reset! a-value [initialize-fn (first args)])))
                          (.setClassLoader (.getClassLoader (.getClass unit)))

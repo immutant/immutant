@@ -21,14 +21,14 @@ package org.immutant.messaging;
 
 import javax.jms.Message;
 
-import org.immutant.runtime.ClojureRuntime;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 /**
  * Only used when in-container but connecting to a remote destination.
  */
 public class MessageListener implements javax.jms.MessageListener {
     
-    public MessageListener(ClojureRuntime runtime, Object handler) {
+    public MessageListener(ClojureRuntimeShim runtime, Object handler) {
         this.runtime = runtime;
         this.fn = handler;
     }
@@ -38,6 +38,6 @@ public class MessageListener implements javax.jms.MessageListener {
        this.runtime.invoke( this.fn, message );
     }
     
-    private ClojureRuntime runtime;
+    private ClojureRuntimeShim runtime;
     private Object fn;
 }

@@ -19,15 +19,15 @@
 
 package org.immutant.core;
 
-import org.immutant.runtime.ClojureRuntime;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Transition;
 import org.jboss.msc.service.ServiceListener;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 @SuppressWarnings("rawtypes")
 public class SimpleServiceStateListener implements ServiceListener {
 
-    public SimpleServiceStateListener(ClojureRuntime runtime, Object callback) {
+    public SimpleServiceStateListener(ClojureRuntimeShim runtime, Object callback) {
         this.runtime = runtime;
         this.callback = callback;
     }
@@ -77,6 +77,6 @@ public class SimpleServiceStateListener implements ServiceListener {
     @Override
     public void transitiveDependencyAvailable(ServiceController controller) { }
 
-    private ClojureRuntime runtime;
+    private ClojureRuntimeShim runtime;
     private Object callback;
 }

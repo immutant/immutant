@@ -19,14 +19,14 @@
 
 package org.immutant.messaging;
 
-import org.immutant.runtime.ClojureRuntime;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 /**
  * Only used when in-container but connecting to a remote destination.
  */
 public class MessageListenerFactory {
     
-    public MessageListenerFactory(ClojureRuntime runtime) {
+    public MessageListenerFactory(ClojureRuntimeShim runtime) {
         this.runtime = runtime;
     }
     
@@ -34,6 +34,6 @@ public class MessageListenerFactory {
         return new MessageListener( this.runtime, handler );
     }
 
-    private final ClojureRuntime runtime;
+    private final ClojureRuntimeShim runtime;
 }
 

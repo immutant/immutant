@@ -20,9 +20,9 @@
 
 package org.immutant.core;
 
-import org.immutant.runtime.ClojureRuntime;
 import org.jboss.msc.inject.Injector;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 public interface HasImmutantRuntimeInjector {
-    public Injector<ClojureRuntime> getClojureRuntimeInjector();
+    public Injector<ClojureRuntimeShim> getClojureRuntimeInjector();
 }

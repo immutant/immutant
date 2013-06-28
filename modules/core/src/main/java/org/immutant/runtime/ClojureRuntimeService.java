@@ -25,11 +25,12 @@ import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
-public class ClojureRuntimeService implements Service<ClojureRuntime> {
-    public static final AttachmentKey<ClojureRuntime> ATTACHMENT_KEY = AttachmentKey.create( ClojureRuntime.class );
+public class ClojureRuntimeService implements Service<ClojureRuntimeShim> {
+    public static final AttachmentKey<ClojureRuntimeShim> ATTACHMENT_KEY = AttachmentKey.create( ClojureRuntimeShim.class );
 
-    public ClojureRuntimeService(ClojureRuntime runtime) {
+    public ClojureRuntimeService(ClojureRuntimeShim runtime) {
         this.runtime = runtime;
     }
 
@@ -39,15 +40,15 @@ public class ClojureRuntimeService implements Service<ClojureRuntime> {
 
     @Override
     public synchronized void stop(StopContext context) {
-        log.info( "Shutting down Clojure runtime for " + runtime.name );
+        log.info( "Shutting down Clojure runtime for " + this.runtime.getName() );
         runtime.invoke( "clojure.core/shutdown-agents" );
     }
 
     @Override 
-    public ClojureRuntime getValue() {
+    public ClojureRuntimeShim getValue() {
         return this.runtime;
     }
 
-    private ClojureRuntime runtime;
+    private ClojureRuntimeShim runtime;
     static final Logger log = Logger.getLogger( "org.immutant.runtime" );
 }

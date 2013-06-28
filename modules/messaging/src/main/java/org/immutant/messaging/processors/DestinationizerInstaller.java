@@ -24,11 +24,11 @@ import org.immutant.core.processors.RegisteringProcessor;
 import org.immutant.messaging.Destinationizer;
 import org.immutant.messaging.MessageProcessorGroupizer;
 import org.immutant.messaging.as.MessagingServices;
-import org.immutant.runtime.ClojureRuntime;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceTarget;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 
 public class DestinationizerInstaller extends RegisteringProcessor {
@@ -44,7 +44,7 @@ public class DestinationizerInstaller extends RegisteringProcessor {
                 
         context.getServiceTarget().addService(MessagingServices.destinationizer( unit ), service)
             .addDependency( CoreServices.runtime( context.getDeploymentUnit() ), 
-                            ClojureRuntime.class,
+                            ClojureRuntimeShim.class,
                             service.getClojureRuntimeInjector()  )
             .addDependency( MessagingServices.messageProcessorGroupizer( context.getDeploymentUnit() ),
                             MessageProcessorGroupizer.class,

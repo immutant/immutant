@@ -23,7 +23,6 @@ import org.immutant.common.ClassLoaderUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Timer;
 import org.immutant.core.as.CoreServices;
-import org.immutant.runtime.ClojureRuntime;
 import org.immutant.runtime.ClojureRuntimeService;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -31,6 +30,7 @@ import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceController.Mode;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 /**
  * Attaches a ClojureRuntime to the deployment. There is one ClojureRuntime per app.
@@ -51,9 +51,10 @@ public class ClojureRuntimeInstaller implements DeploymentUnitProcessor {
        Timer t = new Timer("creating clojure runtime");
        ClassLoader loader = ClassLoaderUtils.getModuleLoader( deploymentUnit );
        
-        ClojureRuntime runtime = ClojureRuntime.newRuntime( loader, deploymentUnit.getName() );
+        ClojureRuntimeShim runtime = ClojureRuntimeShim.newRuntime( loader, deploymentUnit.getName() );
         deploymentUnit.putAttachment( ClojureRuntimeService.ATTACHMENT_KEY, runtime );
-        
+
+        runtime.require("immutant.registry", "immutant.runtime");
         runtime.invoke( "immutant.registry/set-msc-registry", deploymentUnit.getServiceRegistry() );
         runtime.invoke( "immutant.registry/put", "clojure-runtime", runtime );
         

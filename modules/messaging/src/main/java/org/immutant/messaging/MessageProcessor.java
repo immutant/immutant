@@ -23,14 +23,14 @@ import javax.jms.Message;
 import javax.jms.XASession;
 import javax.transaction.TransactionManager;
 
-import org.immutant.runtime.ClojureRuntime;
 import org.jboss.logging.Logger;
 import org.projectodd.polyglot.messaging.BaseMessageProcessor;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 
 public class MessageProcessor extends BaseMessageProcessor {
     
-    public MessageProcessor(ClojureRuntime runtime) {
+    public MessageProcessor(ClojureRuntimeShim runtime) {
         this.runtime = runtime;
     }
     
@@ -81,7 +81,7 @@ public class MessageProcessor extends BaseMessageProcessor {
         return this.tm;
     }
     
-    private ClojureRuntime runtime;
+    private ClojureRuntimeShim runtime;
     private Object handler;
     private TransactionManager tm;
     static final Logger log = Logger.getLogger( MessageProcessor.class );

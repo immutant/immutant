@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.immutant.core.HasImmutantRuntimeInjector;
 import org.immutant.core.SimpleServiceStateListener;
-import org.immutant.runtime.ClojureRuntime;
 import org.jboss.as.messaging.jms.JMSQueueService;
 import org.jboss.as.messaging.jms.JMSTopicService;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -44,6 +43,7 @@ import org.projectodd.polyglot.messaging.destinations.DestroyableJMSQueueService
 import org.projectodd.polyglot.messaging.destinations.DestroyableJMSTopicService;
 import org.projectodd.polyglot.messaging.destinations.processors.QueueInstaller;
 import org.projectodd.polyglot.messaging.destinations.processors.TopicInstaller;
+import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
 
 
 public class Destinationizer extends AtRuntimeInstaller<Destinationizer> implements HasImmutantRuntimeInjector {
@@ -148,7 +148,7 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
     
     
     @Override
-    public Injector<ClojureRuntime> getClojureRuntimeInjector() {
+    public Injector<ClojureRuntimeShim> getClojureRuntimeInjector() {
         return this.clojureRuntimeInjector;
     }
     
@@ -161,7 +161,7 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
         return this.destinations;
     }
     
-    private final InjectedValue<ClojureRuntime> clojureRuntimeInjector = new InjectedValue<ClojureRuntime>();
+    private final InjectedValue<ClojureRuntimeShim> clojureRuntimeInjector = new InjectedValue<ClojureRuntimeShim>();
     private final InjectedValue<MessageProcessorGroupizer> messageProcessorGroupizerInjector = new InjectedValue<MessageProcessorGroupizer>();
     private Map<String, ServiceName> destinations = new HashMap<String, ServiceName>();
     
