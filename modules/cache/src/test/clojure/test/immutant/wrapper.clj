@@ -30,3 +30,8 @@
   (let [c (create "bytes" :encoding :bs)]
     (is (nil? (put c :a 1)))
     (is (= 1 (get c :a)))))
+
+(deftest storing-nil-keys
+  (let [c (create "nil-keys" :encoding :none)]
+    (is (nil? (put c nil :right)))
+    (is (= :right (get c nil :wrong)))))

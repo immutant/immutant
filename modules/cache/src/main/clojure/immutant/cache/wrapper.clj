@@ -27,19 +27,25 @@
   (wrap [data] data)
   (unwrap [data] data))
 
-(deftype ArrayWrapper [data]
+(deftype SeqWrapper [data]
   Object
   (equals [_ obj]
-    (and (instance? ArrayWrapper obj)
+    (and (instance? SeqWrapper obj)
          (= (seq data) (seq (.data obj)))))
   (hashCode [_]
-    (.hashCode (seq data)))
+    (if data
+      (.hashCode (seq data))
+      42))
   Wrapper
   (unwrap [v] (.data v)))
+
+(extend-type nil
+  Wrapper
+  (wrap [_] (SeqWrapper. nil)))
 
 ;;; We only wrap byte arrays, by default. Clients may extend other
 ;;; primitve array types, if necessary.
 (extend-type (Class/forName "[B")
   Wrapper
-  (wrap [data] (ArrayWrapper. data)))
+  (wrap [data] (SeqWrapper. data)))
 
