@@ -38,7 +38,6 @@
 
 (defn deploy [project artifacts]
   (println "Publishing artifacts for" (:name project))
-  (clojure.pprint/pprint (deploy/repo-for project "clojars"))
   (aether/deploy
     :coordinates [(symbol (:group project) (:name project))
                   (:version project)]
