@@ -226,3 +226,6 @@
   (let [seed {:a 1, :b {:c 42}}
         c (create "seedy" :seed seed)]
     (is (= seed (into {} (seq c))))))
+
+(deftest default-to-local "should not raise exception"
+  (create "remote" :mode :replicated))

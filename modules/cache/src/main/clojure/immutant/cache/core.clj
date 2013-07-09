@@ -90,10 +90,13 @@
       locking (throw (IllegalArgumentException. (str "Invalid locking mode: " locking))))
     (.build builder)))
 
-(defn default-mode []
+(defn default-mode [opts]
   (if (and service (.isClustered service))
-    :distributed
-    :local))
+    (merge {:mode :distributed} opts)
+    (do
+      (if-not (= :local (:mode opts :local))
+        (log/warn "Cache replication only supported when clustered"))
+      (assoc opts :mode :local))))
 
 (defn get-cache
   "Returns the named cache if it exists, otherwise nil"
@@ -105,7 +108,7 @@
   "Defaults to :distributed with :sync=true for a clustered cache, otherwise :local"
   [name opts]
   (let [default (.getDefaultCacheConfiguration @manager)
-        settings (merge {:template default, :mode (default-mode), :sync true} opts)
+        settings (merge {:template default, :sync true} (default-mode opts))
         config (build-config settings)]
     (log/info (str "Configuring cache [" name "] as "
                    (select-keys settings [:mode :sync :locking :persist :max-entries :eviction])))
