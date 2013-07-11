@@ -44,20 +44,24 @@
 (defn ^{:private true} connection-key [opts]
   (map #(% opts) [:host :port :username :password]))
 
-(let [local-connection-factory
-      (if-let [reference-factory (registry/get factory-name)]
-        (let [reference (.getReference reference-factory)]
-          (try
-            (.getInstance reference)
-            (finally (at-exit #(.release reference)))))
-        (do
-          (log/warn "Unable to obtain JMS Connection Factory - assuming we are outside the container")
-          (hornetq/connection-factory)))]
-  (defn connection-factory
-    [opts]
-    (if (remote-connection? opts)
-      (hornetq/connection-factory opts)
-      local-connection-factory)))
+
+(def ^:private local-connection-factory
+  (memoize
+   (fn []
+     (if-let [reference-factory (registry/get factory-name)]
+       (let [reference (.getReference reference-factory)]
+         (try
+           (.getInstance reference)
+           (finally (at-exit #(.release reference)))))
+       (do
+         (log/warn "Unable to obtain JMS Connection Factory - assuming we are outside the container")
+         (hornetq/connection-factory))))))
+
+(defn connection-factory
+                   [opts]
+                   (if (remote-connection? opts)
+                     (hornetq/connection-factory opts)
+                     (local-connection-factory)))
 
 (defn destination-name-error [name]
   (IllegalArgumentException.
