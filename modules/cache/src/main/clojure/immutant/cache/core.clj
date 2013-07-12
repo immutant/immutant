@@ -17,6 +17,7 @@
 
 (ns ^{:no-doc true} immutant.cache.core
     (:require [immutant.registry :as registry]
+              [immutant.util :as util]
               [clojure.java.io :as io]
               [clojure.tools.logging :as log])
     (:import [org.infinispan.configuration.cache ConfigurationBuilder VersioningScheme CacheMode]
@@ -117,7 +118,9 @@
     (when-let [cache (get-cache name)]
       (.stop cache)
       (.start cache))
-    (.getCache @manager name)))
+    (let [cache (.getCache @manager name)]
+      (util/at-exit #(.stop cache))
+      cache)))
 
 (defn time-unit
   [kw]
