@@ -62,4 +62,5 @@
    ;; Delegate everything else
    (close [_] (.close con))
    (getAutoCommit [_] (.getAutoCommit con))
-   (createStatement [_] (.createStatement con))))
+   (createStatement [_] (.createStatement con))
+   (getMetaData [_] (.getMetaData con))))

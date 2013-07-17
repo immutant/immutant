@@ -1,6 +1,6 @@
 (ns tx.test.korma
-  (:use clojure.test
-        tx.korma
+  (:use tx.korma
+        clojure.test
         korma.core)
   (:require [immutant.xa :as xa]))
 
@@ -8,6 +8,8 @@
                       (delete posts)
                       (delete authors)
                       (f)))
+
+(use-fixtures :once (fn [f] (tx.korma/init) (f)))
 
 (deftest insert-and-select
   (insert authors (values {:id 1, :username "jim"}))
@@ -28,3 +30,4 @@
   (xa/transaction
    (insert authors (values {:id 1, :username "jim"})))
   (is (= 1 (count (select authors)))))
+
