@@ -43,4 +43,4 @@
   (doseq [db dbs]
     (define-tests db)))
 
-(apply testes (str/split (:databases (immutant.registry/get :config)) #","))
+(apply testes (str/split (:databases (immutant.registry/get :config) "h2") #","))
