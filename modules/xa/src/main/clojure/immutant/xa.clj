@@ -23,6 +23,18 @@
             [immutant.xa.transaction :as tx]
             [immutant.xa.wrappers    :as wrap]))
 
+(defn wrap
+  "Wrap a DataSource (or a spec from which a DataSource can be
+   obtained) with a reified DataSource that will ignore method calls
+   illegal on an XA Connection."
+  [ds-or-spec]
+  (if-let [ds (cond
+               (not (map? ds-or-spec)) ds-or-spec
+               (:contains? ds-or-spec :datasource) (:datasource ds-or-spec)
+               (:contains? ds-or-spec :name) (.lookup (InitialContext.) (:name ds-or-spec)))]
+    (reify javax.sql.DataSource
+      (getConnection [_] (wrap/connection (.getConnection ds))))))
+
 (defn datasource
   "Create an XA-capable datasource named by 'id'. The result can be
    associated with the :datasource key in a clojure.java.jdbc spec,
@@ -53,8 +65,7 @@
         params (into {} (for [[k v] spec] [(name k) v]))
         name (.createDataSource (registry/get "xaifier") id params)
         ds (util/backoff 10 10000 (.lookup (InitialContext.) name))]
-    (reify javax.sql.DataSource
-      (getConnection [_] (wrap/connection (.getConnection ds))))))
+    (wrap ds)))
 
 (defmacro transaction
   "Execute body within the current transaction, if available,
