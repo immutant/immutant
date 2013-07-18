@@ -30,8 +30,8 @@
   [ds-or-spec]
   (if-let [ds (cond
                (not (map? ds-or-spec)) ds-or-spec
-               (:contains? ds-or-spec :datasource) (:datasource ds-or-spec)
-               (:contains? ds-or-spec :name) (.lookup (InitialContext.) (:name ds-or-spec)))]
+               (contains? ds-or-spec :datasource) (:datasource ds-or-spec)
+               (contains? ds-or-spec :name) (.lookup (InitialContext.) (:name ds-or-spec)))]
     (reify javax.sql.DataSource
       (getConnection [_] (wrap/connection (.getConnection ds))))))
 
