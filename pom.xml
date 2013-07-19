@@ -370,7 +370,7 @@
   </dependencyManagement>
 
   <properties>
-    <codename>SpiderPig</codename>
+    <codename>HypnoToad</codename>
     <version.polyglot>1.14.0</version.polyglot>
     <!-- <version.polyglot>1.x.incremental.44</version.polyglot> -->
     <!-- <version.polyglot>1.15.0-SNAPSHOT</version.polyglot> -->
