@@ -2,7 +2,8 @@
   (:use clojure.test
         jobs.helper)
   (:require [immutant.jobs      :as job]
-            [immutant.messaging :as msg]))
+            [immutant.messaging :as msg])
+  (:import java.util.concurrent.atomic.AtomicInteger))
 
 (defmacro with-job [action & body]
   `(try
@@ -65,9 +66,13 @@
                (job/unschedule "singleton-true")))))
 
 (deftest reloading-ns-should-not-break-unschedule
-  (let [q (random-queue)]
-    (with-job #(msg/publish q "ping")
+  (let [q (random-queue)
+        aint (AtomicInteger.)]
+    (with-job (fn [] (msg/publish q "ping")
+                (.incrementAndGet aint))
       (is (msg/receive q :timeout 10000))
       (require '[immutant.jobs :as job] :reload-all)
       (job/unschedule "a-job")
-      (is (not (msg/receive q :timeout 5000))))))
+      (let [curval (.get aint)]
+        (Thread/sleep 5000)
+        (is (= curval (.get aint)))))))
