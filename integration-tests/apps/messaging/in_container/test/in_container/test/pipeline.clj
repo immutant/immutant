@@ -246,3 +246,9 @@
   (let [pl (pl/pipeline :with-a-record #(update-in % [:a] inc))]
     (is (= (->TestRecord 2) (deref (pl (->TestRecord 1)) 10000 :timeout)))))
   
+(deftest reloading-pipeline-ns-should-not-reset-internal-state
+  (let [name :reloading-ns-pl]
+    (pl/pipeline name)
+    (require '[immutant.pipeline :as pl] :reload-all)
+    (is (thrown? IllegalArgumentException
+                 (pl/pipeline name)))))

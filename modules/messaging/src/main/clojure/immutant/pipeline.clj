@@ -96,8 +96,9 @@
    handler function."
   ::halt)
 
-(def ^:private pipelines
-  "Stores the currently active pipelines"
+(defonce  ^{:private true
+            :doc "Stores the currently active pipelines"}
+  pipelines
   (atom #{}))
 
 (defn- wrap-error-handler

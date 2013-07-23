@@ -25,7 +25,7 @@
   "Bound to the currently active org.quartz.JobExecutionContext when a job function is invoked."
   nil)
 
-(def ^{:private true} current-jobs (atom {}))
+(defonce ^{:private true} current-jobs (atom {}))
 
 (defn unschedule
   "Removes the named job from the scheduler"

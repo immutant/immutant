@@ -63,3 +63,11 @@
       (is (msg/receive q2 :timeout 10000))
       (finally (job/unschedule "singleton-false")
                (job/unschedule "singleton-true")))))
+
+(deftest reloading-ns-should-not-break-unschedule
+  (let [q (random-queue)]
+    (with-job #(msg/publish q "ping")
+      (is (msg/receive q :timeout 10000))
+      (require '[immutant.jobs :as job] :reload-all)
+      (job/unschedule "a-job")
+      (is (not (msg/receive q :timeout 5000))))))

@@ -23,7 +23,7 @@
 
 (def ^{:dynamic true} ^javax.servlet.http.HttpServletRequest current-servlet-request nil)
 
-(def ^{:private true} servlet-info (atom {}))
+(defonce ^{:private true} servlet-info (atom {}))
 
 (defn get-servlet-info [name]
   (@servlet-info name))
