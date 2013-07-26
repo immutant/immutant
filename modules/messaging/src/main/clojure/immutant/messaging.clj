@@ -24,8 +24,7 @@
         immutant.messaging.internal)
   (:require [immutant.messaging.codecs :as codecs]
             [immutant.registry         :as registry]
-            [clojure.tools.logging     :as log])
-  (:import [immutant.messaging.internal QueueMarker TopicMarker]))
+            [clojure.tools.logging     :as log]))
 
 (defn as-queue
   "Marks the given queue name as a queue. Useful for working with queues that
@@ -33,7 +32,7 @@
    The result can be passed to any immutant.messaging functions that take a
    queue name."
   [^String name]
-  (QueueMarker. name))
+  (->QueueMarker name))
 
 (defn as-topic
   "Marks the given topic name as a topic. Useful for working with topics that
@@ -41,7 +40,7 @@
    The result can be passed to any immutant.messaging functions that take a
    topic name."
   [^String name]
-  (TopicMarker. name))
+  (->TopicMarker name))
 
 (defn start
   "Create a message destination; name should begin with either 'queue'
