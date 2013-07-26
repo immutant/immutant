@@ -379,7 +379,7 @@
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>
     <version.hamcrest>1.1</version.hamcrest>
-    <version.jbossas>7.2.x.slim.incremental.5</version.jbossas>
+    <version.jbossas>7.2.x.slim.incremental.6</version.jbossas>
     <version.clojure>1.5.1</version.clojure>
     <version.clojure-contrib>1.2.0</version.clojure-contrib>
     <version.clojure.tools.logging>0.2.3</version.clojure.tools.logging>
