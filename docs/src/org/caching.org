@@ -31,10 +31,9 @@
 
 ** Invalidated
 
-   This is the default mode when Immutant runs clustered. No data is
-   actually shared among the cluster nodes in this mode. Instead,
-   notifications are sent to all nodes when data changes, causing
-   them to evict their stale copies of the updated entry.
+   No data is actually shared among the cluster nodes in this mode.
+   Instead, notifications are sent to all nodes when data changes,
+   causing them to evict their stale copies of the updated entry.
 
 ** Replicated
 
@@ -47,7 +46,8 @@
 
 ** Distributed
 
-   This mode enables Infinispan clusters to achieve "linear
+   This is the default mode when Immutant runs clustered. This
+   mode enables Infinispan clusters to achieve "linear
    scalability". Cache entries are copied to a fixed number of
    cluster nodes (2, by default) regardless of the cluster
    size. Distribution uses a consistent hashing algorithm to
