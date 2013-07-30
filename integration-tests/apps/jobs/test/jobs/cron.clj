@@ -73,6 +73,7 @@
       (is (msg/receive q :timeout 10000))
       (require '[immutant.jobs :as job] :reload-all)
       (job/unschedule "a-job")
+      (Thread/sleep 5000)
       (let [curval (.get aint)]
-        (Thread/sleep 5000)
+        (Thread/sleep 2000)
         (is (= curval (.get aint)))))))
