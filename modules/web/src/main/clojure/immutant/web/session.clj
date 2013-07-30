@@ -85,7 +85,8 @@
    :domain       The domain name where the cookie is valid [nil]
    :http-only    Should the cookie be used only for http? [false]
    :max-age      The amount of time the cookie should be retained by the
-                 client, in seconds [-1, meaning 'never expire']
+                 client, in seconds [-1, meaning no max-age.
+                 Cookie will be deleted on browser close.]
    :path         The path where the cookie is valid [the context path]
    :secure       Should the cookie be used only for secure connections? [false]
 

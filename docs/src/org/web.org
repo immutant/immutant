@@ -280,14 +280,14 @@
    via [[./apidoc/immutant.web.session.html#var-set-session-cookie-attributes!][immutant.web.session/set-session-cookie-attributes!]], giving it
    the following keyword arguments:
 
-    | Attribute    | Default                 | Description                                                                 |
-    |--------------+-------------------------+-----------------------------------------------------------------------------|
-    | :cookie-name | "JSESSIONID"            | The name used for the cookie.                                               |
-    | :domain      | /none/                  | The domain name where the cookie is valid.                                  |
-    | :http-only   | =false=                 | Should the cookie be used only for http?                                    |
-    | :max-age     | -1 /(never expire)/     | The amount of time the cookie should be retained by the client, in seconds. |
-    | :path        | /the context path/      | The path where the cookie is valid.                                         |
-    | :secure      | =false=                 | Should the cookie be used only for secure connections?                      |
+    | Attribute    | Default                        | Description                                                                 |
+    |--------------+--------------------------------+-----------------------------------------------------------------------------|
+    | :cookie-name | "JSESSIONID"                   | The name used for the cookie.                                               |
+    | :domain      | /none/                         | The domain name where the cookie is valid.                                  |
+    | :http-only   | =false=                        | Should the cookie be used only for http?                                    |
+    | :max-age     | -1 /(expire on browser close)/ | The amount of time the cookie should be retained by the client, in seconds. |
+    | :path        | /the context path/             | The path where the cookie is valid.                                         |
+    | :secure      | =false=                        | Should the cookie be used only for secure connections?                      |
 
 
    This function can be called multiple times, and will only alter the
@@ -307,7 +307,7 @@
    #+end_src
 
    Changes made by either of these functions apply to all of the web
-   endpoints deployed within application, since they all share the
+   endpoints deployed within the application, since they all share the
    same session.
    
 ** Duplicate session cookies
