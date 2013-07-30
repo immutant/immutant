@@ -171,7 +171,7 @@
     (let [complete (promise)
           service-created (f izer complete)]
       (if service-created
-        (when-not (= "up" (deref complete 5000 nil))
+        (when-not (= "up" (deref complete 60000 nil))
           (throw (Exception. (format "Unable to start %s: %s" type name))))
         (log/info (format "%s already exists: %s" type name))))
     (throw (Exception. (format "Unable to start %s: %s" type name)))))
