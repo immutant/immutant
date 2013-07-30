@@ -52,11 +52,6 @@
       <artifactId>jboss-transaction-api_1.1_spec</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.jboss.marshalling</groupId>
-      <artifactId>jboss-marshalling-river</artifactId>
-    </dependency>
-
   </dependencies>
 
   <build>
