@@ -12,6 +12,40 @@
   Each of these files have the opportunity to contribute to the configuration
   or initialization of the application.
 
+* Porting an existing Ring application
+  :PROPERTIES:
+  :CUSTOM_ID: initialization-porting
+  :END:
+
+  People often have an existing Ring-based clojure project they'd like to
+  try on Immutant. If the project already uses the [[https://github.com/weavejester/lein-ring][lein-ring]] plugin
+  and includes a =:ring= key in =project.clj= referencing a map with a
+  =:handler= key, you're all set! Just [[./deployment.html][deploy it!]]
+
+  However, projects that explicitly invoke [[http://clojuredocs.org/ring/ring.adapter.jetty/run-jetty][run-jetty]], typically from
+  some =-main= function identified by a =:main= key in project.clj,
+  will require porting. Immutant will ignore the =:main= key, and
+  since Immutant includes a web server built in, running another Jetty
+  instance is redundant. But porting the app is simple: just add the
+  =:ring= hash mentioned above, using the same handler passed to
+  =run-jetty=. So if the app does this:
+
+  #+begin_src clojure
+    (run-jetty #'your.namespace/app)
+  #+end_src
+
+  Just add the following to =project.clj=:
+
+  #+begin_src clojure
+    :ring {:handler your.namespace/app}
+  #+end_src
+
+  That's all you need to mount your handler on the default context
+  path when your app is deployed. See [[./web.html][the web chapter]] for more
+  details, specifically the sections on [[./web.html#web-context-path][context paths]] if your app
+  expects to be mounted at the root context, and [[./web.html#web-handler][handler registration]]
+  for additional options you can pass in the =:ring= map.
+
 * The Initialization Process
 
   When an Immutant detects a Clojure deployment (either a [[./deployment.html#deployment-descriptor][deployment descriptor]]

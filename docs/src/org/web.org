@@ -87,6 +87,9 @@
   context path without collision.
 
 * Registering Handlers
+  :PROPERTIES:
+  :CUSTOM_ID: web-handler
+  :END:
 
   To register a Ring handler, you simply call [[./apidoc/immutant.web.html#var-start][immutant.web/start]], which
   takes one or two arguments, plus some options:
@@ -110,6 +113,9 @@
    | :stacktraces? | true in :dev   | Display stacktraces in browser when exception is thrown |
    | :auto-reload? | true in :dev   | Automatically reload source files   |
    | :reload-paths | all dirs on CP | A seq of src paths to monitor for changes |
+
+  These options can also be specified in the =:ring= map in
+  =project.clj=, useful when [[./initialization.html#initialization-porting][porting existing Ring apps]].
 
   Auto-reloading is enabled by default in development mode, which is
   determined by the presence of the =:dev= profile among the active
