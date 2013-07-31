@@ -137,8 +137,19 @@
         (let [project-with-immutant-deps
               (update-in project [:dependencies]
                          conj ['org.immutant/immutant "0.6.0"] ['org.immutant/immutant-web "0.6.0"])]
-          (resolve-dependencies project-with-immutant-deps) => expected-deps))))
-    
+          (resolve-dependencies project-with-immutant-deps) => expected-deps))
+
+      (fact "should ignore transitive immutant deps"
+        (let [project-with-transitive-immutant-deps
+              (update-in project [:dependencies]
+                         conj ['org.immutant/transitive-immutant-deps-test-lib "0.1.0"])
+              expected (-> (map (memfn getName) expected-deps)
+                           (conj "transitive-immutant-deps-test-lib-0.1.0.jar")
+                           set)
+              actual (->> (resolve-dependencies project-with-transitive-immutant-deps)
+                          (map (memfn getName))
+                          set)]
+          actual => expected))))
     
   (facts "read-full-app-config"
     (let [project-root (io/file (io/resource "project-root"))

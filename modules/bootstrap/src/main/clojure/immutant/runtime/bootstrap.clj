@@ -94,6 +94,37 @@
   [descriptor-file app-root]
   (pr-str (read-full-app-config descriptor-file app-root)))
 
+(def immutant-libs
+  #{'org.immutant/immutant
+    'org.immutant/immutant-cache
+    'org.immutant/immutant-common
+    'org.immutant/immutant-daemons
+    'org.immutant/immutant-jobs
+    'org.immutant/immutant-messaging
+    'org.immutant/immutant-web
+    'org.immutant/immutant-xa})
+
+(defn ^:private add-immutant-exclusions
+  "Adds all public immutant artifacts as exclusions to a dep."
+  [dep]
+  (-> dep
+      project/dependency-map
+      (update-in [:exclusions]
+                 #(concat % (map project/exclusion-map
+                                 immutant-libs)))
+      project/dependency-vec))
+
+(defn ^:private exclude-immutant-deps
+  "Removes public immutant artifacts from the deps list, and adds them
+  as an exclusion to each remaing dep."
+  [project]
+  (update-in project
+             [:dependencies]
+             (fn [deps]
+               (->> deps
+                    (remove #(contains? immutant-libs (first %)))
+                    (map add-immutant-exclusions)))))
+
 (defn ^{:private true :testable true} resolve-dependencies
   "Resolves dependencies from the lein project. It delegates to leiningen-core, but attempts
 to gracefully handle missing dependencies."
@@ -106,12 +137,9 @@ to gracefully handle missing dependencies."
     ;; not the application's CL, and we don't want that to happen.
     (project/load-plugins project :no-plugins) 
     (try
-      (->> (update-in project [:dependencies]
-                      (fn [deps] (remove #(and
-                                          (= "org.immutant" (namespace (first %)))
-                                          (.startsWith (name (first %)) "immutant"))
-                                        deps)))
-           (classpath/resolve-dependencies :dependencies))
+      (classpath/resolve-dependencies
+       :dependencies
+       (exclude-immutant-deps project))
       (catch clojure.lang.ExceptionInfo e
         (log/error "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
         nil))))
