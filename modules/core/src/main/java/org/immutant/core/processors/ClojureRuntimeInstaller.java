@@ -30,7 +30,7 @@ import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceController.Mode;
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 /**
  * Attaches a ClojureRuntime to the deployment. There is one ClojureRuntime per app.

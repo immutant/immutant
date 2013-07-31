@@ -292,15 +292,15 @@
       </dependency>
 
       <dependency>
-        <groupId>org.tcrawley</groupId>
-        <artifactId>clojure-runtime-shim-api</artifactId>
-        <version>${version.clojure-runtime-shim}</version>
+        <groupId>org.projectodd.shimdandy</groupId>
+        <artifactId>shimdandy-api</artifactId>
+        <version>${version.shimdandy}</version>
       </dependency>
 
       <dependency>
-        <groupId>org.tcrawley</groupId>
-        <artifactId>clojure-runtime-shim-impl</artifactId>
-        <version>${version.clojure-runtime-shim}</version>
+        <groupId>org.projectodd.shimdandy</groupId>
+        <artifactId>shimdandy-impl</artifactId>
+        <version>${version.shimdandy}</version>
       </dependency>
 
       <dependency>
@@ -374,7 +374,7 @@
     <!-- <version.polyglot>1.14.0</version.polyglot> -->
     <version.polyglot>1.x.incremental.46</version.polyglot>
     <!-- <version.polyglot>1.15.0-SNAPSHOT</version.polyglot> -->
-    <version.clojure-runtime-shim>1.0.0</version.clojure-runtime-shim>
+    <version.shimdandy>1.0.1</version.shimdandy>
     <version.junit>4.7</version.junit>
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>

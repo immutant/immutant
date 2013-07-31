@@ -43,14 +43,14 @@
     </dependency>
 
     <dependency>
-      <groupId>org.tcrawley</groupId>
-      <artifactId>clojure-runtime-shim-api</artifactId>
+      <groupId>org.projectodd.shimdandy</groupId>
+      <artifactId>shimdandy-api</artifactId>
       <scope>compile</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.tcrawley</groupId>
-      <artifactId>clojure-runtime-shim-impl</artifactId>
+      <groupId>org.projectodd.shimdandy</groupId>
+      <artifactId>shimdandy-impl</artifactId>
       <scope>compile</scope>
     </dependency>
 

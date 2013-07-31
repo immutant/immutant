@@ -22,7 +22,7 @@ package org.immutant.core;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Transition;
 import org.jboss.msc.service.ServiceListener;
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 @SuppressWarnings("rawtypes")
 public class SimpleServiceStateListener implements ServiceListener {

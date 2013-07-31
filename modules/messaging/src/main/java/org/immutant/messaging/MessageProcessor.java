@@ -25,7 +25,7 @@ import javax.transaction.TransactionManager;
 
 import org.jboss.logging.Logger;
 import org.projectodd.polyglot.messaging.BaseMessageProcessor;
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 
 public class MessageProcessor extends BaseMessageProcessor {

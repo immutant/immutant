@@ -21,7 +21,7 @@
 package org.immutant.core;
 
 import org.jboss.msc.inject.Injector;
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 public interface HasImmutantRuntimeInjector {
     public Injector<ClojureRuntimeShim> getClojureRuntimeInjector();

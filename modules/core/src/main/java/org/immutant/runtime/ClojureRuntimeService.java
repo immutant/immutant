@@ -25,7 +25,7 @@ import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 public class ClojureRuntimeService implements Service<ClojureRuntimeShim> {
     public static final AttachmentKey<ClojureRuntimeShim> ATTACHMENT_KEY = AttachmentKey.create( ClojureRuntimeShim.class );

@@ -19,7 +19,7 @@
 
 package org.immutant.messaging;
 
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 /**
  * Only used when in-container but connecting to a remote destination.

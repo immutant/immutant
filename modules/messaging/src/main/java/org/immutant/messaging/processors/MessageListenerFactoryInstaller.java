@@ -24,7 +24,7 @@ import org.immutant.messaging.MessageListenerFactory;
 import org.immutant.runtime.ClojureRuntimeService;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 
 public class MessageListenerFactoryInstaller extends RegisteringProcessor {

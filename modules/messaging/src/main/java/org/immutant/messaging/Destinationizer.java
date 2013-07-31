@@ -43,7 +43,7 @@ import org.projectodd.polyglot.messaging.destinations.DestroyableJMSQueueService
 import org.projectodd.polyglot.messaging.destinations.DestroyableJMSTopicService;
 import org.projectodd.polyglot.messaging.destinations.processors.QueueInstaller;
 import org.projectodd.polyglot.messaging.destinations.processors.TopicInstaller;
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 
 public class Destinationizer extends AtRuntimeInstaller<Destinationizer> implements HasImmutantRuntimeInjector {

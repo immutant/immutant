@@ -28,7 +28,7 @@ import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.jobs.BaseJobScheduler;
 import org.projectodd.polyglot.jobs.BaseScheduledJob;
 import org.quartz.SchedulerException;
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 public class ScheduledJob extends BaseScheduledJob implements ScheduledJobMBean, HasImmutantRuntimeInjector {
 

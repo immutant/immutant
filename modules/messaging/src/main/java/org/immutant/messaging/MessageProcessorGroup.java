@@ -39,7 +39,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.messaging.BaseMessageProcessor;
 import org.projectodd.polyglot.messaging.BaseMessageProcessorGroup;
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 public class MessageProcessorGroup extends BaseMessageProcessorGroup implements MessageProcessorGroupMBean, HasImmutantRuntimeInjector {
 

@@ -24,7 +24,7 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.core.AsyncService;
-import org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim;
+import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 public class ApplicationInitializer<Void> extends AsyncService<Void> {
 

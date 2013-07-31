@@ -22,7 +22,7 @@
            [org.immutant.core.processors ApplicationInitializerInstaller ClojureRuntimeInstaller]
            org.immutant.core.ClojureMetaData
            org.immutant.runtime.ClojureRuntimeService
-           org.tcrawley.clojure.runtime.shim.ClojureRuntimeShim))
+           org.projectodd.shimdandy.ClojureRuntimeShim))
 
 (def a-value (atom "not-called"))
 
