@@ -10,7 +10,7 @@
 
   <groupId>org.immutant</groupId>
   <artifactId>immutant-parent</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.0</version>
   <packaging>pom</packaging>
   <name>Immutant Parent</name>
   <url>http://github.com/immutant/</url>
