@@ -209,7 +209,7 @@
   #+end_src
   
   Alternatively, you might take advantage of Immutant's registry
-  namespace, through which you can access your Leiningen project hash
+  namespace, through which you can access your Leiningen project map
   and your application's deployment descriptor. These are resolved
   according to whatever Leiningen profiles are active when you deploy
   the application (or are specified in the deployment descriptor).

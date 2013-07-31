@@ -43,7 +43,7 @@
      (defonce ds (immutant.xa/datasource \"myds\" {...}))
      (clojure.java.jdbc/with-connection {:datasource ds} ...)
 
-   The spec hash keys are adapter-specific, but all should support the
+   The spec map keys are adapter-specific, but all should support the
    following:
     :adapter   one of h2|oracle|mysql|postgres|mssql (required)
     :host      the host on which the database server is running [localhost]

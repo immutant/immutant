@@ -74,7 +74,7 @@
      :priority        0-9 or :low :normal :high :critical [4]
      :ttl             time to live, in ms [0=forever]
      :persistent      whether undelivered messages survive restarts [true]
-     :properties      a hash to which selectors may be applied, overrides metadata [nil]
+     :properties      a map to which selectors may be applied, overrides metadata [nil]
      :correlation-id  used to set the JMSCorrelationID [nil]
                       see http://docs.oracle.com/javaee/6/api/javax/jms/Message.html#setJMSCorrelationID(java.lang.String) 
      :host            the remote host to connect to (default is to connect in-vm)

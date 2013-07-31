@@ -202,7 +202,7 @@
    | =:priority=       | =4=                                | An integer (0-9) or one of =:low=, =:normal=, =:high= and =:critical= which correspond to 0, 4, 7 and 9, respectively |
    | =:ttl=            | =0=                                | An integer greater than 0, indicating the number of milliseconds after which the message is discarded if not consumed. A =0= indicates that the message should be held indefinitely. |
    | =:persistent=     | =true=                             | If true, undelivered messages survive restarts (if the destination is durable). |
-   | =:properties=     | ={}=                               | A hash of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages |
+   | =:properties=     | ={}=                               | A map of arbitrary metadata upon which JMS selector expressions may be constructed to filter received messages |
    | =:correlation-id= | =nil=                              | Used to set the JMSCorrelationID (see [[http://docs.oracle.com/javaee/6/api/javax/jms/Message.html#setJMSCorrelationID(java.lang.String)][setJMSCorrelationID]]) |
    | =:host=           | =nil=                              | A remote HornetQ host to connect to. |
    | =:port=           | =nil=, or =5445= if =:host= is set | A remote HornetQ port to connect to. Requires =:host= to be set. |
@@ -260,7 +260,7 @@
    properties, subject to any overridden values passed in the
    =:properties= option (see above). If the payload cannot accept
    metadata, the message properties can be converted to a convenient
-   Clojure hash using [[./apidoc/immutant.messaging.html#var-get-properties][immutant.messaging.core/get-properties]].
+   Clojure map using [[./apidoc/immutant.messaging.html#var-get-properties][immutant.messaging.core/get-properties]].
 
    Immutant features three functions for consuming messages.
    - [[./apidoc/immutant.messaging.html#var-receive][immutant.messaging/receive]] Blocks the caller until a message arrives and returns

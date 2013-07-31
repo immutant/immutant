@@ -70,7 +70,7 @@
     | =:mode=        | =:local=, =:distributed= in a cluster | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. |
     | =:sync=        | =true=     | Whether replication occurs synchronously during the write.                                                                             |
     | =:persist=     | =nil=      | Enables entries to persist across server restarts in a file-backed store.                                                              |
-    | =:seed=        | =nil=      | A hash of initial entries to replace the existing ones.                                                                                |
+    | =:seed=        | =nil=      | A map of initial entries to replace the existing ones.                                                                            |
     | =:locking=     | =nil=      | The locking mode within a transaction. One of =:optimistic= or =:pessimistic= or nil to indicate no locking                            |
     | =:encoding=    | =:edn=     | One of =:edn=, =:json= or =:none=                                                                                                      |
     | =:max-entries= | =-1=       | The maximum number of entries allowed in the cache. A negative value implies no limit.                                                 |
@@ -144,7 +144,7 @@
    through which Infinispan's cache manipulation features are exposed.
 
    Data is inserted into an Immutant cache using one of the =put=
-   functions of the =Mutable= protocol. Each takes an optional hash of
+   functions of the =Mutable= protocol. Each takes an optional map of
    lifespan-oriented parameters (=:ttl= =:idle= =:units=) that may be
    used to override the values specified when the cache was created.
 

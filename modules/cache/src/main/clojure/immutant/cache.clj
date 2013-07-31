@@ -182,7 +182,7 @@
      :sync        Whether replication occurs synchronously [true]
      :persist     If non-nil, data persists across server restarts in a file
                     store; a string value names the directory [nil]
-     :seed        A hash of initial entries [nil]
+     :seed        A map of initial entries [nil]
      :locking     Infinispan locking schemes [nil]
                     :optimisitic or :pessimistic
      :encoding    :edn :json or :none [:edn]
