@@ -229,3 +229,8 @@
 
 (deftest default-to-local "should not raise exception"
   (create "remote" :mode :replicated))
+
+(deftest lookup-of-stopped-cache "should return nil"
+  (let [c (create "stopped")]
+    (.stop (.cache c))
+    (is (nil? (lookup "stopped")))))

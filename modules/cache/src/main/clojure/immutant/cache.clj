@@ -219,7 +219,8 @@
    options (:ttl :idle :units) are ignored if passed here."
   [name & {:as options}]
   (if-let [c (get-cache name)]
-    (InfinispanCache. c options)))
+    (if (.allowInvocations (.getStatus c))
+      (InfinispanCache. c options))))
 
 (defn lookup-or-create
   "A convenience method for creating a cache only if it doesn't
