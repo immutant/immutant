@@ -18,6 +18,7 @@
 (ns immutant.repl
   "Provides tools for starting swank and nrepl servers."
   (:require [immutant.util         :as util]
+            [immutant.registry     :as registry]
             [clojure.tools.logging :as log]))
 
 (defn ^:private fix-port [port]
@@ -64,21 +65,38 @@ management interface defined by the AS. Registers an at-exit handler to
 shutdown nrepl on undeploy, and returns a server that can be passed to
 stop-nrepl to shut it down manually."
   ([interface-address port]
-     ;; add the needed metadata for an nrepl middleware, but only do it if
-     ;; nrepl is going to be used to avoid loading nrepl at deploy for every app
-     (when-not (::descriptor (meta #'nrepl-init-handler))
-       ((util/try-resolve 'clojure.tools.nrepl.middleware/set-descriptor!)
-        #'nrepl-init-handler {}))
-     
+   ;; add the needed metadata for an nrepl middleware, but only do it if
+   ;; nrepl is going to be used to avoid loading nrepl at deploy for every app
+   (when-not (::descriptor (meta #'nrepl-init-handler))
+     ((util/try-resolve 'clojure.tools.nrepl.middleware/set-descriptor!)
+      #'nrepl-init-handler {}))
+   (let [{{:keys [nrepl-middleware nrepl-handler]} :repl-options}
+         (registry/get :project)
+         require-resolve #(do (-> % namespace symbol require)
+                              (resolve %))]
      (log/info "Starting nREPL for" (util/app-name)
                "at" (str interface-address ":" port))
-     (when-let [server ((util/try-resolve 'clojure.tools.nrepl.server/start-server)
-                        :handler ((util/try-resolve 'clojure.tools.nrepl.server/default-handler) #'nrepl-init-handler)
-                        :port (fix-port port) :bind interface-address)]
-       (util/at-exit (partial stop-nrepl server))
-       server))
+     (when (and nrepl-middleware nrepl-handler)
+       ;; TODO appropriate exception type here?
+       (throw (IllegalStateException.
+                "Can only use one of :nrepl-handler or :nrepl-middleware")))
+     (let [handler (or (and nrepl-handler (require-resolve nrepl-handler))
+                       (->> nrepl-middleware
+                            (map #(cond 
+                                    (var? %) %
+                                    (symbol? %) (require-resolve %)
+                                    (list? %) (eval %)))
+                            (apply (util/try-resolve
+                                     'clojure.tools.nrepl.server/default-handler)
+                                   #'nrepl-init-handler)))]
+       (when-let [server ((util/try-resolve 'clojure.tools.nrepl.server/start-server)
+                          :handler handler
+                          :port (fix-port port)
+                          :bind interface-address)]
+         (util/at-exit (partial stop-nrepl server))
+         server))))
   ([port]
-     (start-nrepl (util/management-interface-address) port)))
+   (start-nrepl (util/management-interface-address) port)))
 
 (defn ^:private spit-nrepl-file
   [server file]

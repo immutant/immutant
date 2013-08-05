@@ -29,8 +29,18 @@
 
 (deftest simple "it should work"
   (with-open [conn (repl/connect :port 4321)]
-    (let [response (repl/message (repl/client conn 120000)
-                                 {:op :eval :code "(str \"it works!\")"})]
+    (let [client (repl/client conn 120000)]
       ;;(println "RESPONSE" response)
-      (is (= "it works!" (first (repl/response-values response)))))))
+      (is (= "it works!" (first (repl/response-values
+                                  (repl/message client
+                                    {:op :eval :code "(str \"it works!\")"})))))
+      (testing ":nrepl-middleware was successfully applied"
+        (is (.contains (->> (repl/message client {:op :doc
+                                                  :ns "clojure.core"
+                                                  :symbol "hash-map"})
+                            ;; ritz is abusing :value here :-(
+                            (map :value)
+                            (remove nil?)
+                            first)
+                       "Returns a new hash map with supplied mappings"))))))
 
