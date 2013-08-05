@@ -71,7 +71,7 @@ running the `mvn install` command.
 To run your local build, set `IMMUTANT_HOME` and the lein-immutant
 plugin will use it:
 
-    export IMMUTANT_HOME=/path/to/immutant/build/assembly/target/stage/
+    export IMMUTANT_HOME=/path/to/immutant/build/assembly/target/stage/immutant/
 
 
 ## License
