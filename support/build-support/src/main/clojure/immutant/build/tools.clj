@@ -308,8 +308,8 @@
       loc)))
 
 (defn fix-socket-binding [loc]
-  (condp = (-> loc zip/node :attrs :name)
-    "http" (zip/edit loc assoc-in [:attrs :port] "${http.port:8080}")
+  (if (= "http" (-> loc zip/node :attrs :name))
+    (zip/edit loc assoc-in [:attrs :port] "${http.port:8080}")
     loc))
 
 (defn polyglot-cache-container []

@@ -93,7 +93,7 @@
   "Sets attributes on a JMS message. Returns message."
   [^javax.jms.Message message attributes]
   (doseq [[attr v] attributes]
-    (condp = attr
+    (case attr
       :correlation-id (.setJMSCorrelationID message v)
       :reply-to       (.setJMSReplyTo message v)
       :type           (.setJMSType message v)

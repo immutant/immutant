@@ -20,8 +20,8 @@
   (:require [immutant.util         :as util]
             [clojure.tools.logging :as log]))
 
-(defn ^{:private true} fix-port [port]
-  (if (= String (class port))
+(defn ^:private fix-port [port]
+  (if (string? port)
     (Integer. port)
     port))
 
@@ -32,15 +32,6 @@
     (when (= op "clone")
       (require 'clj-stacktrace.repl 'complete.core))
     (h msg)))
-
-;; We have to bind the repl * vars under 1.2.1, otherwise swank fails to start,
-;; and with-bindings NPE's, so we roll our own
-(defmacro with-base-repl-bindings [& body]
-  `(binding [*e nil
-             *1 nil
-             *2 nil
-             *3 nil]
-     ~@body))
 
 (defn stop-swank
   "Shuts down the running swank server."
@@ -55,8 +46,7 @@ interface defined by the AS. Registers an at-exit handler to shutdown swank on
 undeploy."
   ([interface-address port]
      (log/info "Starting swank for" (util/app-name) "at" (str interface-address ":" port))
-     (with-base-repl-bindings
-       ((util/try-resolve 'swank.swank/start-server) :host interface-address :port (fix-port port) :exit-on-quit false))
+     ((util/try-resolve 'swank.swank/start-server) :host interface-address :port (fix-port port) :exit-on-quit false)
      (util/at-exit stop-swank))
   ([port]
      (start-swank (util/management-interface-address) port)))
