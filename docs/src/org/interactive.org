@@ -250,7 +250,7 @@
       (:source-paths (dev/current-project)) ; => [["/path/to/app/root/src", "/path/to/app/root/extra"]]
       
       ;; now let's reset the deps to those specified in project.clj
-      (dev/reload-dependencies!)
+      (dev/reload-project!)
       
       (:dependencies (dev/current-project)) ; => #{[org.clojure/clojure "1.4.0"]}
       
