@@ -26,14 +26,6 @@
     (Integer. port)
     port))
 
-(defn ^:private nrepl-init-handler
-  "Provides an init point for new nrepl connections."
-  [h]
-  (fn [{:keys [op transport] :as msg}]
-    (when (= op "clone")
-      (require 'clj-stacktrace.repl 'complete.core))
-    (h msg)))
-
 (defn stop-swank
   "Shuts down the running swank server."
   []
@@ -65,21 +57,16 @@ management interface defined by the AS. Registers an at-exit handler to
 shutdown nrepl on undeploy, and returns a server that can be passed to
 stop-nrepl to shut it down manually."
   ([interface-address port]
-   ;; add the needed metadata for an nrepl middleware, but only do it if
-   ;; nrepl is going to be used to avoid loading nrepl at deploy for every app
-   (when-not (::descriptor (meta #'nrepl-init-handler))
-     ((util/try-resolve 'clojure.tools.nrepl.middleware/set-descriptor!)
-      #'nrepl-init-handler {}))
-   (let [{{:keys [nrepl-middleware nrepl-handler]} :repl-options}
+     (let [{{:keys [nrepl-middleware nrepl-handler]} :repl-options}
          (registry/get :project)
          require-resolve #(do (-> % namespace symbol require)
                               (resolve %))]
      (log/info "Starting nREPL for" (util/app-name)
                "at" (str interface-address ":" port))
+     (future (require 'clj-stacktrace.repl 'complete.core))
      (when (and nrepl-middleware nrepl-handler)
-       ;; TODO appropriate exception type here?
-       (throw (IllegalStateException.
-                "Can only use one of :nrepl-handler or :nrepl-middleware")))
+       (throw (IllegalArgumentException.
+               "Can only use one of :nrepl-handler or :nrepl-middleware")))
      (let [handler (or (and nrepl-handler (require-resolve nrepl-handler))
                        (->> nrepl-middleware
                             (map #(cond 
@@ -87,8 +74,7 @@ stop-nrepl to shut it down manually."
                                     (symbol? %) (require-resolve %)
                                     (list? %) (eval %)))
                             (apply (util/try-resolve
-                                     'clojure.tools.nrepl.server/default-handler)
-                                   #'nrepl-init-handler)))]
+                                     'clojure.tools.nrepl.server/default-handler))))]
        (when-let [server ((util/try-resolve 'clojure.tools.nrepl.server/start-server)
                           :handler handler
                           :port (fix-port port)
