@@ -22,28 +22,75 @@
             [clojure.set              :as set]
             [clojure.tools.logging    :as log]
             [leiningen.core.classpath :as classpath]
-            [leiningen.core.project   :as project])
-  (:use immutant.runtime-util))
+            [leiningen.core.project   :as project]
+            [robert.hooke             :as hooke])
+  (:use immutant.runtime-util)
+  (:import clojure.lang.DynamicClassLoader))
+
+(def ^:private dedicated-classloaders (atom {}))
+
+(defn ^:private classloader-key [project-or-app-root]
+  (let [root (:root project-or-app-root project-or-app-root)
+        root (if (string? root) (io/file root) root)]
+    (.getCanonicalPath root)))
+
+(defn ^:internal clear-dedicated-classloader [app-root]
+  (swap! dedicated-classloaders dissoc
+         (classloader-key app-root)))
+
+(defn ^:private tccl
+  ([]
+     (.getContextClassLoader (Thread/currentThread)))
+  ([cl]
+     (.setContextClassLoader (Thread/currentThread) cl)))
+
+(defn ^:private dedicated-classloader [project-or-app-root]
+  (let [key (classloader-key project-or-app-root)]
+    (if-let [cl (@dedicated-classloaders key)]
+      cl
+      (let [cl (DynamicClassLoader. (tccl))]
+        (swap! dedicated-classloaders assoc key cl)
+        cl))))
+
+(defn ^:private add-classpath-to-immediate-cl
+  ([f artifact cl]
+     (f artifact cl))
+  ([f artifact]
+     (f artifact (tccl))))
+
+(defmacro ^:private in-dedicated-classloader [project-or-app-root & body]
+  `(let [orig-cl# (tccl)]
+     (try
+       (tccl (dedicated-classloader ~project-or-app-root))
+       (hooke/with-scope
+         (hooke/add-hook #'cemerick.pomegranate/add-classpath
+                         #'add-classpath-to-immediate-cl)
+         ~@body)
+       (finally
+         (tccl orig-cl#)))))
 
 (defn ^{:internal true} read-project
   "Reads a leiningen project.clj file in the given root dir."
   [app-root profiles]
-  (let [project-file (io/file app-root "project.clj")]
-    (when (.exists project-file)
-      (let [normalized-profiles (normalize-profiles profiles)
-            project (project/read
-                     (.getAbsolutePath project-file)
-                     normalized-profiles)
-            other-profiles (set (get-in project [:immutant :lein-profiles]))]
-        (if (or (seq profiles) (not (seq other-profiles)))
-          project
-          (-> project
-              (project/unmerge-profiles
-               (set/difference normalized-profiles
-                               other-profiles))
-              (project/merge-profiles
-               (set/difference other-profiles
-                               normalized-profiles))))))))
+  (in-dedicated-classloader
+   app-root
+   (let [project-file (io/file app-root "project.clj")]
+     (when (.exists project-file)
+       (let [normalized-profiles (normalize-profiles profiles)
+             project (-> project-file
+                         .getAbsolutePath
+                         (project/read normalized-profiles)
+                         project/init-project)
+             other-profiles (set (get-in project [:immutant :lein-profiles]))]
+         (if (or (seq profiles) (not (seq other-profiles)))
+           project
+           (-> project
+               (project/unmerge-profiles
+                (set/difference normalized-profiles
+                                other-profiles))
+               (project/merge-profiles
+                (set/difference other-profiles
+                                normalized-profiles)))))))))
 
 (defn ^:private strip-reduce-metadata [v]
   (reduce (fn [acc k]
@@ -130,28 +177,28 @@
 to gracefully handle missing dependencies."
   [project]
   (when project
-    (project/load-certificates project)
-    ;; trigger loading of s3-wagon-private, but don't load any other
-    ;; plugins, since load-plugins tries to add them to the current
-    ;; classloader, which will be the shared bootstrap classloader,
-    ;; not the application's CL, and we don't want that to happen.
-    (project/load-plugins project :no-plugins) 
-    (try
-      (classpath/resolve-dependencies
-       :dependencies
-       (exclude-immutant-deps project))
-      (catch clojure.lang.ExceptionInfo e
-        (log/error "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
-        nil))))
+    (in-dedicated-classloader
+     project
+     (try
+       (classpath/resolve-dependencies
+        :dependencies
+        (-> project
+            project/init-project
+            exclude-immutant-deps))
+       (catch clojure.lang.ExceptionInfo e
+         (log/error "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
+         nil)))))
 
 
 (defn ^:internal resource-paths-for-project
   [project]
   ;; get the classpath w/o the deps, since we resolve those
   ;; elsewhere.
-  (-> project
-      (dissoc :dependencies)
-      classpath/get-classpath))
+  (in-dedicated-classloader
+   project
+   (-> project
+       (dissoc :dependencies)
+       classpath/get-classpath)))
 
 (defn ^:internal resource-paths-for-project-string-as-string
   [project-as-string]

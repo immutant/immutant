@@ -41,7 +41,7 @@ public class ClojureRuntimeService implements Service<ClojureRuntimeShim> {
     @Override
     public synchronized void stop(StopContext context) {
         log.info( "Shutting down Clojure runtime for " + this.runtime.getName() );
-        runtime.invoke( "clojure.core/shutdown-agents" );
+        runtime.invoke( "immutant.runtime/shutdown" );
     }
 
     @Override 

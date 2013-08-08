@@ -150,7 +150,15 @@ public class ApplicationBootstrapUtils {
             }
         } );
     }
-    
+
+    public static void clearBootstrapClassLoader(final File appRoot) throws Exception {
+        inCL( new Callable() {
+            public Object call() throws Exception {
+                return bootstrapVar( "clear-dedicated-classloader" ).invoke( appRoot );
+            }
+        } );
+    }
+
     private static Var bootstrapVar(String ns, String varName) throws Exception {
         return RT.var( "immutant." + ns, varName );
     }

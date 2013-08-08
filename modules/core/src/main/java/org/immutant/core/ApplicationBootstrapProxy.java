@@ -38,6 +38,10 @@ public class ApplicationBootstrapProxy {
     public static String getResourceDirsAsString(String projectAsString) throws Exception {
         return ApplicationBootstrapUtils.resourceDirsAsString(projectAsString);
     }
+
+    public static void clearBootstrapClassLoader(File appRoot) throws Exception {
+        ApplicationBootstrapUtils.clearBootstrapClassLoader(appRoot);
+    }
 }
 
 

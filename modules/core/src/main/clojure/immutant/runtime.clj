@@ -25,7 +25,8 @@ bootstrapping process. Applications shouldn't use anything here."
             [immutant.repl              :as repl]
             [immutant.util              :as util]
             [immutant.resource-util     :as rutil]
-            [immutant.registry          :as registry]))
+            [immutant.registry          :as registry])
+  (:import org.immutant.core.ApplicationBootstrapProxy))
 
 (defn ^{:internal true} require-and-invoke 
   "Takes a string of the form \"namespace/fn\", requires the namespace, then invokes fn"
@@ -102,5 +103,12 @@ in the registry."
   [config project]
   (registry/put :config (read-string config))
   (registry/put :project (read-string project)))
+
+(defn ^:internal shutdown
+  "Called when an app is undeployed to handle runtime shutdown."
+  []
+  (ApplicationBootstrapProxy/clearBootstrapClassLoader
+   (registry/get "app-root"))
+  (shutdown-agents))
 
 
