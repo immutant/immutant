@@ -310,6 +310,12 @@
       </dependency>
 
       <dependency>
+        <groupId>org.immutant</groupId>
+        <artifactId>immutant-dependency-exclusions</artifactId>
+        <version>${version.dependency-exclusions}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.clojure</groupId>
         <artifactId>tools.nrepl</artifactId>
         <version>${version.nrepl}</version>
@@ -400,6 +406,7 @@
     <version.cheshire>5.0.1</version.cheshire>
     <version.midje>1.5-alpha4</version.midje>
     <version.leiningen>2.2.0</version.leiningen>
+    <version.dependency-exclusions>0.1.0</version.dependency-exclusions>
     <version.deploy-tools>0.12.0</version.deploy-tools>
     <version.codox>0.6.3</version.codox>
     <version.fntest>0.3.15</version.fntest>

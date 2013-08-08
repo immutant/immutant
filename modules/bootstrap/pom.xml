@@ -48,6 +48,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.immutant</groupId>
+      <artifactId>immutant-dependency-exclusions</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.tcrawley</groupId>
       <artifactId>dynapath</artifactId>
       <scope>compile</scope>
