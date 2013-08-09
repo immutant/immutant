@@ -101,18 +101,34 @@
           v
           (keys v)))
 
+(defn ^:private remove-checkout-deps-paths-fn [v]
+  (update-in v [:checkout-deps-shares]
+             #(vec (remove fn? %))))
+
+(defn ^:private update-in-meta [v path f]
+  (vary-meta v #(update-in % path f)))
+
 (defn ^{:internal true} read-project-to-string
   "Returns the project map as a pr string with metadata so it can be
   moved across runtimes."
   [app-root profiles]
-  ;; reduce metadata points to a function, which won't serialize, so
-  ;; we have to strip it out. pre-1.5, walk/postwalk worked, but it
-  ;; now preserves the original metadata (which I consider a bug)
   (pr-str-with-meta
-    (if-let [p (read-project app-root profiles)]
-      (-> p
-          strip-reduce-metadata
-          (vary-meta #(update-in % [:without-profiles] strip-reduce-metadata))))))
+   (if-let [p (read-project app-root profiles)]
+     (-> p
+         ;; reduce metadata points to a function, which won't serialize, so
+         ;; we have to strip it out. pre-1.5, walk/postwalk worked, but it
+         ;; now preserves the original metadata (which I consider a bug).
+         strip-reduce-metadata
+         (update-in-meta [:without-profiles] strip-reduce-metadata)
+         ;; As of lein 2.3.0, we also need to strip a fn out of the
+         ;; :checkout-deps-shares commection in three places. A side affect
+         ;; of this is that transitive checkout deps won't be available under
+         ;; Immutant.
+         remove-checkout-deps-paths-fn
+         (update-in-meta [:profiles :base] remove-checkout-deps-paths-fn)
+         (update-in-meta [:without-profiles]
+                         #(update-in-meta % [:profiles :base]
+                                          remove-checkout-deps-paths-fn))))))
 
 (defn ^{:internal true} read-full-app-config
   "Returns the full configuration for an app. This consists of
