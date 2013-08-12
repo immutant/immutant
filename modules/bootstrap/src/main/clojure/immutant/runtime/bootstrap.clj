@@ -54,10 +54,21 @@
         cl))))
 
 (defn ^:private add-classpath-to-immediate-cl
+  ;; Pomegranate defaults to adding dependencies to the highest
+  ;; dynamic CL it can find, which will be above the cl we want it to
+  ;; use. This hook forces it to add to the tccl
   ([f artifact cl]
      (f artifact cl))
   ([f artifact]
      (f artifact (tccl))))
+
+(defn ^:private resolve-dependencies-without-memoization
+  ;; leiningen.core.classpath/resolve-dependencies is memoized, but we
+  ;; need to be able to invoke multiple times. This hook breaks the
+  ;; memoization.
+  [f key project & rest]
+  (apply f key project
+         (conj rest :timestamp (System/nanoTime))))
 
 (defmacro ^:private in-dedicated-classloader [project-or-app-root & body]
   `(let [orig-cl# (tccl)]
@@ -66,6 +77,8 @@
        (hooke/with-scope
          (hooke/add-hook #'cemerick.pomegranate/add-classpath
                          #'add-classpath-to-immediate-cl)
+         (hooke/add-hook #'leiningen.core.classpath/resolve-dependencies
+                         #'resolve-dependencies-without-memoization)
          ~@body)
        (finally
          (tccl orig-cl#)))))
