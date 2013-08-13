@@ -173,7 +173,7 @@
       <dependency>
         <groupId>org.projectodd</groupId>
         <artifactId>polyglot</artifactId>
-        <version>${version.polyglot}</version>
+        <version>${version.polgylot}</version>
       </dependency>
 
       <dependency>
@@ -377,8 +377,8 @@
 
   <properties>
     <codename>HypnoToad</codename>
-    <version.polyglot>1.15.0</version.polyglot>
-    <!-- <version.polyglot>1.x.incremental.46</version.polyglot> -->
+    <!-- <version.polyglot>1.16.0-SNAPSHOT</version.polyglot> -->
+    <version.polyglot>1.x.incremental.49</version.polyglot>
     <version.shimdandy>1.0.1</version.shimdandy>
     <version.junit>4.7</version.junit>
     <version.jmock>2.5.1</version.jmock>
