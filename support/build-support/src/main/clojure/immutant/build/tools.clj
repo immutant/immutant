@@ -517,6 +517,9 @@
                               "org.jboss.as.standalone"
                               "org.jboss.as.domain-http-error-context"
                               "com.h2database.h2"
+                              "org.jboss.as.cli"
+                              "org.fusesource.jansi"
+                              "org.jboss.aesh"
                               "javaee.api"
                               "javax.servlet.jstl.api")
                              (find-full-required-module-set all-modules))]
