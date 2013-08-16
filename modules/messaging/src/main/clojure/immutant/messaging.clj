@@ -305,8 +305,7 @@
       (.close group)
       (let [complete (promise)]
         (.remove group #(deliver complete %))
-        (when-not (= "removed" (deref complete 5000 nil))
-          (log/error "Failed to remove group" group))))))
+        (delay (deref complete 5000 "gone"))))))
 
 (defn stop
   "Destroy a message destination. Typically not necessary since it
