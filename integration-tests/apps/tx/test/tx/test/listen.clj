@@ -49,7 +49,7 @@
 (deftest non-transactional-writes-in-listener-with-exception
   (deref (imsg/listen "/queue/trigger-no-tx" listener :xa false))
   (imsg/publish "/queue/trigger-no-tx" {:throw? true})
-  (is (util/wait-for #(= 10 (:deliveries core/cache)) (constantly true)))
+  (is (util/wait-for #(= 10 (:deliveries core/cache))))
   (is (= 1 (:a core/cache)))
   (is (every? #(= "kiwi" %) (take 10 (imsg/message-seq "/queue/test"))))
   (is (every? #(= "starfruit" %) (take 10 (imsg/message-seq "/queue/remote-test")))))

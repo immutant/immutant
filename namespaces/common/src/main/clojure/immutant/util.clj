@@ -146,10 +146,12 @@
        (or result# (do (Thread/sleep x#) (recur (* 2 x#)))))))
 
 (defn wait-for
-  "Waits for (t) to be true before invoking f. Evaluates test every
-   100 ms attempts times before giving up. attempts defaults to 300.
-   Passing :forever for attempts will loop until the end of time
-   or (t) is true, whichever comes first."
+  "Waits for (t) to be true before invoking f, if passed. Evaluates
+   test every 100 ms attempts times before giving up. Attempts
+   defaults to 300. Passing :forever for attempts will loop until the
+   end of time or (t) is true, whichever comes first."
+  ([t]
+     (wait-for t (constantly true)))
   ([t f]
      (wait-for t f 300))
   ([t f attempts]
