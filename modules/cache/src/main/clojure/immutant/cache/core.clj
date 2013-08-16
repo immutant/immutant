@@ -74,7 +74,8 @@
     (.classLoader builder (.getContextClassLoader (Thread/currentThread)))
     (.. builder transaction
         (transactionManagerLookup (GenericTransactionManagerLookup.))
-        (transactionMode TransactionMode/TRANSACTIONAL))
+        (transactionMode TransactionMode/TRANSACTIONAL)
+        (useSynchronization (nil? service)))
     (.. builder clustering
         (cacheMode (cache-mode opts)))
     (if persist
