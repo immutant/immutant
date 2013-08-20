@@ -19,14 +19,7 @@
 
 package org.immutant.messaging;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.immutant.core.HasImmutantRuntimeInjector;
-import org.immutant.core.SimpleServiceStateListener;
-import org.jboss.as.messaging.jms.JMSQueueService;
-import org.jboss.as.messaging.jms.JMSTopicService;
 import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.logging.Logger;
 import org.jboss.msc.inject.Injector;
@@ -37,13 +30,20 @@ import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.ServiceTarget;
 import org.jboss.msc.value.InjectedValue;
 import org.projectodd.polyglot.core.AtRuntimeInstaller;
+import org.projectodd.polyglot.core.ServiceSynchronizationManager;
 import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
 import org.projectodd.polyglot.messaging.destinations.Destroyable;
-import org.projectodd.polyglot.messaging.destinations.DestroyableJMSQueueService;
-import org.projectodd.polyglot.messaging.destinations.DestroyableJMSTopicService;
+import org.projectodd.polyglot.messaging.destinations.QueueMetaData;
+import org.projectodd.polyglot.messaging.destinations.TopicMetaData;
 import org.projectodd.polyglot.messaging.destinations.processors.QueueInstaller;
 import org.projectodd.polyglot.messaging.destinations.processors.TopicInstaller;
 import org.projectodd.shimdandy.ClojureRuntimeShim;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
+import static org.projectodd.polyglot.core.ServiceSynchronizationManager.*;
 
 
 public class Destinationizer extends AtRuntimeInstaller<Destinationizer> implements HasImmutantRuntimeInjector {
@@ -52,50 +52,43 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
         super( unit, globalServiceTarget );
     }
 
-    public boolean createQueue(final String queueName, final boolean durable, final String selector, Object callback) {
+    public boolean createQueue(final String queueName, final boolean durable, final String selector) {
         if (DestinationUtils.destinationPointerExists(getUnit(), queueName)) {
             return false;
         }
-                            
-        JMSQueueService queue =
-                QueueInstaller.deployGlobalQueue(getUnit().getServiceRegistry(), 
-                                                 getGlobalTarget(),
-                                                 queueName, 
-                                                 durable,   
-                                                 selector, 
-                                                 DestinationUtils.jndiNames( queueName, false ));
-        
-        createDestinationService(queueName, callback,
-                                 QueueInstaller.queueServiceName(queueName),
-                                 queue instanceof DestroyableJMSQueueService ?
-                                         ((DestroyableJMSQueueService)queue).getReferenceCount() :
-                                         null);
-        
+
+        QueueMetaData queueMD = new QueueMetaData();
+        queueMD.setName(queueName);
+        queueMD.setDurable(durable);
+        queueMD.setSelector(selector);
+
+        this.destinations.put(queueName,
+                              QueueInstaller.deploy(getUnit(),
+                                                    getTarget(),
+                                                    getGlobalTarget(),
+                                                    queueMD));
+
         return true;
     }
     
-    public boolean createTopic(String topicName, Object callback) {
+    public boolean createTopic(String topicName) {
         if (DestinationUtils.destinationPointerExists(getUnit(), topicName)) {
             return false;
         }
 
-        JMSTopicService topic =
-                TopicInstaller.deployGlobalTopic(getUnit().getServiceRegistry(),
-                                                 getGlobalTarget(),
-                                                 topicName,
-                                                 DestinationUtils.jndiNames( topicName, false ));
-        
-        createDestinationService(topicName, callback,
-                                 TopicInstaller.topicServiceName(topicName),
-                                 topic instanceof DestroyableJMSTopicService ?
-                                         ((DestroyableJMSTopicService) topic).getReferenceCount() :
-                                         null);
+        TopicMetaData topicMD = new TopicMetaData();
+        topicMD.setName(topicName);
 
+        this.destinations.put(topicName,
+                              TopicInstaller.deploy(getUnit(),
+                              getTarget(),
+                              getGlobalTarget(),
+                              topicMD));
         return true;
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public boolean destroyDestination(String name, Object callback) {
+    public synchronized boolean destroyDestination(String name) {
         boolean success = false;
         
         this.messageProcessorGroupizerInjector.getValue().removeGroupsFor( name );
@@ -105,10 +98,11 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
             ServiceRegistry registry = getUnit().getServiceRegistry();
             ServiceController dest = registry.getService( serviceName );
             if (dest != null) {
-                ServiceController globalDest = 
-                        registry.getService( QueueInstaller.queueServiceName( name ) );
+                ServiceName globalName = QueueInstaller.queueServiceName(name);
+                ServiceController globalDest = registry.getService(globalName);
                 if (globalDest == null) {
-                    globalDest = registry.getService( TopicInstaller.topicServiceName( name ) );
+                    globalName = TopicInstaller.topicServiceName(name);
+                    globalDest = registry.getService(globalName);
                 }
                 if (globalDest == null) {
                     //should never happen, but...
@@ -120,33 +114,33 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
                 if (service instanceof Destroyable) {
                     ((Destroyable)service).setShouldDestroy( true );
                 }
-                
-                dest.addListener( new SimpleServiceStateListener( this.clojureRuntimeInjector.getValue(),
-                                                                  callback ) );
+
                 dest.setMode( Mode.REMOVE );
+
+                ServiceSynchronizationManager mgr = INSTANCE;
+
+                if (!mgr.waitForServiceRemove(serviceName,
+                                              DestinationUtils.destinationWaitTimeout())) {
+                    log.warn("Timed out waiting for " + name + " pointer to stop.");
+                }
+
+                if (mgr.hasService(globalName) &&
+                        !mgr.hasDependents(globalName)) {
+                    if (!mgr.waitForServiceDown(globalName,
+                                                DestinationUtils.destinationWaitTimeout())) {
+                        log.warn("Timed out waiting for " + name + " to stop.");
+                    }
+
+                }
                 success = true;
             } 
                     
-            this.destinations.remove( name );
+            this.destinations.remove(name);
         }
         
         return success;
     }
 
-    protected void createDestinationService(String destName, Object callback, 
-                                            ServiceName globalName,
-                                            AtomicInteger referenceCount) {
-        this.destinations.put(destName, 
-                              DestinationUtils.deployDestinationPointerService(getUnit(), 
-                                                                               getTarget(), 
-                                                                               destName,
-                                                                               globalName,
-                                                                               referenceCount,
-                                                                               new SimpleServiceStateListener(this.clojureRuntimeInjector.getValue(), 
-                                                                                                              callback)));
-    }
-    
-    
     @Override
     public Injector<ClojureRuntimeShim> getClojureRuntimeInjector() {
         return this.clojureRuntimeInjector;

@@ -130,11 +130,8 @@
   (let [izer (registry/get "destinationizer")
         manager (registry/get "jboss.messaging.default.jms.manager")
         removed? (when izer
-                   (let [complete (promise)]
-                     (and (.destroyDestination izer
-                                               (destination-name name)
-                                               #(deliver complete %))
-                          (= "removed" (deref complete 5000 nil)))))]
+                   (.destroyDestination izer
+                                        (destination-name name)))]
     (if (and (not removed?) manager)
       (try
         (let [result (if (queue-name? name)
@@ -168,23 +165,20 @@
 
 (defn start-destination [name type f]
   (if-let [izer (registry/get "destinationizer")]
-    (let [complete (promise)
-          service-created (f izer complete)]
-      (if service-created
-        (when-not (= "up" (deref complete 60000 nil))
-          (throw (Exception. (format "Unable to start %s: %s" type name))))
+    (let [service-created (f izer)]
+      (if-not service-created
         (log/info (format "%s already exists: %s" type name))))
     (throw (Exception. (format "Unable to start %s: %s" type name)))))
 
 (defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
   (start-destination name "queue"
-                     (fn [izer complete]
-                       (.createQueue izer name durable selector #(deliver complete %)))))
+                     (fn [izer]
+                       (.createQueue izer name durable selector))))
 
 (defn start-topic [name & opts]
   (start-destination name "topic"
-                     (fn [izer complete]
-                       (.createTopic izer name #(deliver complete %)))))
+                     (fn [izer]
+                       (.createTopic izer name))))
 
 (defprotocol Sessionator
   "Function for obtaining a session"
