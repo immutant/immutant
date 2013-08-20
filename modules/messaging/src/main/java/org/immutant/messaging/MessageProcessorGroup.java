@@ -37,8 +37,10 @@ import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
+import org.projectodd.polyglot.core.ServiceSynchronizationManager;
 import org.projectodd.polyglot.messaging.BaseMessageProcessor;
 import org.projectodd.polyglot.messaging.BaseMessageProcessorGroup;
+import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
 import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 public class MessageProcessorGroup extends BaseMessageProcessorGroup implements MessageProcessorGroupMBean, HasImmutantRuntimeInjector {
@@ -90,19 +92,24 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
         ((MessageProcessor)processor).setHandler( this.setupData.get("handler") );
     }
     
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public void remove(Object callback) {
+    public void remove(boolean wait) {
         ServiceController service = getServiceRegistry().getService( getBaseServiceName() );
         if (service != null) {
-            if (callback != null) {
-                service.addListener( new SimpleServiceStateListener( getRuntime(), callback ) );
-            }
             service.setMode( Mode.REMOVE );
+
+            if (wait) {
+                if (!ServiceSynchronizationManager.INSTANCE
+                        .waitForServiceDown(getBaseServiceName(),
+                                            DestinationUtils.destinationWaitTimeout())) {
+                    log.warn("Timed out waiting for " + getName() + " listener to stop.");
+                }
+            }
+
         }
     }
-    
+
     public void remove() {
-        remove( null );
+        remove(false);
     }
     
     public ClojureRuntimeShim getRuntime() {

@@ -36,6 +36,7 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.State;
 import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core.AtRuntimeInstaller;
+import org.projectodd.polyglot.core.ServiceSynchronizationManager;
 import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
 
 
@@ -72,7 +73,10 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
         group.setName( name );
         
         rememberGroup( destinationName, serviceName );
-                
+
+
+        ServiceSynchronizationManager.INSTANCE.addService(serviceName, group, true);
+
         replaceService( serviceName,
                         new Runnable() {
                             public void run() {
@@ -81,6 +85,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
                                 ServiceName javaContext = ContextNames.JAVA_CONTEXT_SERVICE_NAME;
 
                                 builder.addDependency( CoreServices.runtime( getUnit() ), group.getClojureRuntimeInjector() )
+                                    .addListener(ServiceSynchronizationManager.INSTANCE)
                                     .addDependency( pointerDestName )
                                     .addDependency( javaContext.append( "ConnectionFactory" ), group.getConnectionFactoryInjector() )
                                     .addDependency( javaContext.append( DestinationUtils.getServiceName( destinationName ) ), group.getDestinationInjector() )

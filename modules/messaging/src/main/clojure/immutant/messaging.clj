@@ -303,9 +303,7 @@
     (if (or (instance? java.io.Closeable group)
             (instance? javax.jms.Connection group))
       (.close group)
-      (let [complete (promise)]
-        (.remove group #(deliver complete %))
-        (delay (deref complete 5000 "gone"))))))
+      (.remove group true))))
 
 (defn stop
   "Destroy a message destination. Typically not necessary since it
