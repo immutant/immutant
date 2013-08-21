@@ -289,7 +289,7 @@
 (defn unsubscribe
   "Used when durable topic subscribers are no longer interested. This
    cleans up some server-side state, but since it'll be be deleted
-   anyway when the topic is stopped, it's an optional call"
+   anyway when the topic is stopped, it's an optional call."
   [client-id & {:keys [subscriber-name] :or {subscriber-name default-subscriber-name} :as opts}]
   (with-connection (assoc opts :client-id client-id)
     (.unsubscribe (session) subscriber-name)))
@@ -297,13 +297,21 @@
 (defn unlisten
   "Pass the result of a call to listen or respond to de-register the handler.
    You only need to do this if you wish to stop the handler's
-   destination before your app is undeployed."
+   destination before your app is undeployed.
+
+   unlisten is asynchronous - if you need to synchronize on its
+   completion, you should deref the result. The result of the
+   call. The deref will resolve to a boolean that is true if there was
+   actually something to unlisten, false otherwise."
   [listener]
-  (let [group (maybe-deref listener)]
-    (if (or (instance? java.io.Closeable group)
-            (instance? javax.jms.Connection group))
-      (.close group)
-      (.remove group true))))
+  (when-let [group (maybe-deref listener)]
+    (future
+      (if (or (instance? java.io.Closeable group)
+              (instance? javax.jms.Connection group))
+        (do
+          (.close group)
+          true)
+        (.remove group true)))))
 
 (defn stop
   "Destroy a message destination. Typically not necessary since it

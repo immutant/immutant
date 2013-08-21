@@ -114,15 +114,22 @@
       (is (not (seq (.installedGroupsFor izer topic)))))))
 
 (testing "unlisten"
-  (deftest unlisten-on-a-queue-should-be-synchronous
+  (deftest unlisten-on-a-queue-should-be-synchronous-when-derefed
     (let [queue "queue.ham"]
       (msg/start queue)
-      (msg/unlisten (msg/listen queue (constantly nil)))
+      @(msg/unlisten (msg/listen queue (constantly nil)))
       (is (= true (msg/stop queue)))))
 
-  (deftest unlisten-on-a-topic-should-be-synchronous
+  (deftest unlisten-on-a-topic-should-be-synchronous-when-derefed
     (let [topic "topic.ham"]
       (msg/start topic)
-      (msg/unlisten (msg/listen topic (constantly nil)))
-      (is (= true (msg/stop topic))))))
+      @(msg/unlisten (msg/listen topic (constantly nil)))
+      (is (= true (msg/stop topic)))))
+
+  (deftest unlisten-should-return-true-when-it-does-something
+    (let [queue "queue.ham"
+          _ (msg/start queue)
+          l (msg/listen queue (constantly nil))]
+      (is @(msg/unlisten l))
+      (is (not @(msg/unlisten l))))))
 

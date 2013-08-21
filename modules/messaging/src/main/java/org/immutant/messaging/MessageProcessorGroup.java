@@ -92,7 +92,7 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
         ((MessageProcessor)processor).setHandler( this.setupData.get("handler") );
     }
     
-    public void remove(boolean wait) {
+    public boolean remove(boolean wait) {
         ServiceController service = getServiceRegistry().getService( getBaseServiceName() );
         if (service != null) {
             service.setMode( Mode.REMOVE );
@@ -105,11 +105,15 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
                 }
             }
 
+            return true;
+
         }
+
+        return false;
     }
 
-    public void remove() {
-        remove(false);
+    public boolean remove() {
+        return remove(false);
     }
     
     public ClojureRuntimeShim getRuntime() {
