@@ -33,14 +33,11 @@ import org.projectodd.polyglot.core.AtRuntimeInstaller;
 import org.projectodd.polyglot.core.ServiceSynchronizationManager;
 import org.projectodd.polyglot.messaging.destinations.DestinationUtils;
 import org.projectodd.polyglot.messaging.destinations.Destroyable;
-import org.projectodd.polyglot.messaging.destinations.QueueMetaData;
-import org.projectodd.polyglot.messaging.destinations.TopicMetaData;
 import org.projectodd.polyglot.messaging.destinations.processors.QueueInstaller;
 import org.projectodd.polyglot.messaging.destinations.processors.TopicInstaller;
 import org.projectodd.shimdandy.ClojureRuntimeShim;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import static org.projectodd.polyglot.core.ServiceSynchronizationManager.*;
@@ -57,16 +54,14 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
             return false;
         }
 
-        QueueMetaData queueMD = new QueueMetaData();
-        queueMD.setName(queueName);
-        queueMD.setDurable(durable);
-        queueMD.setSelector(selector);
-
         this.destinations.put(queueName,
-                              QueueInstaller.deploy(getUnit(),
-                                                    getTarget(),
-                                                    getGlobalTarget(),
-                                                    queueMD));
+                              QueueInstaller.deploySync(getUnit(),
+                                                        getTarget(),
+                                                        getGlobalTarget(),
+                                                        queueName,
+                                                        selector,
+                                                        durable,
+                                                        false));
 
         return true;
     }
@@ -76,14 +71,12 @@ public class Destinationizer extends AtRuntimeInstaller<Destinationizer> impleme
             return false;
         }
 
-        TopicMetaData topicMD = new TopicMetaData();
-        topicMD.setName(topicName);
-
         this.destinations.put(topicName,
-                              TopicInstaller.deploy(getUnit(),
-                              getTarget(),
-                              getGlobalTarget(),
-                              topicMD));
+                              TopicInstaller.deploySync(getUnit(),
+                                                        getTarget(),
+                                                        getGlobalTarget(),
+                                                        topicName,
+                                                        false));
         return true;
     }
     
