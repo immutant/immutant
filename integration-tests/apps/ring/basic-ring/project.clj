@@ -8,6 +8,5 @@
                  [clj-http "0.5.5"]
                  [ritz/ritz-nrepl-middleware "0.7.0"]]
   :java-source-paths ["src/java/"]
-  :compile-path "classes"
   :immutant {:ham :biscuit}
   :repl-options {:nrepl-middleware [ritz.nrepl.middleware.doc/wrap-doc]})
