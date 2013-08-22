@@ -16,13 +16,12 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.cache.config
-    (:require [clojure.java.io :as io])
-    (:import [org.infinispan.configuration.cache VersioningScheme CacheMode]
-             [org.infinispan.transaction TransactionMode LockingMode]
-             org.infinispan.transaction.lookup.GenericTransactionManagerLookup
-             org.infinispan.eviction.EvictionStrategy
-             org.infinispan.util.concurrent.IsolationLevel
-             java.util.concurrent.TimeUnit))
+  (:import [org.infinispan.configuration.cache VersioningScheme CacheMode]
+           [org.infinispan.transaction TransactionMode LockingMode]
+           org.infinispan.transaction.lookup.GenericTransactionManagerLookup
+           org.infinispan.eviction.EvictionStrategy
+           org.infinispan.util.concurrent.IsolationLevel
+           java.util.concurrent.TimeUnit))
 
 (defn cache-mode
   [{:keys [mode sync]}]
@@ -76,7 +75,7 @@
   [builder {persist :persist}]
   (if persist
     (let [store (.. builder loaders addFileCacheStore)]
-      (if (.exists (io/file (str persist)))
+      (if (string? persist)
         (.. store (location persist)))))
   builder)
 
