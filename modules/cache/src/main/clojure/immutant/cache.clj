@@ -18,10 +18,11 @@
 (ns immutant.cache
   "Infinispan-backed implementations of core.cache and core.memoize
    protocols supporting multiple replication options and more."
-  (:use [immutant.cache.core]
-        [immutant.codecs :only [encode decode]]
-        [immutant.cache.wrapper :only [wrap unwrap]])
-  (:require [clojure.core.cache :as cc]
+  (:use [immutant.cache.core      :only [get-cache start builder]]
+        [immutant.cache.config    :only [expire]]
+        [immutant.codecs          :only [encode decode]]
+        [immutant.cache.wrapper   :only [wrap unwrap]])
+  (:require [clojure.core.cache   :as cc]
             [clojure.core.memoize :as cm])
   (:import [clojure.core.memoize PluggableMemoization]))
 
@@ -173,15 +174,16 @@
   "Returns an object that implements both Mutable and
    core.cache/CacheProtocol. A name is the only required argument. If
    a cache by that name already exists, it will be restarted and all
-   its entries lost. Use lookup to obtain a reference to an existing
-   cache. The following options are supported:
+   its non-durable entries lost. Use lookup to obtain a reference to
+   an existing cache. The following options are supported:
 
    The following options are supported [default]:
      :mode        Replication mode [:distributed or :local]
                     :local, :invalidated, :distributed, or :replicated
      :sync        Whether replication occurs synchronously [true]
-     :persist     If non-nil, data persists across server restarts in a file
-                    store; a string value names the directory [nil]
+     :persist     Durability. If non-nil, data persists across server
+                    restarts in a file store; a string value names the
+                    directory [nil]
      :seed        A map of initial entries [nil]
      :locking     Infinispan locking schemes [nil]
                     :optimisitic or :pessimistic
@@ -192,6 +194,8 @@
      :ttl         The max time the entry will live before expiry [-1]
      :idle        The time after which an entry will expire if not accessed [-1]
      :units       The units for the values of :ttl and :idle [:seconds]
+     :config      An Infinispan Configuration instance that takes precedence
+                    over other possibly conflicting options [nil]
 
    The replication mode defaults to :distributed when clustered. When
    not clustered, the value of :mode is ignored, and the cache will
@@ -207,8 +211,8 @@
    default options for the functions of the Mutable protocol. But any
    options passed to those functions take precedence over these. See
    the Mutable doc for more info."
-  [name & {:keys [seed] :as options}]
-  (cc/seed (InfinispanCache. (configure-cache name options) options) seed))
+  [name & {:keys [seed config] :as options}]
+  (cc/seed (InfinispanCache. (start name (or config (.build (builder options)))) options) seed))
 
 (def ^{:doc "Deprecated; use create instead" :no-doc true} cache #'create)
 

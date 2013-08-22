@@ -17,8 +17,7 @@
 
 (ns test.immutant.cache
   (:use immutant.cache
-        clojure.test
-        [immutant.cache.core :only [lifespan-params]])
+        clojure.test)
   (:require [clojure.core.cache :as core]
             [clojure.java.io :as io])
   (:import java.util.concurrent.TimeUnit))
@@ -211,16 +210,6 @@
     (put c :c 3)
     (is (nil? (:a c)))
     (is (= 2 (count c)))))
-
-(deftest test-lifespan-params
-  (is (= (lifespan-params {})                                [-1 TimeUnit/SECONDS -1 TimeUnit/SECONDS]))
-  (is (= (lifespan-params {:ttl 42 :idle 7 :units :minutes}) [42 TimeUnit/MINUTES  7 TimeUnit/MINUTES]))
-  (is (= (lifespan-params {:ttl 42 :units :hours})           [42 TimeUnit/HOURS   -1 TimeUnit/HOURS]))
-  (is (= (lifespan-params {:idle 3})                         [-1 TimeUnit/SECONDS  3 TimeUnit/SECONDS]))
-  (is (= (lifespan-params {:ttl [3 :hours] :idle [6 :days]}) [ 3 TimeUnit/HOURS    6 TimeUnit/DAYS]))
-  (is (= (lifespan-params {:ttl [60 :minutes]})              [60 TimeUnit/MINUTES -1 TimeUnit/SECONDS]))
-  (is (= (lifespan-params {:idle [60 :minutes]})             [-1 TimeUnit/SECONDS 60 TimeUnit/MINUTES]))
-  (is (= (lifespan-params {:ttl [1 :day] :idle [1 :hour]})   [ 1 TimeUnit/DAYS     1 TimeUnit/HOURS])))
 
 (deftest test-seqable
   (let [seed {:a 1, :b {:c 42}}

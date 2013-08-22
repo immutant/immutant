@@ -55,6 +55,9 @@
 
 * The API
 ** Creating
+   :PROPERTIES:
+   :CUSTOM_ID: creating
+   :END:
 
    All Infinispan caches have a name scoped to the app server (or
    cluster) hence the names are global for all practical purposes.
@@ -65,19 +68,20 @@
    Additional options may be passed as in-line keyword arguments. The
    following are supported:
 
-    | Option         | Default    | Description                                                                                                                            |
-    |----------------+------------+----------------------------------------------------------------------------------------------------------------------------------------|
-    | =:mode=        | =:local=, =:distributed= in a cluster | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=. |
-    | =:sync=        | =true=     | Whether replication occurs synchronously during the write.                                                                             |
-    | =:persist=     | =nil=      | Enables entries to persist across server restarts in a file-backed store.                                                              |
-    | =:seed=        | =nil=      | A map of initial entries to replace the existing ones.                                                                            |
-    | =:locking=     | =nil=      | The locking mode within a transaction. One of =:optimistic= or =:pessimistic= or nil to indicate no locking                            |
-    | =:encoding=    | =:edn=     | One of =:edn=, =:json= or =:none=                                                                                                      |
-    | =:max-entries= | =-1=       | The maximum number of entries allowed in the cache. A negative value implies no limit.                                                 |
-    | =:eviction=    | =:lirs=    | The eviction strategy. One of =:lru=, =:lirs= or =:unordered=                                                                          |
-    | =:ttl=         | =-1=       | Time-To-Live. The maximum time the entry will live before being expired. A negative value disables time-to-live expiration.            |
-    | =:idle=        | =-1=       | The time after which an entry will expire if not accessed. A negative value disables idle expiration.                                  |
-    | =:units=       | =:seconds= | The units for =:ttl= and =:idle=. One of =:days=, =:hours=, =:minutes=, =:seconds=, =:milliseconds=, =:microseconds= or =:nanoseconds= |
+    | Option         | Default                               | Description                                                                                                                            |
+    |----------------+---------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------|
+    | =:mode=        | =:local=, =:distributed= in a cluster | Replication mode. One of =:local=, =:invalidated=, =:replicated= or =:distributed=.                                                    |
+    | =:sync=        | =true=                                | Whether replication occurs synchronously during the write.                                                                             |
+    | =:persist=     | =nil=                                 | Enables entries to persist across server restarts in a file-backed store.                                                              |
+    | =:seed=        | =nil=                                 | A map of initial entries to replace the existing ones.                                                                                 |
+    | =:locking=     | =nil=                                 | The locking mode within a transaction. One of =:optimistic= or =:pessimistic= or nil to indicate no locking                            |
+    | =:encoding=    | =:edn=                                | One of =:edn=, =:json= or =:none=                                                                                                      |
+    | =:max-entries= | =-1=                                  | The maximum number of entries allowed in the cache. A negative value implies no limit.                                                 |
+    | =:eviction=    | =:lirs=                               | The eviction strategy. One of =:lru=, =:lirs= or =:unordered=                                                                          |
+    | =:ttl=         | =-1=                                  | Time-To-Live. The maximum time the entry will live before being expired. A negative value disables time-to-live expiration.            |
+    | =:idle=        | =-1=                                  | The time after which an entry will expire if not accessed. A negative value disables idle expiration.                                  |
+    | =:units=       | =:seconds=                            | The units for =:ttl= and =:idle=. One of =:days=, =:hours=, =:minutes=, =:seconds=, =:milliseconds=, =:microseconds= or =:nanoseconds= |
+    | =:config=      | =nil=                                 | An Infinispan Configuration instance. See [[#advanced-config][advanced configuration]] below.                                                                                      |
 
    When not clustered, the value of =:mode= is ignored and set to
    =:local=.
@@ -261,4 +265,50 @@
      (def c (ic/cache "foo"))
      (get c [1 2 3])                         ;=> 42
      
+   #+end_src
+
+** Advanced Infinispan Configuration
+   :PROPERTIES:
+   :CUSTOM_ID: advanced-config
+   :END:
+   
+   The =immutant.cache= namespace only exposes a subset of an
+   Infinispan cache's configurable parameters. This is by design, in
+   the spirit of [[http://en.wikipedia.org/wiki/Convention_over_configuration][convention over configuration]], but more complex
+   configuration is still possible via Clojure's Java interop.
+
+   Infinispan's "fluent API" is invoked via a [[http://docs.jboss.org/infinispan/5.3/apidocs/org/infinispan/configuration/cache/ConfigurationBuilder.html][ConfigurationBuilder]] as
+   described in their docs for [[https://docs.jboss.org/author/display/ISPN53/Configuring%2Bcache%2Bprogrammatically][configuring a cache programmatically]]. A
+   =ConfigurationBuilder= instance may be obtained by calling
+   [[./apidoc/immutant.cache.core.html#var-builder][immutant.cache.core/builder]], passing the same options you would
+   when [[#creating][creating]] a cache. This returns a builder initialized from the
+   Immutant defaults and the options you pass in. You can then tweak
+   that builder however you like before calling its =build= method to
+   return an Infinispan [[http://docs.jboss.org/infinispan/5.3/apidocs/org/infinispan/configuration/cache/Configuration.html][Configuration]] instance you can then pass to
+   =immutant.cache/create=.
+
+   *IMPORTANT*: You should always pass the same options to =create=
+   that you passed to =builder=, in addition to the =:config= option,
+   because some of those options, e.g. =:encoding= and the
+   lifespan-oriented ones, are not a part of the =Configuration=
+   interface. For those that do potentially conflict, the =:config=
+   option will always take precedence.
+
+   For example, let's say you always want your caches to use
+   synchronization when they're involved in a transaction. By default,
+   they participate as an =XAResource= to avoid a potential race
+   condition, but your app may be immune to that condition, so to
+   avoid a slight performance penalty, you might create your caches
+   using the following function.
+
+   #+begin_src clojure
+     (require 'immutant.cache
+              '[immutant.cache.core :refer [builder]]
+              '[immutant.util       :refer [mapply]])
+     
+     (defn your-create
+       [name & {:as opts}]
+       (let [builder (builder opts)]
+         (.. builder transaction (useSynchronization true))
+         (mapply immutant.cache/create name (assoc opts :config (.build builder)))))
    #+end_src
