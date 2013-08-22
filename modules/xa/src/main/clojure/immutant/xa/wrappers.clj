@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.xa.wrappers
+(ns ^{:no-doc true} immutant.xa.wrappers
   "Provide XA-compliant wrappers for java.sql interfaces"
   (:import [java.sql PreparedStatement Connection])
   (:require [immutant.xa.transaction :as tx]))
