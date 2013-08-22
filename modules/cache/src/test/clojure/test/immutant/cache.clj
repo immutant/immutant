@@ -196,6 +196,16 @@
      (io/delete-file "Infinispan-FileCacheStore/mike")
      (io/delete-file "Infinispan-FileCacheStore"))))
 
+(deftest test-persist-file-store-with-parents
+  (let [dir (io/file "target/gin/tonic")]
+    (try
+      (create "chas" :persist (str dir))
+      (is (.exists dir))
+      (finally
+        (io/delete-file (io/file dir "chas"))
+        (io/delete-file dir)
+        (io/delete-file (.getParent dir))))))
+
 (deftest test-create-restarts
   (let [c (create "terrence")]
     (put c :a 1)
