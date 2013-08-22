@@ -84,6 +84,7 @@
               <file>${project.basedir}/target/${project.artifactId}-${project.version}.jar</file>
               <pomFile>${project.basedir}/target/pom.xml</pomFile>
               <localRepositoryPath>${project.parent.basedir}/target/dist-repo/</localRepositoryPath>
+              <createChecksum>true</createChecksum>
             </configuration>
           </execution>
         </executions>
