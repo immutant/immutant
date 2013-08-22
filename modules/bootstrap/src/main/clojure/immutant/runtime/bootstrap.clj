@@ -116,7 +116,7 @@
 
 (defn ^:private remove-checkout-deps-paths-fn [v]
   (update-in v [:checkout-deps-shares]
-             #(vec (remove fn? %))))
+             #(vec (remove var? %))))
 
 (defn ^:private update-in-meta [v path f]
   (vary-meta v #(update-in % path f)))

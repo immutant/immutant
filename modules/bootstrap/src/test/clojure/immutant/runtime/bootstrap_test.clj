@@ -59,7 +59,7 @@
     (facts "resource-paths"
       (fact "should return the proper paths"
         (let [paths (map #(.getAbsolutePath (io/file app-root %))
-                         ["test" "resources" "src" "target/cheese/classes"])]
+                         ["test" "resources" "src" "target/classes"])]
           (resource-paths app-root nil) => (just paths :in-any-order)))
 
       (fact "should include checkout deps"
@@ -70,7 +70,7 @@
                                           (io/file app-root "checkouts/other-project" d)])
                                   %)
                           (conj %
-                                (io/file app-root "target/dev+base+user/classes")
+                                (io/file app-root "target/classes")
                                 (io/file app-root "checkouts/other-project/target/classes"))
                           (map (memfn getAbsolutePath) %))]
           (resource-paths app-root default-profiles) => (just paths :in-any-order))))
