@@ -30,6 +30,7 @@ class Publisher
     dav_mkdir_p( build_base_url )
     publish_distribution()
     verify_distribution()
+    publish_repo()
     publish_documentation()
     publish_artifact_list()
     copy_to_latest()
@@ -52,11 +53,20 @@ class Publisher
     File.dirname(__FILE__) + '/../../../docs/target/html/'
   end
 
+  def dist_repo_path()
+    File.dirname(__FILE__) + '/../../../namespaces/target/dist-repo/'
+  end
+  
   def publish_documentation()
     dav_mkdir_p( build_base_url + '/html-docs' )
     dav_put_r( build_base_url + '/html-docs', html_docs_path )
   end
 
+  def publish_repo()
+    dav_mkdir_p( build_base_url + '/repo' )
+    dav_put_r( build_base_url + '/repo', dist_repo_path )
+  end
+  
   def publish_distribution()
     @dist_files.each do |file|
       dav_put( build_base_url + "/#{File.basename( file )}", file )
