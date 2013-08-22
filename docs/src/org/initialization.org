@@ -187,18 +187,20 @@
      (registry/get :project)
    #+end_src
    
-** A note on profiles
+** A note on profiles and plugins
    :PROPERTIES:
    :CUSTOM_ID: initialization-profiles
    :END:
 
    To ease the development process, the =:dev=, =:base=, and =:user=
-   profiles are loaded by default. For production deployments, we
-   strongly urge you to [[#initialization-configuration][explicitly specify]] the profiles you want
-   active, which will override the default set. Neither =:base= nor
-   =:user= are appropriate profiles for production, since =:base= will
-   bring in [[https://github.com/technomancy/leiningen/blob/stable/doc/TUTORIAL.md#checkout-dependencies][checkout dependencies]], and =:user= will [[https://github.com/technomancy/leiningen/blob/stable/doc/PROFILES.md#declaring-profiles][apply user level
-   settings]] from =~/.lein/profiles.clj=.
+   profiles are loaded by default, along with any profiles specified
+   in =~/.lein/profiles.clj= and in the application's
+   =project.clj=. For production deployments, we strongly urge you to
+   [[#initialization-configuration][explicitly specify]] the profiles you want active, which will
+   override the default set. Neither =:base= nor =:user= are
+   appropriate profiles for production, since =:base= will bring in
+   [[https://github.com/technomancy/leiningen/blob/stable/doc/TUTORIAL.md#checkout-dependencies][checkout dependencies]], and =:user= will [[https://github.com/technomancy/leiningen/blob/stable/doc/PROFILES.md#declaring-profiles][apply user level settings]]
+   from =~/.lein/profiles.clj=.
 
 * Files Used In Configuration & Initialization
 
