@@ -23,7 +23,7 @@ import java.io.File;
 
 import org.immutant.bootstrap.ApplicationBootstrapUtils;
 import org.immutant.core.ClojureMetaData;
-import org.immutant.core.Timer;
+import org.immutant.common.Timer;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;

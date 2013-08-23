@@ -21,7 +21,7 @@ package org.immutant.core.processors;
 
 import org.immutant.common.ClassLoaderUtils;
 import org.immutant.core.ClojureMetaData;
-import org.immutant.core.Timer;
+import org.immutant.common.Timer;
 import org.immutant.core.as.CoreServices;
 import org.immutant.runtime.ClojureRuntimeService;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;

@@ -26,7 +26,7 @@ import java.util.List;
 
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
-import org.immutant.core.Timer;
+import org.immutant.common.Timer;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;

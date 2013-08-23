@@ -17,7 +17,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.immutant.core;
+package org.immutant.common;
 
 import org.jboss.logging.Logger;
 
@@ -37,5 +37,5 @@ public class Timer {
     private long startTime;
     private String event;
     
-    private static final Logger log = Logger.getLogger( "org.immutant.core.Timer" );
+    private static final Logger log = Logger.getLogger( "org.immutant.common.Timer" );
 }

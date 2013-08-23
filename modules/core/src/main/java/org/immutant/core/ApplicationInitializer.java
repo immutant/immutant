@@ -19,6 +19,7 @@
 
 package org.immutant.core;
 
+import org.immutant.common.Timer;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StopContext;

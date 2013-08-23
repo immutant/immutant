@@ -27,7 +27,7 @@ import java.util.List;
 import org.immutant.bootstrap.ApplicationBootstrapUtils;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
-import org.immutant.core.Timer;
+import org.immutant.common.Timer;
 import org.immutant.core.TmpResourceMounter;
 import org.immutant.core.as.CoreServices;
 import org.jboss.as.server.deployment.Attachments;
