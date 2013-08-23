@@ -20,13 +20,17 @@
   (:require [clojure.java.io                :as io]
             [clojure.walk                   :as walk]
             [clojure.set                    :as set]
-            [clojure.tools.logging          :as log]
             [leiningen.core.classpath       :as classpath]
             [leiningen.core.project         :as project]
             [robert.hooke                   :as hooke]
             [immutant.dependency-exclusions :as depex])
   (:use immutant.runtime-util)
-  (:import clojure.lang.DynamicClassLoader))
+  (:import clojure.lang.DynamicClassLoader
+           org.immutant.bootstrap.ApplicationBootstrapUtils))
+
+(defn ^:private log-error [& args]
+  (.error (ApplicationBootstrapUtils/LOG)
+          (apply str args)))
 
 (def ^:private dedicated-classloaders (atom {}))
 
@@ -185,7 +189,8 @@ to gracefully handle missing dependencies."
             project/init-project
             depex/exclude-immutant-deps))
        (catch clojure.lang.ExceptionInfo e
-         (log/error "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
+         (log-error
+          "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
          nil)))))
 
 

@@ -24,6 +24,7 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.DES
 
 import java.io.IOException;
 
+import org.immutant.bootstrap.ApplicationBootstrapUtils;
 import org.immutant.common.ClassLoaderUtils;
 import org.immutant.core.Immutant;
 import org.immutant.core.ImmutantClassLoader;
@@ -43,6 +44,8 @@ public class CoreExtension extends AbstractBootstrappableExtension {
     public void initialize(ExtensionContext context) {
         bootstrap();
         log.info( "Initializing Immutant Core Subsystem" );
+        ApplicationBootstrapUtils.preInit();
+
         try {
             Immutant immutant = new Immutant();
             immutant.printVersionInfo( log );

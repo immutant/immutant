@@ -36,12 +36,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>tools.logging</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
       <groupId>leiningen-core</groupId>
       <artifactId>leiningen-core</artifactId>
       <scope>compile</scope>

@@ -28,6 +28,8 @@ import org.immutant.common.ClassLoaderUtils;
 
 import clojure.lang.RT;
 import clojure.lang.Var;
+import org.immutant.common.Timer;
+import org.jboss.logging.Logger;
 
 /** 
  * Utils for bootstrapping a clojure application. Any Vars invoked here will 
@@ -37,8 +39,10 @@ import clojure.lang.Var;
  * warranty.
  */
 public class ApplicationBootstrapUtils {
-    
-    public static void lazyInit() {
+
+    public static final Logger LOG = Logger.getLogger("org.immutant.bootstrap");
+
+    public static void preInit() {
         (new Thread(new Runnable() {
             public void run() {
                 init();
@@ -51,14 +55,15 @@ public class ApplicationBootstrapUtils {
         if (loader != null) {
             return;
         }
+        Timer t = new Timer("bootstrap init");
         loader = Var.class.getClassLoader();
         
         try {
             ClassLoaderUtils.callInLoader( 
              new Callable() {
                 public Object call() throws Exception {
-                    RT.load( "immutant/runtime/bootstrap" );
-                    RT.load( "immutant/runtime_util" );
+                    RT.load("immutant/runtime/bootstrap");
+                    RT.load("immutant/runtime_util");
                     
                     return null;
                 }
@@ -66,6 +71,8 @@ public class ApplicationBootstrapUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        t.done();
     }
 
     /**

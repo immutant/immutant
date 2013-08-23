@@ -24,7 +24,7 @@
   (:require [clojure.java.io :as io]))
 
 ;; init the global runtime
-(ApplicationBootstrapUtils/lazyInit)
+(ApplicationBootstrapUtils/preInit)
 
 (defn make-md [data]
   (RingMetaData. (ClojureMetaData. "app-name" data)))
