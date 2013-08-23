@@ -27,6 +27,12 @@
                         :context-path "/java-class"
                         }))
 
-(deftest simple "it should work"
+(deftest classes-in-target-classes-should-load
   (is (= "Hello from Java" (get-as-data "/java-class"))))
+
+(deftest non-AS-standard-classes-should-be-importable
+  (let [{:keys [total success failure] :as result}
+        (get-as-data "/java-class/import")]
+    (is (= total (count success)))
+    (is (= 0 (count failure)))))
 

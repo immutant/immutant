@@ -46,8 +46,41 @@
   (response (assoc request :body "<body>") ;; body is a inputstream, chuck it for now
             {"x-request-method" (str (:request-method request))})) 
 
-(defn java-class-handler [request]
+(defn target-classes-handler [request]
   (response (SomeClass/hello)))
+
+(defn esoteric-classes-handler [request]
+  (response
+   (reduce
+    (fn [res class]
+      (let [try-import
+            #(try
+               (eval `(import (quote ~%)))
+               :success
+               (catch Throwable _
+                 :failure))]
+        (-> res
+            (update-in [(try-import class)] conj class)
+            (update-in [:total] inc))))
+    {:success [] :failure [] :total 0}
+    ['com.sun.net.httpserver.spi.HttpServerProvider
+     'com.sun.net.httpserver.Authenticator
+     'javax.xml.ws.ProtocolException
+     'javax.xml.bind.Binder
+     'javax.xml.bind.annotation.DomHandler
+     'javax.xml.bind.annotation.adapters.XmlAdapter
+     'javax.xml.bind.attachment.AttachmentMarshaller
+     'javax.xml.bind.helpers.AbstractMarshallerImpl
+     'javax.xml.bind.util.JAXBResult
+     'javax.xml.soap.Detail
+     'javax.xml.ws.Dispatch
+     'javax.xml.ws.handler.Handler
+     'javax.xml.ws.handler.soap.SOAPHandler
+     'javax.xml.ws.http.HTTPException
+     'javax.xml.ws.soap.SOAPBinding
+     'javax.xml.ws.spi.Invoker
+     'javax.xml.ws.spi.http.HttpContext
+     'javax.xml.ws.wsaddressing.W3CEndpointReference])))
 
 (defn dev-handler [request]
    (let [original-project (dev/current-project)]
@@ -113,7 +146,8 @@
 
 (defn init-java-class []
   (init)
-  (web/start java-class-handler))
+  (web/start target-classes-handler)
+  (web/start "/import" esoteric-classes-handler))
 
 (defn init-dev-handler []
      (init)
