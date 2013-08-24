@@ -210,6 +210,14 @@
     (if *connections* (set! *connections* (assoc *connections* (connection-key opts) conn)))
     conn))
 
+(defn close-connection
+  "Registers a synchronization if there's an active transaction,
+   otherwise calls close"
+  [conn]
+  (if (tx/active?)
+    (tx/after-completion #(.close conn))
+    (.close conn)))
+
 (defn create-consumer
   "Creates a consumer for a session and destination that may be a durable topic subscriber"
   [session destination {:keys [selector client-id subscriber-name] :or {subscriber-name default-subscriber-name}}]
@@ -262,10 +270,7 @@
         (try 
           (f)
           (finally
-           (let [conn *connection*]
-             (if (tx/active?)
-               (tx/after-completion #(.close conn))
-               (.close conn)))))))))
+            (close-connection *connection*)))))))
 
 (defmacro with-connection [options & body]
   `(with-connection* ~options (fn [] ~@body)))

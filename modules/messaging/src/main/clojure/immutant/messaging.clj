@@ -209,7 +209,7 @@
                                   (bound-fn [m]
                                     (binding [*raw-message* m]
                                       (f (codecs/decode-if decode? m)))))}))]
-    (at-exit #(.close connection))
+    (at-exit #(close-connection connection))
     (cond
      (or (not izer)
          (and host (destination-exists? connection dest)))
@@ -227,7 +227,7 @@
        (.start connection)
        connection
        (catch Throwable e
-         (.close connection)
+         (close-connection connection)
          (throw e)))
 
      (destination-exists? connection dest)
