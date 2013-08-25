@@ -144,6 +144,6 @@
          (apply require namespaces)
          (with-jboss
            (fn []
-             (apply run-tests namespaces)))))
+             (apply run-tests namespaces)) (read-string (or (System/getProperty "lazy") "false")))))
       (shutdown-agents)
       (System/exit (if (empty? (filter #{:fail :error} @results)) 0 -1)))))

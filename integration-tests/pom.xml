@@ -20,6 +20,7 @@
     <fntest.debug>false</fntest.debug>
     <ns />
     <databases>h2</databases>
+    <lazy>false</lazy>
   </properties>
 
   <dependencies>
@@ -173,7 +174,7 @@
             <artifactId>clojure-maven-plugin</artifactId>
             <configuration>
               <testScript>src/test/clojure/immutant/integs.clj</testScript>
-              <clojureOptions>-Ddatabases=${databases} -Dversions=${versions} -Dns=${ns} -Dfntest.debug=${fntest.debug}</clojureOptions>
+              <clojureOptions>-Ddatabases=${databases} -Dversions=${versions} -Dns=${ns} -Dfntest.debug=${fntest.debug} -Dlazy=${lazy}</clojureOptions>
             </configuration>
             <executions>
               <execution>
