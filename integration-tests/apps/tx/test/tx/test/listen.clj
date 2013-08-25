@@ -29,20 +29,20 @@
 (deftest transactional-writes-in-listener-should-work
   (trigger-listener)
   (is (= "kiwi" (imsg/receive "/queue/test")))
-  (is (= "starfruit" (imsg/receive "/queue/remote-test")))
+  (is (= "starfruit" (imsg/receive "/queue/remote-test" :host "localhost" :port 5445)))
   (is (= 1 (:a core/cache))))
 
 (deftest transactional-writes-in-listener-should-fail-on-exception
   (trigger-listener :throw? true)
   (is (nil? (imsg/receive "/queue/test" :timeout 2000)))
-  (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000)))
+  (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000 :host "localhost" :port 5445)))
   (is (nil? (:a core/cache)))
   (is (= 10 (:deliveries core/cache))))
 
 (deftest transactional-writes-in-listener-should-fail-on-rollback
   (trigger-listener :rollback? true)
   (is (nil? (imsg/receive "/queue/test" :timeout 2000)))
-  (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000)))
+  (is (nil? (imsg/receive "/queue/remote-test" :timeout 2000 :host "localhost" :port 5445)))
   (is (nil? (:a core/cache)))
   (is (= 10 (:deliveries core/cache))))
 
@@ -52,5 +52,5 @@
   (is (util/wait-for #(= 10 (:deliveries core/cache))))
   (is (= 1 (:a core/cache)))
   (is (every? #(= "kiwi" %) (take 10 (imsg/message-seq "/queue/test"))))
-  (is (every? #(= "starfruit" %) (take 10 (imsg/message-seq "/queue/remote-test")))))
+  (is (every? #(= "starfruit" %) (take 10 (imsg/message-seq "/queue/remote-test" :host "localhost" :port 5445)))))
 
