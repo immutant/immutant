@@ -252,3 +252,13 @@
     (require '[immutant.pipeline :as pl] :reload-all)
     (is (thrown? IllegalArgumentException
                  (pl/pipeline name)))))
+
+(deftest fanout
+  (let [result-queue (random-queue)
+        pl (pl/pipeline
+            :fanout
+            pl/fanout
+            (partial msg/publish result-queue))]
+    (pl (repeat 5 :a))
+    (dotimes [_ 5]
+      (is (= :a (msg/receive result-queue :timout 10000))))))

@@ -293,3 +293,14 @@
     (doseq [l listeners]
       (msg/unlisten l))
     (apply msg/stop pipeline args)))
+
+(defn fanout
+  "A function that takes a seq and places each item in it on the pipeline at the next step.
+   This halts pipeline execution for the current message, but
+   continues execution for each seq element. Note that a pipeline that
+   uses this function cannot be correctly derefenced, since the deref
+   will only get the first value to finish the pipeline."
+  [xs]
+  (doseq [x xs]
+    (*pipeline* x :step *next-step*))
+  halt)
