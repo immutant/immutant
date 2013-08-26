@@ -53,9 +53,11 @@
     [[#interactive-binding][bind to the management interface]].
 
     Immutant will write the nREPL port to a file beneath your
-    project's =target/= directory called =repl-port=, following
-    Leiningen's convention. Many nREPL clients will use this file to
-    establish a connection. Setting =:nrepl-port= to 0 will cause the
+    project's =target/= directory called =repl-port= and to a file in
+    the root of the project called =.nrepl-port=, following
+    Leiningen's convention. Many nREPL clients will use one of these
+    files to establish a connection. Both will be deleted when the
+    Immutant process exits. Setting =:nrepl-port= to 0 will cause the
     OS to return an unused port, avoiding potential conflicts. You can
     set this in your =~/.lein/profiles.clj= file to start an nREPL
     service for each application you deploy:

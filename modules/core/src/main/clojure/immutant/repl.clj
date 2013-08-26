@@ -84,22 +84,25 @@ stop-nrepl to shut it down manually."
   ([port]
    (start-nrepl (util/management-interface-address) port)))
 
-(defn ^:private spit-nrepl-file
-  [server file]
-  (let [ss (-> server deref :ss)
-        port (.getLocalPort ss)
-        host (-> ss .getInetAddress .getHostAddress)
-        file (util/app-relative (or file "target/repl-port"))]
-    (log/info "Bound to" (str host ":" port))
-    (.mkdirs (.getParentFile file))
-    (spit file port)
-    (.deleteOnExit file)))
+(defn ^:private spit-nrepl-files
+  [port file]
+  (doseq [f (map util/app-relative
+                 (if file
+                   [file]
+                   [".nrepl-port" "target/repl-port"]))]
+    (.mkdirs (.getParentFile f))
+    (spit f port)
+    (.deleteOnExit f)))
 
 (defn ^{:internal true :no-doc true} init-repl
   "Looks for nrepl-port and swank-port values in the given config, and starts
 the appropriate servers."
   [config]
   (when-let [port (config "nrepl-port")]
-    (spit-nrepl-file (start-nrepl port) (config "nrepl-port-file")))
+    (let [ss (-> (start-nrepl port) deref :ss)
+          host (-> ss .getInetAddress .getHostAddress)
+          bound-port (.getLocalPort ss)]
+      (log/info "nREPL bound to" (str host ":" bound-port))
+      (spit-nrepl-files bound-port (config "nrepl-port-file"))))
   (when-let [port (config "swank-port")]
     (start-swank port)))
