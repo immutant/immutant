@@ -61,7 +61,7 @@
     service for each application you deploy:
 
     #+begin_src clojure
-      {:user {:plugins [[lein-immutant "0.18.1"]]
+      {:user {:plugins [[lein-immutant "1.0.1"]]
               :immutant {:nrepl-port 0}}}
     #+end_src
 
