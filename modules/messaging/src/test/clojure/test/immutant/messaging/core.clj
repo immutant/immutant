@@ -16,9 +16,10 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns test.immutant.messaging.core
-  (:use [immutant.messaging.core])
+  (:use [immutant.messaging.core]
+        [clojure.test])
   (:import [javax.jms DeliveryMode])
-  (:use [clojure.test]))
+  (:require [immutant.messaging :as main]))
 
 (def producer (proxy [javax.jms.MessageProducer] []
                 (getDeliveryMode [] DeliveryMode/PERSISTENT)
@@ -51,6 +52,13 @@
   (let [opts (wash-publish-options {:ttl 1000} producer)]
     (is (= (:ttl opts) 1000))))
 
+(deftest with-connection-options
+  (main/with-connection {:foo 42 :connection :unused}
+    (is (= 42 (:foo (options {:not :here}))))
+    (is (= 69 (:foo (options {:foo 69}))))
+    (is (contains? (options {}) :sessions))
+    (is (nil? (:sessions (options {}))))
+    (is (= :unused (:connection (options {}))))))
 
 ;; Tests/utilities for message property setting
 
