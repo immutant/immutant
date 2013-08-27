@@ -64,7 +64,7 @@
    re-use the JMS Connection created by this function unless the
    nested calls' connection-related options differ."
   [options & body]
-  `(immutant.messaging.core/with-connection ~options (fn [] ~@body)))
+  `(immutant.messaging.core/with-connection (fn [] ~@body) ~options ))
 
 (defn publish
   "Send a message to a destination. dest can either be the name of the

@@ -265,11 +265,14 @@
        (every? (fn [[k v]] (= v (k *options*)))
                (select-keys opts connect-options))))
 
-(defn with-connection [opts f]
-  (cond
-   (contains? opts :connection) (binding [*options* (options opts (:connection opts))] (f))
-   (bound-options-match? opts) (f)
-   :else (new-connection opts f)))
+(defn with-connection
+  ([f]
+     (with-connection f {}))
+  ([f opts]
+     (cond
+      (contains? opts :connection) (binding [*options* (options opts (:connection opts))] (f))
+      (bound-options-match? opts) (f)
+      :else (new-connection opts f))))
 
 (defn ^{:internal true} create-listener [handler]
   (if (in-immutant?)
