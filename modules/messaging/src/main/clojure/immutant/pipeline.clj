@@ -69,7 +69,8 @@
    (pl/stop foo-pipeline)
  
    This API is alpha, and subject to change."
-  (:use [immutant.util :only (mapply app-name maybe-deref)])
+  (:use [immutant.util :only (mapply app-name maybe-deref)]
+        [immutant.messaging.core :only [delayed]])
   (:require [clojure.tools.logging   :as log]
             [immutant.messaging      :as msg]
             [immutant.xa.transaction :as tx])
@@ -159,8 +160,11 @@
 (defn- create-delay
   [pl id keep-result?]
   (if keep-result?
-    (msg/delayed-receive pl
-                         :selector (str "JMSCorrelationID='" id "' AND result = true"))
+    (delayed
+     (fn [t]
+       (mapply msg/receive pl
+               {:timeout t
+                :selector (str "JMSCorrelationID='" id "' AND result = true")})))
     (delay (throw (IllegalStateException.
                    "Attempt to derefence a pipeline that doesn't provide a result")))))
 

@@ -143,26 +143,6 @@
       (when message
         (codecs/decode-if decode? message)))))
 
-(defn ^:internal ^:no-doc delayed-receive
-  "Creates an timeout-derefable delay around a receive call"
-  [queue & {:as opts}]
-  (let [val (atom nil)
-        rcv (fn [timeout]
-              (reset! val
-                      (mapply receive queue (assoc opts :timeout timeout))))]
-    (proxy [clojure.lang.Delay clojure.lang.IBlockingDeref] [nil]
-      (deref
-        ([]
-           (if (nil? @val) (rcv 0) @val))
-        ([timeout-ms timeout-val]
-           (if (nil? @val)
-             (let [r (rcv timeout-ms)]
-               (if (nil? r) timeout-val r))
-             @val)))
-      (isRealized []
-        (not (and (nil? @val)
-                  (nil? (rcv -1))))))))
-
 (defn message-seq
   "A lazy sequence of messages received from a destination. Accepts
    same options as receive."
@@ -272,9 +252,13 @@
   (let [^javax.jms.Message message (mapply publish queue message
                                            (update-in opts [:properties]
                                                       #(merge % {"synchronous" "true"})))]
-    (mapply delayed-receive queue
-            (assoc opts
-              :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'")))))
+    (delayed
+     (fn [t] (mapply
+             receive
+             queue
+             (assoc opts
+               :timeout t
+               :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'")))))))
 
 (defn respond
   "Listen for messages on queue sent by the request function and

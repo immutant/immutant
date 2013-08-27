@@ -16,9 +16,10 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.msg.queues
-  (:use fntest.core)
-  (:use clojure.test)
-  (:use immutant.messaging))
+  (:use fntest.core
+        clojure.test
+        immutant.messaging
+        [immutant.messaging.core :only [delayed]]))
 
 (def ham-queue "/queue/ham")
 (def biscuit-queue ".queue.biscuit")
@@ -29,6 +30,9 @@
                       {
                        :root "target/apps/messaging/queues"
                        }))
+
+(defn delayed-receive [q]
+  (delayed #(receive q :timeout %)))
 
 (deftest timeout-should-return-nil
   (is (nil? (receive ham-queue :timeout 1))))
