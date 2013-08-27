@@ -30,20 +30,20 @@
 (def factory-name "jboss.naming.context.java.ConnectionFactory")
 ;;; Default subscriber name, which can't be null, apparently
 (def default-subscriber-name "default")
+;;; Options relevant to a connection
+(def connect-options [:host :port :username :password :client-id :xa])
 
-;;; Thread-local connection set
-(def ^{:private true, :dynamic true} *connections* nil)
-;;; Thread-local current connection
-(def ^{:private true, :dynamic true} ^javax.jms.XAConnection *connection* nil)
-;;; Thread-local map of transactions to sessions
-(def ^{:private true, :dynamic true} *sessions* nil)
+;;; Options in effect for the current active messenger
+(def ^{:private true, :dynamic true} *options* {})
+
+(defn options
+  "Merge an options hash with the ones in effect for this thread"
+  [opts & [conn]]
+  (let [extra (if conn {:connection conn :sessions nil})]
+    (merge *options* opts extra)))
 
 (defn ^{:private true} remote-connection? [opts]
   (:host opts))
-
-(defn ^{:private true} connection-key [opts]
-  (map #(% opts) [:host :port :username :password]))
-
 
 (def ^:private local-connection-factory
   (memoize
@@ -187,16 +187,19 @@
 (extend-type javax.jms.XAConnection
   Sessionator
   (create-session [connection]
+    (log/debug "Creating XA session")
     (.createXASession connection)))
 
 (extend-type javax.jms.Connection
   Sessionator
   (create-session [connection]
+    (log/debug "Creating non-XA session")
     (.createSession connection false Session/AUTO_ACKNOWLEDGE)))
 
 (defn create-connection
-  "Creates a connection and registers it in the *connections* map"
+  "Creates a connection"
   [opts]
+  (log/debug (str "Creating connection " opts))
   (let [conn (backoff
               10 60000
               (if (or (tx/active?) (and (in-immutant?) (:xa opts)))
@@ -207,7 +210,6 @@
                                    (:username opts)
                                    (:password opts))))]
     (if (:client-id opts) (.setClientID conn (:client-id opts)))
-    (if *connections* (set! *connections* (assoc *connections* (connection-key opts) conn)))
     conn))
 
 (defn close-connection
@@ -238,42 +240,36 @@
   (let [transaction (tx/current)]
     (if transaction
       (tx/enlist (.getXAResource session)))
-    (set! *sessions* (assoc *sessions* transaction session))))
+    (set! *options* (update-in *options* [:sessions] assoc transaction session))))
 
 (defn ^javax.jms.XASession session
   []
   (let [transaction (tx/current)]
-    (if-not (contains? *sessions* transaction)
-      (enlist-session (create-session *connection*)))	  	
-    (get *sessions* transaction)))
+    (if-not (contains? (:sessions *options*) transaction)
+      (enlist-session (create-session (:connection *options*))))
+    (get-in *options* [:sessions transaction])))
 
-(defmacro with-transaction
-  [session & body]
-  `(if (tx/available?)
-     (binding [*sessions* {}]
-       (tx/requires-new
-        (enlist-session ~session)
-        ~@body))
-     (do
-       ~@body)))
-  
-(defn with-connection* [opts f]
-  (binding [*connections* (or *connections* {})]
-    (if-let [conn (*connections* (connection-key opts))]
-      ;; this connection has been used before in the current call stack, just rebind it
-      (binding [*connection* conn] 
-        (f))
-      ;; we need a new connection, so we have to start it and clean up after
-      (binding [*connection* (create-connection opts)
-                *sessions* {}]
-        (.start *connection*)
-        (try 
-          (f)
-          (finally
-            (close-connection *connection*)))))))
+(defn new-connection
+  [opts f]
+  (let [conn (create-connection opts)]
+    (binding [*options* (options opts conn)]
+      (.start conn)
+      (try 
+        (f)
+        (finally
+          (close-connection conn))))))
 
-(defmacro with-connection [options & body]
-  `(with-connection* ~options (fn [] ~@body)))
+(defn bound-options-match?
+  [opts]
+  (and (:connection *options*)
+       (every? (fn [[k v]] (= v (k *options*)))
+               (select-keys opts connect-options))))
+
+(defn with-connection [opts f]
+  (cond
+   (contains? opts :connection) (binding [*options* (options opts (:connection opts))] (f))
+   (bound-options-match? opts) (f)
+   :else (new-connection opts f)))
 
 (defn ^{:internal true} create-listener [handler]
   (if (in-immutant?)
@@ -281,3 +277,4 @@
    (reify javax.jms.MessageListener
      (onMessage [_ message]
        (handler message)))))
+

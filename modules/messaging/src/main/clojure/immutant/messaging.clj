@@ -20,7 +20,7 @@
    data structure to dynamically-created topics and queues. Message
    distribution is automatically load-balanced when clustered."
   (:use [immutant.util :only (at-exit mapply waiting-derefable maybe-deref)]
-        immutant.messaging.core
+        [immutant.messaging.core :exclude [with-connection]]
         immutant.messaging.internal)
   (:require [immutant.messaging.codecs :as codecs]
             [immutant.registry         :as registry]
@@ -58,6 +58,14 @@
    (topic-name? name) (apply start-topic (.toString name) opts)
    :else (throw (destination-name-error name))))
 
+(defmacro with-connection
+  "Can be used to set default options for the messaging functions
+   called within its body. More importantly, the nested calls will
+   re-use the JMS Connection created by this function unless the
+   nested calls' connection-related options differ."
+  [options & body]
+  `(immutant.messaging.core/with-connection ~options (fn [] ~@body)))
+
 (defn publish
   "Send a message to a destination. dest can either be the name of the
    destination, a javax.jms.Destination, or the result of as-queue or
@@ -87,7 +95,8 @@
                       to be set) [nil]"
   [dest message & {:as opts}]
   (with-connection opts
-    (let [session (session)
+    (let [opts (options opts)
+          session (session)
           destination (create-destination session dest)
           producer (.createProducer session destination)
           encoded (if (instance? javax.jms.Message message)
@@ -121,9 +130,11 @@
                  be set) [nil]
      :password   the password to use to auth the connection (requires :username to
                  be set) [nil]"
-  [dest & {:keys [timeout decode?] :or {timeout 10000 decode? true} :as opts}]
+  [dest & {:as opts}]
   (with-connection opts
-    (let [session (session)
+    (let [opts (options opts)
+          {:keys [timeout decode?] :or {timeout 10000 decode? true}} opts
+          session (session)
           destination (create-destination session dest)
           consumer (create-consumer session destination opts)
           message (if (= -1 timeout)
@@ -196,8 +207,10 @@
      :max-retry-interval         the max retry interval that will be used [2000]
      :reconnect-attempts         total number of reconnect attempts to make before giving
                                  up and shutting down (-1 for unlimited) [0]"
-  [dest f & {:keys [concurrency decode? host] :or {concurrency 1 decode? true} :as opts}]
-  (let [connection (create-connection (merge {:xa (nil? host)} opts))
+  [dest f & {:as opts}]
+  (let [opts (options opts)
+        {:keys [concurrency decode? host] :or {concurrency 1 decode? true}} opts
+        connection (create-connection (merge {:xa (nil? host)} opts))
         dest-name (destination-name dest)
         izer (registry/get "message-processor-groupizer")
         setup-fn (fn []
