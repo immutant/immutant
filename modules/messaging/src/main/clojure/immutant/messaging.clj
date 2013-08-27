@@ -92,7 +92,8 @@
      :username        the username to use to auth the connection (requires :password
                       to be set) [nil]
      :password        the password to use to auth the connection (requires :username
-                      to be set) [nil]"
+                      to be set) [nil]
+     :connection      a JMS Connection to use; caller expected to close [nil]"
   [dest message & {:as opts}]
   (with-connection opts
     (let [opts (options opts)
@@ -129,7 +130,8 @@
      :username   the username to use to auth the connection (requires :password to
                  be set) [nil]
      :password   the password to use to auth the connection (requires :username to
-                 be set) [nil]"
+                 be set) [nil]
+     :connection a JMS Connection to use; caller expected to close [nil]"
   [dest & {:as opts}]
   (with-connection opts
     (let [opts (options opts)

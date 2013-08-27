@@ -439,8 +439,18 @@
          (publish somewhere msg)))
    #+end_src
 
-   
+   It's also possible to manage connections yourself and use them by
+   setting the =:connection= option, but of course you're then
+   responsible for starting and closing them when you're done. Here's
+   an example:
 
+   #+begin_src clojure
+     (with-open [c (immutant.messaging.core/create-connection {})]
+       (.start c)
+       (with-connection {:connection c}
+         (publish wherever whatever)))
+   #+end_src
+   
 ** A word about performance
 
    Though HornetQ is [[https://community.jboss.org/wiki/HornetQ-thePerformanceLeaderinEnterpriseMessaging][capable of being very fast]], Immutant's default
