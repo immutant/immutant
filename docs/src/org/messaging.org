@@ -434,7 +434,7 @@
 
    #+begin_src clojure
      (with-connection {}
-       (let [msg (.createBytesMessage (session))]
+       (let [msg (.createBytesMessage (immutant.messaging.core/session))]
          (.writeBytes msg (.getBytes "foo"))
          (publish somewhere msg)))
    #+end_src
