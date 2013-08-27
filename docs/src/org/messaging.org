@@ -265,9 +265,10 @@
    Immutant features three functions for consuming messages.
    - [[./apidoc/immutant.messaging.html#var-receive][immutant.messaging/receive]] Blocks the caller until a message arrives and returns
      the decoded message
-   - [[./apidoc/immutant.messaging.html#var-message-seq][immutant.messaging/message-seq]] Creates a lazy sequence of messages
-   - [[./apidoc/immutant.messaging.html#var-listen][immutant.messaging/listen]] Register a handler function that will receive the
-     decoded message when it arrives
+   - [[./apidoc/immutant.messaging.html#var-message-seq][immutant.messaging/message-seq]] Lazily invokes =receive= to create
+     a lazy sequence of messages
+   - [[./apidoc/immutant.messaging.html#var-listen][immutant.messaging/listen]] Registers a handler function that will
+     receive the decoded message when it arrives
 
    Both =receive= and =message-seq= expect the destination name as the
    first parameter, and optionally, the following key/value pairs:
@@ -399,6 +400,65 @@
 
    The names are so gross-looking that we're loathe to include any
    examples at this time.
+
+** Connections and Sessions
+   
+   Each of the aforementioned functions requires a JMS Connection and
+   a JMS Session. By default, new instances will be created each time
+   you call =receive=, =publish=, or =listen=. For the latter, this is
+   not of much concern, since the listener's connection will remain
+   open for its lifetime, but if you're repeatedly calling =receive=
+   or =publish= in the same thread, a JMS Connection is being
+   wastefully opened and closed with each call. In that case, you
+   should use the [[./apidoc/immutant.messaging.html#var-with-connection][immutant.messaging/with-connection]] macro to
+   establish a single connection used by any messaging function called
+   within its body. Additionally, any options you pass to
+   =with-connection= will be used as default values for the options
+   relevant to the messaging calls in its body.
+
+   For example, each of the 102 calls in the following block will use
+   the same JMS Connection. And all of the published messages except
+   the last one will use the =:json= encoding, which doesn't handle
+   clojure keywords properly.
+
+   #+begin_src clojure
+     (with-connection {:encoding :json}
+       (dotimes [x 100]
+         (publish "queue.question" (assoc payload :x x)))
+       (publish "queue.question" :done, :encoding :clojure)
+       (receive "queue.answer"))
+   #+end_src
+
+   Within the body of =with-connection= you can call the =session=
+   function to access the JMS Session. For example:
+
+   #+begin_src clojure
+     (with-connection {}
+       (let [msg (.createBytesMessage (session))]
+         (.writeBytes msg (.getBytes "foo"))
+         (publish somewhere msg)))
+   #+end_src
+
+   
+
+** A word about performance
+
+   Though HornetQ is [[https://community.jboss.org/wiki/HornetQ-thePerformanceLeaderinEnterpriseMessaging][capable of being very fast]], Immutant's default
+   settings are conservative, trading some performance for data
+   integrity, e.g. deliver-once guarantees of durable messages with
+   minimal risk of message loss. HornetQ offers [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html_single/#perf-tuning][many recommendations
+   for tuning performance]], but only a few of those settings are
+   exposed through the Immutant messaging namespace, e.g. =:durable=,
+   =:persistent=, =:concurrency=, and =:xa=.
+
+   Probably the biggest impact will come from re-using connections
+   via =with-connection= described above, disabling =:xa= in your
+   listeners when not needed, and increasing their =:concurrency=
+   setting from its default of 1.
+
+   Other settings will need to go within the =<hornetq-server>=
+   element of
+   =$IMMUTANT_HOME/jboss/standalone/configuration/standalone[-ha].xml=
 
 * Request/Response
    :PROPERTIES:
