@@ -376,7 +376,7 @@
   </dependencyManagement>
 
   <properties>
-    <codename>HypnoToad</codename>
+    <codename>PuntoBueno</codename>
     <version.polyglot>1.16.0</version.polyglot>
     <!-- <version.polyglot>1.x.incremental.52</version.polyglot> -->
     <version.shimdandy>1.0.1</version.shimdandy>
