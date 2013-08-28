@@ -55,7 +55,7 @@
   (let [q (random-queue)]
     (with-job #(msg/publish q "ping") [:every 500 :repeat 1] 
       (is (= "ping" (msg/receive q :timeout 10000)))
-      (is (= ["ping" nil] (take 2 (msg/message-seq q :timeout 550)))))))
+      (is (= ["ping" nil] (take 2 (msg/message-seq q :timeout 650)))))))
 
 (deftest at-with-every-should-fire-immediately-and-continuously-starting-at-at
   (let [q (random-queue)]
