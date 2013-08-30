@@ -21,6 +21,11 @@
             [clojure.tools.reader.edn :as edn]
             [clojure.tools.reader :as r]))
 
+(defmacro data-readers []
+  (if (resolve 'clojure.core/*data-readers*)
+    '(merge *data-readers* r/*data-readers*)
+    'r/*data-readers*))
+
 ;; Encode
 
 (defmulti encode
@@ -57,7 +62,9 @@
 (defmethod decode :clojure [data _]
   "Turn a string into a clojure data structure"
   (try
-    (and data (r/read-string data))
+    (and data
+         (binding [r/*data-readers* (data-readers)]
+           (r/read-string data)))
     (catch Throwable e
       (throw (RuntimeException.
               (str "Invalid clojure-encoded data (type=" (class data) "): " data)
@@ -66,7 +73,7 @@
 (defmethod decode :edn [data & _]
   "Turn an edn string into a clojure data structure"
   (try
-    (and data (edn/read-string data))
+    (and data (edn/read-string {:readers (data-readers)} data))
     (catch Throwable e
       (throw (RuntimeException.
               (str "Invalid edn-encoded data (type=" (class data) "): " data)

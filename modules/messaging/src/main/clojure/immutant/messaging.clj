@@ -195,7 +195,7 @@
         connection (create-connection (merge {:xa (nil? host)} opts))
         dest-name (destination-name dest)
         izer (registry/get "message-processor-groupizer")
-        setup-fn (fn []
+        setup-fn (bound-fn []
                    (let [session (create-session connection)
                          destination (create-destination session dest)]
                      {"session" session
