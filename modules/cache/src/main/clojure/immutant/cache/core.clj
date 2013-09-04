@@ -26,8 +26,11 @@
 (def service (registry/get org.projectodd.polyglot.cache.as.CacheService/CACHE))
 (def manager (delay (or (and service (.getCacheContainer service)) (DefaultCacheManager.))))
 
-(defn- default-mode [opts]
-  (if (and service (.isClustered service))
+(defn clustered? []
+  (and service (.isClustered service)))
+
+(defn default-mode [opts]
+  (if (clustered?)
     (merge {:mode :distributed} opts)
     (do
       (if-not (= :local (:mode opts :local))

@@ -29,6 +29,8 @@
     (= :invalidated mode) (if sync CacheMode/INVALIDATION_SYNC CacheMode/INVALIDATION_ASYNC)
     (= :distributed mode) (if sync CacheMode/DIST_SYNC CacheMode/DIST_ASYNC)
     (= :replicated mode) (if sync CacheMode/REPL_SYNC CacheMode/REPL_ASYNC)
+    (= :local mode) CacheMode/LOCAL
+    mode (throw (IllegalArgumentException. (str "Invalid cache mode: " mode)))
     :else CacheMode/LOCAL))
 
 (defn eviction-strategy

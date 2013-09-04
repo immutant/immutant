@@ -18,7 +18,14 @@
 (ns test.immutant.config
   (:use immutant.cache.config
         clojure.test)
-  (:import java.util.concurrent.TimeUnit))
+  (:import java.util.concurrent.TimeUnit
+           org.infinispan.configuration.cache.CacheMode))
+
+(deftest test-cache-modes
+  (is (= CacheMode/DIST_SYNC (cache-mode {:mode :distributed :sync true})))
+  (is (= CacheMode/REPL_ASYNC (cache-mode {:mode :replicated})))
+  (is (= CacheMode/LOCAL (cache-mode {})))
+  (is (thrown? IllegalArgumentException (cache-mode {:mode :unrecognized}))))
 
 (deftest test-lifespan-params
   (is (= (lifespan-params {})                                [-1 TimeUnit/SECONDS -1 TimeUnit/SECONDS]))
