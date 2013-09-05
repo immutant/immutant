@@ -74,6 +74,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
         
         rememberGroup( destinationName, serviceName );
 
+        final ServiceName mbeanName = installMBean( serviceName, "immutant.messaging", group );
 
         ServiceSynchronizationManager.INSTANCE.addService(serviceName, group, true);
 
@@ -86,6 +87,7 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
 
                                 builder.addDependency( CoreServices.runtime( getUnit() ), group.getClojureRuntimeInjector() )
                                     .addListener(ServiceSynchronizationManager.INSTANCE)
+                                    .addDependency( mbeanName )
                                     .addDependency( pointerDestName )
                                     .addDependency( javaContext.append( "ConnectionFactory" ), group.getConnectionFactoryInjector() )
                                     .addDependency( javaContext.append( DestinationUtils.getServiceName( destinationName ) ), group.getDestinationInjector() )
@@ -94,7 +96,6 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
                             }
                         } );
         
-        installMBean( serviceName, "immutant.messaging", group );
         
         return group;
     }

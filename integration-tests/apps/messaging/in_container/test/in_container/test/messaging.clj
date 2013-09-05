@@ -1,7 +1,9 @@
 (ns in-container.test.messaging
   (:use clojure.test)
   (:require [immutant.messaging :as msg]
-            [immutant.registry  :as registry]))
+            [immutant.registry  :as registry]
+            [clojure.java.jmx :as jmx])
+  (:import javax.management.InstanceNotFoundException))
 
 (defn get-destination [name]
   (let [destinations (.getDestinations (registry/get "destinationizer"))]
@@ -131,5 +133,15 @@
           _ (msg/start queue)
           l (msg/listen queue (constantly nil))]
       (is @(msg/unlisten l))
-      (is (not @(msg/unlisten l))))))
+      (is (not @(msg/unlisten l)))))
+
+  (deftest unlisten-should-remove-its-mbean
+    (let [queue "queue.fart"
+          mbean-name "immutant.messaging:name=queue.fart.,app=messaging"
+          _ (msg/start queue)
+          l (msg/listen queue (constantly nil))]
+      (jmx/with-connection {:url "service:jmx:remoting-jmx://127.0.0.1:9999"}
+        (is (jmx/mbean mbean-name))
+        @(msg/unlisten l)
+        (is (thrown? InstanceNotFoundException (jmx/mbean mbean-name)))))))
 
