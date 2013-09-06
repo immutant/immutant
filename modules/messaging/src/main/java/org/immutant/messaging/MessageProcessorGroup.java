@@ -99,8 +99,8 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
 
             if (wait) {
                 if (!ServiceSynchronizationManager.INSTANCE
-                        .waitForServiceDown(getBaseServiceName(),
-                                            DestinationUtils.destinationWaitTimeout())) {
+                        .waitForServiceRemove(getBaseServiceName(),
+                                              DestinationUtils.destinationWaitTimeout())) {
                     log.warn("Timed out waiting for " + getName() + " listener to stop.");
                 }
             }
