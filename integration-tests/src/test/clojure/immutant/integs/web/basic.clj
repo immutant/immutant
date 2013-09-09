@@ -30,3 +30,13 @@
 (deftest current-servlet-request-should-be-set
   (is (:current-servlet-request? (get-as-data "/basic-ring/starter"))))
 
+(deftest simple "it should work"
+  (is (= :basic-ring (:app (get-as-data "/basic-ring")))))
+
+(deftest app-should-have-its-config
+  (is (= :biscuit
+         (-> (get-as-data "/basic-ring") :config :ham))))
+
+(deftest classpath-precedence
+  (is (= :src
+         (:ham-biscuit-location (get-as-data "/basic-ring")))))
