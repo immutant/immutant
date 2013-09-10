@@ -243,7 +243,7 @@
             <artifactId>clojure-maven-plugin</artifactId>
             <configuration>
               <testScript>src/test/clojure/immutant/integs.clj</testScript>
-              <clojureOptions>-Ddatabases=${databases} -Dversions=${versions} -Dns=basic -Dfntest.debug=${fntest.debug}</clojureOptions>
+              <clojureOptions>-Ddatabases=${databases} -Dversions=${versions} -Dns=web.basic -Dfntest.debug=${fntest.debug}</clojureOptions>
             </configuration>
             <executions>
               <execution>
