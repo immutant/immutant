@@ -34,7 +34,7 @@
    a cluster"
   [name daemon & {singleton :singleton :or {singleton true}}]
   (if-let [daemonizer (registry/get "daemonizer")]
-    (.createDaemon daemonizer name #(start daemon) #(stop daemon) (boolean singleton))))
+    (.createDaemon daemonizer (clojure.core/name name) #(start daemon) #(stop daemon) (boolean singleton))))
 
 (defn daemonize
   "Convenience function for creating a daemon from a name and

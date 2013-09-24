@@ -27,7 +27,7 @@
         stopped (promise)]
     (letfn [(start [] (deliver started :success))
             (stop [] (deliver stopped :success))]
-      (daemon/daemonize "reload" start stop)
+      (daemon/daemonize :reload start stop)
       (is (= :success (deref started 30000 :failure)))
       (daemon/daemonize "reload" #() #())
       (is (= :success (deref stopped 30000 :failure))))))
