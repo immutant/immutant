@@ -454,3 +454,39 @@
    var similarly at a REPL after including =:immutant {:nrepl-port
    7888}= in your =project.clj= and deploying it to a running Immutant
    instance.
+* Overriding the max number of HTTP threads
+
+  The servlet container used by JBossAS uses a bounded thread pool for
+  handling HTTP connections. The default maximum bound for that pool
+  is /512 * the number of cores/. If you need to reduce or expand that
+  limit, you can do so via a system property:
+  =org.immutant.web.http.maxThreads=. 
+
+  There are several ways to set that system property - you can pass it
+  to =lein immutant run=:
+ 
+  #+BEGIN_SRC shell
+  lein immutant run -Dorg.immutant.web.http.maxThreads=9000
+  #+END_SRC
+
+  or to =standalone.sh=:
+
+  #+BEGIN_SRC shell
+  $IMMUTANT_HOME/jboss/bin/standalone.sh -Dorg.immutant.web.http.maxThreads=9000
+  #+END_SRC
+
+  or add it to =standalone.xml=:
+
+  #+BEGIN_SRC xml
+  <extensions>
+  ...
+  </extensions>
+  <system-properties>
+    <property name='org.immutant.web.http.maxThreads' value='123'/>
+  </system-properties>
+  #+END_SRC
+
+  Note that if you have changed the name of the HTTP connector from
+  "http" for some reason, you will need to replace "http" in the
+  system property with that new name.
+  
