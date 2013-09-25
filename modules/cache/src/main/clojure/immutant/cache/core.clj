@@ -60,18 +60,22 @@
 
 (defn get-cache
   "Returns the named cache if it exists, otherwise nil"
-  [name]
-  (if (.isRunning @manager name)
-    (.getCache @manager name)))
+  ([name]
+     (get-cache name @manager))
+  ([name manager]
+     (if (.isRunning manager name)
+       (.getCache manager name))))
   
 (defn start
-  "Takes a name and an Infinispan Configuration object"
-  [name ^Configuration config]
-  (log/debug (str "Infinispan options for cache [" name "]: " config))
-  (.defineConfiguration @manager name config)
-  (when-let [cache (get-cache name)]
-    (.stop cache)
-    (.start cache))
-  (let [cache (.getCache @manager name)]
-    (util/at-exit #(.stop cache))
-    cache))
+  "Defines and [re]starts a named cache"
+  ([name ^Configuration config]
+     (start name config @manager))
+  ([name ^Configuration config manager]
+     (log/debug (str "Infinispan options for cache [" name "]: " config))
+     (.defineConfiguration manager name config)
+     (when-let [cache (get-cache name manager)]
+        (.stop cache)
+        (.start cache))
+     (let [cache (.getCache manager name)]
+       (util/at-exit #(.stop cache))
+       cache)))
