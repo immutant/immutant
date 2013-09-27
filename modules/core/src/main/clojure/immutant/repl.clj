@@ -88,7 +88,7 @@ undeploy."
          (util/at-exit (partial stop-nrepl server))
          server))))
   ([port]
-   (start-nrepl port)))
+   (start-nrepl nil port)))
 
 (defn ^:private spit-nrepl-files
   [port file]
