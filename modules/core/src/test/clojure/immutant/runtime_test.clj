@@ -58,23 +58,23 @@
 
 (deftest initialize-without-an-init-fn-should-load-init-ns
   (add-url (io/resource "project-root/src/"))
-  (initialize nil nil)
+  (initialize nil)
   (is (= "immutant.init" @a-value)))
 
 (deftest initialize-with-an-init-fn-should-not-load-init-ns
   (add-url (io/resource "project-root/src/"))
-  (initialize "immutant.runtime-test/do-nothing" nil)
+  (initialize "immutant.runtime-test/do-nothing")
   (is-not (= "immutant.init" @a-value)))
 
 (deftest initialize-with-an-init-fn-should-call-the-init-fn
   (add-url (io/resource "project-root/src/"))
-  (initialize "immutant.runtime-test/update-a-value" nil)
+  (initialize "immutant.runtime-test/update-a-value")
   (is (= "biscuit" @a-value)))
 
 (deftest initialize-with-no-init-fn-and-no-init-ns-should-do-nothing
   (with-redefs [log/log* (fn [& args]
                            (reset! a-value args))]
-    (initialize nil nil)
+    (initialize nil)
     (is (re-find #"no initialization" (nth @a-value 3)))))
 
 (deftest initialize-from-lein-ring-options
@@ -83,7 +83,7 @@
                                   :init    guestbook.handler/init
                                   :destroy guestbook.handler/destroy}})
   (try
-    (initialize nil nil)
+    (initialize nil)
     (let [[path handler & {:keys [init destroy]}]  @a-value]
       (is (= "/" path))
       (is (= "war-handler" (handler)))

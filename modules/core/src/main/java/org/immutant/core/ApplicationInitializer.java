@@ -47,8 +47,7 @@ public class ApplicationInitializer<Void> extends AsyncService<Void> {
         t.done();
         t = new Timer("initializing app");
         runtime.invoke("immutant.runtime/initialize", 
-                       this.metaData.getInitFunction(), 
-                       this.metaData.getConfig());
+                       this.metaData.getInitFunction());
         t.done();
     }
 

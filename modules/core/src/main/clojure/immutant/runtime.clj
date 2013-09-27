@@ -84,7 +84,7 @@ bootstrapping process. Applications shouldn't use anything here."
   "Attempts to initialize the app by calling an init-fn (if given) or, lacking that,
 tries to load the immutant.init namespace. In either case,
 post-initialize is called to finalize initialization."
-  [init-fn config-hash]
+  [init-fn]
 
   (dynapathize-class-loader)
   (or
@@ -94,7 +94,7 @@ post-initialize is called to finalize initialization."
    (log/warn "No :init fn, immutant.init namespace or :ring options found for"
              (util/app-name)
              "- no initialization will be performed"))
-  (repl/init-repl (into {} config-hash)))
+  (repl/init-repl (registry/get :config)))
 
 (defn ^{:internal true} set-app-config
   "Takes the full application config and project map as data strings

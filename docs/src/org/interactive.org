@@ -42,16 +42,20 @@
 ** Starting nREPL
 
    You can start a nREPL service using one (or both) of two methods:
-   specifying an =:nrepl-port= option in your configuration, or by
-   calling [[./apidoc/immutant.repl.html#var-start-nrepl][immutant.repl/start-nrepl]] from application code.
+   specifying =:nrepl-port= and/or =:nrepl-interface= options in your
+   configuration, or by calling [[./apidoc/immutant.repl.html#var-start-nrepl][immutant.repl/start-nrepl]] from
+   application code.
 
-*** Starting nREPL Via :nrepl-port
+*** Starting nREPL Via Configuration
 
     To have Immutant start a nREPL service on your behalf, you can specify
-    an open port for it to bind to using the =:nrepl-port= configuration
-    option. When using this option, Immutant will automatically
-    [[#interactive-binding][bind to the management interface]].
+    one or both of the following options:
 
+    | Option             | Default                                       | Description                                                                                                            |
+    |--------------------+-----------------------------------------------+------------------------------------------------------------------------------------------------------------------------|
+    | =:nrepl-port=      | none, =0= if =:nrepl-interface= provided      | The port for binding the nREPL endpoint. =0= means "any available port"                                                |
+    | =:nrepl-interface= | none, =:management= if =:nrepl-port= provided | Can be one of =:public=, =:management=, or =:unsecure=, or an ip address string. See the section on [[#interactive-binding][interface aliases]]. |
+  
     Immutant will write the nREPL port to a file beneath your
     project's =target/= directory called =repl-port= and to a file in
     the root of the project called =.nrepl-port=, following
@@ -83,6 +87,9 @@
       
       ;; bind to the given port and interface
       (immutant.repl/start-nrepl "127.0.0.1" 4242)
+
+      ;; bind to the given port on the :public interface
+      (immutant.repl/start-nrepl :public 4242)
     #+end_src
 
 ** Connecting to nREPL

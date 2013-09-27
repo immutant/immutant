@@ -51,16 +51,22 @@ undeploy."
   (.close server))
 
 (defn start-nrepl
-  "Starts an nrepl server on the given port. If an interface-address is
-provided, the server is bound to that interface. Otherwise it binds to the
-management interface defined by the AS. Registers an at-exit handler to
-shutdown nrepl on undeploy, and returns a server that can be passed to
-stop-nrepl to shut it down manually."
-  ([interface-address port]
+  "Starts an nrepl server on the given port and interface.
+   The interface can be an ip address string, or an alias to one of
+   the interfaces defined by the AS: :public, :management,
+   or :unsecure. If no interface is provided, it binds to
+   the :management interface (which is 127.0.0.1 by
+   default). Registers an at-exit handler to shutdown nrepl on
+   undeploy, and returns a server that can be passed to stop-nrepl to
+   shut it down manually."
+  ([interface port]
      (let [{{:keys [nrepl-middleware nrepl-handler]} :repl-options}
          (registry/get :project)
          require-resolve #(do (-> % namespace symbol require)
-                              (resolve %))]
+                              (resolve %))
+         interface-address (or (util/lookup-interface-address interface)
+                               interface
+                               (util/management-interface-address))]
      (log/info "Starting nREPL for" (util/app-name)
                "at" (str interface-address ":" port))
      (future (require 'clj-stacktrace.repl 'complete.core))
@@ -82,7 +88,7 @@ stop-nrepl to shut it down manually."
          (util/at-exit (partial stop-nrepl server))
          server))))
   ([port]
-   (start-nrepl (util/management-interface-address) port)))
+   (start-nrepl port)))
 
 (defn ^:private spit-nrepl-files
   [port file]
@@ -98,11 +104,16 @@ stop-nrepl to shut it down manually."
   "Looks for nrepl-port and swank-port values in the given config, and starts
 the appropriate servers."
   [config]
-  (when-let [port (config "nrepl-port")]
-    (let [ss (-> (start-nrepl port) deref :ss)
-          host (-> ss .getInetAddress .getHostAddress)
-          bound-port (.getLocalPort ss)]
-      (log/info "nREPL bound to" (str host ":" bound-port))
-      (spit-nrepl-files bound-port (config "nrepl-port-file"))))
-  (when-let [port (config "swank-port")]
+  (let [port (:nrepl-port config)
+        interface (:nrepl-interface config)]
+    (if (or port interface)
+      (let [ss (-> (start-nrepl interface
+                                (or port 0))
+                   deref
+                   :ss)
+            host (-> ss .getInetAddress .getHostAddress)
+            bound-port (.getLocalPort ss)]
+        (log/info "nREPL bound to" (str host ":" bound-port))
+        (spit-nrepl-files bound-port (:nrepl-port-file config)))))
+  (when-let [port (:swank-port config)]
     (start-swank port)))

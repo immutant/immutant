@@ -58,25 +58,26 @@
     (.atExit closer f)
     (println "WARN: Unable to register at-exit handler with housekeeper")))
 
-;; ignoring reflection here, since it's only used at compile time
-(defn ^{:private true} lookup-interface-address
+(defn ^:internal lookup-interface-address
   "Looks up the ip address from the proper service for the given name."
-  [name]
-  (-> (registry/get (str "jboss.network." name))
-      .getAddress
-      .getHostAddress))
+  [iface]
+  (if iface
+    (if-let [addr (registry/get (str "jboss.network." (name iface)))]
+      (-> addr
+          .getAddress
+          .getHostAddress))))
 
 (def ^{:doc "Looks up the ip address for the AS management interface."}
   management-interface-address
-  (partial lookup-interface-address "management"))
+  (partial lookup-interface-address :management))
 
 (def ^{:doc "Looks up the ip address for the AS public interface."}
   public-interface-address
-  (partial lookup-interface-address "public"))
+  (partial lookup-interface-address :public))
 
 (def ^{:doc "Looks up the ip address for the AS unsecure interface."}
   unsecure-interface-address
-  (partial lookup-interface-address "unsecure"))
+  (partial lookup-interface-address :unsecure))
 
 (defn http-port
   "Returns the HTTP port for the embedded web server"
