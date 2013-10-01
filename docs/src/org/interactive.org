@@ -103,29 +103,18 @@
     to your running nREPL via the =nrepl= function (=M-x nrepl RET=). 
     It will prompt you for the host and port.
 
-*** Connecting via reply
+*** Connecting via Leiningen
 
-    [[https://github.com/trptcolin/reply/][reply]] is an enhanced REPL for Clojure, and supports connecting to an
-    nREPL service. Currently, the simplest way to install =reply= is to
-    clone the git repository and follow the [[https://github.com/trptcolin/reply/#readme][intructions in its README]].
-
-    Once you have =reply= installed, you can connect to your remote nREPL:
+    [[http://leiningen.org/][Leiningen]] provides a REPL client (based on [[https://github.com/trptcolin/reply][reply]], an enhanced REPL
+    client) that supports connecting to an nREPL service:
 
     #+begin_src sh
       # connect to an nREPL bound to port 4242 on localhost
-      $ reply --skip-default-init --attach 4242 
+      $ lein repl :connect 4242 
             
       # connect to an nREPL bound to port 4242 on 10.0.0.10
-      $ reply --skip-default-init --attach 10.0.0.10:4242 
+      $ lein repl :connect 10.0.0.10:4242 
     #+end_src
-
-    Note that we are passing the =--skip-default-init= option above. =reply=
-    attempts to load some libraries that won't exist in the application's
-    runtime within Immutant, and also creates handy =quit= & =exit= functions
-    that map to =System/exit=, which will shutdown the entire application server.
-    Passing the =--skip-default-init= option prevents =reply= from attempting
-    to load those missing libraries and prevents the definition of =quit= and
-    =exit=.
     
 *** Connecting via Counterclockwise
 
