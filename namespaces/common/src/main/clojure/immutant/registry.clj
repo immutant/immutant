@@ -46,3 +46,14 @@
   (or (clojure.core/get @registry name) (get-from-msc name)))
 
 (def ^{:doc "Deprecated; use get instead" :no-doc true} fetch #'get)
+
+(defn service-names
+  "Return the JBoss MSC service names"
+  []
+  (map (memfn getCanonicalName) (.getServiceNames @msc-registry)))
+
+(defn keys
+  "Return all the keys in the registry"
+  []
+  (concat (clojure.core/keys @registry)
+          (service-names)))
