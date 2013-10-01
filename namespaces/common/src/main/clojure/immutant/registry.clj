@@ -17,7 +17,7 @@
 
 (ns immutant.registry
   "Functions for working with Immutant's internal per-app registry."
-  (:refer-clojure :exclude (get))
+  (:refer-clojure :exclude (get keys))
   (:import org.jboss.msc.service.ServiceName))
 
 (defonce ^{:private true} registry (atom {}))
