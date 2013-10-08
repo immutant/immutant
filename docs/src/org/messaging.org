@@ -550,7 +550,7 @@
   Since messaging is used to pass the data between step functions, the
   data has to be in a format that can be encoded as clojure via
   [[http://clojuredocs.org/clojure_core/clojure.core/pr][pr]]. See the above [[#messaging-publishing-encodings-note][note about encodings]].
-
+  
 ** Creating a pipeline
 
    You create a pipeline with the [[./apidoc/immutant.pipeline.html#var-pipeline][immutant.pipeline/pipeline]]
@@ -602,8 +602,9 @@
     |                       | <c>                   | <35>                                |
     | =:name=               | /the index of the fn/ | A name to use for the step          |
     | =:concurrency=        | =1=                   | The number of threads to use, overriding the pipeline setting |
-    | =:error-handler=      | =nil=                 | An error handler function, overriding the pipeline setting                 |
+    | =:error-handler=      | =nil=                 | An error handler function, overriding the pipeline setting |
     | =:step-deref-timeout= | /10 seconds/          | The amount of time to wait when dereferencing the result of a step that returns a delay, in ms. Overrides the pipeline setting |
+    | =:fanout?=            | =false=               | If true, the result of the step will be fanned out to the next step. See the [[#messaging-pipelines-fanout][fanout section]] for more details. |
    
    #+BEGIN_SRC clojure
      (require '[immutant.pipeline :as pl])
@@ -754,6 +755,40 @@
           %)
        another-function)
    #+END_SRC
+
+** Fanning out results to the next step
+   :PROPERTIES:
+   :CUSTOM_ID: messaging-pipelines-fanout
+   :END:
+   
+   A common pipeline pattern is to have a step that turns a single
+   input into a sequence of outputs, where each element of the
+   sequence should continue down the pipeline individually. This can
+   be done manually by publishing each element to =*next-step* and
+   returning =halt=, or you can use the facilities provided by
+   Immutant.
+
+   There are two provided methods for fanning out a result. The first
+   is the [[./apidoc/immutant.pipeline.html#var-fanout][immutant.pipeline/fanout]]. It is used from within a step
+   function as the last invoked s-exp:
+
+   #+BEGIN_SRC clojure
+     (defn some-step-fn [data]
+       (pl/fanout (seq-generating-fn data)))
+   #+END_SRC
+
+   The second method is to mark the step as a fanout step using the 
+   [[./apidoc/immutant.pipeline.html#var-step][immutant.pipeline/step]] function:
+
+   #+BEGIN_SRC clojure
+     (pl/pipeline "foo"
+       (pl/step fanning-fn :fanout? true)
+       some-other-fn)
+   #+END_SRC
+
+   Note that a pipeline that uses fanout cannot be correctly
+   derefenced for a final value, since the deref will only get the
+   first value to finish the pipeline.
 
 ** Stopping the pipeline
 

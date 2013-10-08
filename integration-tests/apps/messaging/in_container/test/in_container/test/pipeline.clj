@@ -262,3 +262,13 @@
     (pl (repeat 5 :a))
     (dotimes [_ 5]
       (is (= :a (msg/receive result-queue :timout 10000))))))
+
+(deftest fanout-step
+  (let [result-queue (random-queue)
+        pl (pl/pipeline
+            :fanout-step
+            (pl/step identity :fanout? true)
+            #(msg/publish result-queue %))]
+    (pl (repeat 5 :a))
+    (dotimes [_ 5]
+      (is (= :a (msg/receive result-queue :timout 10000))))))

@@ -66,9 +66,7 @@
    (deref (foo-pipeline {:bar 1 :ham \"biscuit\"}) 1000 ::timeout!)
 
    ;; optional - it will automatically be stopped on undeploy
-   (pl/stop foo-pipeline)
- 
-   This API is alpha, and subject to change."
+   (pl/stop foo-pipeline)"
   (:use [immutant.util :only (mapply app-name maybe-deref)]
         [immutant.messaging.core :only [delayed]])
   (:require [clojure.tools.logging   :as log]
@@ -97,6 +95,17 @@
    handler function."
   ::halt)
 
+(defn fanout
+  "A function that takes a seq and places each item in it on the pipeline at the next step.
+   This halts pipeline execution for the current message, but
+   continues execution for each seq element. Note that a pipeline that
+   uses this function cannot be correctly derefenced, since the deref
+   will only get the first value to finish the pipeline."
+  [xs]
+  (doseq [x xs]
+    (*pipeline* x :step *next-step*))
+  halt)
+
 (defonce  ^{:private true
             :doc "Stores the currently active pipelines"}
   pipelines
@@ -119,6 +128,11 @@
   (binding [*current-step* current
             *next-step* next]
     (bound-fn* f)))
+
+(defn- wrap-fanout [f {:keys [fanout?]}]
+  (if fanout?
+    (comp fanout f)
+    f))
 
 (defn- wrap-result-passing
   [f pl current-step next-step opts]
@@ -151,6 +165,7 @@
                  (assoc :selector (str "step = '" step "'")))]
     (mapply msg/listen pl
       (-> f
+          (wrap-fanout opts)
           (wrap-result-passing pl step next-step opts)
           (wrap-error-handler opts)
           (wrap-step-bindings step next-step)
@@ -169,7 +184,7 @@
                    "Attempt to derefence a pipeline that doesn't provide a result")))))
 
 (defn- pipeline-fn
-  "Creates a fn that places it's first arg onto the pipeline,
+  "Creates a fn that places its first arg onto the pipeline,
   optionally at a step specified by :step"
   [pl step-names keep-result?]
   (vary-meta
@@ -281,8 +296,9 @@
                         pipeline setting [nil]
    :step-deref-timeout  the amount of time to wait when dereferencing
                         the result of the step if it returns a delay,
-                        in ms. Overrides the pipeline setting [10 seconds]"
-
+                        in ms. Overrides the pipeline setting [10 seconds]
+   :fanout?             applies the fanout fn to the result of the step.
+                        See fanout for more details [false]"
   [f & {:as opts}]
   (vary-meta f merge opts))
 
@@ -297,14 +313,3 @@
     (doseq [l listeners]
       (msg/unlisten l))
     (apply msg/stop pipeline args)))
-
-(defn fanout
-  "A function that takes a seq and places each item in it on the pipeline at the next step.
-   This halts pipeline execution for the current message, but
-   continues execution for each seq element. Note that a pipeline that
-   uses this function cannot be correctly derefenced, since the deref
-   will only get the first value to finish the pipeline."
-  [xs]
-  (doseq [x xs]
-    (*pipeline* x :step *next-step*))
-  halt)
