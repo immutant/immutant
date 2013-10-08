@@ -25,6 +25,8 @@
   (:require [clojure.java.io             :as io]
             [cemerick.pomegranate.aether :as aether]))
 
+(isolate-lein)
+
 (deftest all-tests
 
   (expose-testables immutant.runtime.bootstrap)

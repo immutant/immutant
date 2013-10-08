@@ -60,3 +60,5 @@
      (fact ~@args)))
 
 
+(defn isolate-lein []
+  (System/setProperty "user.home" (System/getProperty "java.io.tmpdir")))

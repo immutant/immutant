@@ -19,7 +19,10 @@
   (:use clojure.test)
   (:import [org.immutant.core ClojureMetaData])
   (:require [clojure.java.io            :as io]
-            [immutant.runtime.bootstrap :as bootstrap]))
+            [immutant.runtime.bootstrap :as bootstrap]
+            [immutant.test.helpers      :as help]))
+
+(help/isolate-lein)
 
 (let [descriptor (ClojureMetaData/parse (io/file (io/resource "simple-descriptor.clj")))
       md (ClojureMetaData. "app-name" descriptor)]
