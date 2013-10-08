@@ -40,10 +40,8 @@
         <module name="org.jboss.as.ee"/>
         <module name="org.jboss.as.jmx"/>
         <module name="org.jboss.as.server"/>
-        <module name="org.jboss.as.clustering.jgroups" export="true"/>
-        <module name="org.jboss.as.clustering.infinispan" export="true"/>
-        <module name="org.jboss.marshalling" export="true"/>
         <module name="org.jgroups" export="true"/>
+        <module name="org.jboss.marshalling" export="true"/>
         <module name="org.jboss.modules"/>
         <module name="org.jboss.msc"/>
         <module name="org.jboss.logging"/>
