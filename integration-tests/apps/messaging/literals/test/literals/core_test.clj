@@ -6,7 +6,7 @@
             [immutant.messaging :as msg]))
 
 (def publish (partial msg/publish "queue.literals"))
-(def receive (partial msg/receive "queue.literals"))
+(def receive (partial msg/receive "queue.literals" :timeout 30000))
 (def listen (partial msg/listen "queue.literals"))
 
 (defmacro with-tools-readers [& body]
