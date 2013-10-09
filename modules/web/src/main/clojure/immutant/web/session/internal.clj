@@ -32,6 +32,21 @@
                     \=
                     (cookie-encoder (.getId session)))))
 
+(defn ^:internal servlet-cookie-dedup-handler
+  "Remove duplicate cookies from a response object.  Use this
+   in an interceptor before the session interceptor running
+   inside the ServletProxy, e.g.
+   (defon-response dedup-session-cookies [response]
+     (session-internal/servlet-cookie-dedup-handler response)"
+  [response]
+  (let [session (.getSession current-servlet-request false)]
+    (if (and session (session/using-servlet-session? session))
+      (update-in response [:headers "Set-Cookie"]
+                 #(remove
+                   (partial cookie-matches-servlet-session-cookie? session)
+                   %))
+      response)))
+
 (defn ^:internal servlet-session-wrapper
   "Middleware that attempts to prevent duplicate cookies when the
   servlet session is being used. If the servlet session is active and
@@ -39,11 +54,5 @@
   stripped."
   [handler]
   (fn [request]
-    (let [response (handler request)
-          session (.getSession current-servlet-request false)]
-      (if (and session (session/using-servlet-session? session))
-        (update-in response [:headers "Set-Cookie"]
-                   #(remove
-                     (partial cookie-matches-servlet-session-cookie? session)
-                     %))
-        response))))
+    (let [response (handler request)]
+      (servlet-cookie-dedup-handler response))))
