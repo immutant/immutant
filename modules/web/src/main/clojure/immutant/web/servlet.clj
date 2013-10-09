@@ -53,7 +53,9 @@
   (init [_ config]
     (with-tccl (.init servlet config)))
   (service [_ request response]
-    (with-tccl (.service servlet request response)))
+    (with-tccl
+      (binding [current-servlet-request request]
+        (.service servlet request response))))
   (destroy [_]
     (.destroy servlet))
   (getServletConfig [_]
