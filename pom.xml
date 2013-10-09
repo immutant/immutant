@@ -376,7 +376,7 @@
   </dependencyManagement>
 
   <properties>
-    <codename>PuntoBueno</codename>
+    <codename>HamBiscuit</codename>
     <!-- <version.polyglot>1.17.0-SNAPSHOT</version.polyglot> -->
     <version.polyglot>1.x.incremental.56</version.polyglot>
     <version.shimdandy>1.0.1</version.shimdandy>
