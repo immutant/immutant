@@ -33,7 +33,7 @@
   (let [name (clojure.core/name name)]
     (when-let [job (@current-jobs name)]
       (log/info "Unscheduling job" name)
-      (internal/stop-job job)
+      (internal/kill-job job)
       (swap! current-jobs dissoc name)
       true)))
 

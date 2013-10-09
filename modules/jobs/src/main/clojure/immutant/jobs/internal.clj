@@ -162,13 +162,11 @@
      create-at-job
      create-scheduled-job) f name spec singleton))
 
-(defn ^{:internal true} stop-job
-  "Stops (unschedules) a job, removing it from the scheduler."
+(defn ^{:internal true} kill-job
+  "Kills (unschedules) a job, removing it from the scheduler. A dead
+  job cannot be restarted."
   [job]
-  (cond
-   (.isStarted job)               (.stop job)
-   (not
-    (.hasStartedAtLeastOnce job)) (wait-for-start job (partial stop-job job))))
+  (.kill job))
 
 (defmulti extract-spec #(class (fnext %)))
 

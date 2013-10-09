@@ -39,12 +39,12 @@ public class AtJob extends BaseAtJob implements AtJobMBean, HasImmutantRuntimeIn
     }
 
     @Override
-    public void start() throws ParseException, SchedulerException {
+    protected void _start() throws ParseException, SchedulerException {
         JobScheduler scheduler = (JobScheduler)((InjectedValue<BaseJobScheduler>)getJobSchedulerInjector()).getValue();
         ClojureRuntimeShim runtime = this.clojureRuntimeInjector.getValue();
         scheduler.addJob( getName(), getGroup(), new ClojureJob( runtime, this.handler ) );
         
-        super.start();
+        super._start();
     }
     
     @Override
