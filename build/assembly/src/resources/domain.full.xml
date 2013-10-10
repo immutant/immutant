@@ -162,7 +162,7 @@
                         <locking isolation="REPEATABLE_READ"/>
                     </replicated-cache>
                 </cache-container>
-                <cache-container name="web" aliases="polyglot standard-session-cache" default-cache="repl" module="org.jboss.as.clustering.web.infinispan">
+                <cache-container name="web" aliases="standard-session-cache" default-cache="repl" module="org.jboss.as.clustering.web.infinispan">
                     <transport lock-timeout="60000"/>
                     <replicated-cache name="repl" mode="ASYNC" batching="true">
                         <file-store/>
@@ -200,6 +200,10 @@
                         <transaction mode="NONE"/>
                         <eviction strategy="NONE"/>
                     </replicated-cache>
+                </cache-container>
+                <cache-container name='polyglot' default-cache="default">
+                    <transport lock-timeout='60000'/>
+                    <distributed-cache name="default"/>
                 </cache-container>
             </subsystem>
             <subsystem xmlns="urn:jboss:domain:jaxrs:1.0"/>
@@ -801,7 +805,7 @@
                         <locking isolation="REPEATABLE_READ"/>
                     </replicated-cache>
                 </cache-container>
-                <cache-container name="web" aliases="polyglot standard-session-cache" default-cache="repl" module="org.jboss.as.clustering.web.infinispan">
+                <cache-container name="web" aliases="standard-session-cache" default-cache="repl" module="org.jboss.as.clustering.web.infinispan">
                     <transport lock-timeout="60000"/>
                     <replicated-cache name="repl" mode="ASYNC" batching="true">
                         <file-store/>
@@ -839,6 +843,10 @@
                         <transaction mode="NONE"/>
                         <eviction strategy="NONE"/>
                     </replicated-cache>
+                </cache-container>
+                <cache-container name='polyglot' default-cache="default">
+                    <transport lock-timeout='60000'/>
+                    <distributed-cache name="default" mode="ASYNC"/>
                 </cache-container>
             </subsystem>
             <subsystem xmlns="urn:jboss:domain:jacorb:1.3">
