@@ -65,18 +65,17 @@
   #+end_src
 
   The archive can optionally contain the application's
-  dependencies. They are excluded by default, but will be included if
-  the =--include-dependencies= option is passed to the =archive= subtask.
+  dependencies. They are included by default, but will be excluded if
+  the =--exclude-dependencies= option is passed to the =archive= subtask.
 
   The =archive= subtask creates the archive using the following process:
   
-  1. If dependencies are to be included, they are resolved into the
-     local maven repository
-  2. Those resolved dependencies are copied to =lib/= at the root of
-     the project
-  3. The =lib/= dir is zipped up along with the =src/=, =resources/=,
-     =target/native=, =classes=, and =target/classes= dirs, as well as
-     the =project.clj=.
+  - If dependencies are to be included, they are resolved into the
+    local maven repository, and then included in the zip archive
+    under =lib/=.
+  - From the project root, the =src/=, =resources/=, =target/native/=,
+    =classes/=, =target/classes/=, and =lib/= dirs are included in the
+    zip, as well as the =project.clj=.
 
   The archive process honors the =:source-paths=, =:resources-paths=,
   =:native-path=, and =:compile-path= options of =project.clj=, allowing you to 
