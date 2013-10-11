@@ -113,7 +113,7 @@
                 </cache-container>
                 <cache-container name='polyglot' default-cache="default">
                     <transport lock-timeout='60000'/>
-                    <distributed-cache name="default"/>
+                    <distributed-cache name="default" mode="ASYNC"/>
                 </cache-container>
             </subsystem>
             <subsystem xmlns="urn:jboss:domain:jca:1.1">
