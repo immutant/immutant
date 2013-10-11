@@ -173,7 +173,7 @@
       <dependency>
         <groupId>org.projectodd</groupId>
         <artifactId>polyglot</artifactId>
-        <version>${version.polgylot}</version>
+        <version>${version.polyglot}</version>
       </dependency>
 
       <dependency>
