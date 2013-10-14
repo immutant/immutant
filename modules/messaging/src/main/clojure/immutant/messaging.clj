@@ -149,7 +149,8 @@
   "A lazy sequence of messages received from a destination. Accepts
    same options as receive."
   [dest & opts]
-  (lazy-seq (cons (apply receive dest opts) (message-seq dest))))
+  (lazy-seq (cons (apply receive dest opts)
+                  (apply message-seq dest opts))))
 
 (def ^:dynamic *raw-message*
   "Will be bound to the raw javax.jms.Message during the invocation of a
