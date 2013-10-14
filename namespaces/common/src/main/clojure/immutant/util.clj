@@ -21,7 +21,9 @@
             [clojure.string    :as str]
             [clojure.java.io   :as io]
             [dynapath.util     :as dp])
-  (:import clojure.lang.IDeref))
+  (:import clojure.lang.IDeref
+           java.lang.management.ManagementFactory
+           javax.management.ObjectName))
 
 (defn in-immutant?
   "Returns true if running inside an Immutant container"
@@ -84,6 +86,16 @@
   []
   (if-let [server (registry/get "jboss.web.connector.http")]
     (.getPort server)))
+
+(defn hornetq-remoting-port
+  "Returns the port that HornetQ is listening on for remote connections"
+  []
+  (-> (ManagementFactory/getPlatformMBeanServer)
+      (.getAttribute
+       (ObjectName. "org.hornetq:module=Core,type=Acceptor,name=\"netty\"")
+       "Parameters")
+      (get "port")
+      (Integer.)))
 
 (defn context-path
   "Returns the HTTP context path for the deployed app"
