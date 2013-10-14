@@ -21,11 +21,38 @@
 (def deployment-class-loader-regex
   #"ImmutantClassLoader.*deployment\..*\.clj")
 
+(defn offset? []
+  (not (= "true" (System/getProperty "lazy"))))
+
+(defn http-port []
+  (if (offset?)
+    8180
+    8080))
+
+(defn base-url []
+  (str "http://localhost:" (http-port)))
+
+(defn hornetq-port []
+  (if (offset?)
+    5545
+    5445))
+
+(defn remoting-port []
+  (if (offset?)
+    10099
+    9999))
+
+(defn remote [f & args]
+  (apply f (concat args
+                   (if-not (some #{:host} args)
+                     [:host "localhost"])
+                   [:port (hornetq-port)])))
+
 (defn as-data* [method path & [opts]]
   (let [result (client/request
                 (merge
                  {:method method
-                  :url (str "http://localhost:8080" path)}
+                  :url (str (base-url) path)}
                  opts))]
     ;;(println "RESPONSE" result)
     {:result result

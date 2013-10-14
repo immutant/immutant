@@ -37,45 +37,45 @@
                        }))
 
 (deftest listen-should-work
-  (publish biscuit-queue "foo")
-  (is (= "FOO" (receive ham-queue :timeout 60000))))
+  (remote publish biscuit-queue "foo")
+  (is (= "FOO" (remote receive ham-queue :timeout 60000))))
 
 (deftest listen-with-as-queue-should-work
-  (publish (as-queue "oddball") "BACON")
-  (is (= "bacon" (receive ham-queue :timeout 60000))))
+  (remote publish (as-queue "oddball") "BACON")
+  (is (= "bacon" (remote receive ham-queue :timeout 60000))))
 
 (deftest remote-listen-should-work
-  (let [listener (listen bam-queue
+  (let [listener (remote listen bam-queue
                           (fn [m]
-                            (publish hiscuit-queue m))
-                          :host "integ-app1.torquebox.org" :port 5445)]
-    (publish bam-queue "listen-up")
-    (is (= (receive hiscuit-queue :timeout 60000) "listen-up"))
+                            (remote publish hiscuit-queue m))
+                          :host "integ-app1.torquebox.org")]
+    (remote publish bam-queue "listen-up")
+    (is (= (remote receive hiscuit-queue :timeout 60000) "listen-up"))
     (unlisten listener)))
 
 (deftest remote-listen-with-as-queue-should-work
-  (let [listener (listen addboll-queue
+  (let [listener (remote listen addboll-queue
                           (fn [m]
-                            (publish odd-response-queue m))
-                          :host "integ-app1.torquebox.org" :port 5445)]
-    (publish addboll-queue "ahoyhoy")
-    (is (= (receive odd-response-queue :timeout 60000) "ahoyhoy"))
+                            (remote publish odd-response-queue m))
+                          :host "integ-app1.torquebox.org")]
+    (remote publish addboll-queue "ahoyhoy")
+    (is (= (remote receive odd-response-queue :timeout 60000) "ahoyhoy"))
     (unlisten listener)))
 
 (deftest the-listener-should-be-using-the-deployment-classloader
-  (publish loader-queue "whatevs")
+  (remote publish loader-queue "whatevs")
   (is (re-seq deployment-class-loader-regex
-              (receive loader-result-queue :timeout 60000))))
+              (remote receive loader-result-queue :timeout 60000))))
 
 (deftest a-listener-should-have-a-findable-mbean
-  (jmx/with-connection {:url "service:jmx:remoting-jmx://127.0.0.1:9999"}
+  (jmx/with-connection {:url (str "service:jmx:remoting-jmx://127.0.0.1:" (remoting-port))}
     (is (jmx/mbean "immutant.messaging:name=.queue.biscuit.,app=listen"))))
 
 (let [request-queue "queue.listen-id.request"
       response-queue "queue.listen-id.response"]
   (deftest listen-on-a-queue-should-be-idempotent
-    (publish request-queue :whatever)
-    (is (= :old-listener (receive response-queue)))
-    (is (= :release (receive response-queue)))
-    (publish request-queue :whatever)
-    (is (= :new-listener (receive response-queue)))))
+    (remote publish request-queue :whatever)
+    (is (= :old-listener (remote receive response-queue)))
+    (is (= :release (remote receive response-queue)))
+    (remote publish request-queue :whatever)
+    (is (= :new-listener (remote receive response-queue)))))

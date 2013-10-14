@@ -16,9 +16,10 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.msg.concurrency
-  (:use fntest.core)
-  (:use clojure.test)
-  (:use immutant.messaging))
+  (:use fntest.core
+        clojure.test)
+  (:require [immutant.messaging :as msg]
+            [immutant.integs.integ-helper :as h]))
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -27,6 +28,8 @@
 
 (deftest concurrent-listeners
   (let [threads (atom #{})]
-    (publish "/queue/main" "start")
-    (time (dotimes [x 100] (swap! threads conj (receive "/queue/backchannel"))))
+    (h/remote msg/publish "/queue/main" "start")
+    (time
+     (dotimes [x 100]
+       (swap! threads conj (h/remote msg/receive "/queue/backchannel"))))
     (is (> (count @threads) 1))))

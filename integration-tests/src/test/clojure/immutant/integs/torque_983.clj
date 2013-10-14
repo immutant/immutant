@@ -1,6 +1,7 @@
 (ns immutant.integs.torque-983
   (:use fntest.core
-        clojure.test)
+        clojure.test
+        [immutant.integs.integ-helper :only [base-url remote]])
   (:require [clj-http.client :as client]
             [immutant.messaging :as msg]))
 
@@ -10,5 +11,5 @@
                        }))
 
 (deftest should-not-log-error
-  (client/get "http://localhost:8080/torque_983")
-  (is (= [:web :msg] (msg/receive "/queue/results"))))
+  (client/get (str (base-url) "/torque_983"))
+  (is (= [:web :msg] (remote msg/receive "/queue/results"))))

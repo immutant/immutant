@@ -17,15 +17,14 @@
 
 (ns immutant.integs
   (:use clojure.test
-        fntest.core
-        [fntest.jboss :only [wait-for-ready?]]
         [clojure.tools.namespace :only (find-namespaces-in-dir)])
   (:require [clojure.java.io               :as io]
             [clojure.string                :as string]
             [clojure.walk                  :as walk]
             [cemerick.pomegranate.aether   :as aether]
             [leiningen.core.project        :as project]
-            [immutant.deploy-tools.archive :as archive]))
+            [immutant.deploy-tools.archive :as archive]
+            [fntest.core                   :as fntest]))
 
 (def ^{:dynamic true} *current-clojure-version* nil)
 
@@ -142,8 +141,11 @@
         (println "\n>>>> Testing against" clojure-versions "\n")
         (for-each-version
          (apply require namespaces)
-         (with-jboss
+         (fntest/with-jboss
+           (if (= "true" (System/getProperty "lazy"))
+             :lazy
+             :offset)
            (fn []
-             (apply run-tests namespaces)) (read-string (or (System/getProperty "lazy") "false")))))
+             (apply run-tests namespaces)))))
       (shutdown-agents)
       (System/exit (if (empty? (filter #{:fail :error} @results)) 0 -1)))))

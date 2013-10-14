@@ -18,7 +18,8 @@
 (ns immutant.integs.web.pedestal
   (:use fntest.core
         clojure.test
-        immutant.integs)
+        immutant.integs
+        [immutant.integs.integ-helper :only [base-url]])
   (:require [clj-http.client :as client]))
 
 (deftest get-hello
@@ -29,8 +30,8 @@
         :context-path "/"
         })
      (fn []
-       (is (= (:body (client/get "http://localhost:8080/"))
+       (is (= (:body (client/get (base-url)))
               "Hello World!"))
-       (is (= (:body (client/get "http://localhost:8080/about"))
+       (is (= (:body (client/get (str (base-url) "/about")))
               (str "Clojure " (version))))))
     (println "==> skipping pedestal tests since it requires 1.5 or higher")))

@@ -17,7 +17,8 @@
 
 (ns immutant.integs.web.vhosts
   (:use fntest.core
-        clojure.test)
+        clojure.test
+        [immutant.integs.integ-helper :only [http-port]])
   (:require [clj-http.client :as client]))
 
 (use-fixtures :once 
@@ -38,12 +39,12 @@
                                    }}))
 
 (deftest simple "it should work"
-  (let [result (client/get "http://integ-app1.torquebox.org:8080/basic-ring" )]
+  (let [result (client/get (format "http://integ-app1.torquebox.org:%s/basic-ring" (http-port)))]
     ;;(println "RESPONSE" result)
     (is (.contains (result :body) "integ-app1.torquebox.org"))
     (is (not (.contains (result :body) "integ-app2.torquebox.org"))))
 
-  (let [result (client/get "http://integ-app2.torquebox.org:8080/basic-ring" )]
+  (let [result (client/get (format "http://integ-app2.torquebox.org:%s/basic-ring" (http-port)))]
     ;;(println "RESPONSE" result)
     (is (.contains (result :body) "integ-app2.torquebox.org"))
     (is (.contains (result :body) "integ-app3.torquebox.org"))

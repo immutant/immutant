@@ -18,6 +18,7 @@
 (ns immutant.integs.msg.request-response
   (:use fntest.core
         clojure.test
+        [immutant.integs.integ-helper :only [remote]]
         immutant.messaging))
 
 (def ham-queue "/queue/ham")
@@ -31,22 +32,22 @@
                        }))
 
 (deftest request-and-respond-should-both-work
-  (is (= "BISCUIT" @(request ham-queue "biscuit"))))
+  (is (= "BISCUIT" @(remote request ham-queue "biscuit"))))
 
 (deftest request-and-respond-with-a-selector-should-work
-  (is (= "BISCUIT" @(request biscuit-queue "biscuit"
+  (is (= "BISCUIT" @(remote request biscuit-queue "biscuit"
                              :properties {"worker" "upper"})))
-  (is (= "ham" @(request biscuit-queue "HAM"
+  (is (= "ham" @(remote request biscuit-queue "HAM"
                          :properties {"worker" "lower"}))))
 
 (deftest request-and-respond-with-as-queue-should-both-work
-  (is (= "BISCUIT" @(request oddball-queue "biscuit"))))
+  (is (= "BISCUIT" @(remote request oddball-queue "biscuit"))))
 
 (deftest request-with-a-deref-timeout-should-work
-  (is (= 100 (deref (request sleepy-queue 100) 1000 nil))))
+  (is (= 100 (deref (remote request sleepy-queue 100) 1000 nil))))
 
 (deftest realized?-should-work
-  (let [response (request sleepy-queue 1000)]
+  (let [response (remote request sleepy-queue 1000)]
     (is (not (realized? response)))
     (is (= 1000 (time @response)))
     (is (realized? response))))

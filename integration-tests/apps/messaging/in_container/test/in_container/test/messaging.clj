@@ -1,6 +1,7 @@
 (ns in-container.test.messaging
   (:use clojure.test)
   (:require [immutant.messaging :as msg]
+            [immutant.util      :as util]
             [immutant.registry  :as registry]
             [clojure.java.jmx :as jmx])
   (:import javax.management.InstanceNotFoundException))
@@ -23,8 +24,8 @@
           response-q "remote.queue.response"]
       (msg/start queue) ;; it's in-container, but we'll pretend it isn't below
       (msg/start response-q)
-      (msg/listen queue #(msg/publish response-q %) :host "integ-app1.torquebox.org" :port 5445)
-      (msg/publish queue "ahoy" :host "integ-app1.torquebox.org" :port 5445)
+      (msg/listen queue #(msg/publish response-q %) :host "integ-app1.torquebox.org" :port (util/hornetq-remoting-port))
+      (msg/publish queue "ahoy" :host "integ-app1.torquebox.org" :port (util/hornetq-remoting-port))
       (is (= "ahoy" (msg/receive response-q))))))
 
 (testing "start for queues"
@@ -140,8 +141,7 @@
           mbean-name "immutant.messaging:name=queue.fart.,app=messaging"
           _ (msg/start queue)
           l (msg/listen queue (constantly nil))]
-      (jmx/with-connection {:url "service:jmx:remoting-jmx://127.0.0.1:9999"}
-        (is (jmx/mbean mbean-name))
-        @(msg/unlisten l)
-        (is (thrown? InstanceNotFoundException (jmx/mbean mbean-name)))))))
+      (is (jmx/mbean mbean-name))
+      @(msg/unlisten l)
+      (is (thrown? InstanceNotFoundException (jmx/mbean mbean-name))))))
 

@@ -16,11 +16,16 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.msg.priority
-  (:use fntest.core)
-  (:use clojure.test)
-  (:use immutant.messaging))
+  (:use fntest.core
+        clojure.test
+        [immutant.integs.integ-helper :only [remote]])
+  (:require [immutant.messaging :as msg]))
 
 (def ham-queue "/queue/ham")
+
+(def message-seq (partial remote msg/message-seq))
+
+(def publish (partial remote msg/publish))
 
 (use-fixtures :once (with-deployment *file*
                       {

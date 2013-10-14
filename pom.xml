@@ -410,7 +410,7 @@
     <version.dependency-exclusions>0.1.0</version.dependency-exclusions>
     <version.deploy-tools>0.12.0</version.deploy-tools>
     <version.codox>0.6.3</version.codox>
-    <version.fntest>0.3.15</version.fntest>
+    <version.fntest>0.4.1</version.fntest>
     <version.clj-http>0.7.2</version.clj-http>
     <version.s3-wagon-private>1.1.2</version.s3-wagon-private>
 

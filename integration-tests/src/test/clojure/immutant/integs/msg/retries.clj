@@ -18,7 +18,8 @@
 (ns immutant.integs.msg.retries
   (:use fntest.core
         clojure.test
-        immutant.messaging))
+        immutant.messaging
+        [immutant.integs.integ-helper :only [remote]]))
 
 (use-fixtures :once (with-deployment *file*
                       {
@@ -28,7 +29,7 @@
 (deftest verify-retries
   (let [file (java.io.File/createTempFile "counter" ".txt")]
     (spit file 0)
-    (publish "/queue/counter" (str file))
+    (remote publish "/queue/counter" (str file))
     (Thread/sleep 2000)
     (is (= "10" (slurp file)))))
 

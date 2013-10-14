@@ -18,18 +18,25 @@
 (ns immutant.integs.msg.queues
   (:use fntest.core
         clojure.test
-        immutant.messaging
-        [immutant.messaging.core :only [delayed]]))
+        [immutant.messaging.core :only [delayed]]
+        [immutant.integs.integ-helper :only [remote]])
+  (:require [immutant.messaging :as msg]))
 
 (def ham-queue "/queue/ham")
 (def biscuit-queue ".queue.biscuit")
-(def oddball-queue (as-queue "oddball"))
-(def addboll-queue (as-queue "addboll"))
+(def oddball-queue (msg/as-queue "oddball"))
+(def addboll-queue (msg/as-queue "addboll"))
 
 (use-fixtures :once (with-deployment *file*
                       {
                        :root "target/apps/messaging/queues"
                        }))
+
+(def publish (partial remote msg/publish))
+
+(def receive (partial remote msg/receive))
+
+(def message-seq (partial remote msg/message-seq))
 
 (defn delayed-receive [q]
   (delayed #(receive q :timeout %)))
@@ -97,21 +104,21 @@
 
 (testing "remote connections"
   (deftest remote-publish-should-work
-    (publish ham-queue "testing-remote" :host "integ-app1.torquebox.org" :port 5445)
+    (publish ham-queue "testing-remote" :host "integ-app1.torquebox.org")
     (is (= (receive ham-queue :timeout 60000) "testing-remote")))
   
   (deftest remote-receive-should-work
     (publish ham-queue "testing-remote")
-    (is (= (receive ham-queue :timeout 60000 :host "integ-app1.torquebox.org" :port 5445)
+    (is (= (receive ham-queue :timeout 60000 :host "integ-app1.torquebox.org")
            "testing-remote")))
 
   (deftest remote-publish-with-as-queue-should-work
-    (publish oddball-queue "testing-remote" :host "integ-app1.torquebox.org" :port 5445)
+    (publish oddball-queue "testing-remote" :host "integ-app1.torquebox.org")
     (is (= (receive ham-queue :timeout 60000) "testing-remote")))
   
   (deftest remote-receive-with-as-queue-should-work
     (publish addboll-queue "testing-remote")
-    (is (= (receive addboll-queue :timeout 60000 :host "integ-app1.torquebox.org" :port 5445)
+    (is (= (receive addboll-queue :timeout 60000 :host "integ-app1.torquebox.org")
            "testing-remote"))))
 
 (deftest receive-with-decode-disabled-should-work

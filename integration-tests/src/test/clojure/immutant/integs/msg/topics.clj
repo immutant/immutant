@@ -18,10 +18,19 @@
 (ns immutant.integs.msg.topics
   (:use fntest.core
         clojure.test
-        immutant.messaging))
+        [immutant.integs.integ-helper :only [remote]])
+  (:require [immutant.messaging :as msg]))
+
+(def publish (partial remote msg/publish))
+
+(def receive (partial remote msg/receive))
+
+(def message-seq (partial remote msg/message-seq))
+
+(def unsubscribe (partial remote msg/unsubscribe))
 
 (def gravy "/topic/gravy")
-(def oddball (as-topic "toddball"))
+(def oddball (msg/as-topic "toddball"))
 
 (use-fixtures :once (with-deployment *file*
                       {

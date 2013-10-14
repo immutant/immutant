@@ -16,9 +16,14 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.msg.selector
-  (:use fntest.core)
-  (:use clojure.test)
-  (:use immutant.messaging))
+  (:use fntest.core
+        clojure.test
+        [immutant.integs.integ-helper :only [remote]])
+  (:require [immutant.messaging :as msg]))
+
+(def publish (partial remote msg/publish))
+
+(def receive (partial remote msg/receive))
 
 (def queue "/queue/selectors")
 

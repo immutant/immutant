@@ -1,5 +1,5 @@
 (ns tx.core
-  (:use [immutant.util :only [in-immutant?]])
+  (:use [immutant.util :only [in-immutant? hornetq-remoting-port]])
   (:require [immutant.xa :as ixa]
             [immutant.cache :as ic]
             [immutant.messaging :as imsg]
@@ -57,7 +57,11 @@
     (ixa/transaction
      (write-thing-to-db {:datasource ds} "kiwi")
      (imsg/publish "/queue/test" "kiwi")
-     (imsg/publish "/queue/remote-test" "starfruit" :host "localhost" :port 5445)
+     (imsg/publish "/queue/remote-test" "starfruit"
+                   :host "localhost"
+                   :port (if (in-immutant?)
+                           (hornetq-remoting-port)
+                           5445))
      (ic/put cache :a 1)
      (if f (f)))
     (catch Exception e

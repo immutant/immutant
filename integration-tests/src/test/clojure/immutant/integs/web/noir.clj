@@ -18,7 +18,8 @@
 (ns immutant.integs.web.noir
   (:use fntest.core
         clojure.test
-        immutant.integs)
+        immutant.integs
+        [immutant.integs.integ-helper :only [base-url]])
   (:require [clj-http.client :as client]))
 
 (defn run-tests? []
@@ -35,7 +36,7 @@
 
 (deftest simple "it should work"
   (if (run-tests?)
-    (let [result (client/get "http://localhost:8080/noir-app/welcome")]
+    (let [result (client/get (str (base-url) "/noir-app/welcome"))]
       ;; (println "RESPONSE" result)
       (is (.contains (result :body) "Welcome to noir-app, jim")))
     (println "==> skipping noir tests under 1.5.x since noir itself is broken under 1.5.x")))
