@@ -21,26 +21,24 @@
 (def deployment-class-loader-regex
   #"ImmutantClassLoader.*deployment\..*\.clj")
 
+(def port-offset 67)
+
 (defn offset? []
   (not (= "true" (System/getProperty "lazy"))))
 
-(defn http-port []
+(defn offset-port [port]
   (if (offset?)
-    8180
-    8080))
+    (+ port port-offset)
+    port))
+
+(def http-port (partial offset-port 8080))
 
 (defn base-url []
   (str "http://localhost:" (http-port)))
 
-(defn hornetq-port []
-  (if (offset?)
-    5545
-    5445))
+(def hornetq-port (partial offset-port 5445))
 
-(defn remoting-port []
-  (if (offset?)
-    10099
-    9999))
+(def remoting-port (partial offset-port 9999))
 
 (defn remote [f & args]
   (apply f (concat args
