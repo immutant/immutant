@@ -42,19 +42,22 @@
    :else (throw (IllegalArgumentException. (str "Invalid eviction strategy: " mode)))))
 
 (defn set-transaction-mode!
-  [builder use-synchronization]
-  (.. builder
-      transaction
-      (transactionManagerLookup (GenericTransactionManagerLookup.))
-      (transactionMode TransactionMode/TRANSACTIONAL)
-      (useSynchronization (not (not use-synchronization)))))
+  [builder use-synchronization {:keys [tx] :or {tx true}}]
+  (if tx
+    (.. builder
+        transaction
+        (transactionManagerLookup (GenericTransactionManagerLookup.))
+        (transactionMode TransactionMode/TRANSACTIONAL)
+        (useSynchronization (not (not use-synchronization))))
+    (.. builder
+        transaction
+        (transactionMode TransactionMode/NON_TRANSACTIONAL))))
 
 (defn set-optimistic-locking!
   [builder]
   (.. builder
       transaction
       (lockingMode LockingMode/OPTIMISTIC)
-      (useSynchronization false)
       versioning
       (enabled true)
       (scheme VersioningScheme/SIMPLE)
@@ -67,7 +70,9 @@
   (.. builder
       transaction
       (lockingMode LockingMode/PESSIMISTIC)
-      (useSynchronization false)))
+      locking
+      (isolationLevel IsolationLevel/READ_COMMITTED)
+      (writeSkewCheck false)))
 
 (defn set-cache-mode!
   [builder opts]

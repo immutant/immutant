@@ -47,11 +47,11 @@
   [options]
   (let [opts (merge {:sync true} (default-mode options))]
     (log/info (str "Creating config builder: "
-                   (select-keys opts [:mode :sync :locking :persist :max-entries :eviction])))
+                   (select-keys opts [:mode :sync :locking :persist :max-entries :eviction :tx])))
     (doto (ConfigurationBuilder.)
       (.read (.getDefaultCacheConfiguration @manager))
       (.classLoader (.getContextClassLoader (Thread/currentThread)))
-      (config/set-transaction-mode! (nil? service))
+      (config/set-transaction-mode! (nil? service) opts)
       (config/set-cache-mode! opts)
       (config/set-persistence! opts)
       (config/set-max-entries! opts)

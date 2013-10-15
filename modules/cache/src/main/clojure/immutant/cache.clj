@@ -18,6 +18,7 @@
 (ns immutant.cache
   "Infinispan-backed implementations of core.cache and core.memoize
    protocols supporting multiple replication options and more."
+  (:refer-clojure :exclude (swap!))
   (:use [immutant.cache.core      :only [get-cache start builder]]
         [immutant.cache.config    :only [expire]]
         [immutant.codecs          :only [encode decode]]
@@ -146,7 +147,7 @@
   ;; We assume value is a delay, which we can't serialize and don't
   ;; want to force yet
   (miss [this key value]
-    (swap! delayed
+    (clojure.core/swap! delayed
            (fn [m k v] (if (contains? m k) m (assoc m k v)))
            (vec key)
            (delay (cc/miss cache (vec key) @value) @value))
@@ -154,7 +155,7 @@
   (lookup [_ key]
     (when-let [value (get @delayed (vec key))]
       (force value)
-      (swap! delayed dissoc (vec key)))
+      (clojure.core/swap! delayed dissoc (vec key)))
     ;; Callers expect to deref the returned value
     (reify
       clojure.lang.IDeref
@@ -181,11 +182,12 @@
      :mode        Replication mode [:distributed or :local]
                     :local, :invalidated, :distributed, or :replicated
      :sync        Whether replication occurs synchronously [true]
+     :tx          Whether the cache is transactional [true]
      :persist     Durability. If non-nil, data persists across server
                     restarts in a file store; a string value names the
                     directory [nil]
      :seed        A map of initial entries [nil]
-     :locking     Infinispan locking schemes [nil]
+     :locking     Transactional locking schemes [nil]
                     :optimisitic or :pessimistic
      :encoding    :edn :json or :none [:edn]
      :max-entries The maximum number of entries allowed in the cache [-1]
@@ -243,3 +245,23 @@
    f
    name
    options))
+
+(defn swap!
+  "Atomically swaps the value associated with the key in the cache
+  with the result of applying f, passing the current value as the
+  first param along with any args.
+
+  Asynchronously-replicated caches and transactional caches without
+  locking configured can result in a race condition where multiple
+  callers might apply f to the same value successfully.
+
+  If you don't need a transactional cache, create it with :tx false
+  before passing it to this function. Otherwise, set :locking to
+  either :optimistic (low contention expected) or :pessimistic (high
+  contention expected)"
+  [^InfinispanCache cache key f & args]
+  (loop [val (get cache key)]
+    (let [new (apply f val args)]
+      (if (put-if-replace cache key val new)
+        new
+        (recur (get cache key))))))
