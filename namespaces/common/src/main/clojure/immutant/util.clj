@@ -57,8 +57,7 @@
    application code as well."
   [f]
   (if-let [closer (registry/get "housekeeper")]
-    (.atExit closer f)
-    (println "WARN: Unable to register at-exit handler with housekeeper")))
+    (.atExit closer f)))
 
 (defn ^:internal lookup-interface-address
   "Looks up the ip address from the proper service for the given name."
