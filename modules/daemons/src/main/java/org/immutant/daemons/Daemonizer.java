@@ -46,7 +46,7 @@ public class Daemonizer extends AtRuntimeInstaller<Daemonizer> {
             }
         });
         
-        installMBean( serviceName, "immutant.daemons", daemon );
+        installMBeanFor( serviceName, "immutant.daemons", daemon );
         
         return daemon;
     }

@@ -37,6 +37,7 @@ import org.jboss.msc.service.ServiceRegistry;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.value.InjectedValue;
+import org.projectodd.polyglot.core.AtRuntimeInstaller;
 import org.projectodd.polyglot.core.ServiceSynchronizationManager;
 import org.projectodd.polyglot.messaging.BaseMessageProcessor;
 import org.projectodd.polyglot.messaging.BaseMessageProcessorGroup;
@@ -94,6 +95,9 @@ public class MessageProcessorGroup extends BaseMessageProcessorGroup implements 
     
     public boolean remove(boolean wait) {
         ServiceController service = getServiceRegistry().getService( getBaseServiceName() );
+
+        AtRuntimeInstaller.removeMBeanFor(getServiceRegistry(), getBaseServiceName());
+
         if (service != null) {
             service.setMode( Mode.REMOVE );
 

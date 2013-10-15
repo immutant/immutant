@@ -120,7 +120,7 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
             }
         } );
 
-        installMBean( serviceName, "immutant.jobs", job );
+        installMBeanFor( serviceName, "immutant.jobs", job );
         
     }
     
