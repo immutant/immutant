@@ -104,7 +104,7 @@ undeploy."
   "Looks for nrepl-port and swank-port values in the given config, and starts
 the appropriate servers."
   [config]
-  (let [port (:nrepl-port config)
+  (let [port (:nrepl-port config (if (util/dev-mode?) 0 nil))
         interface (:nrepl-interface config)]
     (if (or port interface)
       (let [ss (-> (start-nrepl interface
