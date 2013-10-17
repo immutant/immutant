@@ -8,6 +8,67 @@
   specific, but we hope to present some general guidelines that can be
   successfully adapted to any environment.
 
+* Application Deployment
+
+  Immutant honors any active Leiningen profiles when your app is
+  deployed. Certain features, e.g. an nREPL service and Ring reloading
+  middleware, are enabled when the =:dev= profile is active, which is
+  the default. We recommend deploying your applications to production
+  with a non-dev profile activated, e.g.
+
+  #+begin_src sh
+      $ lein with-profile production immutant deploy
+      # or
+      $ lein with-profile production immutant archive
+  #+end_src
+
+  Alternatively, you could manually add a =:lein-profiles= entry to
+  your deployment descriptor. This is the file that gets created by
+  the =deploy= task. See the [[./initialization.html][initialization]] and [[./deployment.html][deployment]] chapters
+  for more details.
+
+* Application Configuration
+
+  Often, applications require environment-specific configuration when
+  deployed. Clojure makes this pretty simple. We recommend using
+  Clojure syntax or EDN for your config files, storing them in a known
+  location, and slurping them in during your application's
+  initialization.
+
+  Use some sort of "dev ops" system, e.g. Pallet/Chef/Puppet, for
+  transferring the config files along with your application archives
+  to your target hosts, and in your initialization, do something along
+  these lines:
+
+  #+begin_src clojure
+    (def config (read-string (slurp "/etc/yourapp/config.clj")))
+  #+end_src
+
+  This assumes the contents of =/etc/yourapp/config.clj= look
+  something like this:
+
+  #+begin_src clojure
+    {
+     :db-host 1.2.3.4
+     :db-user "myuser"
+     :db-pass "mypass"
+     }
+  #+end_src
+  
+  Alternatively, you might take advantage of Immutant's registry
+  namespace, through which you can access your Leiningen project map
+  and your application's deployment descriptor. These are resolved
+  according to whatever Leiningen profiles are active when you deploy
+  the application (or are specified in the deployment descriptor).
+
+  #+begin_src clojure
+    (def deploy-descriptor (immutant.registry/get :config))
+    (def leiningen-project (immutant.registry/get :project))
+  #+end_src
+
+  See [[./initialization.html#initialization-configuration-values][Initialization - Arbitrary Configuration Values]] for more on
+  providing configuration values via the deployment descriptor or
+  =project.clj=.
 * Configuring JBoss as a Service
 
   JBoss AS7 ships with an example System V style startup script:
@@ -180,45 +241,3 @@
     </VirtualHost>
   #+end_src
 
-* Application Configuration
-
-  Often, applications require environment-specific configuration when
-  deployed. Clojure makes this pretty simple. We recommend using
-  Clojure syntax or EDN for your config files, storing them in a known
-  location, and slurping them in during your application's
-  initialization.
-
-  Use some sort of "dev ops" system, e.g. Pallet/Chef/Puppet, for
-  transferring the config files along with your application archives
-  to your target hosts, and in your initialization, do something along
-  these lines:
-
-  #+begin_src clojure
-    (def config (read-string (slurp "/etc/yourapp/config.clj")))
-  #+end_src
-
-  This assumes the contents of =/etc/yourapp/config.clj= look
-  something like this:
-
-  #+begin_src clojure
-    {
-     :db-host 1.2.3.4
-     :db-user "myuser"
-     :db-pass "mypass"
-     }
-  #+end_src
-  
-  Alternatively, you might take advantage of Immutant's registry
-  namespace, through which you can access your Leiningen project map
-  and your application's deployment descriptor. These are resolved
-  according to whatever Leiningen profiles are active when you deploy
-  the application (or are specified in the deployment descriptor).
-
-  #+begin_src clojure
-    (def deploy-descriptor (immutant.registry/get :config))
-    (def leiningen-project (immutant.registry/get :project))
-  #+end_src
-
-  See [[./initialization.html#initialization-configuration-values][Initialization - Arbitrary Configuration Values]] for more on
-  providing configuration values via the deployment descriptor or
-  =project.clj=.

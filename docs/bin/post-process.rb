@@ -7,13 +7,13 @@ PAGES =
       installation
       deployment
       initialization
+      development
       web
       jobs
       messaging
       caching
       transactions
       daemons
-      interactive
       jboss
       production }
 

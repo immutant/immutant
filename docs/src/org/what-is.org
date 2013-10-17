@@ -47,6 +47,6 @@
   application to load its own versions of its dependencies (including
   Clojure itself) without affecting other applications.
 
-  Further, Immutant enables [[./interactive.html][interactive, REPL-based development]],
+  Further, Immutant enables [[./development.html#interactive][interactive, REPL-based development]],
   allowing you to *manipulate your application while it's running in
   the app server.*

@@ -435,7 +435,7 @@
    simple Ring handler but a special servlet comprised of a stack of
    "interceptors". So to mount a Pedestal servlet when your Leiningen
    project is deployed to Immutant, you might put the following in
-   your =immutant.init= namespace:
+   your =immutant.init= namespace (or just invoke it at a REPL):
 
    #+begin_src clojure
      (ns immutant.init
@@ -450,10 +450,6 @@
    map of many things, including the actual Servlet instance
    associated with the keyword, =:io.pedestal.service.http/servlet=.
 
-   During development, you might alternatively mount the =dev/service=
-   var similarly at a REPL after including =:immutant {:nrepl-port
-   7888}= in your =project.clj= and deploying it to a running Immutant
-   instance.
 * Overriding the max number of HTTP threads
 
   The servlet container used by JBossAS uses a bounded thread pool for
