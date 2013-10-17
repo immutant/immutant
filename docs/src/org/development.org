@@ -30,13 +30,19 @@
 
 ** lein immutant test
 
-   The =test= task of the [[https://github.com/immutant/lein-immutant/][lein-immutant]] plugin is how you run your
-   in-container tests /outside/ of Immutant. It will find all your
-   tests (or Midje facts), fire up an Immutant instance, deploy your
-   app to it, connect to its REPL, run all the tests, and display the
-   results, returning success only if all the tests pass. It should be
-   run on the Continuous Integration server for your app whenever any
-   changes are committed.
+   The =test= task of the [[https://github.com/immutant/lein-immutant/][lein-immutant]] plugin enables you to run your
+   in-container tests when not connected to an Immutant REPL. It will
+   find all the tests (or Midje facts) in a project, fire up an
+   Immutant instance, deploy the project to it, connect to its REPL,
+   run all the tests, undeploy the app, shutdown the Immutant, and
+   display the results, returning success only if all tests pass.
+
+   Because it conveniently runs all your tests inside the app server,
+   a successful run yields a high confidence that your code will run
+   correctly when it counts -- in production, when deployed to the
+   same app server. For this reason, it may also be useful to run it
+   on your app's Continuous Integration host whenever any changes are
+   committed.
 
 * The REPL
   :PROPERTIES:
