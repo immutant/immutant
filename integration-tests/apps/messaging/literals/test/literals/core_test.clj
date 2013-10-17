@@ -6,7 +6,7 @@
             [immutant.messaging :as msg]))
 
 (def publish (partial msg/publish "queue.literals"))
-(def receive (partial msg/receive "queue.literals" :timeout 30000))
+(def receive (partial msg/receive "queue.literals" :timeout 60000))
 (def listen (partial msg/listen "queue.literals"))
 
 (defmacro with-tools-readers [& body]
@@ -18,8 +18,11 @@
   (let [t (t/now)
         r (rand)]
     ;; first for raw receive
-    (publish [r t] :encoding enc)
-    (is (= [r t] (receive)))
+    (println "Publishing, encoding:" enc)
+    (time 
+     (publish [r t] :encoding enc))
+    (time
+     (is (= [r t] (receive))))
     ;; then for a listener
     (let [r (inc r)
           p (promise)
