@@ -114,9 +114,8 @@
     =:nrepl-port= to =nil=.
 
     You can also start an nREPL service from your own code, which is
-    useful if you need to start it in response to a runtime event or
-    bind to an interface other than the [[#interactive-binding][management interface]]. To do
-    so, simply call [[./apidoc/immutant.repl.html#var-start-nrepl][immutant.repl/start-nrepl]]. nREPL allows you to
+    useful if you need to start it in response to a runtime event. To
+    do so, simply call [[./apidoc/immutant.repl.html#var-start-nrepl][immutant.repl/start-nrepl]]. nREPL allows you to
     have multiple services in the same runtime, so you need to save
     the return value of =start-nrepl= if you want to shut down the
     nREPL service yourself:
@@ -140,11 +139,11 @@
     :CUSTOM_ID: interactive-nrepl-emacs
     :END:
 
-     To connect to nREPL from Emacs, first install [[https://github.com/kingtim/nrepl.el][nrepl.el]], then connect
-     to your running nREPL via the =nrepl= function (=M-x nrepl RET=). 
-     It will prompt you for the host and port, and if you're
-     somewhere beneath your project, it should default you with the
-     correct port.
+     To connect to nREPL from Emacs, first install [[https://github.com/clojure-emacs/cider][cider]] (formerly
+     nrepl.el), then connect to your running nREPL via the =nrepl=
+     function (=M-x nrepl RET=).  It will prompt you for the host and
+     port, and if you're somewhere beneath your project, it should
+     default you with the correct port.
 
 **** Via Leiningen
 
