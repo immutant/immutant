@@ -247,18 +247,20 @@
    options))
 
 (defn swap!
-  "Atomically swaps the value associated with the key in the cache
-  with the result of applying f, passing the current value as the
-  first param along with any args.
+  "Atomically swaps the value associated to the key in the cache with
+  the result of applying f, passing the current value as the first
+  param along with any args. Function f should have no side effects,
+  as it may be called multiple times.
 
-  Asynchronously-replicated caches and transactional caches without
-  locking configured can result in a race condition where multiple
-  callers might apply f to the same value successfully.
+  Using swap! with either asynchronously-replicated caches or
+  transactional caches without locking configured can result in a race
+  condition where multiple callers might apply f to the same value
+  successfully.
 
-  If you don't need a transactional cache, create it with :tx false
-  before passing it to this function. Otherwise, set :locking to
-  either :optimistic (low contention expected) or :pessimistic (high
-  contention expected)"
+  Therefore, if you don't need a transactional cache, create it
+  with :tx false. For transactional caches (the default), set :locking
+  to either :optimistic when low write contention is expected
+  or :pessimistic when write contention will be high."
   [^InfinispanCache cache key f & args]
   (loop [val (get cache key)]
     (let [new (apply f val args)]
