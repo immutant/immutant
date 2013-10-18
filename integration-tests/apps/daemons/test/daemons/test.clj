@@ -1,6 +1,7 @@
 (ns daemons.test
   (:use clojure.test)
-  (:require [immutant.daemons :as daemon]))
+  (:require [immutant.daemons :as daemon]
+            [clojure.java.jmx :as jmx]))
 
 (deftest daemon-started-async
   (let [started (promise)
@@ -31,3 +32,7 @@
       (is (= :success (deref started 30000 :failure)))
       (daemon/daemonize "reload" #() #())
       (is (= :success (deref stopped 30000 :failure))))))
+
+(deftest daemon-should-have-mbean
+  (daemon/daemonize :mbean #() #())
+  (is (jmx/mbean "immutant.daemons:name=mbean,app=daemons")))

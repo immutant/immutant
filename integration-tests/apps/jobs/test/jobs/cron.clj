@@ -2,7 +2,8 @@
   (:use clojure.test
         jobs.helper)
   (:require [immutant.jobs      :as job]
-            [immutant.messaging :as msg])
+            [immutant.messaging :as msg]
+            [clojure.java.jmx   :as jmx])
   (:import java.util.concurrent.atomic.AtomicInteger))
 
 (defmacro with-job [action & body]
@@ -15,6 +16,10 @@
   (let [q (random-queue)]
     (with-job #(msg/publish q "ping")
       (is (= ["ping" "ping" "ping"] (take 3 (msg/message-seq q)))))))
+
+(deftest jobs-should-have-mbeans
+  (with-job #()
+    (is (jmx/mbean "immutant.jobs:name=a-job,app=jobs"))))
 
 (deftest jobs-should-work-with-a-keyword-name
   (let [q (random-queue)]
