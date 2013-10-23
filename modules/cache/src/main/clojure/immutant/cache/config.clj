@@ -16,12 +16,21 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns ^{:no-doc true} immutant.cache.config
-  (:import [org.infinispan.configuration.cache VersioningScheme CacheMode]
+  (:import [org.infinispan.configuration.cache ConfigurationBuilder VersioningScheme CacheMode]
            [org.infinispan.transaction TransactionMode LockingMode]
            org.infinispan.transaction.lookup.GenericTransactionManagerLookup
            org.infinispan.eviction.EvictionStrategy
            org.infinispan.util.concurrent.IsolationLevel
-           java.util.concurrent.TimeUnit))
+           java.util.concurrent.TimeUnit)
+  (:use [clojure.reflect :only (reflect)]))
+
+(defmacro file-store
+  "6.0 renamed loaders to persistence and obsoleted FileCacheStore"
+  [builder]
+  (if (some (comp (partial = 'persistence) :name)
+            (:members (reflect ConfigurationBuilder)))
+    `(.. ~builder persistence addSingleFileStore)
+    `(.. ~builder loaders addFileCacheStore)))
 
 (defn cache-mode
   [{:keys [mode sync]}]
@@ -81,7 +90,7 @@
 (defn set-persistence!
   [builder {persist :persist}]
   (if persist
-    (let [store (.. builder loaders addFileCacheStore)]
+    (let [store (file-store builder)]
       (if (string? persist)
         (.. store (location persist)))))
   builder)

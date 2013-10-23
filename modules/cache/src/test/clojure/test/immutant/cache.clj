@@ -191,10 +191,13 @@
 (deftest test-persist-file-store
   (try
     (create "mike" :persist true)
-    (is (.exists (io/file "Infinispan-FileCacheStore/mike")))
+    (is (or (.exists (io/file "Infinispan-FileCacheStore/mike"))
+            (.exists (io/file "Infinispan-SingleFileStore/mike.dat"))))
     (finally
-     (io/delete-file "Infinispan-FileCacheStore/mike")
-     (io/delete-file "Infinispan-FileCacheStore"))))
+      (io/delete-file "Infinispan-SingleFileStore/mike.dat" :silently)
+      (io/delete-file "Infinispan-SingleFileStore" :silently)
+      (io/delete-file "Infinispan-FileCacheStore/mike" :silently)
+      (io/delete-file "Infinispan-FileCacheStore" :silently))))
 
 (deftest test-persist-file-store-with-parents
   (let [dir (io/file "target/gin/tonic")]
@@ -202,7 +205,8 @@
       (create "chas" :persist (str dir))
       (is (.exists dir))
       (finally
-        (io/delete-file (io/file dir "chas"))
+        (io/delete-file (io/file dir "chas") :silently)
+        (io/delete-file (io/file dir "chas.dat") :silently)
         (io/delete-file dir)
         (io/delete-file (.getParent dir))))))
 
