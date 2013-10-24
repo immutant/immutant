@@ -80,21 +80,21 @@
   unsecure-interface-address
   (partial lookup-interface-address :unsecure))
 
+(defn port
+  "Returns the (possibly offset) port from the socket-binding in standalone.xml"
+  [socket-binding-name]
+  (if-let [sb (registry/get (str "jboss.binding." (name socket-binding-name)))]
+    (.getAbsolutePort sb)))
+
 (defn http-port
   "Returns the HTTP port for the embedded web server"
   []
-  (if-let [server (registry/get "jboss.web.connector.http")]
-    (.getPort server)))
+  (port :http))
 
 (defn hornetq-remoting-port
   "Returns the port that HornetQ is listening on for remote connections"
   []
-  (-> (ManagementFactory/getPlatformMBeanServer)
-      (.getAttribute
-       (ObjectName. "org.hornetq:module=Core,type=Acceptor,name=\"netty\"")
-       "Parameters")
-      (get "port")
-      (Integer.)))
+  (port :messaging))
 
 (defn context-path
   "Returns the HTTP context path for the deployed app"
@@ -210,8 +210,17 @@
     (apply deref v args)
     v))
 
+(defn profile-active?
+  "Returns true if the leiningen profile is active"
+  [id]
+  (and (->> (registry/get :project)
+            meta
+            :active-profiles
+            (some #{(keyword id)}))
+       true))
+
 (defn dev-mode?
   "Returns true if the app is running in dev mode."
   []
-  (not (or (System/getenv "LEIN_NO_DEV")
-           (->> (registry/get :project) meta :active-profiles (not-any? #{:dev})))))
+  (and (not (System/getenv "LEIN_NO_DEV"))
+       (profile-active? :dev)))
