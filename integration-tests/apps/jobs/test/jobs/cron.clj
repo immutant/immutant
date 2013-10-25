@@ -3,6 +3,7 @@
         jobs.helper)
   (:require [immutant.jobs      :as job]
             [immutant.messaging :as msg]
+            [immutant.util      :as util]
             [clojure.java.jmx   :as jmx])
   (:import java.util.concurrent.atomic.AtomicInteger))
 
@@ -19,7 +20,8 @@
 
 (deftest jobs-should-have-mbeans
   (with-job #()
-    (is (jmx/mbean "immutant.jobs:name=a-job,app=jobs"))))
+    (is (util/backoff 1 10000
+          (jmx/mbean "immutant.jobs:name=a-job,app=jobs")))))
 
 (deftest jobs-should-work-with-a-keyword-name
   (let [q (random-queue)]

@@ -1,6 +1,7 @@
 (ns daemons.test
   (:use clojure.test)
   (:require [immutant.daemons :as daemon]
+            [immutant.util    :as util]
             [clojure.java.jmx :as jmx]))
 
 (deftest daemon-started-async
@@ -35,4 +36,5 @@
 
 (deftest daemon-should-have-mbean
   (daemon/daemonize :mbean #() #())
-  (is (jmx/mbean "immutant.daemons:name=mbean,app=daemons")))
+  (is (util/backoff 1 10000
+        (jmx/mbean "immutant.daemons:name=mbean,app=daemons"))))
