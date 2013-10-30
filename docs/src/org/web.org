@@ -399,23 +399,26 @@
 * Serving static resources
 
   Web applications often need to serve static resources such as
-  images, stylesheets, or javascript files. Ideally, you would use
-  [[https://github.com/ring-clojure/ring/wiki/Static-Resources][Ring middleware]] to accomplish this, but prior to Ring 1.2, those
-  functions do not support applications mounted at a context path
-  other than the root. So until 1.2 is released, you can use
-  [[./apidoc/immutant.web.html#var-wrap-resource][immutant.web/wrap-resource]], which is a drop-in replacement for
-  [[http://mmcgrana.github.com/ring/ring.middleware.resource.html#var-wrap-resource][ring.middleware.resource/wrap-resource]].
+  images, stylesheets, or javascript files. Ring applications use
+  [[https://github.com/ring-clojure/ring/wiki/Static-Resources][middleware]] to accomplish this.
 
-  The recommended approach is to store your resources beneath
-  =resources/public/= and then reference that path when adding the
-  middleware: 
+  In Immutant, the recommended approach is to store your resources
+  beneath =resources/public/=, and then reference that path using
+  [[http://mmcgrana.github.com/ring/ring.middleware.resource.html#var-wrap-resource][ring.middleware.resource/wrap-resource]]:
 
   #+begin_src clojure
-    (immutant.web/wrap-resource app "public")
+    (ring.middleware.resource/wrap-resource app "public")
   #+end_src
 
   This works because the =resources/= directory is automatically added
-  to the application's effective class path at deployment.
+  to the application's effective classpath at deployment.
+
+  *NOTE:* Prior to version 1.2, Ring middleware didn't support
+  applications mounted at a context path other than the root. The
+  1.0.x versions of Immutant ship with Ring 1.1.8, and provide a
+  drop-in replacement, =immutant.web/wrap-resource=, that is no longer
+  available in later Immutant versions.
+
 
 * Mounting Servlets instead of Ring handlers
 

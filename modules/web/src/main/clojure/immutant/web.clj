@@ -77,21 +77,3 @@
   should never need to access this value."
   []
   immutant.web.internal/current-servlet-request)
-
-(defn wrap-resource
-  "Temporary workaround for its non-context-aware namesake from
-  ring.middleware.resource. This function will go away when Ring 1.2
-  is released.
-
-  Middleware that first checks to see whether the request map matches
-  a static resource. If it does, the resource is returned in a
-  response map, otherwise the request map is passed onto the handler.
-  The root-path argument will be added to the beginning of the
-  resource path."
-  [handler root-path]
-  (fn [request]
-    (if-not (= :get (:request-method request))
-      (handler request)
-      (let [path (.substring (codec/url-decode (:path-info request)) 1)]
-        (or (response/resource-response path {:root root-path})
-            (handler request))))))

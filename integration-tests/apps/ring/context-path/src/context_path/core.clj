@@ -1,6 +1,5 @@
 (ns context-path.core
-  ;; TODO: When Ring 1.2 is released, s/immutant.web/ring.middleware.resource/
-  (:require [immutant.web :as web]
+  (:require [ring.middleware.resource :as web]
             [immutant.util :as util]))
 
 (defn app [request]
