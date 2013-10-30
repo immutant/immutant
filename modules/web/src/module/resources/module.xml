@@ -35,6 +35,7 @@
         <resource-root path="ring-core.jar"/>
         <resource-root path="ring-servlet.jar"/>
         <resource-root path="ring-devel.jar"/>
+        <resource-root path="ring-codec.jar"/>
         <resource-root path="ns-tracker.jar"/>
         <resource-root path="tools.namespace.jar"/>
         <resource-root path="java.classpath.jar"/>

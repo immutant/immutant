@@ -395,7 +395,7 @@
     <version.clojure.java.jmx>0.3.0</version.clojure.java.jmx>
     <version.clojure-maven-plugin>1.3.17</version.clojure-maven-plugin>
     <version.clojure-complete>0.2.2</version.clojure-complete>
-    <version.ring>1.1.8</version.ring>
+    <version.ring>1.2.1</version.ring>
     <version.dynapath>0.2.3</version.dynapath>
     <version.swank-clojure>1.4.3</version.swank-clojure>
     <version.nrepl>0.2.3</version.nrepl>
