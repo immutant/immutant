@@ -148,4 +148,7 @@
            (fn []
              (apply run-tests namespaces)))))
       (shutdown-agents)
-      (System/exit (if (empty? (filter #{:fail :error} @results)) 0 -1)))))
+      (System/exit (if (and (some #{:summary} @results)
+                            (not-any? #{:fail :error} @results))
+                     0
+                     -1)))))
