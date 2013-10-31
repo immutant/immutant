@@ -66,7 +66,7 @@
 
 (deftest until-with-every-should-repeat-until-until
   (let [q (random-queue)]
-    (with-job #(msg/publish q "ping") [:until (+ 2000 (System/currentTimeMillis)) :every 500] 
+    (with-job #(msg/publish q "ping") [:until (+ 1999 (System/currentTimeMillis)) :every 500] 
       (is (= "ping" (msg/receive q :timeout 10000)))
       (is (= ["ping" "ping" "ping" nil] (take 4 (msg/message-seq q :timeout 550)))))))
 
