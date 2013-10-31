@@ -22,34 +22,34 @@
   (let [q (random-queue)]
     (with-job #(msg/publish q "ping") []
       (is (= "ping" (msg/receive q :timeout 10000)))
-      (is (not (msg/receive q :timeout 5000))))))
+      (is (not (msg/receive q :timeout 1000))))))
 
 (deftest in-should-fire-once-in-x-ms
   (let [q (random-queue)]
-    (with-job #(msg/publish q "ping") [:in 5000] 
-      (is (not (msg/receive q :timeout 4000)))
+    (with-job #(msg/publish q "ping") [:in 2000] 
+      (is (not (msg/receive q :timeout 1000)))
       (is (= "ping" (msg/receive q :timeout 10000)))
-      (is (not (msg/receive q :timeout 5000))))))
+      (is (not (msg/receive q :timeout 1000))))))
 
 (deftest at-as-a-date-should-fire-once-then
   (let [q (random-queue)]
-    (with-job  #(msg/publish q "ping") [:at (Date. (+ 5000 (System/currentTimeMillis)))] 
-      (is (not (msg/receive q :timeout 4000)))
+    (with-job  #(msg/publish q "ping") [:at (Date. (+ 2000 (System/currentTimeMillis)))] 
+      (is (not (msg/receive q :timeout 1000)))
       (is (= "ping" (msg/receive q :timeout 10000)))
-      (is (not (msg/receive q :timeout 5000))))))
+      (is (not (msg/receive q :timeout 1000))))))
 
 (deftest at-as-a-long-should-fire-once-then
   (let [q (random-queue)]
-    (with-job  #(msg/publish q "ping") [:at (+ 5000 (System/currentTimeMillis))] 
-      (is (not (msg/receive q :timeout 4000)))
+    (with-job  #(msg/publish q "ping") [:at (+ 2000 (System/currentTimeMillis))] 
+      (is (not (msg/receive q :timeout 1000)))
       (is (= "ping" (msg/receive q :timeout 10000)))
-      (is (not (msg/receive q :timeout 5000))))))
+      (is (not (msg/receive q :timeout 1000))))))
 
 (deftest every-should-fire-immediately-and-continuously
   (let [q (random-queue)]
     (with-job #(msg/publish q "ping") [:every 500] 
       (is (= "ping" (msg/receive q :timeout 10000)))
-      (is (= ["ping" "ping" "ping"] (take 3 (msg/message-seq q :timeout 550)))))))
+      (is (= ["ping" "ping" "ping"] (take 3 (msg/message-seq q :timeout 650)))))))
 
 (deftest every-with-repeat-should-fire-immediately-x-times
   (let [q (random-queue)]
@@ -59,16 +59,16 @@
 
 (deftest at-with-every-should-fire-immediately-and-continuously-starting-at-at
   (let [q (random-queue)]
-    (with-job #(msg/publish q "ping") [:at (+ 5000 (System/currentTimeMillis)) :every 500] 
-      (is (not (msg/receive q :timeout 4000)))
+    (with-job #(msg/publish q "ping") [:at (+ 2000 (System/currentTimeMillis)) :every 500] 
+      (is (not (msg/receive q :timeout 1000)))
       (is (= "ping" (msg/receive q :timeout 10000)))
-      (is (= ["ping" "ping" "ping"] (take 3 (msg/message-seq q :timeout 550)))))))
+      (is (= ["ping" "ping" "ping"] (take 3 (msg/message-seq q :timeout 650)))))))
 
 (deftest until-with-every-should-repeat-until-until
   (let [q (random-queue)]
-    (with-job #(msg/publish q "ping") [:until (+ 1999 (System/currentTimeMillis)) :every 500] 
+    (with-job #(msg/publish q "ping") [:until (+ 2000 (System/currentTimeMillis)) :every 500] 
       (is (= "ping" (msg/receive q :timeout 10000)))
-      (is (= ["ping" "ping" "ping" nil] (take 4 (msg/message-seq q :timeout 550)))))))
+      (is (= ["ping" "ping" "ping" nil] (take 4 (msg/message-seq q :timeout 650)))))))
 
 (deftest at-with-in-should-throw
   (is (thrown?
