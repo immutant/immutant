@@ -23,7 +23,7 @@
   (:require [clj-http.client :as client]))
 
 (defn run-tests? []
-  (not (version? 1.5)))
+  (not (or (version? 1.5) (version? 1.6))))
 
 (let [file *file*]
   (use-fixtures :once #(if (run-tests?)
