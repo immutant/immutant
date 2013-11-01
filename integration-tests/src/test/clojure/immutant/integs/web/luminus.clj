@@ -15,28 +15,20 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.web.noir
+(ns immutant.integs.web.luminus
   (:use fntest.core
         clojure.test
         immutant.integs
         [immutant.integs.integ-helper :only [base-url]])
   (:require [clj-http.client :as client]))
 
-(defn run-tests? []
-  (not (or (version? 1.5) (version? 1.6))))
-
-(let [file *file*]
-  (use-fixtures :once #(if (run-tests?)
-                         ((with-deployment file
-                            {
-                             :root "target/apps/ring/noir-app/"
-                             :context-path "/noir-app"
-                             }) %)
-                         (%))))
+(use-fixtures :once (with-deployment *file*
+                      {
+                       :root "target/apps/ring/luminus/"
+                       :context-path "/luminus"
+                       }))
 
 (deftest simple "it should work"
-  (if (run-tests?)
-    (let [result (client/get (str (base-url) "/noir-app/welcome"))]
-      ;; (println "RESPONSE" result)
-      (is (.contains (result :body) "Welcome to noir-app, jim")))
-    (println "==> skipping noir tests under 1.5.x since noir itself is broken under 1.5.x")))
+  (let [result (client/get (str (base-url) "/luminus"))]
+    ;; (println "RESPONSE" result)
+    (is (.contains (result :body) "Welcome to luminus"))))
