@@ -29,6 +29,8 @@
                        }))
 
 (deftest simple "it should work"
-  (let [result (client/get (str (base-url) "/luminus"))]
-    ;; (println "RESPONSE" result)
-    (is (.contains (result :body) "Welcome to luminus"))))
+  (if (version? 1.3)
+    (println "==> skipping luminus tests since it requires 1.4 or higher")
+    (let [result (client/get (str (base-url) "/luminus"))]
+      ;; (println "RESPONSE" result)
+      (is (.contains (result :body) "Welcome to luminus")))))
