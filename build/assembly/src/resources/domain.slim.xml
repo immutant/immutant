@@ -2,7 +2,6 @@
     <extensions>
         <extension module="org.jboss.as.clustering.infinispan"/>
         <extension module="org.jboss.as.clustering.jgroups"/>
-        <extension module="org.jboss.as.configadmin"/>
         <extension module="org.jboss.as.connector"/>
         <extension module="org.jboss.as.ee"/>
         <extension module="org.jboss.as.jmx"/>
@@ -77,7 +76,6 @@
                     </handlers>
                 </root-logger>
             </subsystem>
-            <subsystem xmlns="urn:jboss:domain:configadmin:1.0"/>
             <subsystem xmlns="urn:jboss:domain:ee:1.1">
                 <spec-descriptor-property-replacement>false</spec-descriptor-property-replacement>
                 <jboss-descriptor-property-replacement>true</jboss-descriptor-property-replacement>
@@ -279,7 +277,6 @@
                     </handlers>
                 </root-logger>
             </subsystem>
-            <subsystem xmlns="urn:jboss:domain:configadmin:1.0"/>
             <subsystem xmlns="urn:jboss:domain:ee:1.1">
                 <spec-descriptor-property-replacement>false</spec-descriptor-property-replacement>
                 <jboss-descriptor-property-replacement>true</jboss-descriptor-property-replacement>
@@ -481,7 +478,6 @@
                     </handlers>
                 </root-logger>
             </subsystem>
-            <subsystem xmlns="urn:jboss:domain:configadmin:1.0"/>
             <subsystem xmlns="urn:jboss:domain:ee:1.1">
                 <spec-descriptor-property-replacement>false</spec-descriptor-property-replacement>
                 <jboss-descriptor-property-replacement>true</jboss-descriptor-property-replacement>

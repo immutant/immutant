@@ -554,4 +554,6 @@
       (io/copy (io/file (format "src/resources/standalone-ha.%s.xml" type))
                (io/file (jboss-dir) "standalone/configuration/standalone-ha.xml"))
       (io/copy (io/file (format "src/resources/domain.%s.xml" type))
-               (io/file (jboss-dir) "domain/configuration/domain.xml")))))
+               (io/file (jboss-dir) "domain/configuration/domain.xml"))
+      (io/copy (io/file (format "src/resources/host.%s.xml" type))
+               (io/file (jboss-dir) "domain/configuration/host.xml")))))
