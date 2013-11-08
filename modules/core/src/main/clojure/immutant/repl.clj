@@ -67,26 +67,29 @@ undeploy."
          interface-address (or (util/lookup-interface-address interface)
                                interface
                                (util/management-interface-address))]
-     (log/info "Starting nREPL for" (util/app-name)
-               "at" (str interface-address ":" port))
-     (future (require 'clj-stacktrace.repl 'complete.core))
-     (when (and nrepl-middleware nrepl-handler)
-       (throw (IllegalArgumentException.
-               "Can only use one of :nrepl-handler or :nrepl-middleware")))
-     (let [handler (or (and nrepl-handler (require-resolve nrepl-handler))
-                       (->> nrepl-middleware
-                            (map #(cond 
-                                    (var? %) %
-                                    (symbol? %) (require-resolve %)
-                                    (list? %) (eval %)))
-                            (apply (util/try-resolve
-                                     'clojure.tools.nrepl.server/default-handler))))]
-       (when-let [server ((util/try-resolve 'clojure.tools.nrepl.server/start-server)
-                          :handler handler
-                          :port (fix-port port)
-                          :bind interface-address)]
-         (util/at-exit (partial stop-nrepl server))
-         server))))
+       (if (nil? interface-address)
+         (log/warn "Invalid interface address for nREPL; use :nrepl-interface")
+         (do
+           (log/info "Starting nREPL for" (util/app-name)
+                     "at" (str interface-address ":" port))
+           (future (require 'clj-stacktrace.repl 'complete.core))
+           (when (and nrepl-middleware nrepl-handler)
+             (throw (IllegalArgumentException.
+                     "Can only use one of :nrepl-handler or :nrepl-middleware")))
+           (let [handler (or (and nrepl-handler (require-resolve nrepl-handler))
+                             (->> nrepl-middleware
+                                  (map #(cond 
+                                         (var? %) %
+                                         (symbol? %) (require-resolve %)
+                                         (list? %) (eval %)))
+                                  (apply (util/try-resolve
+                                          'clojure.tools.nrepl.server/default-handler))))]
+             (when-let [server ((util/try-resolve 'clojure.tools.nrepl.server/start-server)
+                                :handler handler
+                                :port (fix-port port)
+                                :bind interface-address)]
+               (util/at-exit (partial stop-nrepl server))
+               server))))))
   ([port]
    (start-nrepl nil port)))
 
@@ -107,13 +110,11 @@ the appropriate servers."
   (let [port (:nrepl-port config (if (util/dev-mode?) 0 nil))
         interface (:nrepl-interface config)]
     (if (or port interface)
-      (let [ss (-> (start-nrepl interface
-                                (or port 0))
-                   deref
-                   :ss)
-            host (-> ss .getInetAddress .getHostAddress)
-            bound-port (.getLocalPort ss)]
-        (log/info "nREPL bound to" (str host ":" bound-port))
-        (spit-nrepl-files bound-port (:nrepl-port-file config)))))
+      (if-let [nrepl (start-nrepl interface (or port 0))]
+        (let [ss (-> nrepl deref :ss)
+              host (-> ss .getInetAddress .getHostAddress)
+              bound-port (.getLocalPort ss)]
+          (log/info "nREPL bound to" (str host ":" bound-port))
+          (spit-nrepl-files bound-port (:nrepl-port-file config))))))
   (when-let [port (:swank-port config)]
     (start-swank port)))

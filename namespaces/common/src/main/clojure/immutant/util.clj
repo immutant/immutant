@@ -20,7 +20,8 @@
   (:require [immutant.registry :as registry]
             [clojure.string    :as str]
             [clojure.java.io   :as io]
-            [dynapath.util     :as dp])
+            [dynapath.util     :as dp]
+            [clojure.tools.logging :as log])
   (:import clojure.lang.IDeref
            java.lang.management.ManagementFactory
            javax.management.ObjectName))
@@ -63,10 +64,13 @@
   "Looks up the ip address from the proper service for the given name."
   [iface]
   (if iface
-    (if-let [addr (registry/get (str "jboss.network." (name iface)))]
-      (-> addr
-          .getAddress
-          .getHostAddress))))
+    (try
+      (if-let [addr (registry/get (str "jboss.network." (name iface)))]
+        (-> addr
+            .getAddress
+            .getHostAddress))
+      (catch Exception e
+        (log/warn (format "Unable to obtain %s interface address (%s)" iface, e) )))))
 
 (def ^{:doc "Looks up the ip address for the AS management interface."}
   management-interface-address
