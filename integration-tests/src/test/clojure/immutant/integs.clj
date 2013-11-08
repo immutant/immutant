@@ -134,7 +134,7 @@
   (when-not *compile-files*
     (let [results (atom [])
           report-orig report]
-      (binding [fntest.jboss/*home* "./target/integ-dist/jboss"
+      (binding [fntest.jboss/*home* (io/file (System/getProperty "user.dir") "target/integ-dist/jboss")
                 fntest.jboss/*descriptor-root* "target/.descriptors"
                 report (fn [x] (report-orig x)
                          (swap! results conj (:type x)))]
