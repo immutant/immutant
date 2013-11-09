@@ -31,6 +31,12 @@
 (def clojure-versions
   (set (string/split (System/getProperty "versions") #",")))
 
+(def modes
+  (set (map keyword (string/split (System/getProperty "modes") #","))))
+
+(defn domain? []
+  (boolean (some #{:domain} modes)))
+
 (defn find-app-dirs
   ([dir]
      (find-app-dirs [] dir))
@@ -124,7 +130,8 @@
                     (io/file dest-dir)
                     opts)))
 
-(let [integs (io/file (.getParentFile (io/file *file*)) "integs")
+(let [integs (io/file (.getParentFile (io/file *file*))
+                      (if (domain?) "cluster" "integs"))
       namespaces (or (ns-from-property) (find-namespaces-in-dir integs))]
   (generate-archives "target/apps"
                      ["apps/ring/basic-ring"]
@@ -142,9 +149,7 @@
         (for-each-version
          (apply require namespaces)
          (fntest/with-jboss
-           (if (= "true" (System/getProperty "lazy"))
-             :lazy
-             :offset)
+           modes
            (fn []
              (apply run-tests namespaces)))))
       (shutdown-agents)

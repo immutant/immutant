@@ -17,10 +17,10 @@
     <assembly.dir>${project.basedir}/../build/assembly/target/stage/immutant</assembly.dir>
     <integ.dist.dir>target/integ-dist</integ.dist.dir>
     <versions>1.5.1</versions>
-    <fntest.debug>false</fntest.debug>
     <ns />
     <databases>h2</databases>
-    <lazy>false</lazy>
+    <!-- Comma-delimited fntest modes, e.g. -Dmodes=offset,isolated,lazy,debug,domain -->
+    <modes>offset</modes>
   </properties>
 
   <dependencies>
@@ -174,7 +174,7 @@
             <artifactId>clojure-maven-plugin</artifactId>
             <configuration>
               <testScript>src/test/clojure/immutant/integs.clj</testScript>
-              <clojureOptions>-Ddatabases=${databases} -Dversions=${versions} -Dns=${ns} -Dfntest.debug=${fntest.debug} -Dlazy=${lazy}</clojureOptions>
+              <clojureOptions>-Ddatabases=${databases} -Dversions=${versions} -Dns=${ns} -Dmodes=${modes}</clojureOptions>
             </configuration>
             <executions>
               <execution>
@@ -243,7 +243,7 @@
             <artifactId>clojure-maven-plugin</artifactId>
             <configuration>
               <testScript>src/test/clojure/immutant/integs.clj</testScript>
-              <clojureOptions>-Ddatabases=${databases} -Dversions=${versions} -Dns=web.basic -Dfntest.debug=${fntest.debug}</clojureOptions>
+              <clojureOptions>-Ddatabases=${databases} -Dversions=${versions} -Dns=web.basic -Dmodes=${modes}</clojureOptions>
             </configuration>
             <executions>
               <execution>

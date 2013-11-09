@@ -16,7 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.integs.integ-helper
-  (:require [clj-http.client :as client]))
+  (:require [clj-http.client :as client])
+  (:use [immutant.integs :only (modes)]))
 
 (def deployment-class-loader-regex
   #"ImmutantClassLoader.*deployment\..*\.clj")
@@ -24,7 +25,7 @@
 (def port-offset 67)
 
 (defn offset? []
-  (not (= "true" (System/getProperty "lazy"))))
+  (boolean (some #{:offset} modes)))
 
 (defn offset-port [port]
   (if (offset?)
