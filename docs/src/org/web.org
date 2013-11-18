@@ -404,7 +404,7 @@
 
   In Immutant, the recommended approach is to store your resources
   beneath =resources/public/=, and then reference that path using
-  [[http://mmcgrana.github.com/ring/ring.middleware.resource.html#var-wrap-resource][ring.middleware.resource/wrap-resource]]:
+  [[http://ring-clojure.github.io/ring/ring.middleware.resource.html#var-wrap-resource][ring.middleware.resource/wrap-resource]]:
 
   #+begin_src clojure
     (ring.middleware.resource/wrap-resource app "public")
