@@ -69,24 +69,26 @@
 (defn begin
   "Begin, invoke func, commit, rollback if error"
   [func]
-  (.begin (manager))
-  (try
-    (let [result (func)]
-      (.commit (manager))
-      result)
-    (catch javax.transaction.RollbackException ignored)
-    (catch Throwable e
-      (.rollback (manager))
-      (throw e))))
+  (let [mgr (manager)]
+    (.begin mgr)
+    (try
+      (let [result (func)]
+        (.commit mgr)
+        result)
+      (catch javax.transaction.RollbackException ignored)
+      (catch Throwable e
+        (.rollback mgr)
+        (throw e)))))
 
 (defn suspend
   "Suspend, invoke func, resume"
   [func]
-  (let [tx (.suspend (manager))]
+  (let [mgr (manager)
+        tx (.suspend mgr)]
     (try
       (func)
       (finally
-       (.resume (manager) tx)))))
+       (.resume mgr tx)))))
 
 
 ;;; Macros analagous to the JEE Transaction attribute scopes
