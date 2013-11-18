@@ -21,18 +21,18 @@
             [immutant.util         :as util]
             [clojure.tools.logging :as log]))
 
-(def ^javax.transaction.TransactionManager
-  manager (registry/get "jboss.txn.TransactionManager"))
+(def ^javax.transaction.TransactionManager manager
+  (memoize (fn [] (registry/get "jboss.txn.TransactionManager"))))
 
 (defn available?
   "Returns true if a TransactionManager is available to manage XA transactions"
   []
-  (not (nil? manager)))
+  (not (nil? (manager))))
 
 (defn ^javax.transaction.Transaction current
   "Return the active transaction"
   []
-  (and manager (.getTransaction manager)))
+  (if-let [mgr (manager)] (.getTransaction mgr)))
 
 (defn active?
   "Returns true if currently running within a transaction"
@@ -42,7 +42,7 @@
 (defn set-rollback-only
   "Modify the current transaction such that the only possible outcome is a roll back"
   []
-  (and manager (.setRollbackOnly manager)))
+  (if-let [mgr (manager)] (.setRollbackOnly mgr)))
 
 (defn enlist
   "Enlist XA resources in the current transaction"
@@ -69,24 +69,24 @@
 (defn begin
   "Begin, invoke func, commit, rollback if error"
   [func]
-  (.begin manager)
+  (.begin (manager))
   (try
     (let [result (func)]
-      (.commit manager)
+      (.commit (manager))
       result)
     (catch javax.transaction.RollbackException ignored)
     (catch Throwable e
-      (.rollback manager)
+      (.rollback (manager))
       (throw e))))
 
 (defn suspend
   "Suspend, invoke func, resume"
   [func]
-  (let [tx (.suspend manager)]
+  (let [tx (.suspend (manager))]
     (try
       (func)
       (finally
-       (.resume manager tx)))))
+       (.resume (manager) tx)))))
 
 
 ;;; Macros analagous to the JEE Transaction attribute scopes

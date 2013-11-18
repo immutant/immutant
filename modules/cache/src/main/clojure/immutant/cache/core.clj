@@ -23,11 +23,11 @@
   (:import [org.infinispan.configuration.cache Configuration ConfigurationBuilder]
            org.infinispan.manager.DefaultCacheManager))
 
-(def service (registry/get org.projectodd.polyglot.cache.as.CacheService/CACHE))
-(def manager (delay (or (and service (.getCacheContainer service)) (DefaultCacheManager.))))
+(def service (delay (registry/get org.projectodd.polyglot.cache.as.CacheService/CACHE)))
+(def manager (delay (or (and @service (.getCacheContainer @service)) (DefaultCacheManager.))))
 
 (defn clustered? []
-  (and service (.isClustered service)))
+  (and @service (.isClustered @service)))
 
 (defn default-mode [opts]
   (if (clustered?)
@@ -51,7 +51,7 @@
     (doto (ConfigurationBuilder.)
       (.read (.getDefaultCacheConfiguration @manager))
       (.classLoader (.getContextClassLoader (Thread/currentThread)))
-      (config/set-transaction-mode! (nil? service) opts)
+      (config/set-transaction-mode! (nil? @service) opts)
       (config/set-cache-mode! opts)
       (config/set-persistence! opts)
       (config/set-max-entries! opts)
