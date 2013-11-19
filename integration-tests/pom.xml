@@ -16,7 +16,7 @@
   <properties>
     <assembly.dir>${project.basedir}/../build/assembly/target/stage/immutant</assembly.dir>
     <integ.dist.dir>target/integ-dist</integ.dist.dir>
-    <versions>1.5.1</versions>
+    <versions>1.6.0-alpha2</versions>
     <ns />
     <databases>h2</databases>
     <!-- Comma-delimited fntest modes, e.g. -Dmodes=offset,isolated,lazy,debug,domain -->
