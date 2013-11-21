@@ -596,6 +596,7 @@
                             <entries>
                                 <entry name="java:jboss/exported/jms/RemoteConnectionFactory"/>
                             </entries>
+                            <consumer-window-size>1</consumer-window-size>
                         </connection-factory>
                         <pooled-connection-factory name="hornetq-ra">
                             <transaction mode="xa"/>
@@ -1006,6 +1007,7 @@
                             <entries>
                                 <entry name="java:jboss/exported/jms/RemoteConnectionFactory"/>
                             </entries>
+                            <consumer-window-size>1</consumer-window-size>
                         </connection-factory>
                         <pooled-connection-factory name="hornetq-ra">
                             <transaction mode="xa"/>
