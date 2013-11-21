@@ -37,6 +37,9 @@
 (defn domain? []
   (boolean (some #{:domain} modes)))
 
+(defn dir []
+  (if (domain?) "cluster" "integs"))
+  
 (defn find-app-dirs
   ([dir]
      (find-app-dirs [] dir))
@@ -117,9 +120,9 @@
   (let [value (System/getProperty "ns")]
     (if (not (empty? value))
       (map #(let [ns (read-string %)]
-              (if (re-find #"^immutant\.integs\." (name ns))
+              (if (re-find (re-pattern (format "^immutant\\.%s\\." (dir))) (name ns))
                 ns
-                (symbol (str "immutant.integs." (name ns)))))
+                (symbol (format "immutant.%s.%s" (dir) (name ns)))))
            (string/split value #",")))))
 
 (defn generate-archives [dest-dir & app-dirs]
@@ -130,8 +133,7 @@
                     (io/file dest-dir)
                     opts)))
 
-(let [integs (io/file (.getParentFile (io/file *file*))
-                      (if (domain?) "cluster" "integs"))
+(let [integs (io/file (.getParentFile (io/file *file*)) (dir))
       namespaces (or (ns-from-property) (find-namespaces-in-dir integs))]
   (generate-archives "target/apps"
                      ["apps/ring/basic-ring"]

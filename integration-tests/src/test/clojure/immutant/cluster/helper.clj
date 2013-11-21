@@ -15,44 +15,35 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.integ-helper
-  (:require [clj-http.client :as client])
-  (:use [fntest.core :only (offset-port)]))
-
-(def deployment-class-loader-regex
-  #"ImmutantClassLoader.*deployment\..*\.clj")
+(ns immutant.cluster.helper
+  (:require [clj-http.client :as client]
+            [jboss-as.api :as api])
+  (:use [fntest.core :only (offset-port *server*)]
+        [immutant.util :only (wait-for)]))
 
 (def http-port (partial offset-port :http))
+(def messaging-port (partial offset-port :messaging))
 
-(defn base-url []
-  (str "http://localhost:" (http-port)))
+(defn base-url [host]
+  (str "http://localhost:" (http-port host)))
 
-(def hornetq-port (partial offset-port :messaging))
-
-(def remoting-port (partial offset-port 9999))
-
-(defn remote [f & args]
-  (apply f (concat args
-                   (if-not (some #{:host} args)
-                     [:host "localhost"])
-                   [:port (hornetq-port)])))
-
-(defn as-data* [method path & [opts]]
+(defn as-data* [method path host]
   (let [result (client/request
-                (merge
-                 {:method method
-                  :url (str (base-url) path)}
-                 opts))]
-    ;;(println "RESPONSE" result)
+                {:method method
+                 :url (str (base-url host) path)})]
+    ;; (println "RESPONSE" result)
     {:result result
      :body (if (seq (:body result))
              (read-string (:body result)))}))
 
-(defn as-data [method path & [opts]]
-  (:body (as-data* method path opts)))
+(defn get-as-data [path host]
+  (:body (as-data* :get path host)))
 
-(defn get-as-data* [path & [opts]]
-  (as-data* :get path opts))
+(defn stop [host]
+  (api/stop-server (.uri *server*) host)
+  (wait-for #(= "STOPPED" (api/server-status (.uri *server*) host))))
 
-(defn get-as-data [path]
-  (:body (get-as-data* path)))
+(defn start [host]
+  (api/start-server (.uri *server*) host)
+  (wait-for #(= "STARTED" (api/server-status (.uri *server*) host))))
+

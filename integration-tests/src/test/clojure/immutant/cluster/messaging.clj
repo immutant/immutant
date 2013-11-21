@@ -15,23 +15,20 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.cluster.basic
+(ns immutant.cluster.messaging
   (:use fntest.core
         clojure.test
-        [immutant.cluster.helper :only [get-as-data stop start]]))
+        [immutant.cluster.helper :only [stop start messaging-port]])
+  (:require [immutant.messaging :as msg]))
 
 (use-fixtures :once (with-deployment *file*
-                      '{
-                        :root "target/apps/ring/basic-ring/"
-                        :init 'basic-ring.core/init-web
-                        :context-path "/basic-ring"
-                        }))
+                      {:root "target/apps/messaging/cluster/"}))
 
-(deftest bouncing-basic-web
-  (is (= :basic-ring (:app (get-as-data "/basic-ring" "server-one"))))
-  (is (= :basic-ring (:app (get-as-data "/basic-ring" "server-two"))))
-  (stop "server-one")
-  (is (thrown? java.net.ConnectException (get-as-data "/basic-ring" "server-one")))
-  (start "server-one")
-  (is (= :basic-ring (:app (get-as-data "/basic-ring" "server-one")))))
-
+(deftest publish-here-receive-there
+  (let [q "/queue/cluster"
+        p1 (messaging-port "server-one")
+        p2 (messaging-port "server-two")]
+    (dotimes [i 2]
+      (msg/publish q i, :host "localhost", :port p1))
+    (is (number? (msg/receive q, :host "localhost", :port p2)))
+    (is (number? (msg/receive q, :host "localhost", :port p1)))))
