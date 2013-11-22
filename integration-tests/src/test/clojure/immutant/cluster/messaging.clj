@@ -22,13 +22,25 @@
   (:require [immutant.messaging :as msg]))
 
 (use-fixtures :once (with-deployment *file*
-                      {:root "target/apps/messaging/cluster/"}))
+                      {:root "target/apps/cluster/"}))
 
 (deftest publish-here-receive-there
   (let [q "/queue/cluster"
         p1 (messaging-port "server-one")
         p2 (messaging-port "server-two")]
-    (dotimes [i 2]
+    (dotimes [i 10]
       (msg/publish q i, :host "localhost", :port p1))
-    (is (number? (msg/receive q, :host "localhost", :port p2)))
-    (is (number? (msg/receive q, :host "localhost", :port p1)))))
+    (is (= (range 10) (sort (take 10 (msg/message-seq q, :host "localhost", :port p2)))))))
+
+(deftest daemon-failover
+  (let [q "/queue/nodename"
+        p1 (messaging-port "server-one")
+        p2 (messaging-port "server-two")]
+    (stop "server-one")
+    (is (= "master:server-two" @(msg/request q nil, :port p2, :host "localhost")))
+    (start "server-one")
+    (is (= "master:server-two" @(msg/request q nil, :port p2, :host "localhost")))
+    (is (= "master:server-two" @(msg/request q nil, :port p1, :host "localhost")))
+    (stop "server-two")
+    (is (= "master:server-one" @(msg/request q nil, :port p1, :host "localhost")))
+    (start "server-two")))
