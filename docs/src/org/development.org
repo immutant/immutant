@@ -44,6 +44,10 @@
    on your app's Continuous Integration host whenever any changes are
    committed.
 
+   *Note:* the log output for the Immutant instance used for the test
+    run will be located in
+    =<project-root>/target/isolated-immutant/standalone/log/=.
+
 * The REPL
   :PROPERTIES:
   :CUSTOM_ID: interactive
