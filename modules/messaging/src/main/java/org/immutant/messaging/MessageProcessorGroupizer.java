@@ -31,6 +31,7 @@ import org.immutant.core.as.CoreServices;
 import org.immutant.messaging.as.MessagingServices;
 import org.jboss.as.naming.deployment.ContextNames;
 import org.jboss.as.server.deployment.DeploymentUnit;
+import org.jboss.as.txn.service.TxnServices;
 import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.State;
@@ -83,12 +84,17 @@ public class MessageProcessorGroupizer extends AtRuntimeInstaller<MessageProcess
 
                                 ServiceName javaContext = ContextNames.JAVA_CONTEXT_SERVICE_NAME;
 
-                                builder.addDependency( CoreServices.runtime( getUnit() ), group.getClojureRuntimeInjector() )
-                                    .addListener(ServiceSynchronizationManager.INSTANCE)
-                                    .addDependency( pointerDestName )
-                                    .addDependency( javaContext.append( "ConnectionFactory" ), group.getConnectionFactoryInjector() )
-                                    .addDependency( javaContext.append( DestinationUtils.getServiceName( destinationName ) ), group.getDestinationInjector() )
-                                    .install();
+                                builder.addDependency(CoreServices.runtime( getUnit() ),
+                                                       group.getClojureRuntimeInjector())
+                                        .addDependency(TxnServices.JBOSS_TXN_TRANSACTION_MANAGER,
+                                                       group.getTransactionManagerInjector())
+                                        .addDependency(pointerDestName)
+                                        .addDependency(javaContext.append("ConnectionFactory"),
+                                                       group.getConnectionFactoryInjector())
+                                        .addDependency(javaContext.append(DestinationUtils.getServiceName(destinationName)),
+                                                       group.getDestinationInjector())
+                                        .addListener(ServiceSynchronizationManager.INSTANCE)
+                                        .install();
 
                             }
                         } );

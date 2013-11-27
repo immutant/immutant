@@ -54,31 +54,20 @@ public class MessageProcessor extends BaseMessageProcessor {
                 }
             } catch (javax.transaction.RollbackException ignored) {
             } catch (Throwable e) {
+                e.printStackTrace();
                 if (isXAEnabled()) {
                     getTransactionManager().rollback();
                 }
                 throw(e);
             }
         } catch (Throwable e) {
+            e.printStackTrace();
             throw new RuntimeException("Unexpected error processing message from: " + getGroup().getName(), e);
         }
     }
     
     public void setHandler(Object handler) {
         this.handler = handler;
-    }
-
-    // This is FRMF, but I have no clue how to make the base class
-    // method of the same name return an actual TM. Probably adding
-    // some dependency to the Groupizer that sets the TM in the Group
-    // that would then have to somehow set the TM in this thing's
-    // parent, probably using "typesafe managed factory injectors",
-    // which is even more FRMF, so here we are.
-    protected TransactionManager getTransactionManager() {
-        if (this.tm == null) {
-            this.tm = (TransactionManager) runtime.invoke("immutant.registry/get", "jboss.txn.TransactionManager");
-        }
-        return this.tm;
     }
     
     private ClojureRuntimeShim runtime;
