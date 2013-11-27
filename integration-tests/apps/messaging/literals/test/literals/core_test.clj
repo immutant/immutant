@@ -30,7 +30,7 @@
       (try
         (publish [r t] :encoding enc)
         (is (= [r t] (deref p 1000 :fail)))
-        (finally (msg/unlisten l))))))
+        (finally @(msg/unlisten l))))))
 
 ;;; These will only work when data_readers.clj is auto-loaded
 (when (resolve 'clojure.core/*data-readers*)
