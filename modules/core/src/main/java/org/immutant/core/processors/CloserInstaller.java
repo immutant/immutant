@@ -34,8 +34,9 @@ public class CloserInstaller extends RegisteringProcessor {
         Closer service = new Closer();
                 
         context.getServiceTarget().addService(CoreServices.housekeeper( unit ), service)
-            .setInitialMode(Mode.ACTIVE)
-            .install();
+                .addDependency(CoreServices.runtime(unit))
+                .setInitialMode(Mode.ACTIVE)
+                .install();
         
         return new RegistryEntry( "housekeeper", service );
     }
