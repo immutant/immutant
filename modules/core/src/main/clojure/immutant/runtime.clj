@@ -94,7 +94,7 @@ post-initialize is called to finalize initialization."
    (log/warn "No :init fn, immutant.init namespace or :ring options found for"
              (util/app-name)
              "- no initialization will be performed"))
-  (future (repl/init-repl (registry/get :config))))
+  (repl/init-repl (registry/get :config)))
 
 (defn ^{:internal true} set-app-config
   "Takes the full application config and project map as data strings
