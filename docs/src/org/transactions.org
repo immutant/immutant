@@ -146,5 +146,5 @@
    | =never=         | Toss an exception if there is an active transaction                                                              |
 
    These macros give the developer complete declarative control over
-   the transactional semantics of his application as its functional
+   the transactional semantics of their application as its functional
    chunks are combined.
