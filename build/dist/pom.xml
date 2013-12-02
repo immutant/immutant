@@ -94,38 +94,20 @@
           </plugin>
 
           <plugin>
-            <groupId>de.saumya.mojo</groupId>
-            <artifactId>jruby-maven-plugin</artifactId>
+            <groupId>com.theoryinpractise</groupId>
+            <artifactId>clojure-maven-plugin</artifactId>
             <executions>
-              <execution>
-                <id>install-json</id>
-                <phase>compile</phase>
-                <goals>
-                  <goal>jruby</goal>
-                </goals>
-                <configuration>
-                  <args>-S gem install json_pure - -no-ri - -no-rdoc</args>
-                  <gemHome>./target/rubygems</gemHome>
-                  <gemPath>./target/rubygems</gemPath>
-                </configuration>
-              </execution>
               <execution>
                 <id>generate-build-metadata</id>
                 <phase>verify</phase>
                 <goals>
-                  <goal>jruby</goal>
+                  <goal>run</goal>
                 </goals>
                 <configuration>
-                  <file>bin/generate_build_metadata.rb</file>
+                  <mainClass>immutant.build.generate_build_metadata</mainClass>
                 </configuration>
               </execution>
-            </executions>
-          </plugin>
-          
-          <plugin>
-            <groupId>com.theoryinpractise</groupId>
-            <artifactId>clojure-maven-plugin</artifactId>
-            <executions>
+              
               <execution>
                 <id>generate-digests</id>
                 <phase>verify</phase>
@@ -150,6 +132,20 @@
   <dependencies>
     <dependency>
       <groupId>org.immutant</groupId>
+      <artifactId>immutant-core-module</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectodd</groupId>
+      <artifactId>polyglot-core</artifactId>
+      <version>${version.polyglot}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.immutant</groupId>
       <artifactId>immutant-build-assembly</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
@@ -163,13 +159,5 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-
-
-
-    </plugins>
-  </build>
 
 </project>

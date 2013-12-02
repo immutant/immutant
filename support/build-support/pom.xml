@@ -39,6 +39,12 @@
     </dependency>
 
     <dependency>
+      <groupId>cheshire</groupId>
+      <artifactId>cheshire</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
       <groupId>clj-glob</groupId>
       <artifactId>clj-glob</artifactId>
       <scope>compile</scope>
