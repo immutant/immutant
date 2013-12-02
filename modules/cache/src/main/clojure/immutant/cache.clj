@@ -189,7 +189,7 @@
      :seed        A map of initial entries [nil]
      :locking     Transactional locking schemes [nil]
                     :optimisitic or :pessimistic
-     :encoding    :edn :json or :none [:edn]
+     :encoding    :edn :fressian :json or :none [:edn]
      :max-entries The maximum number of entries allowed in the cache [-1]
      :eviction    How entries are evicted when :max-entries is exceeded [:lirs]
                     :lru, :lirs, or :unordered
