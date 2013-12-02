@@ -42,10 +42,11 @@
   (registry/get "app-name"))
 
 (defn app-relative
-  "Returns a file relative to app-root"
+  "Returns an absolute file relative to app-root"
   [& path]
   (if-let [root (app-root)]
-    (apply io/file root path)))
+    (apply io/file root path)
+    (apply io/file path)))
 
 (defn classpath
   "Returns the effective classpath for the app"
