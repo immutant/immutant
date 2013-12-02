@@ -16,8 +16,33 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns test.immutant.messaging.codecs
-  (:use [immutant.messaging.codecs])
-  (:use [clojure.test]))
+  (:use immutant.messaging.codecs
+        clojure.test))
+
+(defn bytes-message
+  ([]
+     (let [properties (java.util.Hashtable.)
+           data (atom nil)]
+       (proxy [javax.jms.BytesMessage] []
+         (getBodyLength []
+           (alength @data))
+         (readBytes [bytes]
+           (doseq [idx (range (alength @data))]
+             (aset bytes idx (aget @data idx)))
+          (alength @data))
+         (writeBytes [bytes]
+           (reset! data bytes))
+         (setStringProperty [k,v]
+           (.put properties k v))
+         (getStringProperty [k]
+           (.get properties k))
+         (getObjectProperty [k]
+            (.get properties k))
+         (getPropertyNames []
+            (.keys properties)))))
+  ([content]
+     (doto (bytes-message)
+       (.writeBytes (.getBytes content)))))
 
 (defn session-mock []
   (proxy [javax.jms.Session] []
@@ -32,22 +57,9 @@
           (getObjectProperty [k]
             (.get properties k))
           (getPropertyNames []
-            (.keys properties)))))))
-
-(defn bytes-message [content]
-  (let [properties (java.util.HashMap.)]
-    (proxy [javax.jms.BytesMessage] []
-      (getBodyLength []
-        (alength (.getBytes content)))
-      (readBytes [bytes]
-        (let [src (.getBytes content)]
-          (doseq [idx (range (alength src))]
-            (aset bytes idx (aget src idx)))
-          (alength src)))
-      (setStringProperty [k,v]
-        (.put properties k v))
-      (getStringProperty [k]
-        (.get properties k)))))
+            (.keys properties)))))
+    (createBytesMessage []
+      (bytes-message))))
 
 (defn test-codec [message encoding & [read-eval?]]
   (is (= message (if-not read-eval?
@@ -89,6 +101,21 @@
 
 (deftest edn-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
+
+(deftest fressian-string
+  (test-codec "a simple text message" :fressian))
+
+(deftest fressian-date
+  (test-codec (java.util.Date.) :fressian))
+
+(deftest fressian-date-inside-hash
+  (test-codec {:date (java.util.Date.)} :fressian))
+
+(deftest fressian-date-inside-vector
+  (test-codec [(java.util.Date.)] :fressian))
+
+(deftest fressian-complex-hash
+  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :fressian))
 
 (deftest complex-json-encoding
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}

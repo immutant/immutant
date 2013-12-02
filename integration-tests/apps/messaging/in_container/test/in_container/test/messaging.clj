@@ -145,3 +145,10 @@
       @(msg/unlisten l)
       (is (thrown? InstanceNotFoundException (jmx/mbean mbean-name))))))
 
+
+(deftest encodings-smoketest
+  (let [q "queue.encodings"]
+    (msg/start q)
+    (doseq [enc [:edn :json :clojure :fressian :text]]
+      (msg/publish q "hi" :encoding enc)
+      (is (= "hi" (msg/receive q))))))

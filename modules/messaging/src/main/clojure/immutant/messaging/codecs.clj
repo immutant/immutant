@@ -69,6 +69,15 @@
    (.createTextMessage session (core/encode message :json))
    :json))
 
+(defmethod encode :fressian [^javax.jms.Session session message options]
+  (let [data (core/encode message :fressian)
+        bytes (byte-array (.remaining data))]
+    (.get data bytes)
+    (set-encoding
+      (doto (.createBytesMessage session)
+        (.writeBytes bytes))
+      :fressian)))
+
 (defmethod encode :text [^javax.jms.Session session message options]
   "Treat the payload as a raw String. No encoding is done."
   (set-encoding
@@ -94,6 +103,12 @@
 (defmethod decode :text [message]
   "Treats the message payload as a raw string. No decoding is done."
   (message-text message))
+
+(defmethod decode :fressian [^BytesMessage message]
+  "Turn fressian encoded bytes into clojure data"
+  (let [bytes (byte-array (.getBodyLength message))]
+    (.readBytes message bytes)
+    (core/decode bytes :fressian)))
 
 (defmethod decode :default [message]
   (throw (RuntimeException. (str "Received unknown message encoding: " (get-encoding message)))))

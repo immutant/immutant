@@ -19,7 +19,8 @@
   "Common codecs used when [de]serializing data structures."
   (:require [cheshire.core :as json]
             [clojure.tools.reader.edn :as edn]
-            [clojure.tools.reader :as r]))
+            [clojure.tools.reader :as r]
+            [clojure.data.fressian :as df]))
 
 (defmacro data-readers []
   (if (resolve 'clojure.core/*data-readers*)
@@ -44,6 +45,10 @@
 (defmethod encode :json [data _]
   "Stringify a json data structure"
   (json/generate-string data))
+
+(defmethod encode :fressian [data _]
+  "Encode as fressian into a ByteBuffer."
+  (df/write data :footer? true))
 
 (defmethod encode :none [data _]
   "Treat the payload as raw. No encoding is done."
@@ -86,6 +91,15 @@
     (catch Throwable e
       (throw (RuntimeException.
               (str "Invalid json-encoded data (type=" (class data) "): " data)
+              e)))))
+
+(defmethod decode :fressian [data _]
+  "Turn fressian bytes back in to clojure data"
+  (try
+    (and data (df/read data))
+    (catch Throwable e
+      (throw (RuntimeException.
+              (str "Invalid fressian-encoded data (type=" (class data) "): " data)
               e)))))
 
 (defmethod decode :none [data _]

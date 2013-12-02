@@ -29,11 +29,13 @@
         <resource-root path="immutant-common.jar"/>
         <resource-root path="tools.logging.jar"/>
         <!--
-        tools.reader imports clojure.lang.RT, and an gen-classed Exception class, so has to
-        be able to find the clojure classes, which only exist in the deployment ClassLaoder,
+        tools.reader imports clojure.lang.RT, and a gen-classed Exception class, so has to
+        be able to find the clojure classes, which only exist in the deployment ClassLoader,
         so we don't load it as a resource-root here, and add it directly to each deployment's
         effective classpath in AppDependenciesProcessor instead.
         <resource-root path="tools.reader.jar"/> -->
+        <resource-root path="data.fressian.jar"/>
+        <resource-root path="fressian.jar"/>
         <resource-root path="cheshire.jar"/>
         <resource-root path="jackson-core.jar"/>
         <resource-root path="jackson-dataformat-smile.jar"/>

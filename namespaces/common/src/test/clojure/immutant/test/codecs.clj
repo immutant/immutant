@@ -59,6 +59,21 @@
 (deftest edn-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
 
+(deftest fressian-string
+  (test-codec "a simple text message" :fressian))
+
+(deftest fressian-date
+  (test-codec (java.util.Date.) :fressian))
+
+(deftest fressian-date-inside-hash
+  (test-codec {:date (java.util.Date.)} :fressian))
+
+(deftest fressian-date-inside-vector
+  (test-codec [(java.util.Date.)] :fressian))
+
+(deftest fressian-complex-hash
+  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :fressian))
+
 (deftest complex-json-encoding
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}
         encoded (encode message :json)]
