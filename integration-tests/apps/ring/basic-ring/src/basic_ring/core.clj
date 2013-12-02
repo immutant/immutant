@@ -89,8 +89,7 @@
      (dev/add-dependencies! '[org.yaml/snakeyaml "1.5"] "extra")
      (use 'basic-ring.extra)
      (response  {:original (:dependencies original-project)
-                 :with-data-reader (if (not= "1.3.0" (clojure-version))
-                                     (read-string "#basic-ring/i \"something\""))
+                 :with-data-reader (read-string "#basic-ring/i \"something\"")
                  :added '[[clj-http "0.5.5"]
                           [org.clojure/data.json "0.1.2"]
                           [org.yaml/snakeyaml "1.5"]]

@@ -83,7 +83,7 @@
         (fact "should return deps from project.clj"
           deps => (contains (aether/dependency-files
                              (aether/resolve-dependencies
-                              :coordinates [['org.clojure/clojure "1.3.0"]]))))
+                              :coordinates [['org.clojure/clojure "1.5.1"]]))))
         
         (fact "should return deps from lib"
           deps => (contains (io/file (io/resource "project-root/lib/some.jar"))))

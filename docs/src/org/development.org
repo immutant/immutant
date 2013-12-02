@@ -266,9 +266,8 @@
   - [[./apidoc/immutant.dev.html#var-reload-project!][immutant.dev/reload-project!]] Resets the application's class loader
     to provide the paths and dependencies in the from the given
     project. If no project is provided, the =project.clj= for the
-    appplication is loaded from disk. If used under clojure > 1.3.0,
-    this will also make any new data readers from the dependencies
-    available.  Returns the project map.
+    appplication is loaded from disk. Also makes any new data readers
+    from the dependencies available.  Returns the project map.
   - [[./apidoc/immutant.dev.html#var-add-dependencies!][immutant.dev/add-dependencies!]] Adds the given dependencies into
     the currently active project's dependency set and resets the
     application's class loader to provide the paths and dependencies

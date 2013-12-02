@@ -65,29 +65,27 @@ from project.clj when the application was deployed reload-project! has yet
   (registry/get :project))
 
 
-(defonce ^:private original-default-data-readers (if-let [d (util/try-resolve 'clojure.core/default-data-readers)] @d))
+(defonce ^:private original-default-data-readers default-data-readers)
 
 (defn ^:private load-data-readers []
   ;; The deps may have brought in data readers, so we load them.
   ;; Since *data-readers* is already bound, altering its root binding won't help,
   ;; so we instead muck with default-data-readers. From a functionality pov, it
   ;; should work the same for the user.
-
-  ;; we have to do all the try-resolve muck so this will load under 1.3, but
-  ;; there's probably a better way to do it
   (if original-default-data-readers
-    (alter-var-root (util/try-resolve 'clojure.core/default-data-readers)
-                    (fn [_]
-                      (reduce (util/try-resolve 'clojure.core/load-data-reader-file)
-                              original-default-data-readers
-                              ((util/try-resolve 'clojure.core/data-reader-urls)))))))
+    (alter-var-root
+      #'default-data-readers
+      (fn [_]
+        (reduce #'clojure.core/load-data-reader-file
+          original-default-data-readers
+          (#'clojure.core/data-reader-urls))))))
 
 (defn reload-project!
-  "Resets the application's class loader to provide the paths and dependencies in the
-from the given project. If no project is provided, the project.clj for the appplication
-is loaded from disk. If used under clojure > 1.3.0, this will also make any new data
-readers from the dependencies available. Returns the project map. This should never
-be used in production. (beta)"
+  "Resets the application's class loader to provide the paths and
+dependencies in the from the given project. If no project is provided,
+the project.clj for the appplication is loaded from disk. Also makes
+any new data readers from the dependencies available. Returns the
+project map. This should never be used in production. (beta)"
   ([]
      (reload-project! (read-project)))
   ([project]
