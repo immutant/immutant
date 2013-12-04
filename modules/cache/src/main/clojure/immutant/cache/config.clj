@@ -57,7 +57,8 @@
         transaction
         (transactionManagerLookup (GenericTransactionManagerLookup.))
         (transactionMode TransactionMode/TRANSACTIONAL)
-        (useSynchronization (not (not use-synchronization))))
+        (useSynchronization (boolean use-synchronization))
+        recovery)
     (.. builder
         transaction
         (transactionMode TransactionMode/NON_TRANSACTIONAL))))
