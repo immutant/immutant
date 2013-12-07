@@ -15,19 +15,38 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.cluster.messaging
+(ns immutant.cluster.ha
   (:use fntest.core
         clojure.test
-        [immutant.cluster.helper :only [messaging-port]])
+        [immutant.cluster.helper :only [stop start messaging-port]])
   (:require [immutant.messaging :as msg]))
 
 (use-fixtures :once (with-deployment *file*
                       {:root "target/apps/cluster/"}))
 
-(deftest publish-here-receive-there
-  (let [q "/queue/cluster"
+(def responses (atom []))
+
+(defn response [queue port]
+  (swap! responses conj
+    (deref (msg/request queue :remote, :port port, :host "localhost")
+      10000 {:node :timeout, :count 0})))
+
+(deftest failover
+  (let [q "/queue/cache"
         p1 (messaging-port "server-one")
         p2 (messaging-port "server-two")]
-    (dotimes [i 10]
-      (msg/publish q i, :host "localhost", :port p1))
-    (is (= (range 10) (sort (take 10 (msg/message-seq q, :host "localhost", :port p2)))))))
+    (println (response q p1))
+    (stop "server-one")
+    (println (response q p2))
+    (is (= "master:server-two" (:node (last @responses))))
+    (start "server-one")
+    (println (response q p1))
+    (is (= "master:server-two" (:node (last @responses))))
+    (stop "server-two")
+    (println (response q p1))
+    (is (= "master:server-one" (:node (last @responses))))
+    (start "server-two")
+    
+    ;; assert the job and distributed cache kept the count ascending
+    ;; across restarts
+    (is (apply < (map :count @responses)))))
