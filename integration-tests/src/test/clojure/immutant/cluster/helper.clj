@@ -47,5 +47,7 @@
 (defn start [host]
   (api/start-server (.uri *server*) host)
   (wait-for #(= "STARTED" (api/server-status (.uri *server*) host)))
-  (println host "started"))
+  (println host "started")
+  ;; this should NOT be necessary!
+  (Thread/sleep 20000))
 
