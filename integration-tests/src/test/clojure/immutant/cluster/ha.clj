@@ -26,7 +26,7 @@
 
 (defn response [queue port]
   (deref (msg/request queue :remote, :port port, :host "localhost")
-    10000 {:node :timeout, :count 0}))
+    60000 {:node :timeout, :count 0}))
 
 (deftest failover
   (let [responses (atom [])

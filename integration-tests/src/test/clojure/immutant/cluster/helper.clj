@@ -42,10 +42,12 @@
 (defn stop [host]
   (api/stop-server (.uri *server*) host)
   (wait-for #(= "STOPPED" (api/server-status (.uri *server*) host)))
+  (Thread/sleep 1000)
   (println host "stopped"))
 
 (defn start [host]
   (api/start-server (.uri *server*) host)
   (wait-for #(= "STARTED" (api/server-status (.uri *server*) host)))
+  (Thread/sleep 1000)
   (println host "started"))
 
