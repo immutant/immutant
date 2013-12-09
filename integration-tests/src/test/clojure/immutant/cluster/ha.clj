@@ -24,26 +24,24 @@
 (use-fixtures :once (with-deployment *file*
                       {:root "target/apps/cluster/"}))
 
-(def responses (atom []))
-
 (defn response [queue port]
-  (swap! responses conj
-    (deref (msg/request queue :remote, :port port, :host "localhost")
-      10000 {:node :timeout, :count 0})))
+  (deref (msg/request queue :remote, :port port, :host "localhost")
+    10000 {:node :timeout, :count 0}))
 
 (deftest failover
-  (let [q "/queue/cache"
+  (let [responses (atom [])
+        q "/queue/cache"
         p1 (messaging-port "server-one")
         p2 (messaging-port "server-two")]
-    (println (response q p1))
+    (println (swap! responses conj (response q p1)))
     (stop "server-one")
-    (println (response q p2))
+    (println (swap! responses conj (response q p2)))
     (is (= "master:server-two" (:node (last @responses))))
     (start "server-one")
-    (println (response q p1))
+    (println (swap! responses conj (response q p1)))
     (is (= "master:server-two" (:node (last @responses))))
     (stop "server-two")
-    (println (response q p1))
+    (println (swap! responses conj (response q p1)))
     (is (= "master:server-one" (:node (last @responses))))
     (start "server-two")
     
