@@ -26,7 +26,7 @@
 
 (defn response [queue port]
   (deref (msg/request queue :remote, :port port, :host "localhost")
-    60000 {:node :timeout, :count 0}))
+    10000 {:node :timeout, :count 0}))
 
 (deftest failover
   (let [responses (atom [])
@@ -38,7 +38,7 @@
     (println (swap! responses conj (response q p2)))
     (is (= "master:server-two" (:node (last @responses))))
     (start "server-one")
-    (println (swap! responses conj (response q p1)))
+    (println (swap! responses conj (response q p2)))
     (is (= "master:server-two" (:node (last @responses))))
     (stop "server-two")
     (println (swap! responses conj (response q p1)))

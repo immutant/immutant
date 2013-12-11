@@ -21,11 +21,7 @@
 (job/schedule "updater" update-cache :every :second)
 
 (let [resp  (atom nil)
-      start (fn [] (reset! resp
-                    (msg/respond "/queue/cache"
-                      (fn [_]
-                        (Thread/sleep 500) ; HORNETQ-86
-                        (into {} cache)))))
-      stop  (fn [] (msg/unlisten @resp))]
+      start #(reset! resp (msg/respond "/queue/cache" (fn [_] (into {} cache))))
+      stop  #(msg/unlisten @resp)]
   (dmn/daemonize "cache-status" start stop))
 
