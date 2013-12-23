@@ -22,7 +22,7 @@
   (:require [immutant.messaging :as msg]))
 
 (use-fixtures :once (with-deployment *file*
-                      {:root "target/apps/cluster/"}))
+                      {:root "target/apps/cluster/ha"}))
 
 (defn response [queue port]
   (deref (msg/request queue :remote, :port port, :host "localhost")

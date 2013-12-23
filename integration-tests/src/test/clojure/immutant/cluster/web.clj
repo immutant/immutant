@@ -15,19 +15,19 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.cluster.messaging
+(ns immutant.cluster.web
   (:use fntest.core
         clojure.test
-        [immutant.cluster.helper :only [messaging-port]])
-  (:require [immutant.messaging :as msg]))
+        [immutant.cluster.helper :only [stop start get-as-data]]))
 
 (use-fixtures :once (with-deployment *file*
-                      {:root "target/apps/cluster/msg"}))
+                      {:root "target/apps/cluster/web"
+                       :context-path "/"}))
 
-(deftest publish-here-receive-there
-  (let [q "/queue/cluster"
-        p1 (messaging-port "server-one")
-        p2 (messaging-port "server-two")]
-    (dotimes [i 10]
-      (msg/publish q i, :host "localhost", :port p1))
-    (is (= (range 10) (sort (take 10 (msg/message-seq q, :host "localhost", :port p2)))))))
+(deftest session-replication
+  (is (= 0 (get-as-data "/counter" "server-one")))
+  (is (= 1 (get-as-data "/counter" "server-two")))
+  (is (= 2 (get-as-data "/counter" "server-one")))
+  (stop "server-one")
+  (is (= 3 (get-as-data "/counter" "server-two")))
+  (start "server-one"))

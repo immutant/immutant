@@ -7,7 +7,6 @@
 
 (def nodename (System/getProperty "jboss.node.name"))
 
-(msg/start "/queue/cluster", :durable false)
 (msg/start "/queue/cache", :durable false)
 
 (def cache (csh/lookup-or-create "cluster-test", :locking :pessimistic))
@@ -24,4 +23,3 @@
       start #(reset! resp (msg/respond "/queue/cache" (fn [_] (into {} cache))))
       stop  #(msg/unlisten @resp)]
   (dmn/daemonize "cache-status" start stop))
-

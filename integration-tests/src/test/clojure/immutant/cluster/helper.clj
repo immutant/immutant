@@ -23,6 +23,7 @@
 
 (def http-port (partial offset-port :http))
 (def messaging-port (partial offset-port :messaging))
+(def cookies (clj-http.cookies/cookie-store))
 
 (defn base-url [host]
   (str "http://localhost:" (http-port host)))
@@ -30,7 +31,8 @@
 (defn as-data* [method path host]
   (let [result (client/request
                 {:method method
-                 :url (str (base-url host) path)})]
+                 :url (str (base-url host) path)
+                 :cookie-store cookies})]
     ;; (println "RESPONSE" result)
     {:result result
      :body (if (seq (:body result))
