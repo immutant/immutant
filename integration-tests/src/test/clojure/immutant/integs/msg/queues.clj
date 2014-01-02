@@ -96,6 +96,7 @@
     (let [result (delayed-receive ham-queue)]
       (is (not (realized? result)))
       (publish ham-queue :hi)
+      (deref result 1000 nil)
       (is (realized? result))))
 
   (deftest force-should-work
