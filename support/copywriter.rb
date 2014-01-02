@@ -4,7 +4,7 @@ require 'find'
 require 'fileutils'
 
 COPYRIGHT_STATEMENT = <<END
-Copyright 2008-2013 Red Hat, Inc, and individual contributors.
+Copyright 2008-2014 Red Hat, Inc, and individual contributors.
 
 This is free software; you can redistribute it and/or modify it
 under the terms of the GNU Lesser General Public License as
@@ -146,7 +146,8 @@ end
 project_dirs.each do |dir|
   $stderr.puts "Copywriting: #{dir}"
   copywrite_dir( dir, :java, "src/*/java/**/*.java" )
-  copywrite_dir( dir, :clojure, "src/*/clojure/**/*.clj" )
+  #copywrite_dir( dir, :clojure, "src/*/clojure/**/*.clj" )
+  copywrite_dir( dir, :clojure, "**/*.clj" )
   #copywrite_dir( dir, :ruby, "src/*/java/**/*.rb" )
   #copywrite_dir( dir, :ruby, "lib/**/*.rb" )
 end
