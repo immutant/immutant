@@ -28,7 +28,6 @@
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="shimdandy-api.jar"/>
         <resource-root path="dynapath.jar"/>
-        <resource-root path="swank-clojure.jar"/>
         <resource-root path="clj-stacktrace.jar"/>
         <resource-root path="tools.nrepl.jar"/>
         <resource-root path="clojure-complete.jar"/>

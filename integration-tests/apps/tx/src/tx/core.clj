@@ -28,7 +28,7 @@
   (imsg/start "/queue/remote-test"))
 
 ;;; And an Infinispan cache
-(def cache (ic/cache "tx.core"))
+(def cache (ic/create "tx.core"))
 
 (defn cache-fixture [f]
   (ic/delete-all cache)

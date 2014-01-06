@@ -45,8 +45,6 @@
   [name]
   (or (clojure.core/get @registry name) (get-from-msc name)))
 
-(def ^{:doc "Deprecated; use get instead" :no-doc true} fetch #'get)
-
 (defn service-names
   "Return the JBoss MSC service names"
   []

@@ -31,7 +31,7 @@
     (immutant.jobs/schedule "housekeeper" your.job/purge "0 0 0 * * ?")
     
     ;;; Create a distributed data grid
-    (def data-grid (immutant.cache/cache "tweets" :mode :distributed))
+    (def data-grid (immutant.cache/create "tweets" :mode :distributed))
   #+end_src
 
   All of the above functions are dynamic, meaning you can call them

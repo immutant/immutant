@@ -55,17 +55,17 @@
     </dependency>
 
     <dependency>
-      <groupId>swank-clojure</groupId>
-      <artifactId>swank-clojure</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>tools.nrepl</artifactId>
       <scope>compile</scope>
     </dependency>
     
+    <dependency>
+      <groupId>clj-stacktrace</groupId>
+      <artifactId>clj-stacktrace</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
     <dependency>
       <groupId>clojure-complete</groupId>
       <artifactId>clojure-complete</artifactId>

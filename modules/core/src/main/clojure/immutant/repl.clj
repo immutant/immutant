@@ -16,7 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns immutant.repl
-  "Provides tools for starting swank and nrepl servers."
+  "Provides tools for starting nrepl servers."
   (:require [immutant.util         :as util]
             [immutant.registry     :as registry]
             [clojure.tools.logging :as log]))
@@ -25,24 +25,6 @@
   (if (string? port)
     (Integer. port)
     port))
-
-(defn stop-swank
-  "Shuts down the running swank server."
-  []
-  (log/info "Stopping swank for" (util/app-name))
-  ((util/try-resolve 'swank.swank/stop-server)))
-
-(defn start-swank
-  "Starts a swank server on the given port. If an interface-address is provided,
-the server is bound to that interface. Otherwise it binds to the management
-interface defined by the AS. Registers an at-exit handler to shutdown swank on
-undeploy."
-  ([interface-address port]
-     (log/info "Starting swank for" (util/app-name) "at" (str interface-address ":" port))
-     ((util/try-resolve 'swank.swank/start-server) :host interface-address :port (fix-port port) :exit-on-quit false)
-     (util/at-exit stop-swank))
-  ([port]
-     (start-swank (util/management-interface-address) port)))
 
 (defn stop-nrepl
   "Stops the given nrepl server."
@@ -104,7 +86,7 @@ undeploy."
     (.deleteOnExit f)))
 
 (defn ^{:internal true :no-doc true} init-repl
-  "Looks for nrepl-port and swank-port values in the given config, and starts
+  "Looks for nrepl-port value in the given config, and starts
 the appropriate servers."
   [config]
   (let [port (:nrepl-port config (if (util/dev-mode?) 0 nil))
@@ -115,6 +97,4 @@ the appropriate servers."
               host (-> ss .getInetAddress .getHostAddress)
               bound-port (.getLocalPort ss)]
           (log/info "nREPL bound to" (str host ":" bound-port))
-          (spit-nrepl-files bound-port (:nrepl-port-file config))))))
-  (when-let [port (:swank-port config)]
-    (start-swank port)))
+          (spit-nrepl-files bound-port (:nrepl-port-file config)))))))

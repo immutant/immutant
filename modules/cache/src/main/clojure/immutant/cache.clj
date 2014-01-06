@@ -216,8 +216,6 @@
   [name & {:keys [seed config] :as options}]
   (cc/seed (InfinispanCache. (start name (or config (.build (builder options)))) options) seed))
 
-(def ^{:doc "Deprecated; use create instead" :no-doc true} cache #'create)
-
 (defn lookup
   "Looks up a cache by name and returns it; returns nil if the cache doesn't exist.
 

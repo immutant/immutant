@@ -213,12 +213,6 @@
       </dependency>
 
       <dependency>
-        <groupId>swank-clojure</groupId>
-        <artifactId>swank-clojure</artifactId>
-        <version>${version.swank-clojure}</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.jboss.as</groupId>
         <artifactId>jboss-as-dist</artifactId>
         <version>${version.jbossas}</version>
@@ -328,6 +322,12 @@
       </dependency>
 
       <dependency>
+        <groupId>clj-stacktrace</groupId>
+        <artifactId>clj-stacktrace</artifactId>
+        <version>${version.clj-stacktrace}</version>
+      </dependency>
+
+      <dependency>
         <groupId>clojure-complete</groupId>
         <artifactId>clojure-complete</artifactId>
         <version>${version.clojure-complete}</version>
@@ -405,8 +405,8 @@
     <version.clojure-complete>0.2.2</version.clojure-complete>
     <version.ring>1.2.1</version.ring>
     <version.dynapath>0.2.3</version.dynapath>
-    <version.swank-clojure>1.4.3</version.swank-clojure>
     <version.nrepl>0.2.3</version.nrepl>
+    <version.clj-stacktrace>0.2.7</version.clj-stacktrace>
     <version.wagon-provider-api>2.2</version.wagon-provider-api>
     <version.commons-io>2.0.1</version.commons-io>
     <version.clj-glob>1.0.0</version.clj-glob>
@@ -557,20 +557,15 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>swank-clojure</groupId>
-      <artifactId>swank-clojure</artifactId>
-      <scope>provided</scope>
+      <groupId>midje</groupId>
+      <artifactId>midje</artifactId>
+      <scope>test</scope>
     </dependency>
-      <dependency>
-        <groupId>midje</groupId>
-        <artifactId>midje</artifactId>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.namespace</artifactId>
         <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.clojure</groupId>
-        <artifactId>tools.namespace</artifactId>
-        <scope>test</scope>
-      </dependency>
+    </dependency>
   </dependencies>
 
   <build>

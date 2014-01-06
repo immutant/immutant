@@ -24,5 +24,4 @@
                  [org.clojars.gukjoon/ojdbc "1.4"]
                  [mysql/mysql-connector-java "5.1.22"]
                  [postgresql "9.1-901.jdbc4"]
-                 [net.sourceforge.jtds/jtds "1.2.4"]]
-  :immutant {:swank-port 4005})
+                 [net.sourceforge.jtds/jtds "1.2.4"]])

@@ -125,14 +125,13 @@
     are specified, only the =:dev=, =:base=, and =:user= profiles are
     loaded. For production usage, [[#initialization-profiles][see the note below regarding profiles]].
 
-  - =:swank-port= & =:nrepl-port= - Immutant can provide a
-    per-application repl, either via [[https://github.com/technomancy/swank-clojure][Swank]] or [[https://github.com/clojure/tools.nrepl][nREPL]] by setting one or
-    both of these options to an available port. In development mode,
-    i.e. when the Leiningen =:dev= profile is active, =:nrepl-port=
-    defaults to 0, making the nREPL server available on a port chosen
-    by the OS, which is written to a file in your project directory
-    known to many common nREPL clients. See [[./development.html#interactive][Interactive Development]]
-    for more details.
+  - =:nrepl-port= - Immutant can provide a per-application [[https://github.com/clojure/tools.nrepl][nREPL]] server
+    by setting this option to an available port. In
+    development mode, i.e. when the Leiningen =:dev= profile is
+    active, =:nrepl-port= defaults to 0, making the nREPL server
+    available on a port chosen by the OS, which is written to a file
+    in your project directory known to many common nREPL clients. See
+    [[./development.html#interactive][Interactive Development]] for more details.
 
   - =:init= - optionally specifies a function to call to initialize
     your application. It can be either a namespace-qualified symbol
@@ -153,7 +152,6 @@
     {:root "/the/path/to/my/app"
      :resolve-dependecies false
      :lein-profiles [:dev :clj15]
-     :swank-port 4242
      :nrepl-port 4343
      :init 'my.app/init
      :context-path "/"
@@ -237,7 +235,6 @@
                             :lein-profiles [:dev :clj15]
                             :context-path "/"
                             :virtual-host "foo.host" ;; can also be: ["foo1.host" "foo2.host"]
-                            :swank-port 4111
                             :nrepl-port 4112})
    #+end_src
 
@@ -269,7 +266,7 @@
      (web/start "/" (server/gen-handler {:mode :dev :ns 'my-app}))
      
      ;; spin up a repl
-     (repl/start-swank 4321)
+     (repl/start-nrepl 4321)
           
      ;; schedule a job
      (jobs/schedule "my-job" core/process-tps-reports "*/5 * * * * ?")

@@ -262,7 +262,7 @@
      
      ;;; It's possible to manipulate the cache backing the memoized
      ;;; function by referring to its name
-     (def c (ic/cache "foo"))
+     (def c (ic/create "foo"))
      (get c [1 2 3])                         ;=> 42
      
    #+end_src

@@ -21,7 +21,7 @@
             [immutant.cache :as c]))
 
 ;;; Create a cache for testing transactional scope behavior
-(def cache (c/cache "tx.test.scope"))
+(def cache (c/create "tx.test.scope"))
 
 ;;; Clear cache before each test
 (use-fixtures :each (fn [f] (c/delete-all cache) (f)))
