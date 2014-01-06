@@ -1,0 +1,20 @@
+# since we can't export the config from jenkins...
+
+# with the full build
+
+mvn -Pinteg -Pdist -e -B clean
+mvn -Pinteg -Pdocs -e -B versions:set -DnewVersion=1.x.incremental.${BUILD_NUMBER}
+mvn -Pinteg,docs,dist,slim-dist -e -B install -Dversions=${clojure_compat_version}
+mvn -Pdomain -e -B test -Dversions=${clojure_compat_version} -f integration-tests/pom.xml
+mvn -Pfull-dist,!slim-dist -e -B clean install -f build/assembly/pom.xml
+mvn -e -B clean test -Dversions=${clojure_compat_version} -Psmoketest-integs -f integration-tests/pom.xml
+mvn -Pfull-dist,!slim-dist -e -B install -f build/dist/pom.xml
+mvn -e -B install -f build/incremental/pom.xml
+
+# without the full build
+
+mvn -Pinteg -Pdist -e -B clean
+mvn -Pinteg -Pdocs -e -B versions:set -DnewVersion=1.x.incremental.${BUILD_NUMBER}
+mvn -Pinteg,docs,dist -e -B install -Dversions=${clojure_compat_version}
+mvn -Pdomain -e -B test -Dversions=${clojure_compat_version} -f integration-tests/pom.xml
+mvn -e -B install -f build/incremental/pom.xml

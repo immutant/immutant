@@ -21,7 +21,7 @@ class Publisher
     @published_artifacts = []
 
     @dist_files = add_digests('/../../dist/target/immutant-dist-slim.zip',
-                              '/../../dist/target/immutant-dist-full.zip',
+                              #'/../../dist/target/immutant-dist-full.zip',
                               '/../../dist/target/immutant-dist-modules.zip',
                               '/../../dist/target/build-metadata.json')
   end

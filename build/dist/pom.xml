@@ -27,107 +27,70 @@
         </dependency>
       </dependencies>
     </profile>
-
-    <profile>
-      <id>slim-dist</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>dist-slim</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal> 
-                </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/dist-slim.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-              <execution>
-                <id>dist-modules</id>
-                <phase>package</phase> 
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/dist-modules.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>full-dist</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>dist-full</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal> 
-                </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/dist-full.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>com.theoryinpractise</groupId>
-            <artifactId>clojure-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>generate-build-metadata</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <mainClass>immutant.build.generate_build_metadata</mainClass>
-                </configuration>
-              </execution>
-              
-              <execution>
-                <id>generate-digests</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <mainClass>immutant.build.generate_digests</mainClass>
-                  <args>target/ .zip .json</args>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-        </plugins>
-      </build>
-    </profile>
-
   </profiles>
 
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>dist-slim</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/dist-slim.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+          <execution>
+            <id>dist-modules</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/dist-modules.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>clojure-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-build-metadata</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <mainClass>immutant.build.generate_build_metadata</mainClass>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>generate-digests</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <mainClass>immutant.build.generate_digests</mainClass>
+              <args>target/ .zip .json</args>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
   <dependencies>
     <dependency>
