@@ -63,4 +63,6 @@
    (close [_] (.close con))
    (getAutoCommit [_] (.getAutoCommit con))
    (createStatement [_] (.createStatement con))
-   (getMetaData [_] (.getMetaData con))))
+   (getMetaData [_] (.getMetaData con))
+   (getTransactionIsolation [_] (.getTransactionIsolation con))
+   (setTransactionIsolation [_ v] (.setTransactionIsolation con v))))

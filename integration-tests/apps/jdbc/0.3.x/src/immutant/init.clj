@@ -22,17 +22,17 @@
 
 (def spec {:datasource (xa/datasource "foo" {:adapter "h2" :database "mem:foo"})})
 
-(sql/with-connection spec
-  (sql/create-table :things
-                    [:name :varchar]))
+(sql/db-do-commands spec
+  (sql/create-table-ddl :things
+    [:name :varchar]))
 
 (xa/transaction
  (sql/insert! spec :things {:name "success"}))
 
 (xa/transaction
- (sql/db-transaction [con spec]
-  (sql/delete! con :things [true])
-  (sql/db-set-rollback-only! con)))
+  (sql/with-db-transaction [con spec]
+    (sql/delete! con :things [true])
+    (sql/db-set-rollback-only! con)))
 
 (try
   (xa/transaction
