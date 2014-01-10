@@ -32,7 +32,6 @@
     </dependency>
   </dependencies>
 
-
   <profiles>
     <profile>
       <id>in-ns</id>
@@ -82,9 +81,47 @@
                 </execution>
               </executions>
             </plugin>
+
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-install-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>install-ns-artifact-locally</id>
+                  <phase>install</phase>
+                  <goals>
+                    <goal>install-file</goal>
+                  </goals>
+                  <configuration>
+                    <groupId>org.immutant</groupId>
+                    <artifactId>${project.artifactId}</artifactId>
+                    <file>${project.basedir}/target/${project.artifactId}-${project.version}.jar</file>
+                    <pomFile>${project.basedir}/target/pom.xml</pomFile>
+                  </configuration>
+                </execution>
+
+                <execution>
+                  <id>install-ns-artifact-in-distributable-repo</id>
+                  <phase>install</phase>
+                  <goals>
+                    <goal>install-file</goal>
+                  </goals>
+                  <configuration>
+                    <groupId>org.immutant</groupId>
+                    <artifactId>${project.artifactId}</artifactId>
+                    <file>${project.basedir}/target/${project.artifactId}-${project.version}.jar</file>
+                    <pomFile>${project.basedir}/target/pom.xml</pomFile>
+                    <localRepositoryPath>${project.parent.basedir}/target/dist-repo/</localRepositoryPath>
+                    <createChecksum>true</createChecksum>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+
           </plugins>
         </pluginManagement>
       </build>
     </profile>
   </profiles>
+
 </project>

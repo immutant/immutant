@@ -50,22 +50,6 @@
       <scope>compile</scope>
     </dependency>
 
-
-    <!-- Remove these once we get rid of full-dist -->
-    <dependency>
-      <groupId>org.hornetq</groupId>
-      <artifactId>hornetq-jms-client</artifactId>
-      <version>2.3.0.CR1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hornetq</groupId>
-      <artifactId>hornetq-core-client</artifactId>
-      <version>2.3.0.CR1</version>
-      <scope>test</scope>
-    </dependency>
-
-
     <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>immutant-messaging</artifactId>
