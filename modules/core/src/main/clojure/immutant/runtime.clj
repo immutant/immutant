@@ -46,6 +46,14 @@ bootstrapping process. Applications shouldn't use anything here."
         (concat (rutil/get-existing-resources)
                 (rutil/mount-paths [url]))))))
 
+(defmacro extend-url-classpath []
+  (if (util/try-resolve 'clojure.java.classpath/URLClasspath)
+    '(extend-protocol clojure.java.classpath/URLClasspath
+       org.immutant.core.ImmutantClassLoader
+       (urls [loader] (seq (.getResourcePaths loader)))
+       java.lang.ClassLoader
+       (urls [loader]))))
+
 (defn ^{:internal true} init-by-fn
   [init-fn]
   (when init-fn
@@ -87,6 +95,7 @@ post-initialize is called to finalize initialization."
   [init-fn]
 
   (dynapathize-class-loader)
+  (extend-url-classpath)
   (or
    (init-by-fn init-fn)
    (init-by-ns)

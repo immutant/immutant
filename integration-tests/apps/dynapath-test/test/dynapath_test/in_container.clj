@@ -19,6 +19,7 @@
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [dynapath.util :as dp]
+            [clojure.java.classpath :as cp]
             [immutant.util :as util]
             [immutant.registry :as registry]))
 
@@ -39,3 +40,7 @@
    (classloader)
    (io/resource "progress-1.0.1.jar"))
   (is (util/try-resolve 'progress.file/done?)))
+
+(deftest clojure-java.classpath-works
+  (is (some (partial re-find (re-pattern (util/app-name)))
+        (map str (cp/classpath)))))
