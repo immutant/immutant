@@ -229,8 +229,8 @@
    It takes a unique (within the scope of the application) name, one
    or more single-arity functions, and optional kwarg options, and
    returns a function that places its argument onto the pipeline when
-   called. If :sync is true (the default), it returns a delayed value
-   that can be derefed to get the result of the pipeline execution.
+   called. If :result-ttl is > -1, it returns a delayed value that can
+   be derefed to get the result of the pipeline execution.
 
    The following kwarg options are supported, and must follow the step
    functions [default]:
@@ -251,7 +251,8 @@
                         the result of a step that returns a delay,
                         in ms. Can be overridden on a per-step basis -
                         see the 'step' function. [10 seconds]
-   
+   :durable             whether messages persist across restarts [true]
+
    During the execution of each step and each error-handler call, the
    following vars are bound:
 
@@ -275,8 +276,10 @@
         pl-fn (pipeline-fn pl (map (comp :step meta) steps) keep-result?)]
     (if (some #{pl} @pipelines)
       (throw (IllegalArgumentException.
-              (str "A pipeline named " pl-name " already exists."))))
-    (mapply msg/start pl opts)
+               (str "A pipeline named " pl-name " already exists."))))
+    (if (:durable opts)
+      (msg/start pl :durable true)
+      (msg/start pl))
     (binding [*pipeline* pl-fn]
       (let [listeners (->> steps
                            (map (partial pipeline-listen pl opts))

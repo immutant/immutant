@@ -64,11 +64,11 @@
         (immutant.messaging/start "queue.app.pipeline-pl") => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) => nil))
     
-    (fact "should pass a options through to start"
-      (pipeline "my-pl-with-options" :ham :biscuit) => anything
+    (fact "should pass durable through to start"
+      (pipeline "my-pl-with-options" :durable true) => anything
       (provided
         (immutant.messaging/start "queue.app.pipeline-my-pl-with-options"
-                                  :ham :biscuit) => nil
+          :durable true) => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) => nil)))
 
   (facts "the returned value"
@@ -128,7 +128,7 @@
     (fact "should raise if a disabled result pipeline is derefed"
       @((pipeline "boom" #() :result-ttl -1) :foo) => (throws IllegalStateException)
       (provided
-        (immutant.messaging/start anything :result-ttl -1) => nil
+        (immutant.messaging/start anything) => nil
         (#'immutant.pipeline/pipeline-listen anything anything anything) => nil
         (immutant.messaging/publish "queue.app.pipeline-boom" :foo
                                     :encoding :clojure
