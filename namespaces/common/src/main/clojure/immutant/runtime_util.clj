@@ -49,7 +49,7 @@
   (updatifier "lein-profiles" #(map str %)))
 
 (defn ^{:internal true} pr-str-with-meta [x]
-   (binding [*print-meta* true]
+   (binding [*print-meta* true, *print-dup* true]
      (pr-str x)))
 
 (defn ^{:internal true} read-descriptor

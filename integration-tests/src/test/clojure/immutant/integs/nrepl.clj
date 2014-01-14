@@ -35,12 +35,14 @@
                                   (repl/message client
                                     {:op :eval :code "(str \"it works!\")"})))))
       (testing ":nrepl-middleware was successfully applied"
-        (is (.contains (->> (repl/message client {:op :doc
-                                                  :ns "clojure.core"
-                                                  :symbol "hash-map"})
-                            ;; ritz is abusing :value here :-(
-                            (map :value)
-                            (remove nil?)
-                            first)
-                       "Returns a new hash map with supplied mappings"))))))
+        (let [result (repl/message client {:op :doc
+                                           :ns "clojure.core"
+                                           :symbol "hash-map"})]
+          (is (.contains (->> result
+                           ;; ritz is abusing :value here :-(
+                           (map :value)
+                           (remove nil?)
+                           first)
+                "Returns a new hash map with supplied mappings"))
+          (is (= "bar" (-> result first :foo))))))))
 

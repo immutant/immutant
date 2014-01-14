@@ -26,4 +26,11 @@
                  [ritz/ritz-nrepl-middleware "0.7.0"]]
   :java-source-paths ["src/java/"]
   :immutant {:ham :biscuit}
-  :repl-options {:nrepl-middleware [ritz.nrepl.middleware.doc/wrap-doc]})
+  :repl-options {:nrepl-middleware [ritz.nrepl.middleware.doc/wrap-doc
+                                    (fn [h]
+                                      (fn [{:keys [transport] :as args}]
+                                        (h (assoc args :transport
+                                                  (reify clojure.tools.nrepl.transport/Transport
+                                                    (send [this resp]
+                                                      (.send transport (assoc resp :foo "bar"))
+                                                      this))))))]})
