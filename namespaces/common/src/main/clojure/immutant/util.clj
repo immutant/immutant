@@ -153,6 +153,12 @@
     (eval `(import (quote ~sym)))
     (catch Throwable _)))
 
+(defmacro when-import
+  "Executes body when sym is successfully imported"
+  [sym & body]
+  `(when (try-import ~sym)
+     ~@body))
+
 (defn mapply [f & args]
   "Applies args to f, and expands the last arg into a kwarg seq if it is a map"
   (apply f (apply concat (butlast args) (last args))))

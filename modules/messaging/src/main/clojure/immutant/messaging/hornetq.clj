@@ -84,7 +84,7 @@
 
 (def ^:private address-settings-coercions
   {:address-full-message-policy (fn [addr]
-                                  (when (u/try-import 'org.hornetq.core.settings.impl.AddressFullMessagePolicy)
+                                  (u/when-import 'org.hornetq.core.settings.impl.AddressFullMessagePolicy
                                     (eval `(case (name ~addr)
                                              "block" AddressFullMessagePolicy/BLOCK
                                              "drop"  AddressFullMessagePolicy/DROP
@@ -178,17 +178,17 @@
    Calling this function again with the same match will override
    replace any previous settings for that match."
   [match settings]
-  (when (and (seq settings)
-          (u/try-import 'org.hornetq.core.settings.impl.AddressSettings))
-    (-> (hornetq-server)
-      .getAddressSettingsRepository
-      (.addMatch (normalize-destination-match match)
-        (reduce
-          (fn [s [k v]]
-            (doto s
-              (u/set-bean-property
-                (k address-settings-aliases k)
-                ((address-settings-coercions k identity) v))))
-          (eval '(AddressSettings.))
-          settings)))))
+  (u/when-import 'org.hornetq.core.settings.impl.AddressSettings
+    (when (seq settings)
+      (-> (hornetq-server)
+        .getAddressSettingsRepository
+        (.addMatch (normalize-destination-match match)
+          (reduce
+            (fn [s [k v]]
+              (doto s
+                (u/set-bean-property
+                  (k address-settings-aliases k)
+                  ((address-settings-coercions k identity) v))))
+            (eval '(AddressSettings.))
+            settings))))))
 
