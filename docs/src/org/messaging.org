@@ -117,6 +117,71 @@
    still need to =start= it locally for it to be visible to other
    messaging functions within your application.
 
+** Setting Advanced HornetQ Options
+   
+   HornetQ provides some [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/queue-attributes.html][advanced settings]] that can be applied to a
+   particular destination or destinations with names matching a
+   string.  Typically, these options are set via XML, but HornetQ does
+   provide an API for setting them at runtime. Immutant wraps that API
+   with [[./apidoc/immutant.messaging.hornetq.html#set-address-options][immutant.messaging.hornetq/set-address-options]], and,
+   as a convenience, allows any of these settings to be passed to
+   =immutant.messaging/start= as well.
+
+   The available settings are:
+
+     | Option                         | Default                 | Description                                                                                                                                                                           |
+     |--------------------------------+-------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+     | =:address-full-message-policy= | =:page=                 | Specifies what should happen when an address reaches =:max-size-bytes= in undelivered messages. One of: =:block=, =:drop=, =:fail=, or =:page=. See below for more details            |
+     | =:dead-letter-address=         | =jms.queue.DLQ=         | If set, any messages that fail to deliver to their original destination will be delivered here. [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/undelivered-messages.html#undelivered-messages.configuring][More info]]                                                                             |
+     | =:expiry-address=              | =jms.queue.ExpiryQueue= | If set, any messages with a :ttl that expires before delivery will be delivered here.  [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/message-expiry.html#message-expiry.configuring][More info]]                                                                                      |
+     | =:expiry-delay=                | =-1=                    | If > -1, this value (in ms) is used as the default =:ttl= for messages that don't have a =:ttl= > 0 set.                                                                              |
+     | =:last-value-queue=            | =false=                 | If true, only the most recent message for a last-value property will be retained. [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/last-value-queues.html][More info]]                                                                                           |
+     | =:max-delivery-attempts=       | =10=                    | The number of times delivery will be attempted for a message before giving up. If =:dead-letter-address= is set, the message will be delivered there, or removed otherwise. [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/undelivered-messages.html#undelivered-messages.configuring][More info]] |
+     | =:max-size-bytes=              | 20MB                    | The maximum size (in bytes) of retained messages on an address before =:address-full-message-policy= is applied. [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/paging.html][More info]]                                                            |
+     | =:page-cache-max-size=         | =5=                     | HornetQ will keep up to this many page files in memory to optimize IO. [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/paging.html][More info]]                                                                                                      |
+     | =:page-size-bytes=             | 10MB                    | The size (in bytes) of the page files created when paging. [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/paging.html][More info]]                                                                                                                  |
+     | =:redelivery-delay=            | =0=                     | Specifies the delay (in ms) between redelivery attempts. [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/undelivered-messages.html#undelivered-messages.delay][More info]]                                                                                                                    |
+     | =:redelivery-multiplier=       | =1.0=                   | Controls the backoff for redeliveries. The delay between redelivery attempts is calculated as =:redelivery-delay * (:redelivery-multiplier ^ attempt-count)=                          |
+     | =:redistribution-delay=        | =1000=                  | Specifies the delay (in ms) to wait before redistributing messages from a node in a cluster to other nodes when the queue no longer has consumers on the current node. [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/clusters.html][More info]]      |
+     | =:send-to-dla-on-no-route=     | =false=                 | If true, any message that can't be routed to its destination will be sent to :dead-letter-address.                                                                                    |
+
+*** Options for :address-full-message-policy
+
+    The =:address-full-message-policy= takes one of the following four
+    policy specifiers:
+
+     - =:block= - publish calls will block until the current size drops below =:max-size-bytes=
+     - =:drop= - new messages are silently dropped                                                                                                                              
+     - =:fail= - new messages are dropped and an exception is thrown on publish                                                                                                 
+     - =:page= - new messages will be paged to disk                                                                                                                             
+      
+     See the [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/paging.html][HornetQ documentation]] for more information about these policies.
+
+   Some Examples, including [[http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/wildcard-syntax.html][HornetQ wildcard matching]]:
+
+   #+BEGIN_SRC clojure
+     ;; passing options to start
+     (msg/start "queue.foo"
+       :dead-letter-address "queue.dead-letters"
+       :max-delivery-attempts 20)
+     
+     ;; setting options for an existing queue
+     (hornetq/set-address-options "queue.foo"
+       :dead-letter-address "queue.dead-letters"
+       :max-delivery-attempts 20)
+     
+     ;; setting options for all queues of a certain prefix
+     ;; will match: queue.notifications.ham, queue.notifications.biscuits
+     (hornetq/set-address-options "queue.notifications.*"
+       :dead-letter-address "queue.dead-letters"
+       :max-delivery-attempts 20)
+     
+     ;; match *all* destinations
+     (hornetq/set-address-options "#"
+       :dead-letter-address "queue.dead-letters"
+       :max-delivery-attempts 20)
+   #+END_SRC
+
 ** Accessing Destinations Controllers
 
    Each messaging destination has associated controllers that can be

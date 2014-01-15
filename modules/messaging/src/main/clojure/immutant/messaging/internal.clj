@@ -44,3 +44,23 @@
   (or (instance? Topic topic)
       (topic-name? topic)))
 
+(defn destination-name? [name]
+  (or (queue-name? name) (topic-name? name)))
+
+(defn destination-name-error [name]
+  (IllegalArgumentException.
+   (str \' name \'
+        " is ambiguous. Destination names must contain 'queue' or 'topic',"
+        " or be wrapped in a call to as-queue or as-topic.")))
+
+(defn jms-dest-name [name]
+  (let [name-str (str name)]
+    (if (re-find #"^jms\.(queue|topic)\." name-str)
+      name-str
+      (format "jms.%s.%s"
+        (if (queue-name? name) "queue" "topic")
+        name-str))))
+
+(defn core-queue-name [name]
+  (str "core.queue." (jms-dest-name name)))
+

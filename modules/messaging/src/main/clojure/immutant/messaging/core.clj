@@ -63,12 +63,6 @@
                      (hornetq/connection-factory opts)
                      (local-connection-factory)))
 
-(defn destination-name-error [name]
-  (IllegalArgumentException.
-   (str \' name \'
-        " is ambiguous. Destination names must contain 'queue' or 'topic',"
-        " or be wrapped in a call to as-queue or as-topic.")))
-
 (defn destination-name [name-or-dest]
   (condp instance? name-or-dest
     Queue (.getQueueName name-or-dest)
@@ -163,22 +157,25 @@
         (stop-destination name))
       (log/warn "Stop failed - no management interface found for topic:" name))))
 
-(defn start-destination [name type f]
+(defn start-destination [name type f broker-settings]
   (if-let [izer (registry/get "destinationizer")]
     (let [service-created (f izer)]
       (if-not service-created
-        (log/info (format "%s already exists: %s" type name))))
+        (log/info (format "%s already exists: %s" type name)))
+      (hornetq/set-address-options name broker-settings))
     (throw (Exception. (format "Unable to start %s: %s" type name)))))
 
-(defn start-queue [name & {:keys [durable selector] :or {durable true selector ""}}]
+(defn start-queue [name & {:keys [durable selector] :or {durable true selector ""} :as opts}]
   (start-destination name "queue"
-                     (fn [izer]
-                       (.createQueue izer name durable selector))))
+                (fn [izer]
+                  (.createQueue izer name durable selector))
+                (dissoc opts :durable :selector)))
 
-(defn start-topic [name & opts]
+(defn start-topic [name & {:as opts}]
   (start-destination name "topic"
                      (fn [izer]
-                       (.createTopic izer name))))
+                       (.createTopic izer name))
+                     opts))
 
 (defprotocol Sessionator
   "Function for obtaining a session"

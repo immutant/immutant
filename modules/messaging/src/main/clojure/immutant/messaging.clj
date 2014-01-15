@@ -43,7 +43,7 @@
   (->TopicMarker name))
 
 (defn start
-  "Create a message destination; name should begin with either 'queue'
+  "Create a message destination; name should contain either 'queue'
    or 'topic', or be the result of calling as-queue or as-topic. If
    a :selector is provided, then only messages with
    metadata/properties matching that expression will be accepted for
@@ -51,7 +51,12 @@
 
    The following options are supported [default]:
      :durable    whether messages persist across restarts [true]
-     :selector   a JMS (SQL 92) expression to filter published messages [nil]"
+     :selector   a JMS (SQL 92) expression to filter published messages [nil]
+
+   Additionally, you can pass any of the options expected by
+   immutant.messaging.hornetq/set-address-options and they
+   will be applied to the created destination."
+  
   [name & opts]
   (cond
    (queue-name? name) (apply start-queue (.toString name) opts)

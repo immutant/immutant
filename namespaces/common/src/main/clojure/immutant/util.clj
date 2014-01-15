@@ -146,6 +146,13 @@
       (throw (IllegalArgumentException.
               "Unable to resolve a valid symbol from the given list.")))))
 
+(defn try-import
+  "Tries to import the given symbol, returning the class on success."
+  [sym]
+  (try
+    (eval `(import (quote ~sym)))
+    (catch Throwable _)))
+
 (defn mapply [f & args]
   "Applies args to f, and expands the last arg into a kwarg seq if it is a map"
   (apply f (apply concat (butlast args) (last args))))
@@ -229,3 +236,12 @@
   []
   (and (not (System/getenv "LEIN_NO_DEV"))
        (profile-active? :dev)))
+
+(defn set-bean-property
+  "Calls a java bean-style setter (.setFooBar) for the given property (:foo-bar) and value."
+  [bean prop value]
+  (let [setter (->> (str/split (name prop) #"-")
+                 (map str/capitalize)
+                 (apply str ".set")
+                 symbol)]
+    ((eval `#(~setter %1 %2)) bean value)))

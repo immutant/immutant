@@ -16,8 +16,9 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns test.immutant.messaging.hornetq
-  (:use [immutant.messaging.hornetq])
-  (:use [clojure.test]))
+  (:use immutant.messaging.hornetq
+        clojure.test)
+  (:require [immutant.messaging :as msg]))
 
 (defprotocol IConnectionFactory
   (setRetryInterval [this num])
@@ -42,3 +43,14 @@
     (is (= (:retry-interval-multiplier returned-state) 2))
     (is (= (:reconnect-attempts returned-state) 3))
     (is (= (:max-retry-interval returned-state) 4))))
+
+(deftest normalize-destination-match-works
+  (are [exp given] (= exp (#'immutant.messaging.hornetq/normalize-destination-match given))
+       "#"                   "#"
+       "jms.queue.#"         "jms.queue.#"
+       "jms.queue.foo.queue" "foo.queue"
+       "jms.queue.queue.*"   "queue.*"
+       "jms.queue.#"         (msg/as-queue "#"))
+  (doseq [match ["jms.#" "*" "foo"]]
+    (is (thrown? IllegalArgumentException
+          (#'immutant.messaging.hornetq/normalize-destination-match match)))))

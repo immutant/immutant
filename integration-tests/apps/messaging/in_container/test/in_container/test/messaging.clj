@@ -169,3 +169,29 @@
     (doseq [enc [:edn :json :clojure :fressian :text]]
       (msg/publish q "hi" :encoding enc)
       (is (= "hi" (msg/receive q))))))
+
+(testing "setting address settings"
+  (deftest none-of-the-settings-should-raise
+    (msg/start "queue.address-settings"
+      :address-full-message-policy :block
+      :dead-letter-address "queue.dlq"
+      :expiry-address "queue.exp"
+      :expiry-delay 1
+      :last-value-queue nil
+      :max-delivery-attempts 5
+      :max-size-bytes 1
+      :page-cache-max-size 1
+      :page-size-bytes 1
+      :redelivery-delay 1
+      :redelivery-multiplier 1
+      :redistribution-delay 1
+      :send-to-dla-on-no-route true))
+
+  (deftest settings-should-actually-work
+    (let [dlq "queue.settings.dlq"
+          src "queue.settings.boom"]
+      (msg/start dlq :durable false)
+      (msg/start src :dead-letter-address dlq :durable false)
+      (msg/listen src #(throw (Exception. (str %))))
+      (msg/publish src :boom)
+      (is (= :boom (msg/receive dlq :timeout 60000))))))
