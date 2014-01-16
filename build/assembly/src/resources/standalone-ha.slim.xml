@@ -73,26 +73,29 @@
                 <suffix value=".yyyy-MM-dd"/>
                 <append value="true"/>
             </periodic-rotating-file-handler>
-            <logger category="immutant.cache">
-                <level name="DEBUG"/>
+            <logger category="org.apache">
+                <level name="WARN"/>
             </logger>
-            <logger category="immutant.web">
-                <level name="DEBUG"/>
+            <logger category="org.hornetq">
+                <level name="WARN"/>
             </logger>
-            <logger category="org.jboss.as.dependency.private">
-                <level name="ERROR"/>
+            <logger category="org.infinispan">
+                <level name="WARN"/>
+            </logger>
+            <logger category="org.quartz">
+                <level name="WARN"/>
+            </logger>
+            <logger category="org.xnio">
+                <level name="WARN"/>
             </logger>
             <logger category="com.arjuna">
                 <level name="WARN"/>
             </logger>
-            <logger category="org.apache.tomcat.util.modeler">
-                <level name="WARN"/>
-            </logger>
-            <logger category="org.jboss.as.config">
-                <level name="DEBUG"/>
-            </logger>
             <logger category="sun.rmi">
                 <level name="WARN"/>
+            </logger>
+            <logger category="org.jboss.as.dependency.private">
+                <level name="ERROR"/>
             </logger>
             <root-logger>
                 <level name="INFO"/>

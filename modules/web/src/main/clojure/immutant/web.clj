@@ -21,7 +21,8 @@
   (:require [clojure.tools.logging  :as log]
             [ring.util.codec        :as codec]
             [ring.util.response     :as response]
-            [immutant.web.servlet   :as servlet])
+            [immutant.web.servlet   :as servlet]
+            [immutant.util          :as util])
   (:use [immutant.web.internal :only [start* stop*]]
         [immutant.web.middleware :only [add-middleware]])
   (:import javax.servlet.http.HttpServletRequest))
@@ -29,7 +30,7 @@
 (defn start-servlet
   "Can be used to mount a servlet in lieu of a typical Ring handler"
   [sub-context-path servlet]
-  (log/info "Registering servlet at sub-context path:" sub-context-path)
+  (log/info (str "Starting servlet at URL: " (util/app-uri) sub-context-path))
   (start* sub-context-path
           (servlet/proxy-servlet servlet)
           {}))
@@ -37,13 +38,13 @@
 (defn start-handler
   "Typically not called directly; use start instead"
   [sub-context-path handler & {:keys [init destroy] :as opts}]
-  (log/info "Registering ring handler at sub-context path:" sub-context-path)
+  (log/info (str "Starting handler at URL: " (util/app-uri) sub-context-path))
   (start* sub-context-path
           (servlet/create-servlet (add-middleware handler opts))
           opts))
 
 (defmacro start
-  "Registers a Ring handler that will be called when requests
+  "Starts a Ring handler that will be called when requests
    are received on the given sub-context-path. If no sub-context-path
    is given, \"/\" is assumed.
 
@@ -64,11 +65,12 @@
       `(start-handler ~path ~handler ~@opts))))
 
 (defn stop
-  "Deregisters the Ring handler or servlet mounted at the given sub-context-path.
+  "Stops the Ring handler or servlet mounted at the given sub-context-path.
    If no sub-context-path is given, \"/\" is assumed."
   ([]
      (stop "/"))
   ([sub-context-path]
+     (log/info (str "Stopping handler at URL: " (util/app-uri) sub-context-path))
      (stop* sub-context-path)))
 
 (defn ^HttpServletRequest current-servlet-request

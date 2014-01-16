@@ -104,7 +104,7 @@
           (deliver complete true)
           true)
          (not (deref complete 5000 nil)))
-      (log/error "Failed to install servlet for" sub-context-path)
+      (log/error (str "Failed to install servlet for " sub-context-path))
       wrapper)))
 
 (defn remove-servlet [sub-context-path wrapper]
@@ -129,10 +129,9 @@
     (let [sub-context-path (normalize-subcontext-path sub-context-path)]
      (if-let [{:keys [wrapper destroy]} (remove-servlet-info! (servlet-name sub-context-path))]
        (do
-         (log/info "Deregistering request handler at sub-context path:" sub-context-path)
          (remove-servlet sub-context-path wrapper)
          (and destroy (destroy)))
-       (log/warn "Attempted to deregister request handler at sub-context path:" sub-context-path ", but none found")))
+       (log/warn (str "Attempted to stop request handler at sub-context path " sub-context-path " but none found"))))
    (log/warn "web/stop called outside of Immutant, ignoring")))
 
 (defn start*
@@ -141,6 +140,7 @@
    (let [sub-context-path (normalize-subcontext-path sub-context-path)
          servlet-name (servlet-name sub-context-path)]
      (when (get-servlet-info servlet-name)
+       (log/warn (str "Replacing " servlet-name))
        (stop* sub-context-path))
      (store-servlet-info!
       servlet-name
