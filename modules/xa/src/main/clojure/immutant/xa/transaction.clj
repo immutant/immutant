@@ -53,7 +53,7 @@
 (defn after-completion
  "Register a callback to fire when the current transaction is complete"
  [f]
- (if (util/in-immutant?)
+ (if (available?)
   (.registerSynchronization
    (current)
    (reify
@@ -61,7 +61,7 @@
      (afterCompletion [_ _]
        (f))
      (beforeCompletion [_])))
-  (log/warn "transaction/after-completion called outside of Immutant, ignoring.")))
+  (log/warn "transaction/after-completion called when no tx manager was available, ignoring.")))
 
 
 ;;; The functions that enable the various transactional scope macros
