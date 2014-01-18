@@ -199,7 +199,7 @@
   (log/debug (str "Creating connection " opts))
   (let [conn (backoff
               10 60000
-              (if (or (tx/active?) (and (in-immutant?) (:xa opts)))
+              (if (or (tx/active?) (and (tx/available?) (:xa opts)))
                 (.createXAConnection (connection-factory opts)
                                      (:username opts)
                                      (:password opts))
