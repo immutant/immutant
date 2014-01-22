@@ -20,9 +20,10 @@
         [immutant.web.session.internal :only [servlet-session-wrapper]]
         [immutant.util :only [with-tccl]])
   (:require [ring.util.servlet :as servlet])
-  (:import javax.servlet.http.HttpServletRequest))
+  (:import javax.servlet.Servlet
+           javax.servlet.http.HttpServletRequest))
 
-(defn- context [^HttpServletRequest request]
+(defn- ^String context [^HttpServletRequest request]
   (str (.getContextPath request)
        (.getServletPath request)))
 
@@ -48,8 +49,8 @@
     (init [_ _])
     (destroy [_])))
 
-(deftype ServletProxy [servlet]
-  javax.servlet.Servlet
+(deftype ServletProxy [^Servlet servlet]
+  Servlet
   (init [_ config]
     (with-tccl (.init servlet config)))
   (service [_ request response]
