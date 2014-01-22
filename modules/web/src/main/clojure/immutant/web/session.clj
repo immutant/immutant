@@ -21,16 +21,18 @@
         [immutant.web.internal :only [current-servlet-request]])
   (:require [ring.middleware.session :as ring-session]
             [immutant.registry       :as registry])
-  (:import javax.servlet.http.HttpSession))
+  (:import javax.servlet.SessionCookieConfig
+           javax.servlet.http.HttpSession
+           org.apache.catalina.Context))
 
 (def ^{:private true} session-key ":immutant.web.session/session-data")
 
-(defn using-servlet-session? [session]
+(defn using-servlet-session? [^HttpSession session]
   "Returns true if the given servlet session is being used to store the ring session."
   (and session
        (not (nil? (.getAttribute session session-key)))))
 
-(defn #^HttpSession servlet-session
+(defn ^HttpSession servlet-session
   "Returns the servlet session for the current request."
   []
   (and current-servlet-request
@@ -62,18 +64,21 @@
   []
   (ServletStore.))
 
+(def ^:private ^Context web-context
+  (memoize #(registry/get "web-context")))
+
 (defn set-session-timeout!
   "Sets the session timeout (in minutes), overriding the default of 30
   minutes. Applies to all of the web endpoints deployed within an
   application, since they all share the same session."
   [minutes]
-  (when-let [ctx (registry/get "web-context")]
+  (when-let [ctx (web-context)]
     (.setSessionTimeout ctx minutes)))
 
 (defn session-timeout
   "Returns the current session timeout in minutes."
   []
-  (when-let [ctx (registry/get "web-context")]
+  (when-let [ctx (web-context)]
     (.getSessionTimeout ctx)))
 
 (defn set-session-cookie-attributes!
@@ -96,7 +101,7 @@
    These attributes apply to all of the web endpoints deployed within
    application, since they all share the same session."
   [& {:as attrs}]
-  (when-let [ctx (registry/get "web-context")]
+  (when-let [ctx (web-context)]
     (let [cookie (.getSessionCookie ctx)
           set-param (fn [key f]
                       (when (contains? attrs key)
@@ -108,14 +113,11 @@
       (set-param :path        #(.setPath %1 %2))
       (set-param :secure      #(.setSecure %1 (boolean %2))))))
 
-;; TODO: this gets called for each request, so should be type hinted
-;; doing so may require bringing in a jbossweb jar as a dependency to
-;; the public web artifact. See IMMUTANT-271
 (defn session-cookie-attributes
   "Returns a map of the current session cookie attributes."
   []
-  (when-let [ctx (registry/get "web-context")]
-    (let [cookie (.getSessionCookie ctx)]
+  (when-let [ctx (web-context)]
+    (let [^SessionCookieConfig cookie (.getSessionCookie ctx)]
       {:cookie-name (.getName cookie)
        :domain      (.getDomain cookie)
        :http-only   (.isHttpOnly cookie)

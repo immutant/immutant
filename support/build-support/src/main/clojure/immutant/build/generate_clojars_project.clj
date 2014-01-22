@@ -37,6 +37,9 @@
                     :snapshots true}]
                   ["projectodd"
                    {:url "https://repository-projectodd.forge.cloudbees.com/release"
+                    :snapshots false}]
+                  ["jboss"
+                   {:url "http://repository.jboss.org/nexus/content/groups/public/"
                     :snapshots false}]]
    :scm {:name "git"
          :url "https://github.com/immutant/immutant/"}})
