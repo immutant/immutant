@@ -380,7 +380,6 @@
     <version.clojure.core.memoize>0.5.5</version.clojure.core.memoize>
     <version.clojure.java.jmx>0.3.0</version.clojure.java.jmx>
     <version.clojure.data.fressian>0.2.0</version.clojure.data.fressian>
-    <version.clojure-maven-plugin>1.3.17</version.clojure-maven-plugin>
     <version.clojure-complete>0.2.2</version.clojure-complete>
     <version.ring>1.2.1</version.ring>
     <version.dynapath>0.2.3</version.dynapath>
@@ -401,6 +400,8 @@
     <version.clj-http>0.7.2</version.clj-http>
     <version.s3-wagon-private>1.1.2</version.s3-wagon-private>
 
+    <version.clojure-maven-plugin>1.3.17</version.clojure-maven-plugin>
+    <version.jruby-maven-plugin>1.0.0-rc4</version.jruby-maven-plugin>
     <build.type>slim</build.type>
     <warn-on-reflection>false</warn-on-reflection>
   </properties>
@@ -617,6 +618,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -653,6 +655,11 @@
           <groupId>org.jboss.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
           <version>2.3</version>
+        </plugin>
+        <plugin>
+          <groupId>de.saumya.mojo</groupId>
+          <artifactId>jruby-maven-plugin</artifactId>
+          <version>${version.jruby-maven-plugin}</version>
         </plugin>
         <plugin>
           <groupId>com.theoryinpractise</groupId>
