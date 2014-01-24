@@ -20,8 +20,8 @@
 bootstrapping process. Applications shouldn't use anything here."
   (:require [clojure.string             :as str]
             [clojure.java.io            :as io]
-            [clojure.tools.logging      :as log]
             [dynapath.dynamic-classpath :as dc]
+            [immutant.logging           :as log]
             [immutant.repl              :as repl]
             [immutant.util              :as util]
             [immutant.resource-util     :as rutil]

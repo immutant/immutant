@@ -15,7 +15,39 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(defproject counter "0.1.0-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.4.0"]
-                 [org.clojure/tools.logging "0.2.6"]])
+(ns ^:no-doc immutant.logging
+    "Internal logging bridge. Not for public consumption.")
 
+(def ^:private logger
+  (memoize
+    (fn []
+      (try
+        (eval `(import 'org.immutant.core.Immutant))
+        (eval 'Immutant/log)
+        (catch Throwable _)))))
+
+(defn print-err [args]
+  (binding [*out* *err*]
+    (apply println args)))
+
+(defn debug [& args]
+  (if-let [l (logger)]
+    (.debug l (apply print-str args))
+    ;; ignore debug messages outside the container, since that is the
+    ;; tools.logging default as well
+    ))
+
+(defn info [& args]
+  (if-let [l (logger)]
+    (.info l (apply print-str args))
+    (print-err args)))
+
+(defn warn [& args]
+  (if-let [l (logger)]
+    (.warn l (apply print-str args))
+    (print-err args)))
+
+(defn error [& args]
+  (if-let [l (logger)]
+    (.error l (apply print-str args))
+    (print-err args)))

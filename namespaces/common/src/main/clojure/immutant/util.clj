@@ -21,7 +21,7 @@
             [clojure.string    :as str]
             [clojure.java.io   :as io]
             [dynapath.util     :as dp]
-            [clojure.tools.logging :as log])
+            [immutant.logging  :as log])
   (:import clojure.lang.IDeref
            java.lang.management.ManagementFactory
            javax.management.ObjectName))

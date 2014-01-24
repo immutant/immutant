@@ -68,7 +68,7 @@
    ;; optional - it will automatically be stopped on undeploy
    (pl/stop foo-pipeline)"
   (:use [immutant.messaging.core :only [delayed]])
-  (:require [clojure.tools.logging   :as log]
+  (:require [immutant.logging        :as log]
             [immutant.messaging      :as msg]
             [immutant.xa.transaction :as tx]
             [immutant.util           :as u])

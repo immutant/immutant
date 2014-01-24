@@ -18,7 +18,7 @@
 (ns ^{:no-doc true} immutant.jobs.internal
   (:use [immutant.util :only [app-name wait-for-start]])
   (:require [immutant.registry :as registry]
-            [clojure.tools.logging :as log])
+            [immutant.logging  :as log])
   (:import (java.util Calendar Date)))
 
 (defn ^:internal job-schedulizer []

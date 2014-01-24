@@ -38,6 +38,7 @@ public class Immutant extends ProjectInfo implements ImmutantMBean, Service<Immu
     
     public static final String ARCHIVE_SUFFIX = ".ima";
     public static final String DESCRIPTOR_SUFFIX = ".clj";
+    public static Logger log;
     
     /**
      * Construct.
@@ -72,7 +73,7 @@ public class Immutant extends ProjectInfo implements ImmutantMBean, Service<Immu
         }
     }
 
-    public void printVersionInfo(Logger log) {
+    public void printVersionInfo() {
         log.info( "Welcome to Immutant AS - http://immutant.org/" );
         log.info( formatOutput( "version", getVersionWithCodeName() ) );
         String buildNo = getBuildNumber();

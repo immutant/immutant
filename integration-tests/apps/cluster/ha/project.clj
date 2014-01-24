@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(defproject counter "0.1.0-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.4.0"]
+(defproject ha "0.1.0-SNAPSHOT"
+  :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/tools.logging "0.2.6"]])
 

@@ -19,7 +19,7 @@
   "Provides tools for starting nrepl servers."
   (:require [immutant.util         :as util]
             [immutant.registry     :as registry]
-            [clojure.tools.logging :as log]))
+            [immutant.logging      :as log]))
 
 (defn ^:private fix-port [port]
   (if (string? port)

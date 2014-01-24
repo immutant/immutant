@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns ^{:no-doc true} immutant.runtime.bootstrap
+(ns ^:no-doc immutant.runtime.bootstrap
   "Functions used in app bootstrapping. Should not be used in an app runtime."
   (:require [clojure.java.io                :as io]
             [clojure.walk                   :as walk]
@@ -23,14 +23,11 @@
             [leiningen.core.classpath       :as classpath]
             [leiningen.core.project         :as project]
             [robert.hooke                   :as hooke]
-            [immutant.dependency-exclusions :as depex])
+            [immutant.dependency-exclusions :as depex]
+            [immutant.logging               :as log])
   (:use immutant.runtime-util)
   (:import clojure.lang.DynamicClassLoader
            org.immutant.bootstrap.ApplicationBootstrapUtils))
-
-(defn ^:private log-error [& args]
-  (.error (ApplicationBootstrapUtils/LOG)
-          (apply str args)))
 
 (def ^:private dedicated-classloaders (atom {}))
 
@@ -189,7 +186,7 @@ to gracefully handle missing dependencies."
             project/init-project
             depex/exclude-immutant-deps))
        (catch clojure.lang.ExceptionInfo e
-         (log-error
+         (log/error
           "The above resolution failure(s) prevented any maven dependency resolution. None of the dependencies listed in project.clj will be loaded from the local maven repository.")
          nil)))))
 
@@ -242,4 +239,4 @@ conflicts with internal jars."
   [project-as-string resolve-deps?]
   (pr-str-with-meta
     (map #(.getAbsolutePath %)
-         (get-dependencies (read-string project-as-string) resolve-deps?))))
+      (get-dependencies (read-string project-as-string) resolve-deps?))))

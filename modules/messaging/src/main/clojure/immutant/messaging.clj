@@ -24,7 +24,7 @@
         immutant.messaging.internal)
   (:require [immutant.messaging.codecs :as codecs]
             [immutant.registry         :as registry]
-            [clojure.tools.logging     :as log]))
+            [immutant.logging          :as log]))
 
 (defn as-queue
   "Marks the given queue name as a queue. Useful for working with queues that

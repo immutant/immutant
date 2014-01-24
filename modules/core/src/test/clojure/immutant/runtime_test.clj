@@ -22,7 +22,7 @@
   (:require [immutant.registry     :as registry]
             [immutant.dev          :as dev]
             [clojure.java.io       :as io]
-            [clojure.tools.logging :as log]
+            [immutant.logging      :as log]
             [dynapath.util         :as dp]))
 
 (def a-value (atom "ham"))
@@ -72,10 +72,11 @@
   (is (= "biscuit" @a-value)))
 
 (deftest initialize-with-no-init-fn-and-no-init-ns-should-do-nothing
-  (with-redefs [log/log* (fn [& args]
-                           (reset! a-value args))]
-    (initialize nil)
-    (is (re-find #"no initialization" (nth @a-value 3)))))
+  (let [log-data (atom nil)]
+    (with-redefs [log/warn (fn [& args]
+                             (reset! log-data args))]
+      (initialize nil)
+      (is (re-find #"no initialization" (nth @log-data 2))))))
 
 (deftest initialize-from-lein-ring-options
   (add-url (io/resource "lein-ring-test/src/"))

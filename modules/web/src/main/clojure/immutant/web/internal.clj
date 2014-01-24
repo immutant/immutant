@@ -17,9 +17,9 @@
 
 (ns ^{:no-doc true} immutant.web.internal
   (:require
-   [immutant.registry     :as registry]
-   [immutant.util         :as util]
-   [clojure.tools.logging :as log]))
+   [immutant.registry :as registry]
+   [immutant.util     :as util]
+   [immutant.logging  :as log]))
 
 (def ^{:dynamic true} ^javax.servlet.http.HttpServletRequest current-servlet-request nil)
 

@@ -19,7 +19,7 @@
   (:require [immutant.cache.config :as config]
             [immutant.registry     :as registry]
             [immutant.util         :as util]
-            [clojure.tools.logging :as log])
+            [immutant.logging      :as log])
   (:import [org.infinispan.configuration.cache Configuration ConfigurationBuilder]
            org.infinispan.manager.DefaultCacheManager))
 

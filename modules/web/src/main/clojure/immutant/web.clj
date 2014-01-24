@@ -18,9 +18,9 @@
 (ns immutant.web
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
-  (:require [clojure.tools.logging  :as log]
-            [ring.util.codec        :as codec]
+  (:require [ring.util.codec        :as codec]
             [ring.util.response     :as response]
+            [immutant.logging       :as log]
             [immutant.web.servlet   :as servlet]
             [immutant.util          :as util])
   (:use [immutant.web.internal :only [start* stop*]]

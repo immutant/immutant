@@ -27,7 +27,6 @@
     <resources>
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="immutant-common.jar"/>
-        <resource-root path="tools.logging.jar"/>
         <!--
         tools.reader imports clojure.lang.RT, and a gen-classed Exception class, so has to
         be able to find the clojure classes, which only exist in the deployment ClassLoader,

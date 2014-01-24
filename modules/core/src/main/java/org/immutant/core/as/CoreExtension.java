@@ -48,7 +48,8 @@ public class CoreExtension extends AbstractBootstrappableExtension {
 
         try {
             Immutant immutant = new Immutant();
-            immutant.printVersionInfo( log );
+            Immutant.log = Logger.getLogger("immutant.internal");
+            immutant.printVersionInfo();
         } catch (IOException e) {
             log.error( "Failed to load immutant.properties", e );
         }

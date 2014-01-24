@@ -23,7 +23,7 @@
   (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]
             [immutant.xa.transaction    :as tx]
-            [clojure.tools.logging      :as log])
+            [immutant.logging           :as log])
   (:import (javax.jms DeliveryMode Destination JMSException Queue Session Topic)))
 
 ;;; The name of the JBoss connection factory

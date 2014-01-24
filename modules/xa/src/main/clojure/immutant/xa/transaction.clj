@@ -17,9 +17,9 @@
 
 (ns immutant.xa.transaction
   "Fine-grained XA transactional control"
-  (:require [immutant.registry     :as registry]
-            [immutant.util         :as util]
-            [clojure.tools.logging :as log]))
+  (:require [immutant.registry :as registry]
+            [immutant.util     :as util]
+            [immutant.logging  :as log]))
 
 (def ^javax.transaction.TransactionManager manager
   (memoize (fn [] (registry/get "jboss.txn.TransactionManager"))))

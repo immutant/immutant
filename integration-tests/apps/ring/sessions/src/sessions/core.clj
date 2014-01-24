@@ -19,7 +19,8 @@
   (:require [immutant.web :as web]
             [immutant.web.session :as immutant-session]
             [immutant.util :as util]
-            [ring.middleware.session :as ring-session]))
+            [ring.middleware.session :as ring-session]
+            [clojure.walk :as walk]))
 
 (defn query-map [query-string]
   (if-not (empty? query-string)
@@ -44,7 +45,7 @@
                      (-> (rmap "attrs")
                          ring.util.codec/url-decode
                          read-string
-                         clojure.walk/keywordize-keys))]
+                         walk/keywordize-keys))]
     (util/mapply
       immutant-session/set-session-cookie-attributes! sess-attrs)
     (respond (merge (:session request)
