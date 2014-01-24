@@ -34,22 +34,22 @@
   (let [app-root (io/file (io/resource "project-root"))
         another-app-root (io/file (io/resource "another-project-root"))]
     (fact "read-project should work"
-      (:ham (read-project app-root nil)) => :biscuit)
+      (:ham (read-project app-root nil nil)) => :biscuit)
 
     (fact "read-project with profiles should work"
-      (:ham (read-project app-root [:gravy])) => :not-bacon)
+      (:ham (read-project app-root [:gravy] nil)) => :not-bacon)
 
     (fact "read-project without profiles should use the ones defined in :immutant"
-      (:egg (read-project app-root nil)) => :biscuit)
+      (:egg (read-project app-root nil nil)) => :biscuit)
 
     (fact "read-project with profiles should ignore the ones defined in :immutant"
-      (:egg (read-project app-root [:gravy])) => :sandwich)
+      (:egg (read-project app-root [:gravy] nil)) => :sandwich)
 
     (fact "read-project with profiles should apply them from profiles.clj"
-      (get-in (read-project another-app-root [:ham]) [:immutant :shaq]) => :attaq)
+      (get-in (read-project another-app-root [:ham] nil) [:immutant :shaq]) => :attaq)
 
     (fact "read-project without profiles should apply the default profiles profiles.clj"
-      (get-in (read-project another-app-root nil) [:immutant :shaq]) => :oneal)
+      (get-in (read-project another-app-root nil nil) [:immutant :shaq]) => :oneal)
     
     (fact "read-and-stringify-full-app-config should work"
       (read-and-stringify-full-app-config nil app-root) => (contains {"ham" "basket"}))
@@ -105,7 +105,7 @@
 
   (let [app-root (io/file (io/resource "non-project-root"))]
     (fact "read-project should return nil"
-      (read-project app-root nil) => nil?)
+      (read-project app-root nil nil) => nil?)
 
     (fact "resource-paths should work"
       (resource-paths app-root nil) => (just (map #(.getAbsolutePath (io/file app-root %))
@@ -125,7 +125,7 @@
        :in-any-order)))
 
   (facts "resolve-dependencies"
-    (let [project (read-project (io/file (io/resource "project-root")) nil)
+    (let [project (read-project (io/file (io/resource "project-root")) nil nil)
           expected-deps (aether/dependency-files
                          (aether/resolve-dependencies
                           :coordinates (:dependencies project)))]

@@ -107,10 +107,12 @@ public class ApplicationBootstrapUtils {
     }
     
     @SuppressWarnings("rawtypes")
-    public static String readProjectAsString(final File applicationRoot, final List profiles) throws Exception {
+    public static String readProjectAsString(final File applicationRoot, final List profiles,
+                                             final boolean escapeMemoization) throws Exception {
         return (String) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "read-project-to-string" ).invoke( applicationRoot, profiles ); 
+                return bootstrapVar( "read-project-to-string" ).
+                        invoke(applicationRoot, profiles, escapeMemoization ? System.currentTimeMillis() : null);
             }
         } );
     }
@@ -119,7 +121,7 @@ public class ApplicationBootstrapUtils {
     public static String readProjectAsString(final File descriptor, final File applicationRoot) throws Exception {
         final Map config = readFullAppConfig( descriptor, applicationRoot );
 
-        return readProjectAsString( applicationRoot, (List)config.get( "lein-profiles" ) );
+        return readProjectAsString( applicationRoot, (List)config.get( "lein-profiles" ), false );
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })

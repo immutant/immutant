@@ -32,7 +32,8 @@ shouldn't be used in production."
   (read-string
    (ApplicationBootstrapProxy/readProjectAsString
     (util/app-root) 
-    (map str (:lein-profiles (registry/get :config))))))
+    (map str (:lein-profiles (registry/get :config)))
+    (boolean :escape-memoization))))
 
 (defn ^:private get-dependency-paths [project]
   (-> project

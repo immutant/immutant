@@ -87,28 +87,28 @@
        (finally
          (tccl orig-cl#)))))
 
-(defn ^{:internal true} read-project
-  "Reads a leiningen project.clj file in the given root dir."
-  [app-root profiles]
-  (in-dedicated-classloader
-   app-root
-   (let [project-file (io/file app-root "project.clj")]
-     (when (.exists project-file)
-       (let [normalized-profiles (normalize-profiles profiles)
-             project (-> project-file
-                         .getAbsolutePath
-                         (project/read normalized-profiles)
-                         project/init-project)
-             other-profiles (set (get-in project [:immutant :lein-profiles]))]
-         (if (or (seq profiles) (not (seq other-profiles)))
-           project
-           (-> project
-               (project/unmerge-profiles
-                (set/difference normalized-profiles
-                                other-profiles))
-               (project/merge-profiles
-                (set/difference other-profiles
-                                normalized-profiles)))))))))
+(def ^:internal read-project
+  (memoize
+    (fn [app-root profiles escape-memoization?]
+      (in-dedicated-classloader
+        app-root
+        (let [project-file (io/file app-root "project.clj")]
+          (when (.exists project-file)
+            (let [normalized-profiles (normalize-profiles profiles)
+                  project (-> project-file
+                            .getAbsolutePath
+                            (project/read normalized-profiles)
+                            project/init-project)
+                  other-profiles (set (get-in project [:immutant :lein-profiles]))]
+              (if (or (seq profiles) (not (seq other-profiles)))
+                project
+                (-> project
+                  (project/unmerge-profiles
+                    (set/difference normalized-profiles
+                      other-profiles))
+                  (project/merge-profiles
+                    (set/difference other-profiles
+                      normalized-profiles)))))))))))
 
 (defn ^:private strip-reduce-metadata [v]
   (reduce (fn [acc k]
@@ -128,9 +128,9 @@
 (defn ^{:internal true} read-project-to-string
   "Returns the project map as a pr string with metadata so it can be
   moved across runtimes."
-  [app-root profiles]
+  [app-root profiles escape-memoization?]
   (pr-str-with-meta
-   (if-let [p (read-project app-root profiles)]
+   (if-let [p (read-project app-root profiles escape-memoization?)]
      (-> p
          ;; reduce metadata points to a function, which won't serialize, so
          ;; we have to strip it out. pre-1.5, walk/postwalk worked, but it
@@ -157,7 +157,7 @@
          internal (read-descriptor (io/file app-root ".immutant.clj"))
          profiles (:lein-profiles external (:lein-profiles internal))]
      (merge {}
-            (:immutant (read-project app-root profiles))
+            (:immutant (read-project app-root profiles nil))
             internal
             external)))
 
@@ -214,7 +214,7 @@ to gracefully handle missing dependencies."
 (defn ^{:internal true} resource-paths
   "Resolves the resource paths (in the AS7 usage of the term) for an application."
   [app-root profiles]
-  (if-let [project (read-project app-root profiles)]
+  (if-let [project (read-project app-root profiles nil)]
     (resource-paths-for-project project)
     (resource-paths-for-projectless-app app-root)))
 
@@ -226,7 +226,7 @@ via aether and only bundled jars are returned. This strips any
 org.immutant/immutant-* deps from the list before resolving to prevent
 conflicts with internal jars."
   ([app-root profiles resolve-deps?]
-     (get-dependencies (or (read-project app-root profiles)
+     (get-dependencies (or (read-project app-root profiles nil)
                            {:root app-root})
                        resolve-deps?))
   ([project resolve-deps?]

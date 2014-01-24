@@ -31,8 +31,8 @@ public class ApplicationBootstrapProxy {
     }
     
     @SuppressWarnings("rawtypes")
-    public static String readProjectAsString(File applicationRoot, List profiles) throws Exception {
-        return ApplicationBootstrapUtils.readProjectAsString( applicationRoot, profiles );
+    public static String readProjectAsString(File applicationRoot, List profiles, boolean escapeMemoization) throws Exception {
+        return ApplicationBootstrapUtils.readProjectAsString( applicationRoot, profiles, escapeMemoization );
     }
     
     public static String getResourceDirsAsString(String projectAsString) throws Exception {
