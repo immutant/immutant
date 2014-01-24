@@ -23,3 +23,4 @@ TAGS
 /integration-tests/apps/tx/.lein-repl-history
 .lein-failures
 .descriptors
+maven-target
