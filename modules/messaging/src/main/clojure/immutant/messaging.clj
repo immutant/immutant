@@ -74,9 +74,8 @@
    re-use the JMS Connection created by this function unless the
    nested calls' connection-related options differ."
   [options & body]
-  `(do
-     (let [opts# (validate-options with-connection ~options)]
-       (immutant.messaging.core/with-connection (fn [] ~@body) opts#))))
+  `(let [opts# (validate-options with-connection ~options)]
+    (immutant.messaging.core/with-connection (fn [] ~@body) opts#)))
 
 (defn
   ^{:valid-options
