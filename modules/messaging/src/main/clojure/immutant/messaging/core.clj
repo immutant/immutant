@@ -18,7 +18,7 @@
 (ns ^{:no-doc true} immutant.messaging.core
   "Internal utilities used by messaging. You should only need to dip
    into here in advanced cases."
-  (:use [immutant.util :only (at-exit in-immutant? backoff)]
+  (:use [immutant.util :only (at-exit in-immutant? backoff validate-options)]
         immutant.messaging.internal)
   (:require [immutant.registry          :as registry]
             [immutant.messaging.hornetq :as hornetq]
@@ -165,13 +165,18 @@
       (hornetq/set-address-options name broker-settings))
     (throw (Exception. (format "Unable to start %s: %s" type name)))))
 
-(defn start-queue [name & {:keys [durable selector] :or {durable true selector ""} :as opts}]
+(defn ^{:valid-options
+        (conj (-> #'hornetq/set-address-options meta :valid-options)
+          :durable :selector)}
+  start-queue [name & {:keys [durable selector] :or {durable true selector ""} :as opts}]
+  (validate-options start-queue opts)
   (start-destination name "queue"
                 (fn [izer]
                   (.createQueue izer name durable selector))
                 (dissoc opts :durable :selector)))
 
 (defn start-topic [name & {:as opts}]
+  (validate-options start-topic hornetq/set-address-options opts)
   (start-destination name "topic"
                      (fn [izer]
                        (.createTopic izer name))

@@ -104,7 +104,12 @@
     (destination-name? match) (jms-dest-name match)
     :else                     (throw (destination-name-error match))))
 
-(defn set-address-options
+(defn ^{:valid-options
+        #{:address-full-message-policy :dead-letter-address :expiry-address
+          :expiry-delay :last-value-queue :max-delivery-attempts :max-size-bytes
+          :page-cache-max-size :page-size-bytes :redelivery-delay :redelivery-multiplier
+          :redistribution-delay :send-to-dla-on-no-route}}
+  set-address-options
   "Sets the HornetQ-specific address options for the given match.
    This provides programatic access to options that are normally set
    in the xml configuration.  match must be contain either 'queue' or
@@ -178,6 +183,7 @@
    Calling this function again with the same match will override
    replace any previous settings for that match."
   [match settings]
+  (u/validate-options set-address-options settings)
   (u/when-import 'org.hornetq.core.settings.impl.AddressSettings
     (when (seq settings)
       (-> (hornetq-server)

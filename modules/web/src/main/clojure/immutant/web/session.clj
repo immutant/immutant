@@ -20,7 +20,8 @@
   (:use ring.middleware.session.store
         [immutant.web.internal :only [current-servlet-request]])
   (:require [ring.middleware.session :as ring-session]
-            [immutant.registry       :as registry])
+            [immutant.registry       :as registry]
+            [immutant.util           :as u])
   (:import javax.servlet.SessionCookieConfig
            javax.servlet.http.HttpSession
            org.apache.catalina.Context))
@@ -81,7 +82,9 @@
   (when-let [ctx (web-context)]
     (.getSessionTimeout ctx)))
 
-(defn set-session-cookie-attributes!
+(defn ^{:valid-options
+        #{:cookie-name :domain :http-only :max-age :path :secure}}
+  set-session-cookie-attributes!
   "Set session cookie attributes. Accepts the following kwargs, many
    of which are analagous to the ring session cookie attributes
    [default]:
@@ -101,6 +104,7 @@
    These attributes apply to all of the web endpoints deployed within
    application, since they all share the same session."
   [& {:as attrs}]
+  (u/validate-options set-session-cookie-attributes! attrs)
   (when-let [ctx (web-context)]
     (let [cookie (.getSessionCookie ctx)
           set-param (fn [key f]

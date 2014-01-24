@@ -41,11 +41,28 @@
       (is (= nil (start destination)))
       (is (empty? @names)))))
 
+(defmacro test-invalid-opts [form]
+  `(is (~'thrown-with-msg? IllegalArgumentException
+         #"is not a valid option" ~form)))
+
 (deftest start-queue-outside-of-container
   (is (thrown-with-msg? Exception #"Unable to start queue" (start "/queue/barf"))))
 
 (deftest start-topic-outside-of-container
   (is (thrown-with-msg? Exception #"Unable to start topic" (start "/topic/barf"))))
+
+(deftest invalid-opts
+  (test-invalid-opts (with-connection {:ham :bisquit}))
+  (test-invalid-opts (start "/topic/barf" :ham :bisquick))
+  (test-invalid-opts (start "/queue/barf" :ham :biscuit))
+  (test-invalid-opts (publish "queue.bar" :hi :ham :bistryharder))
+  (test-invalid-opts (receive "queue.bar" :ham :bisquitter))
+  (test-invalid-opts (message-seq "queue.bar" :ham :biscuiter))
+  (test-invalid-opts (listen "queue.bar" identity :ham :tired))
+  (test-invalid-opts (request "/queue/barf" :msg :ham :biscuit))
+  (test-invalid-opts (respond "/queue/barf" identity :ham :biscuit))
+  (test-invalid-opts (unsubscribe :client-id :ham :bone))
+  (test-invalid-opts (stop "whatevs" :ham :hammy)))
 
 (deftest queue-already-running
   (test-already-running "/queue/foo"))

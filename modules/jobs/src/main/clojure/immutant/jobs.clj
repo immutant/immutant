@@ -19,7 +19,8 @@
   "Associate recurring jobs with an application using cron-like and at-style specifications"
   (:use [immutant.util :only [at-exit]])
   (:require [clojure.tools.logging :as log]
-            [immutant.jobs.internal :as internal]))
+            [immutant.jobs.internal :as internal]
+            [immutant.util          :as u]))
 
 (def ^:dynamic *job-execution-context*
   "Bound to the currently active org.quartz.JobExecutionContext when a job function is invoked."
@@ -40,6 +41,7 @@
 (def
   ^{:arglists '([name f spec & {:keys [singleton] :or {singleton true}}]
                   [name f & {:keys [at in until every repeat singleton] :or {singleton true}}])
+    :valid-options #{:at :in :every :repeat :until :singleton :spec :fn} ;; :spec & :fn used internally
     :doc "Schedules a job to execute based on the cron spec or the 'at' options.
 
 Available options [default]:
@@ -81,6 +83,7 @@ will replace that job."}
   (fn
     [name & opts]
     (let [{:keys [fn spec] :as opts} (internal/extract-spec opts)
+          opts (u/validate-options schedule opts)
           name (clojure.core/name name)]
       (unschedule name)
       (log/info "Scheduling job" name "with" spec)

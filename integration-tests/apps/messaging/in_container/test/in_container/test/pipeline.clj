@@ -278,7 +278,7 @@
             (partial msg/publish result-queue))]
     (pl (repeat 5 :a))
     (dotimes [_ 5]
-      (is (= :a (msg/receive result-queue :timout 10000))))))
+      (is (= :a (msg/receive result-queue :timeout 10000))))))
 
 (deftest fanout-step
   (let [result-queue (random-queue)
@@ -288,4 +288,4 @@
             #(msg/publish result-queue %))]
     (pl (repeat 5 :a))
     (dotimes [_ 5]
-      (is (= :a (msg/receive result-queue :timout 10000))))))
+      (is (= :a (msg/receive result-queue :timeout 10000))))))

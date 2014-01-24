@@ -237,3 +237,13 @@
   (let [c (create "stopped")]
     (.stop (.cache c))
     (is (nil? (lookup "stopped")))))
+
+(defmacro test-invalid-opts [form]
+  `(is (~'thrown-with-msg? IllegalArgumentException
+         #"is not a valid option" ~form)))
+
+(deftest invalid-opts
+  (test-invalid-opts (create "foo" :ham :biscuit))
+  (test-invalid-opts (lookup "foo" :ham :biscuit))
+  (test-invalid-opts (lookup-or-create "foo" :ham :biscuit))
+  (test-invalid-opts (memo println "foo" :ham :biscuit)))

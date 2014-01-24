@@ -18,7 +18,8 @@
 (ns immutant.daemons
   "Asynchronous, highly-available services that share the lifecycle of
    your application"
-  (:require [immutant.registry :as registry]))
+  (:require [immutant.registry :as registry]
+            [immutant.util     :as u]))
 
 (defprotocol Daemon
   "Functions for controlling a long-running service"
@@ -27,20 +28,23 @@
   (stop [daemon]
     "Stop the service"))
 
-(defn create
+(defn ^{:valid-options #{:singleton}}
+  create
   "Start a daemon asynchronously, creating an MBean named by name,
    invoking the stop function automatically at undeployment/shutdown.
    If :singleton is truthy, the service will start on only one node in
    a cluster"
-  [name daemon & {singleton :singleton :or {singleton true}}]
+  [name daemon & {singleton :singleton :or {singleton true} :as opts}]
+  (u/validate-options create opts)
   (if-let [daemonizer (registry/get "daemonizer")]
     (.createDaemon daemonizer (clojure.core/name name) #(start daemon) #(stop daemon) (boolean singleton))))
 
 (defn daemonize
   "Convenience function for creating a daemon from a name and
   start/stop functions"
-  [name start-fn stop-fn & opts]
+  [name start-fn stop-fn & {:as opts}]
   (let [daemon (reify Daemon
                  (start [_] (start-fn))
                  (stop [_] (stop-fn)))]
-    (apply create name daemon opts)))
+    (u/mapply create name daemon
+      (u/validate-options daemonize create opts))))

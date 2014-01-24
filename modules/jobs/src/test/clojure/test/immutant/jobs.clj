@@ -214,3 +214,7 @@
   (testing "it should allow no opts"
     (schedule "name" fun)
     (is (= "name" (:name @job-args)))))
+
+(deftest invalid-opts
+  (is (thrown-with-msg? IllegalArgumentException
+        #"is not a valid option" (schedule "name" println :ham :biscuit))))

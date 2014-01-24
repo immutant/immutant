@@ -67,11 +67,11 @@
 
    ;; optional - it will automatically be stopped on undeploy
    (pl/stop foo-pipeline)"
-  (:use [immutant.util :only (mapply app-name maybe-deref)]
-        [immutant.messaging.core :only [delayed]])
+  (:use [immutant.messaging.core :only [delayed]])
   (:require [clojure.tools.logging   :as log]
             [immutant.messaging      :as msg]
-            [immutant.xa.transaction :as tx])
+            [immutant.xa.transaction :as tx]
+            [immutant.util           :as u])
   (:import java.util.UUID
            java.util.concurrent.TimeoutException))
 
@@ -139,7 +139,7 @@
   (if next-step
     (fn [m]
       (let [timeout (:step-deref-timeout opts 60000) ;; 10s
-            m (maybe-deref (f m) timeout ::timeout)] 
+            m (u/maybe-deref (f m) timeout ::timeout)] 
         (condp = m
           halt      nil
           ::timeout (throw (TimeoutException.
@@ -163,7 +163,7 @@
         opts (-> opts
                  (merge (meta f))
                  (assoc :selector (str "step = '" step "'")))]
-    (mapply msg/listen pl
+    (u/mapply msg/listen pl
       (-> f
           (wrap-fanout opts)
           (wrap-result-passing pl step next-step opts)
@@ -177,7 +177,7 @@
   (if keep-result?
     (delayed
      (fn [t]
-       (mapply msg/receive pl
+       (u/mapply msg/receive pl
                {:timeout t
                 :selector (str "JMSCorrelationID='" id "' AND result = true")})))
     (delay (throw (IllegalStateException.
@@ -223,7 +223,9 @@
                 :correlation-id (.getJMSCorrelationID msg/*raw-message*)
                 :properties {"result" true}))
 
-(defn pipeline
+(defn ^{:valid-options
+        #{:concurrency :error-handler :result-ttl :step-deref-timeout :durable}}
+  pipeline
   "Creates a pipeline function.
 
    It takes a unique (within the scope of the application) name, one
@@ -263,8 +265,8 @@
    This function is *not* idempotent. Attempting to create a pipeline
    with the same name as an existing pipeline will raise an error."
   [pl-name & args]
-  (let [opts (apply hash-map (drop-while fn? args))
-        pl (str "queue." (app-name)  ".pipeline-" (name pl-name))
+  (let [opts (u/validate-options pipeline (apply hash-map (drop-while fn? args)))
+        pl (str "queue." (u/app-name)  ".pipeline-" (name pl-name))
         result-ttl (:result-ttl opts 3600000) ;; 1 hr
         keep-result? (>= result-ttl 0)
         steps (-> (take-while fn? args)
@@ -287,7 +289,9 @@
         (swap! pipelines conj pl)
         (vary-meta pl-fn assoc :listeners listeners)))))
 
-(defn step
+(defn ^{:valid-options
+        #{:name :concurrency :error-handler :step-deref-timeout :fanout?}}
+  step
   "Wraps the given function with the given options, returning a function.
 
    The following options are supported [default]:
@@ -303,6 +307,7 @@
    :fanout?             applies the fanout fn to the result of the step.
                         See fanout for more details [false]"
   [f & {:as opts}]
+  (u/validate-options step opts)
   (vary-meta f merge opts))
 
 (defn stop

@@ -24,7 +24,8 @@
         [immutant.codecs          :only [encode decode]]
         [immutant.cache.wrapper   :only [wrap unwrap]])
   (:require [clojure.core.cache   :as cc]
-            [clojure.core.memoize :as cm])
+            [clojure.core.memoize :as cm]
+            [immutant.util        :as u])
   (:import [clojure.core.memoize PluggableMemoization]))
 
 (defprotocol Mutable
@@ -171,7 +172,10 @@
          (for [[k v] (seq cache)]
            (clojure.lang.MapEntry. k (cc/lookup this k))))))
 
-(defn create
+(defn ^{:valid-options
+        #{:mode :sync :tx :persist :seed :locking :encoding :max-entries
+          :eviction :ttl :idle :units :config}}
+  create
   "Returns an object that implements both Mutable and
    core.cache/CacheProtocol. A name is the only required argument. If
    a cache by that name already exists, it will be restarted and all
@@ -214,35 +218,44 @@
    options passed to those functions take precedence over these. See
    the Mutable doc for more info."
   [name & {:keys [seed config] :as options}]
-  (cc/seed (InfinispanCache. (start name (or config (.build (builder options)))) options) seed))
+  (let [options (u/validate-options create options)]
+    (cc/seed
+      (InfinispanCache.
+        (start name (or config (.build (builder options))))
+        options)
+      seed)))
 
-(defn lookup
+(defn ^{:valid-options
+        #{:encoding :ttl :idle :units}}
+  lookup
   "Looks up a cache by name and returns it; returns nil if the cache doesn't exist.
 
    All but the :encoding and lifespan-oriented create
    options (:ttl :idle :units) are ignored if passed here."
   [name & {:as options}]
-  (if-let [c (get-cache name)]
-    (if (.allowInvocations (.getStatus c))
-      (InfinispanCache. c options))))
+  (let [options (u/validate-options lookup options)]
+    (if-let [c (get-cache name)]
+      (if (.allowInvocations (.getStatus c))
+        (InfinispanCache. c options)))))
 
 (defn lookup-or-create
   "A convenience method for creating a cache only if it doesn't
    already exist. Takes the same options as create"
-  [name & opts]
-  (or (apply lookup name opts) (apply create name opts)))
+  [name & {:as opts}]
+  (let [opts (u/validate-options lookup-or-create create opts)]
+    (or (u/mapply lookup name opts) (u/mapply create name opts))))
   
 (defn memo
   "Memoize a function by associating its arguments with return values
    stored in a possibly-clustered Infinispan-backed cache. Other than
    the function to be memoized, arguments are the same as for the
    create function."
-  [f name & options]
+  [f name & {:as options}]
   (cm/build-memoizer
-   #(PluggableMemoization. %1 (DelayedCache. (apply lookup-or-create %2 %3) (atom {})))
-   f
-   name
-   options))
+    #(PluggableMemoization. %1 (DelayedCache. (u/mapply lookup-or-create %2 %3) (atom {})))
+    f
+    name
+    (u/validate-options memo create options)))
 
 (defn swap!
   "Atomically swaps the value associated to the key in the cache with

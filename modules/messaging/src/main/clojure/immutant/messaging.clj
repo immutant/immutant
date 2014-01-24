@@ -19,7 +19,7 @@
   "Easily publish and receive messages containing any type of nested
    data structure to dynamically-created topics and queues. Message
    distribution is automatically load-balanced when clustered."
-  (:use [immutant.util :only (at-exit mapply waiting-derefable maybe-deref)]
+  (:use [immutant.util :only (at-exit mapply waiting-derefable maybe-deref validate-options)]
         [immutant.messaging.core :exclude [with-connection]]
         immutant.messaging.internal)
   (:require [immutant.messaging.codecs :as codecs]
@@ -63,15 +63,26 @@
    (topic-name? name) (apply start-topic (.toString name) opts)
    :else (throw (destination-name-error name))))
 
-(defmacro with-connection
+(defmacro
+  ^{:valid-options
+    #{:xa :username :password :connection :client-id :host :port
+      :retry-interval :retry-interval-multiplier :max-retry-interval
+      :reconnect-attempts}}
+  with-connection
   "Can be used to set default options for the messaging functions
    called within its body. More importantly, the nested calls will
    re-use the JMS Connection created by this function unless the
    nested calls' connection-related options differ."
   [options & body]
-  `(immutant.messaging.core/with-connection (fn [] ~@body) ~options))
+  `(do
+     (let [opts# (validate-options with-connection ~options)]
+       (immutant.messaging.core/with-connection (fn [] ~@body) opts#))))
 
-(defn publish
+(defn
+  ^{:valid-options
+    #{:encoding :priority :ttl :persistent :properties :correlation-id
+      :host :port :username :password :connection}}
+  publish
   "Send a message to a destination. dest can either be the name of the
    destination, a javax.jms.Destination, or the result of as-queue or
    as-topic. If the message is a javax.jms.Message, then the message
@@ -100,22 +111,26 @@
                       to be set) [nil]
      :connection      a JMS Connection to use; caller expected to close [nil]"
   [dest message & {:as opts}]
-  (with-connection opts
-    (let [opts (options opts)
-          session (session)
-          destination (create-destination session dest)
-          producer (.createProducer session destination)
-          encoded (if (instance? javax.jms.Message message)
-                    message
-                    (-> (codecs/encode session message opts)
+  (let [opts (validate-options publish opts)]
+    (with-connection opts
+      (let [opts (options opts)
+            session (session)
+            destination (create-destination session dest)
+            producer (.createProducer session destination)
+            encoded (if (instance? javax.jms.Message message)
+                      message
+                      (-> (codecs/encode session message opts)
                         (set-properties! (meta message))
                         (set-properties! (:properties opts))
                         (set-attributes! opts)))
-          {:keys [delivery priority ttl]} (wash-publish-options opts producer)]
-      (.send producer encoded delivery priority ttl)
-      encoded)))
+            {:keys [delivery priority ttl]} (wash-publish-options opts producer)]
+        (.send producer encoded delivery priority ttl)
+        encoded))))
 
-(defn receive
+(defn ^{:valid-options
+        #{:timeout :selector :decode? :client-id :host :port
+          :username :password :connection}}
+  receive
   "Receive a message from a destination. dest can either be the name
    of the destination, a javax.jms.Destination, or the result of
    as-queue or as-topic. If a :selector is provided, then only
@@ -138,24 +153,26 @@
                  be set) [nil]
      :connection a JMS Connection to use; caller expected to close [nil]"
   [dest & {:as opts}]
-  (with-connection opts
-    (let [opts (options opts)
-          {:keys [timeout decode?] :or {timeout 10000 decode? true}} opts
-          session (session)
-          destination (create-destination session dest)
-          consumer (create-consumer session destination opts)
-          message (if (= -1 timeout)
-                    (.receiveNoWait consumer)
-                    (.receive consumer timeout))]
-      (when message
-        (codecs/decode-if decode? message)))))
+  (let [opts (validate-options receive opts)]
+    (with-connection opts
+      (let [opts (options opts)
+            {:keys [timeout decode?] :or {timeout 10000 decode? true}} opts
+            session (session)
+            destination (create-destination session dest)
+            consumer (create-consumer session destination opts)
+            message (if (= -1 timeout)
+                      (.receiveNoWait consumer)
+                      (.receive consumer timeout))]
+        (when message
+          (codecs/decode-if decode? message))))))
 
 (defn message-seq
   "A lazy sequence of messages received from a destination. Accepts
    same options as receive."
-  [dest & opts]
-  (lazy-seq (cons (apply receive dest opts)
-                  (apply message-seq dest opts))))
+  [dest & {:as opts}]
+  (let [opts (validate-options message-seq receive opts)]
+    (lazy-seq (cons (mapply receive dest opts)
+                (mapply message-seq dest opts)))))
 
 (def ^:dynamic *raw-message*
   "Will be bound to the raw javax.jms.Message during the invocation of a
@@ -211,7 +228,12 @@
                      (binding [*raw-message* m]
                        (f (codecs/decode-if decode? m)))))})))
 
-(defn listen
+(defn ^{:valid-options
+        #{:concurrency :xa :selector :decode? :client-id
+          :host :port :username :password
+          :retry-interval :retry-interval-multiplier
+          :max-retry-interval :reconnect-attempts}}
+  listen
   "The handler function, f, will receive each message sent to dest.
    dest can either be the name of the destination, a
    javax.jms.Destination, or the result of as-queue or as-topic. If
@@ -245,7 +267,8 @@
      :reconnect-attempts         total number of reconnect attempts to make before giving
                                  up and shutting down (-1 for unlimited) [0]"
   [dest f & {:as opts}]
-  (let [opts (merge {:concurrency 1 :decode? true} (options opts))
+  (let [opts (merge {:concurrency 1 :decode? true}
+               (validate-options listen (options opts)))
         connection (create-connection (merge {:xa (nil? (:host opts))} opts))
         env {:connection connection
              :izer (registry/get "message-processor-groupizer")
@@ -266,7 +289,8 @@
    It takes the same options as publish."
   [queue message & {:as opts}]
   {:pre [(queue? queue)]}
-  (let [^javax.jms.Message message (mapply publish queue message
+  (let [opts (validate-options request publish opts)
+        ^javax.jms.Message message (mapply publish queue message
                                            (update-in opts [:properties]
                                                       #(merge % {"synchronous" "true"})))]
     (delayed
@@ -277,7 +301,9 @@
                :timeout t
                :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'")))))))
 
-(defn respond
+(defn ^{:valid-options
+        (conj (-> #'listen meta :valid-options) :ttl)}
+  respond
   "Listen for messages on queue sent by the request function and
    respond with the result of applying f to the message. queue can
    either be the name of the queue, a javax.jms.Queue, or the result
@@ -288,24 +314,27 @@
               :or {decode? true, ttl 60000} ;; 1m
               :as opts}]
   {:pre [(queue? queue)]}
-  (letfn [(respond* [^javax.jms.Message msg]
-            (publish (.getJMSDestination msg)
-                     (f (codecs/decode-if decode? msg))
-                     :correlation-id (.getJMSMessageID msg)
-                     :ttl ttl
-                     :encoding (codecs/get-encoding msg)))]
-    (mapply listen queue respond*
-            (assoc (update-in opts [:selector]
-                              #(str "synchronous = 'true'"
-                                    (when % (str " and " %))))
-              :decode? false))))
+  (let [opts (validate-options respond opts)]
+    (letfn [(respond* [^javax.jms.Message msg]
+              (publish (.getJMSDestination msg)
+                (f (codecs/decode-if decode? msg))
+                :correlation-id (.getJMSMessageID msg)
+                :ttl ttl
+                :encoding (codecs/get-encoding msg)))]
+      (mapply listen queue respond*
+        (assoc (update-in opts [:selector]
+                 #(str "synchronous = 'true'"
+                    (when % (str " and " %))))
+          :decode? false)))))
 
-(defn unsubscribe
+(defn ^{:valid-options
+        (-> #'with-connection meta :valid-options (conj :subscriber-name))}
+  unsubscribe
   "Used when durable topic subscribers are no longer interested. This
    cleans up some server-side state, but since it'll be be deleted
    anyway when the topic is stopped, it's an optional call."
   [client-id & {:keys [subscriber-name] :or {subscriber-name default-subscriber-name} :as opts}]
-  (with-connection (assoc opts :client-id client-id)
+  (with-connection (assoc (validate-options unsubscribe opts) :client-id client-id)
     (.unsubscribe (session) subscriber-name)))
 
 (defn unlisten
@@ -327,13 +356,15 @@
           true)
         (.remove group true)))))
 
-(defn stop
+(defn ^{:valid-options #{:force}}
+  stop
   "Destroy a message destination. Typically not necessary since it
    will be done for you when your app is undeployed. This will fail
    with a warning if any handlers are listening or any messages are
    yet to be delivered unless ':force true' is passed. Returns true on
    success."
-  [name & {:keys [force]}]
+  [name & {:keys [force] :as opts}]
+  (validate-options stop opts)
   (cond
    (queue-name? name) (stop-queue name :force force)
    (topic-name? name) (stop-topic name :force force)

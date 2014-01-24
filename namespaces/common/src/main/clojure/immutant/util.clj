@@ -251,3 +251,24 @@
                  (apply str ".set")
                  symbol)]
     ((eval `#(~setter %1 %2)) bean value)))
+
+(defn validate-options*
+  [name valid-keys opts]
+  (if (::validated? opts)
+    opts
+    (do
+      (doseq [k (keys opts)]
+        (if-not (valid-keys k)
+          (throw (IllegalArgumentException.
+                   (format "%s is not a valid option for %s, valid options are: %s"
+                     k name valid-keys)))))
+      (assoc opts ::validated? true))))
+
+(defmacro ^:no-doc validate-options
+  "Validates that (keys opts) is a subset of :valid-options from (meta src)"
+  ([src opts]
+     `(validate-options ~src ~src ~opts))
+  ([alt-name src opts]
+     (let [src-var# (resolve src)]
+       `(validate-options* (name (quote ~alt-name))
+          (:valid-options (meta ~src-var#)) ~opts))))

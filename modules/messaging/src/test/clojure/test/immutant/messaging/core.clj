@@ -53,9 +53,9 @@
     (is (= (:ttl opts) 1000))))
 
 (deftest with-connection-options
-  (main/with-connection {:foo 42 :connection :unused}
-    (is (= 42 (:foo (options {:not :here}))))
-    (is (= 69 (:foo (options {:foo 69}))))
+  (main/with-connection {:host 42 :connection :unused}
+    (is (= 42 (:host (options {:not :here}))))
+    (is (= 69 (:host (options {:host 69}))))
     (is (contains? (options {}) :sessions))
     (is (nil? (:sessions (options {}))))
     (is (= :unused (:connection (options {}))))))

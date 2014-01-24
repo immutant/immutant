@@ -26,11 +26,11 @@
 
 (deffact "step"
   (fact "it should attach the options as meta"
-    (meta (step #() :foo :bar :ham :biscuit)) => {:foo :bar :ham :biscuit})
+    (meta (step #() :concurrency 12 :name :biscuit)) => {:concurrency 12 :name :biscuit})
   
   (fact "it should preserve existing meta data"
-    (meta (step (with-meta #() {:gravy :biscuit})
-                :foo :bar :ham :biscuit)) => {:foo :bar :ham :biscuit :gravy :biscuit}))
+    (meta (step (with-meta #() {:error-handler :foo})
+                :concurrency 12 :name :biscuit)) => {:concurrency 12 :name :biscuit :error-handler :foo}))
 
 (deffact "stop"
   (fact "should call messaging/stop with the pipeline from the metadata"
@@ -135,6 +135,8 @@
                                     :properties {"step" "0"}
                                     :correlation-id anything) => anything))))
 
-
-
-
+(deftest invalid-opts
+  (is (thrown-with-msg? IllegalArgumentException
+        #"is not a valid option" (pipeline "name" :ham :biscuit)))
+  (is (thrown-with-msg? IllegalArgumentException
+        #"is not a valid option" (step println :ham :biscuit))))
