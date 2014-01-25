@@ -3,6 +3,6 @@
   :dependencies [[org.immutant/immutant-common-module "1.0.3-SNAPSHOT"]
                  [leiningen-core "2.3.4"]
                  [org.immutant/immutant-dependency-exclusions "0.1.0"]]
-  :profiles {:test {:resource-paths ["src/test/resources"]}
-             :dev {:dependencies [[lein-modules "0.1.0-SNAPSHOT" :scope "test"]]}})
+  :profiles {:dev {:resource-paths ["src/test/resources"]
+                   :dependencies [[lein-modules "0.1.0-SNAPSHOT" :scope "test"]]}})
 
