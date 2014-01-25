@@ -2,7 +2,9 @@
   :description "Parent for all modules"
   ;; :parent [org.immutant/immutant-parent "1.0.3-SNAPSHOT"
   ;; :relative-path "../pom.xml"]
-  :profiles {:inherited {:dependencies [[org.jboss.as/jboss-as-server "7.2.x.slim.incremental.12"]]
+  :profiles {:inherited {:dependencies [[org.jboss.as/jboss-as-server "7.2.x.slim.incremental.12"]
+                                        [midje "1.6.0" :scope "test"]
+                                        [org.immutant/immutant-clojure-test-support "1.0.3-SNAPSHOT" :scope "test"]]
                          :repositories [["project:odd upstream" "http://repository-projectodd.forge.cloudbees.com/upstream"]]
                          :source-paths ^:replace ["src/main/clojure"]
                          :test-paths ^:replace ["src/test/clojure"]
