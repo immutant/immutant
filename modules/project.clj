@@ -12,4 +12,5 @@
                          :test-paths ^:replace ["src/test/clojure"]
                          :resource-paths ["src/module/resources"]
                          :java-source-paths ^:replace ["src/main/java"]
-                         :jar-exclusions [#"\.java$"]}})
+                         :jar-exclusions [#"\.java$"]
+                         :aliases {"all" ["do" "clean," "test," "jar"]}}})
