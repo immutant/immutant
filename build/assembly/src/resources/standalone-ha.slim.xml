@@ -60,7 +60,7 @@
     <profile>
         <subsystem xmlns="urn:jboss:domain:logging:1.2">
             <console-handler name="CONSOLE">
-                <level name="INFO"/>
+                <level name="${jboss.logging.level:INFO}"/>
                 <formatter>
                     <pattern-formatter pattern="%K{level}%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
                 </formatter>
@@ -97,8 +97,41 @@
             <logger category="org.jboss.as.dependency.private">
                 <level name="ERROR"/>
             </logger>
-            <root-logger>
+            <logger category="org.jboss.modules">
+                <level name="WARN"/>
+            </logger>
+            <logger category="org.jboss.msc">
+                <level name="WARN"/>
+            </logger>
+            <logger category="org.jboss.remoting">
+                <level name="WARN"/>
+            </logger>
+            <logger category="org.jboss.as.security">
+                <level name="WARN"/>
+            </logger>
+            <logger category="org.jboss.as.naming">
+                <level name="WARN"/>
+            </logger>
+            <logger category="org.jboss.as.server">
+                <level name="WARN"/>
+            </logger>
+            <logger category="org.jboss.as.server.deployment">
                 <level name="INFO"/>
+            </logger>
+            <logger category="org.jboss.as.server.deployment.scanner">
+              <level name="WARN"/>
+            </logger>
+            <logger category="org.jboss.as.remoting">
+                <level name="WARN"/>
+            </logger>
+            <logger category="org.jboss.as.domain.http.api">
+                <level name="ERROR"/>
+            </logger>
+            <logger category="org.jboss.as.connector.logging">
+                <level name="WARN"/>
+            </logger>
+            <root-logger>
+                <level name="${jboss.logging.level:INFO}"/>
                 <handlers>
                     <handler name="CONSOLE"/>
                     <handler name="FILE"/>
