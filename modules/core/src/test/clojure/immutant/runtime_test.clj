@@ -73,10 +73,10 @@
 
 (deftest initialize-with-no-init-fn-and-no-init-ns-should-do-nothing
   (let [log-data (atom nil)]
-    (with-redefs [log/warn (fn [& args]
-                             (reset! log-data args))]
+    (with-redefs [log/log* (fn [_ _ msg]
+                             (reset! log-data msg))]
       (initialize nil)
-      (is (re-find #"no initialization" (nth @log-data 2))))))
+      (is (re-find #"no initialization" @log-data)))))
 
 (deftest initialize-from-lein-ring-options
   (add-url (io/resource "lein-ring-test/src/"))

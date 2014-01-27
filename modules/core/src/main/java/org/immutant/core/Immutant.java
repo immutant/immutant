@@ -38,8 +38,7 @@ public class Immutant extends ProjectInfo implements ImmutantMBean, Service<Immu
     
     public static final String ARCHIVE_SUFFIX = ".ima";
     public static final String DESCRIPTOR_SUFFIX = ".clj";
-    public static Logger log;
-    
+
     /**
      * 
      * @throws IOException
@@ -53,7 +52,11 @@ public class Immutant extends ProjectInfo implements ImmutantMBean, Service<Immu
     public String getClojureVersion() {
         return getComponentValue( "Clojure", "version" );
     }
-    
+
+    public static Logger getLogger(String name) {
+        return Logger.getLogger(name);
+    }
+
     @Override
     public Immutant getValue() throws IllegalStateException, IllegalArgumentException {
         return this;
@@ -73,6 +76,7 @@ public class Immutant extends ProjectInfo implements ImmutantMBean, Service<Immu
     }
 
     public void printVersionInfo() {
+        Logger log = getLogger("immutant.boot");
         StringBuffer welcomeLine = new StringBuffer("Welcome to Immutant ");
         welcomeLine.append(getVersionWithCodeName())
                 .append(", rev: ").append(getRevision());
