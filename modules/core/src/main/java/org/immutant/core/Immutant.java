@@ -41,7 +41,6 @@ public class Immutant extends ProjectInfo implements ImmutantMBean, Service<Immu
     public static Logger log;
     
     /**
-     * Construct.
      * 
      * @throws IOException
      *             if an error occurs while reading the underlying properties
@@ -74,25 +73,25 @@ public class Immutant extends ProjectInfo implements ImmutantMBean, Service<Immu
     }
 
     public void printVersionInfo() {
-        log.info( "Welcome to Immutant AS - http://immutant.org/" );
-        log.info( formatOutput( "version", getVersionWithCodeName() ) );
+        StringBuffer welcomeLine = new StringBuffer("Welcome to Immutant ");
+        welcomeLine.append(getVersionWithCodeName())
+                .append(", rev: ").append(getRevision());
         String buildNo = getBuildNumber();
-        if (buildNo != null && !buildNo.trim().equals( "" )) {
-            log.info( formatOutput( "build", getBuildNumber() ) );
-        } else if (getVersion().contains( "SNAPSHOT" )) {
-            log.info( formatOutput( "build", "development (" + getBuildUser() + ")" ) );
-        } else {
-            log.info( formatOutput( "build", "official" ) );
+        if (buildNo != null && !buildNo.trim().equals("")) {
+            welcomeLine.append(", build: ").append(buildNo);
+        } else if (getVersion().contains("SNAPSHOT")) {
+            welcomeLine.append(", build: ").append("dev-").append(getBuildUser());
         }
-        log.info( formatOutput( "revision", getRevision() ) );
+
+        log.info(welcomeLine);
 
         List<String> otherCompoments = getBuildInfo().getComponentNames();
-        otherCompoments.remove( "Immutant" );
-        log.info( "  built with:" );
+        otherCompoments.remove("Immutant");
+        log.debug("  built with:");
         for (String name : otherCompoments) {
-            String version = getBuildInfo().get( name, "version" );
+            String version = getBuildInfo().get(name, "version");
             if (version != null) {
-                log.info( formatOutput( "  " + name, version ) );
+                log.debug(formatOutput("  " + name, version));
             }
         }
 
