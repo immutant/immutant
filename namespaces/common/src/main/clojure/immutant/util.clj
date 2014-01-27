@@ -71,7 +71,7 @@
             .getAddress
             .getHostAddress))
       (catch Exception e
-        (log/warn (format "Unable to obtain %s interface address (%s)" iface, e) )))))
+        (log/warn (format "Unable to obtain %s interface address (%s)" iface, e))))))
 
 (def ^{:doc "Looks up the ip address for the AS management interface."}
   management-interface-address
