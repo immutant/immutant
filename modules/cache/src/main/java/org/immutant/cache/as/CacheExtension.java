@@ -36,7 +36,7 @@ public class CacheExtension extends AbstractBootstrappableExtension {
     @Override
     public void initialize(ExtensionContext context) {
         bootstrap();
-        log.info( "Initializing Immutant Cache Subsystem" );
+        log.debug( "Initializing Immutant Cache Subsystem" );
         final SubsystemRegistration registration = context.registerSubsystem( SUBSYSTEM_NAME, 1, 0 );
         final ManagementResourceRegistration subsystem = registration.registerSubsystemModel( CacheSubsystemProviders.SUBSYSTEM );
 

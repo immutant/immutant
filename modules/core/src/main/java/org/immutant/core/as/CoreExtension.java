@@ -43,7 +43,7 @@ public class CoreExtension extends AbstractBootstrappableExtension {
     @Override
     public void initialize(ExtensionContext context) {
         bootstrap();
-        log.info( "Initializing Immutant Core Subsystem" );
+        log.debug( "Initializing Immutant Core Subsystem" );
         ApplicationBootstrapUtils.preInit();
 
         try {
