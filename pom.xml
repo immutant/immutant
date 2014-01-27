@@ -364,14 +364,14 @@
   <properties>
     <codename>HamBiscuit</codename>
     <!-- <version.polyglot>1.19.0-SNAPSHOT</version.polyglot>  -->
-    <version.polyglot>1.x.incremental.61</version.polyglot>
+    <version.polyglot>1.x.incremental.62</version.polyglot>
     <!-- <version.polyglot>1.18.0</version.polyglot> -->
     <version.shimdandy>1.0.1</version.shimdandy>
     <version.junit>4.7</version.junit>
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>
     <version.hamcrest>1.1</version.hamcrest>
-    <version.jbossas>7.2.x.slim.incremental.12</version.jbossas>
+    <version.jbossas>7.2.x.slim.incremental.13</version.jbossas>
     <!-- <version.jbossas>7.2.0.Final-polyglot-slim-1-SNAPSHOT</version.jbossas> -->
     <version.clojure>1.5.1</version.clojure>
     <version.clojure-contrib>1.2.0</version.clojure-contrib>
