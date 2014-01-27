@@ -18,7 +18,7 @@
 (ns ^:no-doc immutant.logging
     "Internal logging bridge. Not for public consumption.")
 
-(defprotocol MockLogger
+(defprotocol Logger
   (trace [this msg])
   (debug [this msg])
   (info [this msg])
@@ -35,7 +35,7 @@
       (eval `(import 'org.immutant.core.Immutant))
       (eval '(fn [n] (Immutant/getLogger n)))
       (catch Throwable _
-        (let [l (reify MockLogger
+        (let [l (reify Logger
                   (trace [_ msg])
                   (debug [_ msg])
                   (info [_ msg]
