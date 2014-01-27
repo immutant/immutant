@@ -36,7 +36,7 @@ public class DaemonsExtension extends AbstractBootstrappableExtension {
     @Override
     public void initialize(ExtensionContext context) {
         bootstrap();
-        log.info( "Initializing Immutant Daemons Subsystem" );
+        log.debug( "Initializing Immutant Daemons Subsystem" );
         final SubsystemRegistration registration = context.registerSubsystem( SUBSYSTEM_NAME, 1, 0 );
         final ManagementResourceRegistration subsystem = registration.registerSubsystemModel( DaemonsSubsystemProviders.SUBSYSTEM );
 

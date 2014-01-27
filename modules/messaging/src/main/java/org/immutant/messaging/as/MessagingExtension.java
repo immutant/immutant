@@ -36,7 +36,7 @@ public class MessagingExtension extends AbstractBootstrappableExtension {
     @Override
     public void initialize(ExtensionContext context) {
         bootstrap();
-        log.info( "Initializing Immutant Messaging Subsystem" );
+        log.debug( "Initializing Immutant Messaging Subsystem" );
         final SubsystemRegistration registration = context.registerSubsystem( SUBSYSTEM_NAME, 1, 0 );
         final ManagementResourceRegistration subsystem = registration.registerSubsystemModel( MessagingSubsystemProviders.SUBSYSTEM );
 
