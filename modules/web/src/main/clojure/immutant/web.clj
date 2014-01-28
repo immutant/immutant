@@ -30,7 +30,8 @@
 (defn start-servlet
   "Can be used to mount a servlet in lieu of a typical Ring handler"
   [sub-context-path servlet]
-  (log/info (str "Starting servlet at URL: " (util/app-uri) sub-context-path))
+  (log/info (format "Starting servlet for %s at: %s%s" (util/app-name)
+              (util/app-uri) sub-context-path))
   (start* sub-context-path
           (servlet/proxy-servlet servlet)
           {}))
@@ -38,7 +39,8 @@
 (defn start-handler
   "Typically not called directly; use start instead"
   [sub-context-path handler & {:keys [init destroy] :as opts}]
-  (log/info (str "Starting handler at URL: " (util/app-uri) sub-context-path))
+  (log/info (format "Starting handler for %s at: %s%s" (util/app-name)
+              (util/app-uri) sub-context-path))
   (start* sub-context-path
           (servlet/create-servlet (add-middleware handler opts))
           opts))
