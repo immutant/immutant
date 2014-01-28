@@ -1,12 +1,13 @@
 (defproject org.immutant/immutant-web-module "1.0.3-SNAPSHOT"
-  :parent [org.immutant/immutant-modules-parent :immutant :relative-path "../pom.xml"]
-  :dependencies [[org.immutant/immutant-core-module :immutant]
-                 [org.immutant/immutant-common-module :immutant]
-                 [org.projectodd/polyglot-core :polyglot]
-                 [org.projectodd/polyglot-web :polyglot]
+  :parent [org.immutant/immutant-modules-parent _ :relative-path "../pom.xml"]
+  :plugins [[lein-modules "0.1.0-SNAPSHOT"]]
+  :dependencies [[org.immutant/immutant-core-module _]
+                 [org.immutant/immutant-common-module _]
+                 [org.projectodd/polyglot-core _]
+                 [org.projectodd/polyglot-web _]
                  [org.tcrawley/dynapath "0.2.3"]
-                 [ring/ring-servlet :ring]
-                 [ring/ring-devel :ring]
-                 [org.jboss.as/jboss-as-web :jbossas]]
-  :profiles {:dev {:dependencies [[org.immutant/immutant-bootstrap-module :immutant :scope "test"]]}})
+                 [ring/ring-servlet _]
+                 [ring/ring-devel _]
+                 [org.jboss.as/jboss-as-web _]]
+  :profiles {:dev {:dependencies [[org.immutant/immutant-bootstrap-module _ :scope "test"]]}})
 
