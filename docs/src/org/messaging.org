@@ -60,7 +60,7 @@
    destination name with =.= or =/=, but is not required.
 
    In addition to the destination name, the =start= function accepts
-   the following options:
+   the following options when starting a queue:
 
    | Option      | Default | Description                         |
    |-------------+---------+-------------------------------------|

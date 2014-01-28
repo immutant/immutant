@@ -49,7 +49,7 @@
    metadata/properties matching that expression will be accepted for
    delivery.
 
-   The following options are supported [default]:
+   The following options are supported for queues only [default]:
      :durable    whether messages persist across restarts [true]
      :selector   a JMS (SQL 92) expression to filter published messages [nil]
 
