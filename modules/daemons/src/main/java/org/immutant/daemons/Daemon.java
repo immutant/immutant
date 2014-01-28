@@ -28,13 +28,15 @@ import org.jboss.msc.service.StopContext;
 
 public class Daemon implements DaemonMBean, Service<Daemon> {
     
-    public Daemon(ClassLoader loader, Runnable startFunction, Runnable stopFunction) {
+    public Daemon(String name, ClassLoader loader, Runnable startFunction, Runnable stopFunction) {
+        this.name = name;
         this.classLoader = loader;
         this.startFunction = startFunction;
         this.stopFunction = stopFunction;
     }
 
     public void start() {
+        log.info("Starting daemon: " + this.name);
         this.thread = new Thread( this.startFunction );
         this.thread.setContextClassLoader( this.classLoader );
         this.thread.start();
@@ -42,6 +44,7 @@ public class Daemon implements DaemonMBean, Service<Daemon> {
 
     public void stop() {
         if (isStarted() && this.stopFunction != null) {
+            log.info("Stopping daemon: " + this.name);
             this.stopFunction.run();
             try {
                 this.thread.join( THREAD_TIMEOUT );
@@ -96,9 +99,10 @@ public class Daemon implements DaemonMBean, Service<Daemon> {
 
     private int THREAD_TIMEOUT = 20000;
     private Thread thread;
+    private String name;
     private ClassLoader classLoader;
     private Runnable startFunction;
     private Runnable stopFunction;
 
-    static final Logger log = Logger.getLogger( "org.immutant.daemons" );
+    static final Logger log = Logger.getLogger( "immutant.daemons" );
 }

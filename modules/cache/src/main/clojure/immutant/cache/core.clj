@@ -48,8 +48,8 @@
    otherwise :local"
   [options]
   (let [opts (merge {:sync true} (default-mode (util/validate-options builder options)))]
-    (log/info (str "Creating config builder: "
-                   (select-keys opts (-> #'builder meta :valid-options))))
+    (log/debug "Creating config builder:"
+      (select-keys opts (-> #'builder meta :valid-options)))
     (doto (ConfigurationBuilder.)
       (.read (.getDefaultCacheConfiguration @manager))
       (.classLoader (.getContextClassLoader (Thread/currentThread)))
@@ -73,7 +73,8 @@
   ([name ^Configuration config]
      (start name config @manager))
   ([name ^Configuration config manager]
-     (log/debug (str "Infinispan options for cache [" name "]: " config))
+     (log/info "Creating cache:" name)
+     (log/debug (format "Infinispan options for cache [%s]: %s" name config))
      (.defineConfiguration manager name config)
      (when-let [cache (get-cache name manager)]
         (.stop cache)

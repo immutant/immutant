@@ -131,7 +131,7 @@
         (let [result (if (queue-name? name)
                        (.destroyQueue manager (str name))
                        (.destroyTopic manager (str name)))]
-          (log/info "Stopped" name)
+          (log/info "Stopped:" name)
           result)
         (catch Throwable e
           (log/warn e)))
@@ -159,10 +159,12 @@
 
 (defn start-destination [name type f broker-settings]
   (if-let [izer (registry/get "destinationizer")]
-    (let [service-created (f izer)]
-      (if-not service-created
-        (log/info (format "%s already exists: %s" type name)))
-      (hornetq/set-address-options name broker-settings))
+    (do
+      (log/info (format "Starting %s: %s" type name))
+      (let [service-created (f izer)]
+        (if-not service-created
+          (log/info (format "%s already exists: %s" type name)))
+        (hornetq/set-address-options name broker-settings)))
     (throw (Exception. (format "Unable to start %s: %s" type name)))))
 
 (defn ^{:valid-options

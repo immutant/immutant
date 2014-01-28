@@ -36,7 +36,7 @@ public class Daemonizer extends AtRuntimeInstaller<Daemonizer> {
 
     public Daemon createDaemon(final String daemonName, Runnable start, Runnable stop, final boolean singleton) {
         final ServiceName serviceName = DaemonServices.daemon( getUnit(), daemonName );
-        final Daemon daemon = new Daemon( ClassLoaderUtils.getModuleLoader( getUnit() ), start, stop );
+        final Daemon daemon = new Daemon( daemonName, ClassLoaderUtils.getModuleLoader( getUnit() ), start, stop );
         
         replaceService(serviceName, new Runnable() {
             @SuppressWarnings("rawtypes")
