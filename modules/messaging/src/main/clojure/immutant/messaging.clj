@@ -180,9 +180,8 @@
 
 (defn- remote-listen [dest {:keys [izer connection setup-fn]} {:keys [concurrency]}]
   (try
-    (when izer (log/info
-                 "Setting up direct listener for remote destination:"
-                 dest))
+    (when izer
+      (log/info "Creating direct listener for remote destination:" dest))
     (dotimes [_ concurrency]
       (let [{session     "session"
              consumer-fn "consumer-fn"
@@ -199,6 +198,7 @@
                      listener-fn
                      {:keys [izer connection listener-name setup-fn]}
                      {:keys [concurrency] :as opts}]
+  (log/info "Creating in-vm listener for:" dest)
   (let [group (.createGroup
                 izer
                 (destination-name dest)
