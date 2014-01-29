@@ -2,6 +2,7 @@
   :description "Parent for all modules"
   ;; :parent [org.immutant/immutant-parent _ :relative-path "../pom.xml"]
   :plugins [[lein-modules "0.1.0-SNAPSHOT"]]
+  :packaging "pom"
   :modules  {:inherited {:dependencies [[org.clojure/clojure _]
                                         [org.jboss.as/jboss-as-server _]
                                         [midje "1.6.0" :scope "test"]
@@ -13,7 +14,7 @@
                          :resource-paths ^:replace ["src/module/resources" "src/test/resources"]
                          :java-source-paths ^:replace ["src/main/java"]
                          :jar-exclusions [#"\.java$"]
-                         :aliases {"all" ["do" "clean," "test," "jar"]}}
+                         :aliases ^:replace {"all" ["do" "clean," "test," "install"]}}
 
              :versions {org.clojure/clojure             "1.5.1"
                         leiningen-core/leiningen-core   "2.3.4"
