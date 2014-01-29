@@ -127,12 +127,41 @@
     $ lein immutant run
   #+end_src
 
-  The =run= task is essentially an alias for the [[./jboss.html#jboss-run][JBoss standalone.sh
-  script]], so all of its options are supported.
+  Simply type Ctrl-c to exit, but you may as well leave it up in your
+  development environment. You can deploy and undeploy as many
+  applications as your RAM will allow to a single Immutant instance.
 
-  Simply type Ctrl-c to exit, but you may as well leave it up. You can
-  deploy and undeploy as many applications as your RAM will allow to a
-  single Immutant instance.
+  The =run= task is a thin wrapper around the [[./jboss.html#jboss-run][JBoss standalone.sh
+  script]], so in addition to a few "convenience options", all of the
+  JBoss options are supported as well. Run the following commands to
+  list them:
+
+  #+begin_src sh
+    $ lein help immutant run
+    $ lein immutant run -h
+  #+end_src
+
+  JBoss makes much use of Java system properties for its
+  configuration. These are set using the =-D= option, e.g.
+  =-Dproperty\=value=. Here are some common ones:
+
+  | System Property                    | Default    | Description                                         |
+  |------------------------------------+------------+-----------------------------------------------------|
+  | =http.port=                        | 8080       | The port on which Immutant listens for web requests |
+  | =jboss.logging.level=              | INFO       | The console's logging level threshold               |
+  | =org.immutant.web.http.maxThreads= | 512*#cores | Thread pool size for HTTP connection handlers       |
+
+  Other system properties can be found in the JBoss configuration
+  file, =$JBOSS_HOME/standalone/configuration/standalone.xml= (or
+  =standalone-ha.xml= if clustered). In that file, any attribute of
+  the form =${property:default}= denotes a system property and its
+  corresponding default value if unset, like =${http.port:8080}=, so
+  to override that, you could run either of the following:
+
+  #+begin_src sh
+    $ lein immutant run -Dhttp.port=7777
+    $ ~/.immutant/current/jboss/bin/standalone.sh -Dhttp.port=7777
+  #+end_src
 
   Out of the box, Immutant is only accessible from localhost. To access it from
   other machines pass the -b parameter to bind to a real IP address or any available
@@ -143,14 +172,15 @@
     $ lein immutant run -b 0.0.0.0
   #+end_src
 
-  It's also possible to run Immutant in "clustered" mode. Doing so in
-  a network with multicast enabled causes Immutants to discover each
+  It's possible to run Immutant in "clustered" mode. Doing so in a
+  network with multicast enabled causes Immutants to discover each
   other and, for example, easily distribute work via a message queue
   across a linearly-scalable data grid.
 
-  To run in clustered mode, pass the =--clustered= option:
+  To run in clustered mode, either of the following should work:
 
   #+begin_src sh
     $ lein immutant run --clustered
+    $ ~/.immutant/current/jboss/bin/standalone.sh --server-config=standalone-ha.xml
   #+end_src
 
