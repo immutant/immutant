@@ -364,8 +364,8 @@
   <properties>
     <codename>HamBiscuit</codename>
     <!-- <version.polyglot>1.19.0-SNAPSHOT</version.polyglot>  -->
-    <version.polyglot>1.x.incremental.62</version.polyglot>
-    <!-- <version.polyglot>1.18.0</version.polyglot> -->
+    <!-- <version.polyglot>1.x.incremental.62</version.polyglot> -->
+    <version.polyglot>1.19.0</version.polyglot>
     <version.shimdandy>1.0.1</version.shimdandy>
     <version.junit>4.7</version.junit>
     <version.jmock>2.5.1</version.jmock>
