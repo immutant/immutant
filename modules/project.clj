@@ -1,51 +1,9 @@
  (defproject org.immutant/immutant-modules-parent "1.0.3-SNAPSHOT"
   :description "Parent for all modules"
-  ;; :parent [org.immutant/immutant-parent _ :relative-path "../pom.xml"]
+  :parent [org.immutant/immutant-parent _ :relative-path "../pom.xml"]
   :plugins [[lein-modules "0.1.0-SNAPSHOT"]]
   :packaging "pom"
-  :modules  {:inherited {:dependencies [[org.clojure/clojure _]
-                                        [org.jboss.as/jboss-as-server _]
+  :modules  {:inherited {:dependencies [[org.jboss.as/jboss-as-server _ :scope "provided"]
                                         [midje "1.6.0" :scope "test"]
                                         [org.immutant/immutant-clojure-test-support _ :scope "test"]
-                                        [org.immutant/immutant-as-test-support _ :scope "test"]]
-                         :repositories [["project:odd upstream" "http://repository-projectodd.forge.cloudbees.com/upstream"]]
-                         :source-paths ^:replace ["src/main/clojure"]
-                         :test-paths ^:replace ["src/test/clojure"]
-                         :resource-paths ^:replace ["src/module/resources" "src/test/resources"]
-                         :java-source-paths ^:replace ["src/main/java"]
-                         :jar-exclusions [#"\.java$"]
-                         :aliases ^:replace {"all" ["do" "clean," "test," "install"]}}
-
-             :versions {org.clojure/clojure             "1.5.1"
-                        leiningen-core/leiningen-core   "2.3.4"
-                        org.infinispan/infinispan-core  "6.0.0.Final"
-
-                        :immutant                       "1.0.3-SNAPSHOT"
-                        :ring                           "1.2.1"
-                        :jbossas                        "7.2.x.slim.incremental.12"
-                        :polyglot                       "1.x.incremental.61"
-                        
-                        org.immutant/immutant-modules-parent       :immutant
-                        org.immutant/immutant-core-module          :immutant
-                        org.immutant/immutant-common-module        :immutant
-                        org.immutant/immutant-common               :immutant
-                        org.immutant/immutant-xa-module            :immutant
-                        org.immutant/immutant-bootstrap-module     :immutant
-                        org.immutant/immutant-clojure-test-support :immutant
-                        org.immutant/immutant-as-test-support      :immutant
-
-                        org.jboss.as/jboss-as-server    :jbossas
-                        org.jboss.as/jboss-as-jmx       :jbossas
-                        org.jboss.as/jboss-as-messaging :jbossas
-                        org.jboss.as/jboss-as-web       :jbossas
-                        
-                        ring/ring-servlet :ring
-                        ring/ring-devel   :ring
-                        
-                        org.projectodd/polyglot-core        :polyglot
-                        org.projectodd/polyglot-xa          :polyglot
-                        org.projectodd/polyglot-web         :polyglot
-                        org.projectodd/polyglot-jobs        :polyglot
-                        org.projectodd/polyglot-cache       :polyglot
-                        org.projectodd/polyglot-hasingleton :polyglot
-                        org.projectodd/polyglot-messaging   :polyglot}})
+                                        [org.immutant/immutant-as-test-support _ :scope "test"]]}})
