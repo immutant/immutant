@@ -3,7 +3,15 @@
   :plugins [[lein-modules "0.1.0-SNAPSHOT"]]
   :packaging "pom"
   :modules  {:inherited {:dependencies [[org.clojure/clojure _]]
-                         :repositories [["project:odd upstream" "http://repository-projectodd.forge.cloudbees.com/upstream"]]
+                         :repositories [["projectodd-upstream"
+                                         {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
+                                          :snapshots false}]
+                                        ["projectodd-release"
+                                         {:url "http://repository-projectodd.forge.cloudbees.com/release"
+                                          :snapshots false}]
+                                        ["projectodd-snapshot"
+                                         {:url "https://repository-projectodd.forge.cloudbees.com/snapshot"
+                                          :snapshots true}]]
                          :source-paths ^:replace ["src/main/clojure"]
                          :test-paths ^:replace ["src/test/clojure"]
                          :resource-paths ^:replace ["src/module/resources" "src/test/resources"]
