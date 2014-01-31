@@ -25,6 +25,7 @@
                         
                         org.immutant/immutant-parent               :immutant
                         org.immutant/immutant-modules-parent       :immutant
+                        org.immutant/immutant-support-parent       :immutant
                         org.immutant/immutant-core-module          :immutant
                         org.immutant/immutant-common-module        :immutant
                         org.immutant/immutant-common               :immutant
@@ -41,10 +42,11 @@
                         ring/ring-servlet :ring
                         ring/ring-devel   :ring
                         
-                        org.projectodd/polyglot-core        :polyglot
-                        org.projectodd/polyglot-xa          :polyglot
-                        org.projectodd/polyglot-web         :polyglot
-                        org.projectodd/polyglot-jobs        :polyglot
-                        org.projectodd/polyglot-cache       :polyglot
-                        org.projectodd/polyglot-hasingleton :polyglot
-                        org.projectodd/polyglot-messaging   :polyglot}})
+                        org.projectodd/polyglot-core             :polyglot
+                        org.projectodd/polyglot-xa               :polyglot
+                        org.projectodd/polyglot-web              :polyglot
+                        org.projectodd/polyglot-jobs             :polyglot
+                        org.projectodd/polyglot-cache            :polyglot
+                        org.projectodd/polyglot-hasingleton      :polyglot
+                        org.projectodd/polyglot-messaging        :polyglot
+                        org.projectodd/polyglot-as-test-support  :polyglot}})
