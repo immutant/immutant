@@ -2,7 +2,8 @@
   :description "Parent for all that is Immutant"
   :plugins [[lein-modules "0.1.0-SNAPSHOT"]]
   :packaging "pom"
-  :modules  {:inherited {:dependencies [[org.clojure/clojure _]]
+  :modules  {:inherited {:dependencies [[org.clojure/clojure _]
+                                        [org.jboss.as/jboss-as-server _ :scope "provided"]]
                          :repositories [["projectodd-upstream"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
                                           :snapshots false}]
