@@ -20,8 +20,8 @@
 
                         :immutant                       "1.0.3-SNAPSHOT"
                         :ring                           "1.2.1"
-                        :jbossas                        "7.2.x.slim.incremental.12"
-                        :polyglot                       "1.x.incremental.61"
+                        :jbossas                        "7.2.x.slim.incremental.14"
+                        :polyglot                       "1.19.0"
                         
                         org.immutant/immutant-parent               :immutant
                         org.immutant/immutant-modules-parent       :immutant
