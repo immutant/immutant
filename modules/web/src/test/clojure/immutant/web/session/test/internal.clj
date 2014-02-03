@@ -28,7 +28,7 @@
   {:cookie-name "the-session"})
 
 (deftest handler-should-strip-cookie-with-servlet-session-name
-  (with-redefs [immutant.web.session/session-cookie-attributes mock-session-cookie-attributes]
+  (with-redefs [session-cookie-attributes mock-session-cookie-attributes]
     (are [session-id cookies expected]
          (= expected
             (util/session-fixture

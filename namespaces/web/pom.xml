@@ -40,11 +40,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.jboss.web</groupId>
-      <artifactId>jbossweb</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>ring</groupId>
       <artifactId>ring-devel</artifactId>
       <version>${version.ring}</version>
