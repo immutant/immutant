@@ -19,19 +19,14 @@
   "Functions for using the cluster-wide servlet store for sessions."
   (:use ring.middleware.session.store
         [immutant.web.internal :only [current-servlet-request]])
-  (:require [ring.middleware.session :as ring-session]
-            [immutant.registry       :as registry]
-            [immutant.util           :as u])
-  (:import javax.servlet.SessionCookieConfig
-           javax.servlet.http.HttpSession
-           org.apache.catalina.Context))
+  (:require [ring.middleware.session       :as ring-session]
+            [immutant.web.session.internal :as int]
+            [immutant.util                 :as u])
+  (:import javax.servlet.http.HttpSession))
 
-(def ^{:private true} session-key ":immutant.web.session/session-data")
-
-(defn using-servlet-session? [^HttpSession session]
+(defn using-servlet-session? [session]
   "Returns true if the given servlet session is being used to store the ring session."
-  (and session
-       (not (nil? (.getAttribute session session-key)))))
+  (int/using-servlet-session? session))
 
 (defn ^HttpSession servlet-session
   "Returns the servlet session for the current request."
@@ -45,7 +40,7 @@
   (read-session [_ _]
     (let [session (servlet-session)]
       (if-let [data (and session 
-                         (.getAttribute session session-key))]
+                         (.getAttribute session int/session-key))]
         data
         {})))
   (write-session [_ _ data]
@@ -53,11 +48,11 @@
     ;; session. TorqueBox does this to share the session data with
     ;; java servlet components.
     (when-let [session (servlet-session)]
-      (.setAttribute session session-key data)
+      (.setAttribute session int/session-key data)
       (.getId session)))
   (delete-session [_ _]
     (when-let [session (servlet-session)]
-      (.removeAttribute session session-key)
+      (.removeAttribute session int/session-key)
       (.invalidate session))))
 
 (defn servlet-store
@@ -65,21 +60,18 @@
   []
   (ServletStore.))
 
-(def ^:private ^Context web-context
-  (memoize #(registry/get "web-context")))
-
 (defn set-session-timeout!
   "Sets the session timeout (in minutes), overriding the default of 30
   minutes. Applies to all of the web endpoints deployed within an
   application, since they all share the same session."
   [minutes]
-  (when-let [ctx (web-context)]
+  (when-let [ctx (int/web-context)]
     (.setSessionTimeout ctx minutes)))
 
 (defn session-timeout
   "Returns the current session timeout in minutes."
   []
-  (when-let [ctx (web-context)]
+  (when-let [ctx (int/web-context)]
     (.getSessionTimeout ctx)))
 
 (defn ^{:valid-options
@@ -105,12 +97,14 @@
    application, since they all share the same session."
   [& {:as attrs}]
   (u/validate-options set-session-cookie-attributes! attrs)
-  (when-let [ctx (web-context)]
+  (when-let [ctx (int/web-context)]
     (let [cookie (.getSessionCookie ctx)
           set-param (fn [key f]
                       (when (contains? attrs key)
                         (f cookie (attrs key))))]
       (set-param :cookie-name #(.setName %1 %2))
+      (if (contains? attrs :cookie-name)
+        (reset! int/cookie-name (:cookie-name attrs)))
       (set-param :domain      #(.setDomain %1 %2))
       (set-param :http-only   #(.setHttpOnly %1 (boolean %2)))
       (set-param :max-age     #(.setMaxAge %1 %2))
@@ -120,14 +114,7 @@
 (defn session-cookie-attributes
   "Returns a map of the current session cookie attributes."
   []
-  (when-let [ctx (web-context)]
-    (let [^SessionCookieConfig cookie (.getSessionCookie ctx)]
-      {:cookie-name (.getName cookie)
-       :domain      (.getDomain cookie)
-       :http-only   (.isHttpOnly cookie)
-       :max-age     (.getMaxAge cookie)
-       :path        (.getPath cookie)
-       :secure      (.isSecure cookie)})))
+  (int/session-cookie-attributes))
 
 
 

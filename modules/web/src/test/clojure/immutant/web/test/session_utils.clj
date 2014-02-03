@@ -33,7 +33,7 @@
               nil)
             (getId []
               session-id)))
-    (.setAttribute @#'immutant.web.session/session-key true)))
+    (.setAttribute immutant.web.session.internal/session-key true)))
 
 (def ^{:dynamic true} mock-session nil)
 

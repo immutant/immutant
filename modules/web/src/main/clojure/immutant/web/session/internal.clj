@@ -17,20 +17,48 @@
 
 (ns ^:no-doc immutant.web.session.internal
   (:use [immutant.web.internal :only [current-servlet-request]])
-  (:require [immutant.util :as util]
-            [immutant.web.session :as session]))
+  (:require [immutant.util     :as util]
+            [immutant.registry :as registry])
+  (:import javax.servlet.http.HttpSession
+           javax.servlet.SessionCookieConfig))
 
 (def ^:private cookie-encoder
   (util/try-resolve-any
    'ring.util.codec/form-encode  ;; ring >= 1.1.0
    'ring.util.codec/url-encode))
 
+(def ^:internal session-key ":immutant.web.session/session-data")
+
+(def ^:internal web-context
+  (memoize #(registry/get "web-context")))
+
+(defn ^:internal session-cookie-attributes []
+  (when-let [ctx (web-context)]
+    (let [^SessionCookieConfig cookie (.getSessionCookie ctx)]
+      {:cookie-name (.getName cookie)
+       :domain      (.getDomain cookie)
+       :http-only   (.isHttpOnly cookie)
+       :max-age     (.getMaxAge cookie)
+       :path        (.getPath cookie)
+       :secure      (.isSecure cookie)})))
+
+(def ^:internal cookie-name (atom nil))
+
+(defn ^:internal get-cookie-name []
+  (if @cookie-name
+    @cookie-name
+    (reset! cookie-name (:cookie-name (session-cookie-attributes)))))
+
+(defn ^:internal using-servlet-session? [^HttpSession session]
+  (and session
+    (not (nil? (.getAttribute session session-key)))))
+
 (defn ^:private cookie-matches-servlet-session-cookie?
-  [^javax.servlet.http.HttpSession session ^String cookie]
+  [^HttpSession session ^String cookie]
   (.startsWith cookie
-               (str (:cookie-name (session/session-cookie-attributes))
-                    \=
-                    (cookie-encoder (.getId session)))))
+    (str (get-cookie-name)
+      \=
+      (cookie-encoder (.getId session)))))
 
 (defn ^:internal servlet-cookie-dedup-handler
   "Remove duplicate cookies from a response object.  Use this
@@ -40,7 +68,7 @@
      (session-internal/servlet-cookie-dedup-handler response)"
   [response]
   (let [session (.getSession current-servlet-request false)]
-    (if (and session (session/using-servlet-session? session))
+    (if (and session (using-servlet-session? session))
       (update-in response [:headers "Set-Cookie"]
                  #(remove
                    (partial cookie-matches-servlet-session-cookie? session)
@@ -56,3 +84,4 @@
   (fn [request]
     (let [response (handler request)]
       (servlet-cookie-dedup-handler response))))
+
