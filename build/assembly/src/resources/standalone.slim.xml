@@ -78,6 +78,9 @@
                 <level name="WARN"/>
             </logger>
             <logger category="org.infinispan">
+                <level name="INFO"/>
+            </logger>
+            <logger category="org.infinispan.jmx">
                 <level name="WARN"/>
             </logger>
             <logger category="org.jboss.modules">
@@ -102,7 +105,7 @@
                 <level name="INFO"/>
             </logger>
             <logger category="org.jboss.as.server.deployment.scanner">
-              <level name="WARN"/>
+                <level name="WARN"/>
             </logger>
             <logger category="org.jboss.as.remoting">
                 <level name="WARN"/>
@@ -126,6 +129,9 @@
                 <level name="WARN"/>
             </logger>
             <logger category="org.jboss.as.dependency.private">
+                <level name="ERROR"/>
+            </logger>
+            <logger category="org.jboss.as.connector.subsystems.datasources">
                 <level name="ERROR"/>
             </logger>
             <logger category="org.jboss.as.messaging">
