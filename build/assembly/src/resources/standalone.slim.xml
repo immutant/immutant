@@ -83,6 +83,9 @@
             <logger category="org.infinispan.jmx">
                 <level name="WARN"/>
             </logger>
+            <logger category="org.infinispan.factories">
+                <level name="WARN"/>
+            </logger>
             <logger category="org.jboss.modules">
                 <level name="WARN"/>
             </logger>
