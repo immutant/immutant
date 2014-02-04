@@ -5,19 +5,6 @@
   There are currently two options for installing Immutant: using the 
   Leiningen plugin and downloading a zip file.
 
-* Distribution variants
-
-  Starting with release *0.9.0* (and incremental build *750*),
-  there are two release distributions available:
-
-  - /slim/ - a smaller, lighter weight distribution that only
-    includes the functionality needed to run Immutant Clojure
-    applications, but not JavaEE applications. 
-  - /full/ - the full JBossAS distribution with Immutant
-    included. If you need to run JavaEE applications alongside
-    Clojure apps in the same AS, this is the distribution for
-    you. 
-
 * Installation via Leiningen
 
   To install Immutant via the [[http://leiningen.org/][Leiningen]] plugin, you'll need to first
@@ -63,11 +50,8 @@
   This installed version of Immutant is shared across all Immutant applications
   on your machine, and does not need to be installed for each application.
 
-  By default, the /slim/ variant will be installed. If you need the
-  /full/ variant, pass the =--full= option to the =install= subtask:
-
   #+begin_src sh
-   $ lein immutant install --full [VERSION]
+   $ lein immutant install [VERSION]
   #+end_src
 
   See [[./deployment.html][Deployment]] for more details about the plugin.
