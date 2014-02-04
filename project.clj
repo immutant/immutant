@@ -1,10 +1,12 @@
  (defproject org.immutant/immutant-parent "1.0.3-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.1.0-SNAPSHOT"]]
+  :plugins [[lein-modules "0.1.0-SNAPSHOT"]
+            [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
   :packaging "pom"
   :modules  {:inherited {:dependencies [[org.clojure/clojure _]
                                         [org.jboss.as/jboss-as-server _ :scope "provided"]
                                         [midje "1.6.0" :scope "test"]]
+                         :hooks [leiningen.immutant/hooks]
                          :repositories [["projectodd-upstream"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
                                           :snapshots false}]
@@ -24,7 +26,16 @@
 
                          ;; This is occasionally broken due to
                          ;; https://github.com/technomancy/leiningen/issues/878 
-                         :aliases ^:replace {"all" ["do" "clean," "test," "install"]}}
+                         :aliases ^:replace {"all" ["do" "clean," "test," "install"]}
+
+                         :license {:name "GNU Lesser General Pulic License v2.1"
+                                   :url "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"}
+                         :mailing-list {:name "Immutant users list"
+                                        :unsubscribe "immutant-users-unsubscribe@immutant.org"
+                                        :subscribe "immutant-users-subscribe@immutant.org"
+                                        :post "immutant-users@immutant.org"}
+                         :url "http://immutant.org"
+                         :scm {:name "git", :url "https://github.com/immutant/immutant/"}}
 
              :versions {org.clojure/clojure             "1.5.1"
                         leiningen-core/leiningen-core   "2.3.4"
@@ -35,6 +46,7 @@
                         :ring                           "1.2.1"
                         :jbossas                        "7.2.x.slim.incremental.14"
                         :polyglot                       "1.19.0"
+                        :hornetq                        "2.3.1.Final"
                         
                         org.immutant/immutant-parent               :immutant
                         org.immutant/immutant-modules-parent       :immutant

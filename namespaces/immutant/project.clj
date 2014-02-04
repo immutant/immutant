@@ -1,9 +1,11 @@
 (defproject org.immutant/immutant "1.0.3-SNAPSHOT"
-  :plugins [[lein-modules "0.1.0-SNAPSHOT"]]
-  :dependencies [[org.immutant/immutant-messaging _]
-                 [org.immutant/immutant-cache _]
-                 [org.immutant/immutant-daemons _]
-                 [org.immutant/immutant-jobs _]
-                 [org.immutant/immutant-web _]
-                 [org.immutant/immutant-xa _]]
-  :modules {:parent "../project.clj"})
+  :description "An aggregate lib that pulls in all of the public Immutant libs."
+  :plugins [[lein-modules "0.1.0-SNAPSHOT"]
+            [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
+  :modules {:parent "../project.clj"}
+  :dependencies [[org.immutant/immutant-cache :immutant]
+                 [org.immutant/immutant-daemons :immutant]
+                 [org.immutant/immutant-jobs :immutant]
+                 [org.immutant/immutant-messaging :immutant]
+                 [org.immutant/immutant-web :immutant]
+                 [org.immutant/immutant-xa :immutant]])

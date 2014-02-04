@@ -1,4 +1,9 @@
 (defproject org.immutant/immutant-xa "1.0.3-SNAPSHOT"
-  :plugins [[lein-modules "0.1.0-SNAPSHOT"]]
-  :dependencies [[org.immutant/immutant-xa-module _]]
-  :modules {:parent "../project.clj"})
+  :description "The Immutant xa module."
+  :plugins [[lein-modules "0.1.0-SNAPSHOT"]
+            [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
+  :modules {:parent "../project.clj"}
+  :dependencies [[org.immutant/immutant-common _]
+                 [org.jboss.spec.javax.transaction/jboss-transaction-api_1.1_spec "1.0.1.Final"]
+                 [org.immutant/immutant-xa-module :immutant :scope "provided"]]
+  :src-jar "../../modules/xa/target/immutant-xa-module-${version}.jar")
