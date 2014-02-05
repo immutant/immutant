@@ -54,5 +54,5 @@
 (defn get-as-data* [path & [opts]]
   (as-data* :get path opts))
 
-(defn get-as-data [path]
-  (:body (get-as-data* path)))
+(defn get-as-data [path & [opts]]
+  (:body (get-as-data* path opts)))

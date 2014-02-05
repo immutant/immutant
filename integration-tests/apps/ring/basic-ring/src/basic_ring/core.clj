@@ -25,7 +25,8 @@
             [immutant.dev            :as dev]
             [ring.middleware.session :as rsession]
             [clojure.java.io         :as io]
-            [ham.biscuit             :as hb])
+            [ham.biscuit             :as hb]
+            [ring.middleware.json    :as json])
   (:import SomeClass))
 
 (def a-value (atom "default"))
@@ -60,7 +61,9 @@
     (response (.trim (slurp res)))))
 
 (defn request-echo-handler [request]
-  (response (assoc request :body "<body>") ;; body is a inputstream, chuck it for now
+  (response (if (instance? java.io.InputStream (:body request))
+              (assoc request :body "<body>") ;; body is a inputstream, chuck it for now
+              request) 
             {"x-request-method" (str (:request-method request))})) 
 
 (defn target-classes-handler [request]
@@ -172,3 +175,10 @@
 (defn init-dev-handler []
      (init)
      (web/start dev-handler))
+
+(defn init-json-handler []
+  (init)
+  (web/start 
+    (-> request-echo-handler
+      json/wrap-json-body
+      json/wrap-json-params)))
