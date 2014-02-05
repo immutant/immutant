@@ -21,7 +21,8 @@
         [immutant.util :only [with-tccl]])
   (:require [ring.util.servlet :as servlet])
   (:import javax.servlet.Servlet
-           javax.servlet.http.HttpServletRequest))
+           javax.servlet.http.HttpServletRequest
+           org.immutant.web.ReusableInputStream))
 
 (defn- ^String context [^HttpServletRequest request]
   (str (.getContextPath request)
@@ -39,13 +40,17 @@
   (reify javax.servlet.Servlet
     (service [_ request response]
       (with-tccl
-        (if-let [response-map (binding [current-servlet-request request]
-                                ((servlet-session-wrapper handler)
-                                 (assoc (servlet/build-request-map request)
-                                   :context (context request)
-                                   :path-info (path-info request))))]
-          (servlet/update-servlet-response response response-map)
-          (throw (NullPointerException. "Handler returned nil.")))))
+        (let [request-map (-> request
+                            servlet/build-request-map
+                            (assoc
+                                :context (context request)
+                                :path-info (path-info request))
+                            (update-in [:body] #(ReusableInputStream. %)))]
+          (with-open [_ (.closer ^ReusableInputStream (:body request-map))]
+            (if-let [response-map (binding [current-servlet-request request]
+                                    ((servlet-session-wrapper handler) request-map))]
+              (servlet/update-servlet-response response response-map)
+              (throw (NullPointerException. "Handler returned nil.")))))))
     (init [_ _])
     (destroy [_])))
 

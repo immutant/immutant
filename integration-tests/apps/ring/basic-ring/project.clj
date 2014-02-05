@@ -23,7 +23,8 @@
                  [org.mortbay.jetty/jsp-2.1 "6.1.14"]
                  [org.clojure/clojurescript "0.0-1586"]
                  [clj-http "0.5.5"]
-                 [ritz/ritz-nrepl-middleware "0.7.0"]]
+                 [ritz/ritz-nrepl-middleware "0.7.0"]
+                 [ring/ring-json "0.2.0"]]
   :java-source-paths ["src/java/"]
   :immutant {:ham :biscuit}
   :repl-options {:nrepl-middleware [ritz.nrepl.middleware.doc/wrap-doc
