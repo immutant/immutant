@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.integs.web.json
+(ns immutant.integs.web.reusable-body
   (:use fntest.core
         clojure.test
         [immutant.integs.integ-helper :only [get-as-data]]))
@@ -24,13 +24,18 @@
                       '{
                         :root "target/apps/ring/basic-ring/"
                         :init 'basic-ring.core/init-json-handler
-                        :context-path "/json"
+                        :context-path "/reusable"
                         }))
 
 ;; this is really testing that the body inputstream is reusable
 (deftest json-body-should-be-parsed-to-params-and-body
-  (let [response (get-as-data "/json"
+  (let [response (get-as-data "/reusable"
                    {:content-type :json
                     :body "{\"json\": \"data\"}"})]
     (is (= "data" (get-in response [:body "json"])))
     (is (= "data" (get-in response [:params "json"])))))
+
+(deftest large-body-should-be-properly-read
+  (let [body (apply str (repeatedly 5000 #(char (rand 127))))
+        response (get-as-data "/reusable"
+                   {:body body})]))
