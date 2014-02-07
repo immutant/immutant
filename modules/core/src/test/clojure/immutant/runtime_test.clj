@@ -42,6 +42,14 @@
         (finally
           (.set clojure.lang.Compiler/LOADER base-cl))))))
 
+(defmacro with-project [project & body]
+  `(do
+     (registry/put :project ~project)
+     (try
+       ~@body
+       (finally
+         (registry/put :project nil)))))
+
 (defn do-nothing [])
 
 (defn update-a-value 
@@ -80,15 +88,43 @@
 
 (deftest initialize-from-lein-ring-options
   (add-url (io/resource "lein-ring-test/src/"))
-  (registry/put :project '{:ring {:handler guestbook.handler/war-handler
-                                  :init    guestbook.handler/init
-                                  :destroy guestbook.handler/destroy}})
-  (try
+  (with-project '{:ring {:handler guestbook.handler/war-handler
+                         :init    guestbook.handler/init
+                         :destroy guestbook.handler/destroy}}
     (initialize nil)
     (let [[path handler & {:keys [init destroy]}]  @a-value]
       (is (= "/" path))
       (is (= "war-handler" (handler)))
       (is (= "init"  (init)))
-      (is (= "destroy" (destroy))))
-    (finally
-      (registry/put :project nil))))
+      (is (= "destroy" (destroy))))))
+
+(deftest initialize-from-lein-ring-options-with-invalid-handler
+  (add-url (io/resource "lein-ring-test/src/"))
+  (with-project '{:ring {:handler guestbook.handler/bar-handler}}
+    (is (thrown? RuntimeException
+          (initialize nil))))
+  (with-project '{:ring {:handler guestbook.bandler/bar-handler}}
+    (is (thrown? java.io.FileNotFoundException
+          (initialize nil)))))
+
+(deftest initialize-from-lein-ring-options-with-invalid-init
+  (add-url (io/resource "lein-ring-test/src/"))
+  (with-project '{:ring {:handler guestbook.handler/war-handler
+                         :init    guestbook.handler/bar-init}}
+    (is (thrown? RuntimeException
+          (initialize nil))))
+  (with-project '{:ring {:handler guestbook.handler/war-handler
+                         :init    guestbook.bandler/bar-init}}
+    (is (thrown? java.io.FileNotFoundException
+          (initialize nil)))))
+
+(deftest initialize-from-lein-ring-options-with-invalid-destroy
+  (add-url (io/resource "lein-ring-test/src/"))
+  (with-project '{:ring {:handler guestbook.handler/war-handler
+                         :destroy guestbook.handler/bar-destroy}}
+    (is (thrown? RuntimeException
+          (initialize nil))))
+  (with-project '{:ring {:handler guestbook.handler/war-handler
+                         :destroy guestbook.bandler/bar-destroy}}
+    (is (thrown? java.io.FileNotFoundException
+          (initialize nil)))))
