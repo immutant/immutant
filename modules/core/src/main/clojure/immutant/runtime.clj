@@ -57,7 +57,12 @@ bootstrapping process. Applications shouldn't use anything here."
 (defn ^{:internal true} init-by-fn
   [init-fn]
   (when init-fn
-    (require-and-invoke init-fn)
+    (try
+      (require-and-invoke init-fn)
+      (catch Throwable e
+        (log/error
+          (format "Unexpected error occurred invoking init-fn %s:" init-fn) e)
+        (throw e)))
     (log/info "Initialized" (util/app-name) "via" init-fn)
     true))
 
@@ -67,24 +72,34 @@ bootstrapping process. Applications shouldn't use anything here."
     (require 'immutant.init)
     (log/info "Initialized" (util/app-name) "from immutant.init")
     true
-    (catch java.io.FileNotFoundException e
+    (catch Throwable e
       ;; make sure it's a failure to find immutant.init, and not
       ;; something within init throwing a FNFE
-      (if-not (re-find #"immutant/init" (.getMessage e))
-        (throw e)))
-    (catch Throwable e
-      (log/error "Unexpected error occurred loading immutant.init" e)
-      (throw e))))
+      (when-not (and (instance? java.io.FileNotFoundException e)
+                  (re-find #"immutant/init" (.getMessage e)))
+        (log/error "Unexpected error occurred loading immutant.init:" e)
+        (throw e)))))
+
+(defn ^:private assert-resolve [sym]
+  (if-let [res (util/require-resolve sym)]
+    res
+    (throw (RuntimeException. (str "Failed to resolve " sym)))))
 
 (defn ^{:internal true} init-by-ring
   []
   (let [project (registry/get :project)]
     (when-let [handler (get-in project [:ring :handler])]
-      (require-and-invoke "immutant.web/start-handler"
-                          "/"
-                          (util/try-resolve handler)
-                          :init    (util/try-resolve (get-in project [:ring :init]))
-                          :destroy (util/try-resolve (get-in project [:ring :destroy])))
+      (try
+        (require-and-invoke
+          "immutant.web/start-handler" "/"
+          (assert-resolve handler)
+          :init    (if-let [init (get-in project [:ring :init])]
+                     (assert-resolve init))
+          :destroy (if-let [destroy (get-in project [:ring :destroy])]
+                     (assert-resolve destroy)))
+        (catch Throwable e
+          (log/error "Unexpected error occurred initializing from :ring options in project.clj:" e)
+          (throw e)))
       (log/info "Initialized" (util/app-name) "from :ring options in project.clj")
       true)))
 
@@ -93,7 +108,6 @@ bootstrapping process. Applications shouldn't use anything here."
 tries to load the immutant.init namespace. In either case,
 post-initialize is called to finalize initialization."
   [init-fn]
-
   (dynapathize-class-loader)
   (extend-url-classpath)
   (or

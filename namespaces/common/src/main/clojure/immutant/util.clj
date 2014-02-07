@@ -125,12 +125,17 @@
        (finally
          (.setContextClassLoader thread# original#)))))
 
+(defn require-resolve
+  "Requires and resolves the given namespace-qualified symbol."
+  [sym]
+  (require (symbol (namespace sym)))
+  (resolve sym))
+
 (defn try-resolve
-  "Tries to resolve the given namespace-qualified symbol"
+  "Tries to require and resolve the given namespace-qualified symbol, returning nil if not found."
   [sym]
   (try
-    (require (symbol (namespace sym)))
-    (resolve sym)
+    (require-resolve sym)
     (catch java.io.FileNotFoundException _)
     (catch RuntimeException _)))
 
