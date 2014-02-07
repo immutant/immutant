@@ -62,7 +62,7 @@
 
 (defn request-echo-handler [request]
   (response (if (instance? java.io.InputStream (:body request))
-              (assoc request :body "<body>") ;; body is a inputstream, chuck it for now
+              (update-in request [:body] slurp) 
               request) 
             {"x-request-method" (str (:request-method request))})) 
 

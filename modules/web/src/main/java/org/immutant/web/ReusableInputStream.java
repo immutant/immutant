@@ -38,11 +38,9 @@ public class ReusableInputStream extends InputStream {
             this.data = new RandomAccessFile(this.tmpFile, "rw");
 
             int bytesRead;
-            int transferPosition = 0;
             byte[] bytes = new byte[4096];
-            while ((bytesRead = this.source.read(bytes, transferPosition, 4096)) > 0) {
-                this.data.write(bytes, transferPosition, bytesRead);
-                transferPosition += bytesRead;
+            while ((bytesRead = this.source.read(bytes, 0, 4096)) > 0) {
+                this.data.write(bytes, 0, bytesRead);
             }
             this.data.seek(0);
             this.source.close();
