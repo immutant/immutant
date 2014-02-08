@@ -3,10 +3,14 @@
   :plugins [[lein-modules "0.1.0-SNAPSHOT"]
             [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
   :packaging "pom"
-  :modules  {:inherited {:dependencies [[org.clojure/clojure _]
-                                        [org.jboss.as/jboss-as-server _ :scope "provided"]
-                                        [midje "1.6.0" :scope "test"]]
-                         :hooks [leiningen.immutant/hooks]
+
+  :profiles {:provided
+             {:dependencies [[org.clojure/clojure _]
+                             [org.jboss.as/jboss-as-server _]]}
+             :dev
+             {:dependencies [[midje/midje "1.6.0"]]}}
+  
+  :modules  {:inherited {:hooks [leiningen.immutant/hooks]
                          :repositories [["projectodd-upstream"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
                                           :snapshots false}]
@@ -21,12 +25,12 @@
                          :source-paths ^:replace ["src/main/clojure"]
                          :test-paths ^:replace ["src/test/clojure"]
                          :resource-paths ^:replace ["src/module/resources" "src/test/resources"]
-                         :java-source-paths ^:replace ["src/main/java"]
+                         :java-source-paths ["src/main/java"]
                          :jar-exclusions [#"\.java$"]
 
                          ;; This is occasionally broken due to
                          ;; https://github.com/technomancy/leiningen/issues/878 
-                         :aliases ^:replace {"all" ["do" "clean," "test," "install"]}
+                         :aliases ^:displace {"all" ["do" "clean," "test," "install"]}
 
                          :license {:name "GNU Lesser General Pulic License v2.1"
                                    :url "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"}

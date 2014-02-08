@@ -3,6 +3,7 @@
   :plugins [[lein-modules "0.1.0-SNAPSHOT"]
             [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
   :modules {:parent "../project.clj"}
-  :dependencies [[org.immutant/immutant-common :immutant]
-                 [org.immutant/immutant-daemons-module :immutant :scope "provided"]]
+  :dependencies [[org.immutant/immutant-common :immutant]]
+
+  :profiles {:provided {:dependencies [[org.immutant/immutant-daemons-module :immutant]]}}
   :src-jar "../../modules/daemons/target/immutant-daemons-module-${version}.jar")

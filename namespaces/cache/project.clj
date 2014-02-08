@@ -8,6 +8,7 @@
                  [org.infinispan/infinispan-core _]
                  [org.jboss.logging/jboss-logging "3.1.2.GA"]
                  [org.jboss.spec.javax.transaction/jboss-transaction-api_1.1_spec "1.0.1.Final"]
-                 [org.projectodd/polyglot-cache _]
-                 [org.immutant/immutant-cache-module :immutant :scope "provided"]]
+                 [org.projectodd/polyglot-cache _]]
+
+  :profiles {:provided {:dependencies [[org.immutant/immutant-cache-module :immutant]]}}
   :src-jar "../../modules/cache/target/immutant-cache-module-${version}.jar")

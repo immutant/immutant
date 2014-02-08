@@ -4,6 +4,7 @@
             [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
   :modules {:parent "../project.clj"}
   :dependencies [[org.immutant/immutant-common _]
-                 [org.jboss.spec.javax.transaction/jboss-transaction-api_1.1_spec "1.0.1.Final"]
-                 [org.immutant/immutant-xa-module :immutant :scope "provided"]]
+                 [org.jboss.spec.javax.transaction/jboss-transaction-api_1.1_spec "1.0.1.Final"]]
+
+  :profiles {:provided {:dependencies [[org.immutant/immutant-xa-module :immutant]]}}
   :src-jar "../../modules/xa/target/immutant-xa-module-${version}.jar")

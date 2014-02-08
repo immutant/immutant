@@ -7,7 +7,8 @@
 (defn copy-jar [f & args]
   (let [[project main] args]
     (if-let [src (and (= 2 (count args)) (:src-jar project))]
-      (let [src (io/file (:root project) (.replace src "${version}" (:version project)))
+      (let [src (io/file (:root project)
+                  (.replace src "${version}" (:version project)))
             dest (io/file (:target-path project)
                    (format "%s-%s.jar" (:name project) (:version project)))]
         (.mkdirs (.getParentFile dest))
