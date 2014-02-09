@@ -2,6 +2,7 @@
   (:require [robert.hooke]
             [leiningen.pom]
             [leiningen.jar]
+            [leiningen.core.main :as main]
             [clojure.java.io :as io]))
 
 (defn copy-jar [f & args]
@@ -12,7 +13,9 @@
             dest (io/file (:target-path project)
                    (format "%s-%s.jar" (:name project) (:version project)))]
         (.mkdirs (.getParentFile dest))
-        (io/copy src dest))
+        (io/copy src dest)
+        (main/info "Copied" (str dest))
+        {[:extension "jar"] (str dest)})
       (apply f args))))
 
 (defn put-pom-in-target [f & args]
