@@ -1,6 +1,7 @@
 (defproject org.immutant/immutant-xa-module "1.0.3-SNAPSHOT"
   :parent [org.immutant/immutant-modules-parent _ :relative-path "../pom.xml"]
-  :plugins [[lein-modules "0.1.0-SNAPSHOT"]]
+  :plugins [[lein-modules "0.1.0"]
+            [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
   :dependencies [[org.projectodd/polyglot-core _]
                  [org.projectodd/polyglot-xa _]
                  [org.jboss.spec.javax.transaction/jboss-transaction-api_1.1_spec "1.0.1.Final"]

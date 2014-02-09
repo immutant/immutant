@@ -1,6 +1,6 @@
  (defproject org.immutant/immutant-parent "1.0.3-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.1.0-SNAPSHOT"]
+  :plugins [[lein-modules "0.1.0"]
             [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
   :packaging "pom"
 
@@ -8,7 +8,10 @@
              {:dependencies [[org.clojure/clojure _]
                              [org.jboss.as/jboss-as-server _]]}
              :dev
-             {:dependencies [[midje/midje "1.6.0"]]}}
+             {:dependencies [[midje/midje "1.6.0"]]}
+
+             :barf
+             {:foo "bar"}}
   
   :modules  {:inherited {:hooks [leiningen.immutant/hooks]
                          :repositories [["projectodd-upstream"
