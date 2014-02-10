@@ -16,6 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns test.immutant.wrapper
+  (:refer-clojure :exclude (swap!))
   (:use immutant.cache
         clojure.test)
   (:require [immutant.codecs :as core]))
