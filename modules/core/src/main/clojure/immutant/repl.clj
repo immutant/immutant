@@ -44,8 +44,6 @@
   ([interface port]
      (let [{{:keys [nrepl-middleware nrepl-handler]} :repl-options}
          (registry/get :project)
-         require-resolve #(do (-> % namespace symbol require)
-                              (resolve %))
          interface-address (or (util/lookup-interface-address interface)
                                interface
                                (util/management-interface-address))]
@@ -58,15 +56,15 @@
            (when (and nrepl-middleware nrepl-handler)
              (throw (IllegalArgumentException.
                      "Can only use one of :nrepl-handler or :nrepl-middleware")))
-           (let [handler (or (and nrepl-handler (require-resolve nrepl-handler))
+           (let [handler (or (and nrepl-handler (util/require-resolve nrepl-handler))
                              (->> nrepl-middleware
                                   (map #(cond 
                                          (var? %) %
-                                         (symbol? %) (require-resolve %)
+                                         (symbol? %) (util/require-resolve %)
                                          (list? %) (eval %)))
-                                  (apply (util/try-resolve
+                                  (apply (util/require-resolve
                                           'clojure.tools.nrepl.server/default-handler))))]
-             (when-let [server ((util/try-resolve 'clojure.tools.nrepl.server/start-server)
+             (when-let [server ((util/require-resolve 'clojure.tools.nrepl.server/start-server)
                                 :handler handler
                                 :port (fix-port port)
                                 :bind interface-address)]
