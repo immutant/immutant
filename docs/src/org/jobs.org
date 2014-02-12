@@ -101,7 +101,7 @@
   You can safely call =schedule= multiple times with the same job
   name - the named job will be rescheduled.
 
-  In case you need it, the [[http://quartz-scheduler.org/api/1.8.5/org/quartz/JobExecutionContext.html][org.quartz.JobExecutionContext]] instance is
+  In case you need it, the [[http://quartz-scheduler.org/api/2.1.5/org/quartz/JobExecutionContext.html][org.quartz.JobExecutionContext]] instance is
   bound to  [[./apidoc/immutant.jobs.html#var-*job-execution-context*][immutant.jobs/*job-execution-context*]] before invoking
   your job function.
 
@@ -134,7 +134,7 @@
   Either day-of-month or day-of-week must be specified using the ?
   character, since specifying both is contradictory.
 
-  See the [[http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06][Quartz cron specification]] for additional details.
+  See the [[http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/tutorial-lesson-06][Quartz cron specification]] for additional details.
 
 
 ** A Note On Dynamic Singleton Jobs
