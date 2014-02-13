@@ -8,7 +8,9 @@
              {:dependencies [[org.clojure/clojure _]
                              [org.jboss.as/jboss-as-server _]]}
              :dev
-             {:dependencies [[midje/midje "1.6.0"]]}}
+             {:dependencies [[midje/midje "1.6.0"]]}
+
+             :dist {:modules {:dirs ^:displace ["build"]}}}
   
   :modules  {:inherited {:hooks [leiningen.immutant/hooks]
                          :repositories [["projectodd-upstream"
