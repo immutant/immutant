@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-xa "1.0.3-SNAPSHOT"
   :description "The Immutant xa module."
-  :plugins [[lein-modules "0.1.0"]
+  :plugins [[lein-modules "0.1.1-SNAPSHOT"]
             [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
   :modules {:parent "../project.clj"}
   :dependencies [[org.immutant/immutant-common _]

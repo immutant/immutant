@@ -1,6 +1,6 @@
  (defproject org.immutant/immutant-parent "1.0.3-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.1.0"]
+  :plugins [[lein-modules "0.1.1-SNAPSHOT"]
             [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
   :packaging "pom"
 
@@ -25,7 +25,7 @@
                          :source-paths ^:replace ["src/main/clojure"]
                          :test-paths ^:replace ["src/test/clojure"]
                          :resource-paths ^:replace ["src/module/resources" "src/test/resources"]
-                         :java-source-paths ["src/main/java"]
+                         :java-source-paths ^:replace ["src/main/java"]
                          :jar-exclusions [#"\.java$"]
 
                          ;; This is occasionally broken due to
