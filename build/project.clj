@@ -4,5 +4,6 @@
             [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
   :packaging "pom"
 
-  :profiles {:dev  {:modules {:dirs ["assembly"]}}
-             :dist {:modules {:dirs ["dist"]}}})
+  :modules {:dirs ["assembly"]}
+
+  :profiles {:dist {:modules {:dirs ["dist"]}}})
