@@ -11,5 +11,5 @@
                              [org.infinispan/infinispan-core _]
                              [org.jboss.spec.javax.transaction/jboss-transaction-api_1.1_spec "1.0.1.Final"]]}}
 
-  :dependencies [[org.clojure/core.memoize "0.5.5"]])
+  :dependencies [[org.clojure/core.memoize "0.5.5" :exclusions [[org.clojure/clojure]]]])
 
