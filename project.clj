@@ -43,16 +43,21 @@
                          :url "http://immutant.org"
                          :scm {:name "git", :url "https://github.com/immutant/immutant/"}}
 
-             :versions {org.clojure/clojure             "1.5.1"
-                        leiningen-core/leiningen-core   "2.3.4"
-                        org.infinispan/infinispan-core  "6.0.0.Final"
-                        cheshire/cheshire               "5.2.0"
+             :versions {org.clojure/clojure               "1.5.1"
+                        org.clojure/tools.nrepl           "0.2.3"
+                        leiningen-core/leiningen-core     "2.3.4"
+                        org.infinispan/infinispan-core    "6.0.0.Final"
+                        cheshire/cheshire                 "5.2.0"
+                        clj-stacktrace/clj-stacktrace     "0.2.7"
+                        clojure-complete/clojure-complete "0.2.2"
+                        org.tcrawley/dynapath             "0.2.3"
                         
                         :immutant                       "1.0.3-SNAPSHOT"
                         :ring                           "1.2.1"
                         :jbossas                        "7.2.x.slim.incremental.14"
                         :polyglot                       "1.19.0"
                         :hornetq                        "2.3.1.Final"
+                        :shimdandy                      "1.0.1"
                         
                         org.immutant/immutant-parent               :immutant
                         org.immutant/immutant-modules-parent       :immutant
@@ -81,4 +86,7 @@
                         org.projectodd/polyglot-cache            :polyglot
                         org.projectodd/polyglot-hasingleton      :polyglot
                         org.projectodd/polyglot-messaging        :polyglot
-                        org.projectodd/polyglot-as-test-support  :polyglot}})
+                        org.projectodd/polyglot-as-test-support  :polyglot
+
+                        org.projectodd.shimdandy/shimdandy-api   :shimdandy
+                        org.projectodd.shimdandy/shimdandy-impl  :shimdandy}})
