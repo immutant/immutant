@@ -92,14 +92,15 @@
                (System/getenv "M2_REPO")
                (str (System/getenv "HOME") "/.m2/repository")))
 
-(def ^:dynamic root-dir nil)
-(def ^:dynamic build-dir nil)
-(def immutant-dir (memoize #(io/file build-dir "immutant")))
+(def ^:dynamic assembly-dir nil)
+(def root-dir (memoize #(-> assembly-dir .getParentFile .getParentFile)))
+(def build-dir (memoize #(io/file assembly-dir "target/stage")))
+(def immutant-dir (memoize #(io/file (build-dir) "immutant")))
 (def jboss-dir (memoize #(io/file (immutant-dir) "jboss")))
 (def versions
   (memoize
-   #(assoc (extract-versions (io/file root-dir "pom.xml") version-paths)
-      :jboss (System/getProperty "version.jbossas"))))
+    #(assoc (extract-versions (io/file (root-dir) "pom.xml") version-paths)
+       :jboss (System/getProperty "version.jbossas"))))
 
 (defn jboss-zip-file []
   (str m2-repo "/org/jboss/as/jboss-as-dist/"
@@ -123,7 +124,7 @@
               {:file       file
                :subsystem? (subsystem-module? file)}))
           {}
-          (glob/glob (str (.getAbsolutePath root-dir)
+          (glob/glob (str (.getAbsolutePath (root-dir))
                           "/modules/*/target/*-module"))))
 
 (defn immutant-subsystems []
@@ -132,8 +133,7 @@
        (map first)))
 
 (defmacro with-assembly-root [assembly-root & body]
-  `(binding [root-dir  (-> ~assembly-root .getCanonicalFile .getParentFile .getParentFile)
-             build-dir (io/file (.getCanonicalFile ~assembly-root) "target/stage")]
+  `(binding [assembly-dir  (-> ~assembly-root .getCanonicalFile)]
      ~@body))
 
 (defn attr= [attr val loc]
@@ -549,13 +549,13 @@
 (defn copy-static-config [slim?]
   (let [type (if slim? "slim" "full")]
     (with-message "Copying config files"
-      (io/copy (io/file (format "src/resources/standalone.%s.xml" type))
+      (io/copy (io/file assembly-dir (format "src/resources/standalone.%s.xml" type))
         (io/file (jboss-dir) "standalone/configuration/standalone.xml"))
-      (io/copy (io/file (format "src/resources/logging-standalone.properties" type))
+      (io/copy (io/file assembly-dir (format "src/resources/logging-standalone.properties" type))
                (io/file (jboss-dir) "standalone/configuration/logging.properties"))
-      (io/copy (io/file (format "src/resources/standalone-ha.%s.xml" type))
+      (io/copy (io/file assembly-dir (format "src/resources/standalone-ha.%s.xml" type))
                (io/file (jboss-dir) "standalone/configuration/standalone-ha.xml"))
-      (io/copy (io/file (format "src/resources/domain.%s.xml" type))
+      (io/copy (io/file assembly-dir (format "src/resources/domain.%s.xml" type))
                (io/file (jboss-dir) "domain/configuration/domain.xml"))
-      (io/copy (io/file (format "src/resources/host.%s.xml" type))
+      (io/copy (io/file assembly-dir (format "src/resources/host.%s.xml" type))
                (io/file (jboss-dir) "domain/configuration/host.xml")))))
