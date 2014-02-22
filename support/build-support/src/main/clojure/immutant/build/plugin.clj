@@ -1,4 +1,4 @@
-(ns leiningen.immutant
+(ns immutant.build.plugin
   (:use [leiningen.jruby :only (jruby)])
   (:require [robert.hooke]
             [leiningen.pom]
