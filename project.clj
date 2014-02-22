@@ -26,7 +26,7 @@
                                          "https://repository.jboss.org/nexus/content/groups/public-thirdparty-releases/"]]
                          :source-paths ^:replace ["src/main/clojure"]
                          :test-paths ^:replace ["src/test/clojure"]
-                         :resource-paths ^:replace ["src/module/resources" "src/test/resources"]
+                         :resource-paths ^:replace ["src/module/resources" "src/test/resources" "src/main/resources"]
                          :java-source-paths ^:replace ["src/main/java"]
                          :jar-exclusions [#"\.java$"]
 
@@ -58,6 +58,8 @@
                         :polyglot                       "1.19.0"
                         :hornetq                        "2.3.1.Final"
                         :shimdandy                      "1.0.1"
+
+                        org.hornetq/hornetq-core-client            :hornetq
                         
                         org.immutant/immutant-parent               :immutant
                         org.immutant/immutant-modules-parent       :immutant
@@ -75,6 +77,7 @@
                         org.jboss.as/jboss-as-jmx       :jbossas
                         org.jboss.as/jboss-as-messaging :jbossas
                         org.jboss.as/jboss-as-web       :jbossas
+                        org.jboss.as/jboss-as-dist      :jbossas
 
                         ring/ring-servlet :ring
                         ring/ring-devel   :ring
