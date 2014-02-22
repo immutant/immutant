@@ -4,4 +4,10 @@
             [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
   :packaging "pom"
 
-  :modules {:dirs ^:replace []})
+  :profiles {:provided
+             {:dependencies [[org.jboss.as/jboss-as-dist _ :extension "zip"]
+                             [org.immutant/immutant _]]}}
+
+  :modules {:dirs ^:replace []}
+
+  :aliases {"install" "assemble", "all" ["do" "clean," "assemble"]})
