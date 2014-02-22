@@ -1,7 +1,6 @@
 (defproject org.immutant/immutant-daemons-module "1.0.3-SNAPSHOT"
   :parent [org.immutant/immutant-modules-parent _ :relative-path "../pom.xml"]
-  :plugins [[lein-modules "0.1.1-SNAPSHOT"]
-            [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
+  :plugins [[lein-modules "0.1.1-SNAPSHOT"]]
   :profiles {:provided
              {:dependencies [[org.immutant/immutant-common-module _]
                              [org.immutant/immutant-core-module _]

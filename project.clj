@@ -1,7 +1,6 @@
  (defproject org.immutant/immutant-parent "1.0.3-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.1.1-SNAPSHOT"]
-            [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
+  :plugins [[lein-modules "0.1.1-SNAPSHOT"]]
   :packaging "pom"
 
   :profiles {:provided
@@ -12,7 +11,8 @@
 
              :dist {}}
   
-  :modules  {:inherited {:hooks [leiningen.immutant/hooks]
+  :modules  {:inherited {:hooks [immutant.build.plugin/hooks]
+                         :plugins [[org.immutant/immutant-build-support "1.0.3-SNAPSHOT"]]
                          :repositories [["projectodd-upstream"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
                                           :snapshots false}]

@@ -1,8 +1,7 @@
  (defproject org.immutant/immutant-modules-parent "1.0.3-SNAPSHOT"
   :description "Parent for all modules"
   :parent [org.immutant/immutant-parent _ :relative-path "../pom.xml"]
-  :plugins [[lein-modules "0.1.1-SNAPSHOT"]
-            [org.immutant/build-plugin "0.1.0-SNAPSHOT"]]
+  :plugins [[lein-modules "0.1.1-SNAPSHOT"]]
   :packaging "pom"
   
   :profiles  {:dev {:dependencies [[org.immutant/immutant-clojure-test-support _]
