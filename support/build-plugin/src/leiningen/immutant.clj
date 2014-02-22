@@ -1,7 +1,9 @@
 (ns leiningen.immutant
+  (:use [leiningen.jruby :only (jruby)])
   (:require [robert.hooke]
             [leiningen.pom]
             [leiningen.jar]
+            [leiningen.javac]
             [leiningen.core.main :as main]
             [leiningen.core.project :as prj]
             [leiningen.core.classpath :as cp]
@@ -46,7 +48,18 @@
           (copy-sans-version dir dep))))
     result))
 
+(defn generate-build-info [f & args]
+  (let [result (apply f args)
+        [project] args
+        script (io/file (:root project) "bin/generate-build-info.rb")]
+    (if (.exists script)
+      (jruby project (str script)))
+    result))
+
 (defn hooks []
   (robert.hooke/add-hook #'leiningen.pom/pom #'put-pom-in-target)
   (robert.hooke/add-hook #'leiningen.jar/jar #'copy-jar)
   (robert.hooke/add-hook #'leiningen.jar/jar #'prepare-module-after-jar))
+
+(defn versions []
+  (robert.hooke/add-hook #'leiningen.javac/javac #'generate-build-info))
