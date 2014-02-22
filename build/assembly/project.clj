@@ -5,7 +5,7 @@
 
   :profiles {:provided
              {:dependencies [[org.jboss.as/jboss-as-dist _ :extension "zip"]
-                             [org.immutant/immutant _]]}}
+                             [org.immutant/immutant :immutant]]}}
 
   :modules {:dirs ^:replace []}
 
