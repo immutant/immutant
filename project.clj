@@ -61,7 +61,9 @@
 
                         org.hornetq/hornetq-core-client            :hornetq
                         
+                        org.immutant/immutant                      :immutant
                         org.immutant/immutant-parent               :immutant
+                        org.immutant/immutant-build                :immutant
                         org.immutant/immutant-modules-parent       :immutant
                         org.immutant/immutant-support-parent       :immutant
                         org.immutant/immutant-namespaces-parent    :immutant

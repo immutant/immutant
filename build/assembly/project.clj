@@ -5,8 +5,8 @@
 
   :profiles {:provided
              {:dependencies [[org.jboss.as/jboss-as-dist _ :extension "zip"]
-                             [org.immutant/immutant :immutant]]}}
+                             [org.immutant/immutant _]]}}
 
   :modules {:dirs ^:replace []}
 
-  :aliases {"install" "assemble", "all" ["do" "clean," "assemble"]})
+  :aliases {"all" ["do" "clean," "install," "assemble"]})
