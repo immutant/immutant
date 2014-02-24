@@ -268,7 +268,7 @@
     (is (nil? (deref (pl :foo) 10000 :timeout)))))
 
 (deftest pipeline-timing-out-should-return-timeout-val
-  (let [pl (pl/pipeline :timeout-val #(Thread/sleep %))]
+  (let [pl (pl/pipeline :timeout-val-pl #(Thread/sleep %))]
     (is (= :ham (deref (pl 1000) 1 :ham)))))
 
 (deftest reloading-pipeline-ns-should-not-reset-internal-state
