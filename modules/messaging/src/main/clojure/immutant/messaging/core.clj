@@ -287,20 +287,20 @@
        (handler message)))))
 
 (defn ^:internal ^:no-doc delayed
-  "Creates an timeout-derefable delay around any function taking a timeout"
+  "Creates an timeout-derefable delay around any function taking a timeout and timeout-val."
   [f]
   (let [val (atom ::unrealized)
         realized? #(not= ::unrealized @val)
-        rcv (fn [timeout] (reset! val (f timeout)))]
+        rcv (fn [timeout timeout-val]
+              (reset! val (f timeout timeout-val)))]
     (proxy [clojure.lang.Delay clojure.lang.IBlockingDeref] [nil]
       (deref
         ([]
-           (if (realized?) @val (rcv 0)))
+           (if (realized?) @val (rcv 0 nil)))
         ([timeout-ms timeout-val]
            (if (realized?)
              @val
-             (let [r (rcv timeout-ms)]
-               (if (nil? r) timeout-val r)))))
+             (rcv timeout-ms timeout-val))))
       (isRealized []
         (realized?)))))
 

@@ -39,10 +39,13 @@
 (def message-seq (partial remote msg/message-seq))
 
 (defn delayed-receive [q]
-  (delayed #(receive q :timeout %)))
+  (delayed #(receive q :timeout %1 :timeout-val %2)))
 
 (deftest timeout-should-return-nil
   (is (nil? (receive ham-queue :timeout 1))))
+
+(deftest timeout-with-val-should-return-val
+  (is (= :val (receive ham-queue :timeout 1 :timeout-val :val))))
 
 (deftest simple "it should work"
   (publish ham-queue "testing")
