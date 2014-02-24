@@ -17,7 +17,8 @@
 
 (ns immutant.integs
   (:use clojure.test
-        [clojure.tools.namespace :only (find-namespaces-in-dir)])
+        [clojure.tools.namespace :only (find-namespaces-in-dir)]
+        [environ.core :only (env)])
   (:require [clojure.java.io               :as io]
             [clojure.string                :as string]
             [clojure.walk                  :as walk]
@@ -29,10 +30,10 @@
 (def ^{:dynamic true} *current-clojure-version* nil)
 
 (def clojure-versions
-  (set (string/split (System/getProperty "versions") #",")))
+  (set (string/split (env :versions) #",")))
 
 (def modes
-  (set (map keyword (string/split (System/getProperty "modes") #","))))
+  (set (map keyword (string/split (env :modes) #","))))
 
 (defn domain? []
   (boolean (some #{:domain} modes)))
@@ -117,7 +118,7 @@
 
 (defn ns-from-property []
   "Gets the namespace to test from the system property 'ns'"
-  (let [value (System/getProperty "ns")]
+  (let [value (env :ns)]
     (if (not (empty? value))
       (map #(let [ns (read-string %)]
               (if (re-find (re-pattern (format "^immutant\\.%s\\." (dir))) (name ns))
@@ -133,8 +134,13 @@
                     (io/file dest-dir)
                     opts)))
 
-(let [integs (io/file (.getParentFile (io/file *file*)) (dir))
-      namespaces (or (ns-from-property) (find-namespaces-in-dir integs))]
+(defn integs-dir []
+  (let [f (io/file *file*)]
+    (if (.isAbsolute f)
+      (io/file (.getParentFile f) (dir))
+      (io/file (.getParentFile (io/file (env :test-ns-path) f)) (dir)))))
+
+(let [namespaces (or (ns-from-property) (find-namespaces-in-dir (integs-dir)))]
   (generate-archives "target/apps"
                      ["apps/ring/basic-ring"]
                      ["apps/ring/basic-ring" {:name "basic-ring-id"

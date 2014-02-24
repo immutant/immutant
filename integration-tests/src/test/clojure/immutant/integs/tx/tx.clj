@@ -17,11 +17,12 @@
 
 (ns immutant.integs.tx.tx
   (:use fntest.core
-        clojure.test))
+        clojure.test
+        [environ.core :only (env)]))
 
 (deftest verify-in-container-tests
   (is (test-in-container "tx" "target/apps/tx/",
-                         :config {:databases (System/getProperty "databases")})))
+                         :config {:databases (env :databases)})))
 
 
 

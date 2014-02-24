@@ -49,7 +49,11 @@
       <version>${version.nrepl}</version>
       <scope>compile</scope>
     </dependency>
-
+    <dependency>
+      <groupId>environ</groupId>
+      <artifactId>environ</artifactId>
+      <version>0.4.0</version>
+    </dependency>
     <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>immutant-messaging</artifactId>
