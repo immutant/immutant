@@ -121,6 +121,7 @@
    :else (throw (destination-name-error dest))))
 
 (defn stop-destination [name]
+  (log/info (format "Stopping %s: %s" (if (queue-name? name) "queue" "topic") name))
   (let [izer (registry/get "destinationizer")
         manager (registry/get "jboss.messaging.default.jms.manager")
         removed? (when izer
