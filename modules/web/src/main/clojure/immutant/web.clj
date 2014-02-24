@@ -39,7 +39,7 @@
 (defn start-handler
   "Typically not called directly; use start instead"
   [sub-context-path handler & {:keys [init destroy] :as opts}]
-  (log/info (format "Starting handler for %s at: %s%s" (util/app-name)
+  (log/info (format "Starting ring handler for %s at: %s%s" (util/app-name)
               (util/app-uri) sub-context-path))
   (start* sub-context-path
           (servlet/create-servlet (add-middleware handler opts))
@@ -72,7 +72,7 @@
   ([]
      (stop "/"))
   ([sub-context-path]
-     (log/info (str "Stopping handler at URL: " (util/app-uri) sub-context-path))
+     (log/info (str "Stopping ring handler/servlet at URL: " (util/app-uri) sub-context-path))
      (stop* sub-context-path)))
 
 (defn ^HttpServletRequest current-servlet-request
