@@ -14,4 +14,4 @@
                  [clj-stacktrace _ :exclusions [org.clojure/clojure]]
                  [clojure-complete _ :exclusions [org.clojure/clojure]]
                  [org.tcrawley/dynapath _]]
-  :hooks [immutant.build.plugin/versions])
+  :hooks [immutant.build.plugin.assembly/hooks])

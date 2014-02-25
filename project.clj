@@ -11,7 +11,7 @@
 
              :dist {}}
   
-  :modules  {:inherited {:hooks [immutant.build.plugin/hooks]
+  :modules  {:inherited {:hooks [immutant.build.plugin.pom/hooks]
                          :plugins [[org.immutant/immutant-build-support "1.0.3-SNAPSHOT"]]
                          :repositories [["projectodd-upstream"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
