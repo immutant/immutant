@@ -1,4 +1,4 @@
- (defproject org.immutant/immutant-parent "1.0.3-SNAPSHOT"
+(defproject org.immutant/immutant-parent "1.0.3-SNAPSHOT"
   :description "Parent for all that is Immutant"
   :plugins [[lein-modules "0.1.1-SNAPSHOT"]]
   :packaging "pom"
