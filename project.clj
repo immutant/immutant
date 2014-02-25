@@ -9,7 +9,8 @@
              :dev
              {:dependencies [[midje/midje "1.6.0"]]}
 
-             :dist {}}
+             :dist {}
+             :integ {}}
   
   :modules  {:inherited {:hooks [immutant.build.plugin.pom/hooks]
                          :plugins [[org.immutant/immutant-build-support "1.0.3-SNAPSHOT"]]

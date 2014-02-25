@@ -9,13 +9,14 @@
                  [leiningen-core _]
                  [org.immutant/deploy-tools "0.12.0"]]
 
+  :aliases {"all" ["check"]}
   :profiles {:dev
              {:dependencies [[org.immutant/immutant-messaging :immutant]
                              [org.clojars.tcrawley/java.jmx "0.3.0"]
                              [org.jboss.remotingjmx/remoting-jmx "1.1.0.Final"]
                              [environ "0.4.0"]]}
-             :cluster
-             {:env {:modes "offset,domain"}}}
+             :cluster {:env {:modes "offset,domain"}}
+             :integ   {:aliases {"all" ^:replace ["do" "clean," "test"]}}}
 
   :resource {:resource-paths ["apps"]
              :target-path "target/apps"
