@@ -24,3 +24,4 @@ TAGS
 .lein-failures
 .descriptors
 maven-target
+.lein-env

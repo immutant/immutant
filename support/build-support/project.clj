@@ -8,9 +8,9 @@
                  [cheshire "5.2.0"]
                  [leiningen-core "2.3.4"]
                  [org.jruby/jruby-complete "1.6.7"]
-                 [lancet "1.0.1"]]
-
+                 [lancet "1.0.1"]
+                 [lein-resource "0.3.3"]
+                 [environ "0.4.0"]]
   :source-paths ["src/main/clojure"]
-  
-  ;; Boom! We're a plugin!
+  :hooks [immutant.build.plugin.pom/hooks]
   :eval-in-leiningen true)
