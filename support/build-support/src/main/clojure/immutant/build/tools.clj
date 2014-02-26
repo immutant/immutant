@@ -550,7 +550,7 @@
   (let [type (if slim? "slim" "full")]
     (with-message "Copying config files"
       (io/copy (io/file assembly-dir (format "src/resources/standalone.%s.xml" type))
-        (io/file (jboss-dir) "standalone/configuration/standalone.xml"))
+               (io/file (jboss-dir) "standalone/configuration/standalone.xml"))
       (io/copy (io/file assembly-dir (format "src/resources/logging-standalone.properties" type))
                (io/file (jboss-dir) "standalone/configuration/logging.properties"))
       (io/copy (io/file assembly-dir (format "src/resources/standalone-ha.%s.xml" type))
