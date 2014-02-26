@@ -6,7 +6,7 @@
                              [org.projectodd/polyglot-core _]
                              [org.projectodd/polyglot-messaging _]
                              [org.immutant/immutant-core-module _]
-                             [org.jboss.as/jboss-as-messaging _]
+                             [org.jboss.as/jboss-as-messaging _ :exclusions [org.jboss.as/jboss-as-connector]]
                              [org.jboss.as/jboss-as-jmx _]
                              [org.immutant/immutant-xa-module _]
                              [org.jboss.spec.javax.jms/jboss-jms-api_1.1_spec "1.0.1.Final"]]}})

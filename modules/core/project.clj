@@ -5,7 +5,7 @@
              {:dependencies [[org.projectodd/polyglot-core _]
                              [org.immutant/immutant-common-module _]
                              [org.immutant/immutant-bootstrap-module _]
-                             [org.jboss.as/jboss-as-web _]
+                             [org.infinispan/infinispan-core _]
                              [org.jboss.as/jboss-as-jmx _]
                              [org.hornetq/hornetq-core-client _]]}}
   :dependencies [[org.projectodd.shimdandy/shimdandy-api _]
