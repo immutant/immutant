@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-jobs-module "1.0.3-SNAPSHOT"
   :parent [org.immutant/immutant-modules-parent _ :relative-path "../pom.xml"]
-  :plugins [[lein-modules "0.1.1-SNAPSHOT"]]
+  :plugins [[lein-modules "0.2.0"]]
 
   :profiles {:provided
              {:dependencies [[org.immutant/immutant-common-module _]

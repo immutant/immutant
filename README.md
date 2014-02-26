@@ -8,7 +8,7 @@ To file an issue, see https://issues.jboss.org/browse/IMMUTANT
 
 ## Requirements
 
-* Maven 3
+* Maven 3 or Leiningen 2.3.4+
 * Configuration of the JBoss Maven repository in settings.xml
 
 
@@ -41,6 +41,25 @@ Otherwise, see:
 Once your repositories are configured, simply type:
 
     mvn install
+
+### Building with Leiningen
+
+You can optionally build the Immutant source with Leiningen. But you
+must install the `build-support` plugin first:
+
+    cd support/build-support
+    lein install
+
+Once installed, cd back to the root of the project and run the
+following:
+
+    lein modules all
+
+The `modules` higher-order task will run the task passed to it (e.g.
+the `all` alias) in all that project's child modules. If you cd inside
+one of the child modules, you can just run lein as you normally would,
+but you should run the above at least once so that interdependent
+modules are installed in your local repo.
 
 ## Testing 
 

@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-daemons "1.0.3-SNAPSHOT"
   :description "The Immutant daemons module."
-  :plugins [[lein-modules "0.1.1-SNAPSHOT"]]
+  :plugins [[lein-modules "0.2.0"]]
   :modules {:parent "../project.clj"}
   :dependencies [[org.immutant/immutant-common :immutant]]
 
