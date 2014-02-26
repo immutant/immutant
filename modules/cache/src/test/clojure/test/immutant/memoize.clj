@@ -16,6 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns test.immutant.memoize
+  (:refer-clojure :exclude (swap!))
   (:use immutant.cache
         clojure.test)
   (:require [clojure.core.memoize :as cm]))

@@ -262,7 +262,15 @@
 (deftest with-a-record
   (let [pl (pl/pipeline :with-a-record #(update-in % [:a] inc))]
     (is (= (->TestRecord 2) (deref (pl (->TestRecord 1)) 10000 :timeout)))))
-  
+
+(deftest pipeline-returning-nil-should-return-nil-instead-of-timeout-val
+  (let [pl (pl/pipeline :nil-pl (constantly nil))]
+    (is (nil? (deref (pl :foo) 10000 :timeout)))))
+
+(deftest pipeline-timing-out-should-return-timeout-val
+  (let [pl (pl/pipeline :timeout-val-pl #(Thread/sleep %))]
+    (is (= :ham (deref (pl 1000) 1 :ham)))))
+
 (deftest reloading-pipeline-ns-should-not-reset-internal-state
   (let [name :reloading-ns-pl]
     (pl/pipeline name)

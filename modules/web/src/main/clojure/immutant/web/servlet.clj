@@ -50,7 +50,7 @@
             (if-let [response-map (binding [current-servlet-request request]
                                     ((servlet-session-wrapper handler) request-map))]
               (servlet/update-servlet-response response response-map)
-              (throw (NullPointerException. "Handler returned nil.")))))))
+              (throw (NullPointerException. "Ring handler returned nil instead of a response map.")))))))
     (init [_ _])
     (destroy [_])))
 

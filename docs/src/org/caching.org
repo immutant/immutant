@@ -97,7 +97,7 @@
    With an optimistic locking mode, locks are obtained at transaction
    prepare time and released at commit or rollback. Pessimistic
    transactions obtain locks on keys at the time the key is written,
-   releasing at commit/rollback. See [[https://docs.jboss.org/author/display/ISPN51/Infinispan%2Btransactions][the Infinispan docs]] for more
+   releasing at commit/rollback. See [[http://infinispan.org/docs/6.0.x/user_guide/user_guide.html#_configuring_transactions][the Infinispan docs]] for more
    details.
 
    The =:units= option applies to both =:idle= and =:ttl=, but to
@@ -277,14 +277,14 @@
    the spirit of [[http://en.wikipedia.org/wiki/Convention_over_configuration][convention over configuration]], but more complex
    configuration is still possible via Clojure's Java interop.
 
-   Infinispan's "fluent API" is invoked via a [[http://docs.jboss.org/infinispan/5.3/apidocs/org/infinispan/configuration/cache/ConfigurationBuilder.html][ConfigurationBuilder]] as
-   described in their docs for [[https://docs.jboss.org/author/display/ISPN53/Configuring%2Bcache%2Bprogrammatically][configuring a cache programmatically]]. A
+   Infinispan's "fluent API" is invoked via a [[http://docs.jboss.org/infinispan/6.0/apidocs/index.html?org/infinispan/configuration/cache/ConfigurationBuilder.html][ConfigurationBuilder]] as
+   described in their docs for [[http://infinispan.org/docs/6.0.x/user_guide/user_guide.html#_configuring_cache_programmatically][configuring a cache programmatically]]. A
    =ConfigurationBuilder= instance may be obtained by calling
    [[./apidoc/immutant.cache.core.html#var-builder][immutant.cache.core/builder]], passing the same options you would
    when [[#creating][creating]] a cache. This returns a builder initialized from the
    Immutant defaults and the options you pass in. You can then tweak
    that builder however you like before calling its =build= method to
-   return an Infinispan [[http://docs.jboss.org/infinispan/5.3/apidocs/org/infinispan/configuration/cache/Configuration.html][Configuration]] instance you can then pass to
+   return an Infinispan [[http://docs.jboss.org/infinispan/6.0/apidocs/index.html?org/infinispan/configuration/cache/Configuration.html][Configuration]] instance you can then pass to
    =immutant.cache/create=.
 
    *IMPORTANT*: You should always pass the same options to =create=

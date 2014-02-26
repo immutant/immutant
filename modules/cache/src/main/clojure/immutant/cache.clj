@@ -274,7 +274,9 @@
   or :pessimistic when write contention will be high."
   [^InfinispanCache cache key f & args]
   (loop [val (get cache key)]
-    (let [new (apply f val args)]
-      (if (put-if-replace cache key val new)
-        new
-        (recur (get cache key))))))
+    (if (or val (contains? cache key))
+      (let [new (apply f val args)]
+        (if (put-if-replace cache key val new)
+          new
+          (recur (get cache key))))
+      (throw (IllegalArgumentException. (str "Cache doesn't contain key: " key))))))

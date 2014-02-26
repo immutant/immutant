@@ -127,7 +127,7 @@
         encoded))))
 
 (defn ^{:valid-options
-        #{:timeout :selector :decode? :client-id :host :port
+        #{:timeout :timeout-val :selector :decode? :client-id :host :port
           :username :password :connection}}
   receive
   "Receive a message from a destination. dest can either be the name
@@ -137,33 +137,36 @@
    received.
 
    The following options are supported [default]:
-     :timeout    time in ms, after which nil is returned. 0 means wait forever,
-                 -1 means don't wait at all [10000]
-     :selector   A JMS (SQL 92) expression matching message metadata/properties [nil]
-     :decode?    if true, the decoded message body is returned. Otherwise, the
-                 javax.jms.Message object is returned [true]
-     :client-id  identifies a durable topic subscriber, ignored for queues [nil]
-     :host       the remote host to connect to (default is to connect in-vm) [nil]
-     :port       the remote port to connect to (requires :host to be set) [nil, or
-                 5445 if :host is set]
-     :username   the username to use to auth the connection (requires :password to
-                 be set) [nil]
-     :password   the password to use to auth the connection (requires :username to
-                 be set) [nil]
-     :connection a JMS Connection to use; caller expected to close [nil]"
+     :timeout     time in ms, after which the timeout-val is returned. 0
+                  means wait forever, -1 means don't wait at all [10000]
+     :timeout-val the value to return when a timeout occurs. Also returned when
+                  a timeout of -1 is specified, and no message is available [nil]
+     :selector    A JMS (SQL 92) expression matching message metadata/properties [nil]
+     :decode?     if true, the decoded message body is returned. Otherwise, the
+                  javax.jms.Message object is returned [true]
+     :client-id   identifies a durable topic subscriber, ignored for queues [nil]
+     :host        the remote host to connect to (default is to connect in-vm) [nil]
+     :port        the remote port to connect to (requires :host to be set) [nil, or
+                  5445 if :host is set]
+     :username    the username to use to auth the connection (requires :password to
+                  be set) [nil]
+     :password    the password to use to auth the connection (requires :username to
+                  be set) [nil]
+     :connection  a JMS Connection to use; caller expected to close [nil]"
   [dest & {:as opts}]
   (let [opts (validate-options receive opts)]
     (with-connection opts
       (let [opts (options opts)
-            {:keys [timeout decode?] :or {timeout 10000 decode? true}} opts
+            {:keys [timeout timeout-val decode?] :or {timeout 10000 decode? true}} opts
             session (session)
             destination (create-destination session dest)
             consumer (create-consumer session destination opts)
             message (if (= -1 timeout)
                       (.receiveNoWait consumer)
                       (.receive consumer timeout))]
-        (when message
-          (codecs/decode-if decode? message))))))
+        (if message
+          (codecs/decode-if decode? message)
+          timeout-val)))))
 
 (defn message-seq
   "A lazy sequence of messages received from a destination. Accepts
@@ -293,12 +296,14 @@
                                            (update-in opts [:properties]
                                                       #(merge % {"synchronous" "true"})))]
     (delayed
-     (fn [t] (mapply
-             receive
-             queue
-             (assoc opts
-               :timeout t
-               :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'")))))))
+      (fn [t t-val]
+        (mapply
+          receive
+          queue
+          (assoc opts
+            :timeout t
+            :timeout-val t-val
+            :selector (str "JMSCorrelationID='" (.getJMSMessageID message) "'")))))))
 
 (defn ^{:valid-options
         (conj (-> #'listen meta :valid-options) :ttl)}

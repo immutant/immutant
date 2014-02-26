@@ -16,6 +16,7 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns test.immutant.cache
+  (:refer-clojure :exclude (swap!))
   (:use immutant.cache
         clojure.test)
   (:require [clojure.core.cache :as core]
@@ -172,6 +173,12 @@
     (is (= 2 (count c)))
     (is (= 0 (count (delete-all c))))
     (is (= 0 (count c)))))
+
+(deftest test-swapping
+  (let [c (create "swap" :seed {:a 1, :b nil})]
+    (is (= 2 (swap! c :a inc)))
+    (is (= 1 (swap! c :b (fnil inc 0))))
+    (is (thrown? IllegalArgumentException (swap! c :c (fnil inc 0))))))
 
 (deftest test-seeding
   (let [c (create "foo" :seed {:a 1})

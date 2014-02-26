@@ -176,10 +176,11 @@
   [pl id keep-result?]
   (if keep-result?
     (delayed
-     (fn [t]
-       (u/mapply msg/receive pl
-               {:timeout t
-                :selector (str "JMSCorrelationID='" id "' AND result = true")})))
+     (fn [t t-val]
+       (msg/receive pl
+         :timeout t
+         :timeout-val t-val
+         :selector (str "JMSCorrelationID='" id "' AND result = true"))))
     (delay (throw (IllegalStateException.
                    "Attempt to derefence a pipeline that doesn't provide a result")))))
 
