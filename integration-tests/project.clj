@@ -1,9 +1,9 @@
 (defproject org.immutant/immutant-integration-tests "1.1.1-SNAPSHOT"
   :parent [org.immutant/immutant-parent _ :relative-path "../pom.xml"]
   :plugins [[lein-modules "0.2.0"]
-            [lein-resource "0.3.3"]
+            [lein-resource "0.3.4"]
             [lein-environ "0.4.0"]]
-  :dependencies [[org.immutant/immutant-build-assembly :immutant]
+  :dependencies [[org.immutant/immutant-build-assembly :immutant :extension "pom"]
                  [org.immutant/fntest "0.5.2"]
                  [clj-http "0.7.2"]
                  [leiningen-core _]
@@ -20,6 +20,7 @@
 
   :resource {:resource-paths ["apps"]
              :target-path "target/apps"
+             :update true
              :skip-stencil [ #".*"]}
 
   :env {:assembly-dir "../build/assembly/target/stage/immutant"
