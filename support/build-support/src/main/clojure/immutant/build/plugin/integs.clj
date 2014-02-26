@@ -10,8 +10,8 @@
   (let [[project] args
         script (io/file (:root project) "bin/setup-integ-dist.rb")]
     (when (.exists script)
-      (jruby project (str script) (env :assembly-dir) (env :integ-dist-dir))
-      (resource project))
+      (resource project)
+      (jruby project (str script) (env :assembly-dir) (env :integ-dist-dir)))
     (apply f args)))
 
 (defn hooks []

@@ -9,4 +9,4 @@
 
   :modules {:dirs ^:replace []}
 
-  :aliases {"all" ["do" "clean," "install," "assemble"]})
+  :aliases {"install" ["do" "assemble," "install"]})

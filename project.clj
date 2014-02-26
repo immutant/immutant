@@ -10,7 +10,8 @@
              {:dependencies [[midje/midje "1.6.0"]]}
 
              :dist {}
-             :integ {}}
+             :integ {}
+             :fast {:modules {:subprocess false}}}
   
   :modules  {:inherited {:hooks [immutant.build.plugin.pom/hooks]
                          :plugins [[org.immutant/immutant-build-support "1.0.3-SNAPSHOT"]]
@@ -33,7 +34,8 @@
 
                          ;; This is occasionally broken due to
                          ;; https://github.com/technomancy/leiningen/issues/878 
-                         :aliases ^:displace {"all" ["do" "clean," "test," "install"]}
+                         :aliases {"all" ^:displace ["do" "clean," "test," "install"]
+                                   "-i" ["with-profile" "+fast"]}
 
                          :license {:name "GNU Lesser General Pulic License v2.1"
                                    :url "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"}

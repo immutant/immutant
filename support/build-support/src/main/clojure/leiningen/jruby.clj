@@ -43,6 +43,6 @@
                      (task-props project))
                (.setClasspath (Path. lancet/ant-project classpath)))]
     (doseq [k keys] (.setValue (.createArg task) k))
-    (.setFailonerror task false)
+    (.setFailonerror task true)
     (.setFork task true)
     (.execute task)))
