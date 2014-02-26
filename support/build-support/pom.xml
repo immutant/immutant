@@ -66,6 +66,12 @@
       <groupId>leiningen</groupId>
       <artifactId>leiningen</artifactId>
       <version>${version.leiningen}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>core.cache</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -88,6 +94,16 @@
       <groupId>org.jruby</groupId>
       <artifactId>jruby-complete</artifactId>
       <version>1.6.7</version>
+    </dependency>
+    <dependency>
+      <groupId>lein-resource</groupId>
+      <artifactId>lein-resource</artifactId>
+      <version>0.3.3</version>
+    </dependency>
+    <dependency>
+      <groupId>environ</groupId>
+      <artifactId>environ</artifactId>
+      <version>0.4.0</version>
     </dependency>
 
     <!-- explicitly needed for codox -->
