@@ -27,7 +27,7 @@
         :integ-dist-dir "target/integ-dist"
         :test-ns-path "src/test/clojure"
         :databases "h2"
-        :versions  "1.6.0-alpha2"
+        :versions  "1.6.0-beta1"
         :modes     "offset"}
 
   :hooks [immutant.build.plugin.integs/hooks])
