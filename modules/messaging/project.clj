@@ -1,4 +1,4 @@
-(defproject org.immutant/immutant-messaging-module "1.0.3-SNAPSHOT"
+(defproject org.immutant/immutant-messaging-module "1.1.1-SNAPSHOT"
   :parent [org.immutant/immutant-modules-parent _ :relative-path "../pom.xml"]
   :plugins [[lein-modules "0.2.0"]]
   :profiles {:provided

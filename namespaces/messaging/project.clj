@@ -1,4 +1,4 @@
-(defproject org.immutant/immutant-messaging "1.0.3-SNAPSHOT"
+(defproject org.immutant/immutant-messaging "1.1.1-SNAPSHOT"
   :description "The Immutant messaging module."
   :plugins [[lein-modules "0.2.0"]]
   :modules {:parent "../project.clj"}

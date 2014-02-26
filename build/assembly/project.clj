@@ -1,4 +1,4 @@
-(defproject org.immutant/immutant-build-assembly "1.0.3-SNAPSHOT"
+(defproject org.immutant/immutant-build-assembly "1.1.1-SNAPSHOT"
   :parent [org.immutant/immutant-build _ :relative-path "../pom.xml"]
   :plugins [[lein-modules "0.2.0"]]
   :packaging "pom"

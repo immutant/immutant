@@ -1,4 +1,4 @@
-(defproject org.immutant/immutant-parent "1.0.3-SNAPSHOT"
+(defproject org.immutant/immutant-parent "1.1.1-SNAPSHOT"
   :description "Parent for all that is Immutant"
   :plugins [[lein-modules "0.2.0"]]
   :packaging "pom"
@@ -14,7 +14,7 @@
              :fast {:modules {:subprocess false}}}
   
   :modules  {:inherited {:hooks [immutant.build.plugin.pom/hooks]
-                         :plugins [[org.immutant/immutant-build-support "1.0.3-SNAPSHOT"]]
+                         :plugins [[org.immutant/immutant-build-support "1.1.1-SNAPSHOT"]]
                          :repositories [["projectodd-upstream"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
                                           :snapshots false}]
@@ -55,7 +55,7 @@
                         clojure-complete/clojure-complete "0.2.2"
                         org.tcrawley/dynapath             "0.2.3"
                         
-                        :immutant                       "1.0.3-SNAPSHOT"
+                        :immutant                       "1.1.1-SNAPSHOT"
                         :ring                           "1.2.1"
                         :jbossas                        "7.2.x.slim.incremental.14"
                         :polyglot                       "1.19.0"

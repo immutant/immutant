@@ -1,4 +1,4 @@
-(defproject org.immutant/immutant "1.0.3-SNAPSHOT"
+(defproject org.immutant/immutant "1.1.1-SNAPSHOT"
   :description "An aggregate lib that pulls in all of the public Immutant libs."
   :plugins [[lein-modules "0.2.0"]]
   :modules {:parent "../project.clj"}

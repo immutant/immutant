@@ -1,4 +1,4 @@
-(defproject org.immutant/immutant-jobs "1.0.3-SNAPSHOT"
+(defproject org.immutant/immutant-jobs "1.1.1-SNAPSHOT"
   :description "The Immutant jobs module."
   :plugins [[lein-modules "0.2.0"]]
   :modules {:parent "../project.clj"}
