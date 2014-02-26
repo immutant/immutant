@@ -66,12 +66,7 @@
       <groupId>leiningen</groupId>
       <artifactId>leiningen</artifactId>
       <version>${version.leiningen}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.clojure</groupId>
-          <artifactId>core.cache</artifactId>
-        </exclusion>
-      </exclusions>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
