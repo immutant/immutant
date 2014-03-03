@@ -17,7 +17,7 @@
 
   #+begin_src sh
       $ cp thing-to-deploy $JBOSS_HOME/standalone/deployments/
-      $ touch thing-to-deploy.dodeploy $JBOSS_HOME/standalone/deployments/
+      $ touch $JBOSS_HOME/standalone/deployments/thing-to-deploy.dodeploy
   #+end_src
 
   Luckily, you should rarely need to manually deploy your artifacts - the plugin 
