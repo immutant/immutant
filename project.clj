@@ -33,6 +33,13 @@
                         :hornetq                        "2.3.1.Final"
                         :immutant                       "2.0.0-SNAPSHOT"
                         :ring                           "1.2.1"
+                        :wunderboss                     "0.1.0-SNAPSHOT"
 
+                        org.immutant/core               :immutant
+                        org.immutant/immutant-parent    :immutant
+                        
+                        org.projectodd.wunderboss/wunderboss-core :wunderboss
+                        org.projectodd.wunderboss/wunderboss-web  :wunderboss
+                        
                         ring/ring-servlet :ring
                         ring/ring-devel   :ring}})
