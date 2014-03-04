@@ -18,13 +18,11 @@
 (ns immutant.web
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
-  (:require [ring.util.codec        :as codec]
-            [ring.util.response     :as response]
-            [immutant.logging       :as log]
+  (:require [immutant.logging       :as log]
             [immutant.web.servlet   :as servlet]
             [immutant.util          :as util])
-  (:use [immutant.web.internal :only [start* stop*]]
-        [immutant.web.middleware :only [add-middleware]])
+  (:use [immutant.web.internal    :only [start* stop*]]
+        [immutant.web.middleware  :only [add-middleware]])
   (:import javax.servlet.http.HttpServletRequest))
 
 (defn start-servlet
