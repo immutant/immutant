@@ -4,4 +4,4 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[org.projectodd.wunderboss/wunderboss-core _]]  )
+  :dependencies [[org.clojure/java.classpath _]])

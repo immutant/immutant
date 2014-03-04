@@ -28,6 +28,7 @@
                          :scm {:name "git", :url "https://github.com/immutant/immutant/"}}
 
              :versions {org.clojure/clojure             "1.5.1"
+                        org.clojure/java.classpath      "0.2.2"
 
                         :infinispan                     "6.0.0.Final"
                         :hornetq                        "2.3.1.Final"
@@ -38,8 +39,7 @@
                         org.immutant/core               :immutant
                         org.immutant/immutant-parent    :immutant
                         
-                        org.projectodd.wunderboss/wunderboss-core :wunderboss
-                        org.projectodd.wunderboss/wunderboss-web  :wunderboss
-                        
+                        org.projectodd.wunderboss/wunderboss-clojure :wunderboss
+
                         ring/ring-servlet :ring
                         ring/ring-devel   :ring}})
