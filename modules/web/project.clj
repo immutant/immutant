@@ -5,4 +5,5 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies [[org.immutant/core _]
-                 [org.projectodd.wunderboss/wunderboss-web _]])
+                 [ring/ring-devel _]
+                 [org.projectodd.wunderboss/wunderboss-clojure _]])
