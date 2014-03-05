@@ -25,7 +25,8 @@
   [context]
   (when-let [container (get @started-containers context)]
     (.stop container)
-    (swap! started-containers dissoc context)))
+    (swap! started-containers dissoc context)
+    true))
 
 (defn start
   [context handler {:as opts}]
@@ -34,7 +35,6 @@
     (stop context))
   (let [opts (into {} (map (fn [[k v]] [(name k) v]) opts))
         container (.configure (WunderBoss.) "web" opts)
-        h (format "%s/%s" (namespace handler) (name handler))
-        app (.newApplication container "clojure" {"ring-handler" h})]
+        app (.newApplication container "clojure" {"ring-handler" handler})]
     (swap! started-containers assoc context container)
     (.start app "ring" {"context" context})))
