@@ -23,13 +23,13 @@
 
 (defn stop
   [context]
-  (when-let [container (get started-containers context)]
+  (when-let [container (get @started-containers context)]
     (.stop container)
     (swap! started-containers dissoc context)))
 
 (defn start
   [context handler {:as opts}]
-  (when (get started-containers context)
+  (when (get @started-containers context)
     (log/warn (str "Replacing handler at context " context))
     (stop context))
   (let [opts (into {} (map (fn [[k v]] [(name k) v]) opts))
