@@ -26,7 +26,7 @@
   (:import org.projectodd.wunderboss.WunderBoss))
 
 (defn server
-  "Create a server; defaults for :name, :host, :port"
+  "Create an HTTP server"
   [& {:as opts}]
   (WunderBoss/findOrCreateComponent "web"
     (stringify-keys
@@ -37,20 +37,16 @@
   "Mount a Ring handler at a context path on a server"
   ([server handler] (mount-handler server handler "/"))
   ([server handler context-path]
-     (.registerHttpHandler server context-path
+     (.registerHandler server context-path
        (undertow/create-http-handler handler)
        ;; options
        nil)))
 
-(defn unmount-handler
-  [server context-path]
-  (.unregisterHttpHandler server context-path))
-
 (defn mount-servlet [])
 
-(defn unmount-servlet
+(defn unmount
   [server context-path]
-  (.unregisterServlet server context-path))
+  (.unregister server context-path))
 
 (defn run
   "Creates a server, mounts the handler at root context and runs it"
