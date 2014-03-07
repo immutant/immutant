@@ -32,62 +32,28 @@
     (stringify-keys
       (merge {:name "default" :host "localhost" :port 8080} opts))))
 
-;; TODO: options
-(defn mount-handler
-  "Mount a Ring handler at a context path on a server"
-  ([server handler] (mount-handler server handler "/"))
-  ([server handler context-path]
-     (.registerHandler server context-path
-       (undertow/create-http-handler handler)
-       ;; options
-       nil)))
+(defmacro mount-handler
+  "Mount a Ring handler on a server"
+  [server handler & {:as opts}]
+  (let [h (if (symbol? handler) `(var ~handler) handler)]
+    `(.registerHandler ~server
+       (undertow/create-http-handler ~h)
+       (stringify-keys (merge {:context-path "/"} ~opts)))))
 
-(defn mount-servlet [])
-
-(defn unmount
-  [server context-path]
-  (.unregister server context-path))
-
-(defn run
+(defmacro run
   "Creates a server, mounts the handler at root context and runs it"
   [handler & opts]
-  (mount-handler (apply server opts) handler))
+  `(mount-handler (server ~@opts) ~handler ~@opts))
 
-;;; TODO: start-servlet and current-servlet-request (maybe)
+(defn unmount
+  "Unmount the handler at a given context path"
+  ([] (unmount "/"))
+  ([context-path] (unmount (server) context-path))
+  ([server context-path]
+     (.unregister server context-path)))
 
-;; (defn ^:internal start-handler
-;;   "Typically not called directly; use start instead"
-;;   [context-path handler & {:as opts}]
-;;   (log/info (format "Starting ring handler for %s at: %s%s" (util/app-name)
-;;               (util/app-uri) context-path))
-;;   (wboss/start context-path (add-middleware handler opts) opts))
-
-;; (defmacro start
-;;   "Starts a Ring handler that will be called when requests
-;;    are received on the given context-path. If no context-path
-;;    is given, \"/\" is assumed.
-
-;;    The options are a subset of those for ring-server [default]:
-;;      :init          function called after handler is initialized [nil]
-;;      :destroy       function called after handler is stopped [nil]
-;;      :stacktraces?  display stacktraces when exception is thrown [true in :dev]
-;;      :auto-reload?  automatically reload source files [true in :dev]
-;;      :reload-paths  seq of src-paths to reload on change [dirs on classpath]"
-;;   {:arglists '([handler] [handler options] [path handler options])}
-;;   [& args]
-;;   (let [[path args] (if (even? (count args))
-;;                       [(first args) (next args)]
-;;                       ["/" args])
-;;         [handler & opts] args]
-;;     (if (symbol? handler)
-;;       `(start-handler ~path (var ~handler) ~@opts)
-;;       `(start-handler ~path ~handler ~@opts))))
-
-;; (defn stop
-;;   "Stops the Ring handler or servlet mounted at the given context-path.
-;;    If no context-path is given, \"/\" is assumed."
-;;   ([]
-;;      (stop "/"))
-;;   ([context-path]
-;;      (log/info (str "Stopping ring handler/servlet at URL: " (util/app-uri) context-path))
-;;      (wboss/stop context-path)))
+(defn mount-servlet
+  "Mount a servlet on a server"
+  [server servlet & {:as opts}]
+  (.registerServlet server servlet
+    (stringify-keys (merge {:context-path "/"} opts))))
