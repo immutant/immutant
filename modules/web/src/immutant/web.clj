@@ -26,27 +26,21 @@
   (:import org.projectodd.wunderboss.WunderBoss))
 
 (defn server
-  "Create an HTTP server"
+  "Create an HTTP server or return existing one matching :name"
   [& {:as opts}]
   (WunderBoss/findOrCreateComponent "web"
     (stringify-keys
       (merge {:name "default" :host "localhost" :port 8080} opts))))
 
-(defmacro mount-handler
+(defn mount
   "Mount a Ring handler on a server"
   [server handler & {:as opts}]
-  (let [h (if (symbol? handler) `(var ~handler) handler)]
-    `(.registerHandler ~server
-       (undertow/create-http-handler ~h)
-       (stringify-keys (merge {:context-path "/"} ~opts)))))
-
-(defmacro run
-  "Creates a server, mounts the handler at root context and runs it"
-  [handler & opts]
-  `(mount-handler (server ~@opts) ~handler ~@opts))
+  (.registerHandler server
+    (undertow/create-http-handler handler)
+    (stringify-keys (merge {:context-path "/"} opts))))
 
 (defn unmount
-  "Unmount the handler at a given context path"
+  "Unmount handler at context path"
   ([] (unmount "/"))
   ([context-path] (unmount (server) context-path))
   ([server context-path]
@@ -57,3 +51,9 @@
   [server servlet & {:as opts}]
   (.registerServlet server servlet
     (stringify-keys (merge {:context-path "/"} opts))))
+
+(defmacro run
+  "Composes server and mount fns; ensures handler is var-quoted"
+  [handler & opts]
+  (let [h (if (symbol? handler) `(var ~handler) handler)]
+    `(mount-handler (server ~@opts) ~h ~@opts)))
