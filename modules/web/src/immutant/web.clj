@@ -56,4 +56,4 @@
   "Composes server and mount fns; ensures handler is var-quoted"
   [handler & opts]
   (let [h (if (symbol? handler) `(var ~handler) handler)]
-    `(mount-handler (server ~@opts) ~h ~@opts)))
+    `(mount (server ~@opts) ~h ~@opts)))
