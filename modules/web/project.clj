@@ -6,4 +6,8 @@
 
   :dependencies [[org.immutant/core _]
                  [ring/ring-devel _]
-                 [org.projectodd.wunderboss/wunderboss-clojure _]])
+                 [org.projectodd.wunderboss/wunderboss-clojure _]]
+
+  :profiles {:dev
+             {:dependencies [[io.pedestal/pedestal.service "0.2.2"]
+                             [clj-http "0.9.0"]]}})
