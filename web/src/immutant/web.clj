@@ -24,6 +24,7 @@
                                              validate-options enum->set mapply]]
             [immutant.web.middleware :refer [add-middleware]])
   (:import org.projectodd.wunderboss.WunderBoss
+           org.projectodd.wunderboss.web.Web
            org.projectodd.wunderboss.web.Web$CreateOption
            org.projectodd.wunderboss.web.Web$RegisterOption))
 
@@ -34,7 +35,7 @@
   (let [opts (->> opts
                (merge {:name "default" :host "localhost" :port 8080})
                (validate-options server))]
-    (WunderBoss/findOrCreateComponent "web"
+    (WunderBoss/findOrCreateComponent Web
       (:name opts)
       (extract-options opts Web$CreateOption))))
 
