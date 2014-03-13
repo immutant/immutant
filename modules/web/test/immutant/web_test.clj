@@ -28,7 +28,7 @@
 (deftest run-non-var
   (let [handler hello]
     (run handler)
-    (is (= "hello") (get-body url))))
+    (is (= "hello" (get-body url)))))
 
 (deftest mount-pedestal-service
   (mount-servlet (server) pedestal/servlet)
