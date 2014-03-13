@@ -21,8 +21,13 @@
             [immutant.logging       :as log]
             [clojure.string         :as str]
             [clojure.java.io        :as io]
-            [clojure.java.classpath :as cp])
-  (:import clojure.lang.IDeref))
+            [clojure.java.classpath :as cp]
+            [clojure.walk           :refer [stringify-keys]])
+  (:import clojure.lang.IDeref
+           java.util.EnumSet))
+
+
+;; TODO: cleanup this namespace
 
 (defn in-immutant?
   "Returns true if running inside an Immutant container"
@@ -275,3 +280,39 @@
      (let [src-var# (resolve src)]
        `(validate-options* (name (quote ~alt-name))
           (:valid-options (meta ~src-var#)) ~opts))))
+
+(defn concat-valid-options
+  "Grabs the :valid-options metadata from all of the passed vars, and concats them together into a set."
+  [& vars]
+  (set (mapcat #(-> % meta :valid-options) vars)))
+
+(defn enum->map
+  "Converts a java Enum that provides a value field into a map of value -> Enum instance."
+  [enum]
+  (->> enum
+    EnumSet/allOf
+    (map #(vector (.value %) %))
+    (into {})))
+
+(defn enum->keywords
+  "Converts a java Enum that provides a value field into a list of those values as keywords.
+   Auto-converts \"foo_bar\" to :foo-bar."
+  [enum]
+  (->> enum enum->map keys (map #(keyword (.replace % \_ \-)))))
+
+(defn enum->set
+  "Converts a java Enum that provides a value field into a set of keywords."
+  [enum]
+  (-> enum enum->keywords set))
+
+(defn extract-options
+  "Converts a clojure map into a WunderBoss options map."
+  [m c]
+  (let [optsm (enum->map c)]
+    (->> m
+      stringify-keys
+      (map (fn [[k v]]
+             (when-let [enum (optsm k (optsm (.replace k \- \_)))]
+               [enum v])))
+      (into {}))))
+

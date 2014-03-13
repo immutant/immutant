@@ -19,25 +19,35 @@
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
   (:require [immutant.logging        :as log]
-            [immutant.util           :as util]
             [immutant.web.undertow   :as undertow]
-            [clojure.walk            :refer [stringify-keys]]
+            [immutant.util           :refer [concat-valid-options extract-options
+                                             validate-options enum->set mapply]]
             [immutant.web.middleware :refer [add-middleware]])
-  (:import org.projectodd.wunderboss.WunderBoss))
+  (:import org.projectodd.wunderboss.WunderBoss
+           org.projectodd.wunderboss.web.Web$CreateOption
+           org.projectodd.wunderboss.web.Web$RegisterOption))
 
-(defn server
+(defn ^{:valid-options (conj (enum->set Web$CreateOption) :name)}
+  server
   "Create an HTTP server or return existing one matching :name"
   [& {:as opts}]
-  (WunderBoss/findOrCreateComponent "web"
-    (stringify-keys
-      (merge {:name "default" :host "localhost" :port 8080} opts))))
+  (let [opts (->> opts
+               (merge {:name "default" :host "localhost" :port 8080})
+               (validate-options server))]
+    (WunderBoss/findOrCreateComponent "web"
+      (:name opts)
+      (extract-options opts Web$CreateOption))))
 
-(defn mount
+(defn ^{:valid-options (enum->set Web$RegisterOption)}
+  mount
   "Mount a Ring handler on a server"
   [server handler & {:as opts}]
-  (.registerHandler server
-    (undertow/create-http-handler handler)
-    (stringify-keys (merge {:context-path "/"} opts))))
+  (let [opts (->> opts
+               (merge {:context-path "/"})
+               (validate-options mount))]
+    (.registerHandler server
+      (undertow/create-http-handler handler)
+      (extract-options opts Web$RegisterOption))))
 
 (defn unmount
   "Unmount handler at context path"
@@ -49,13 +59,18 @@
 (defn mount-servlet
   "Mount a servlet on a server"
   [server servlet & {:as opts}]
-  (.registerServlet server servlet
-    (stringify-keys (merge {:context-path "/"} opts))))
+  (let [opts (->> opts
+               (merge {:context-path "/"})
+               (validate-options mount))]
+    (.registerServlet server servlet
+      (extract-options opts Web$RegisterOption))))
 
-(defmacro run
+(defmacro ^{:valid-options (concat-valid-options #'server #'mount)}
+  run
   "Composes server and mount fns; ensures handler is var-quoted"
-  [handler & opts]
+  [handler & {:as opts}]
   (let [handler (if (and (symbol? handler) (resolve handler))
                   `(var ~handler)
                   handler)]
-    `(mount (server ~@opts) ~handler ~@opts)))
+    `(let [options# (validate-options run ~opts)]
+       (mapply mount (mapply server options#) ~handler options#))))
