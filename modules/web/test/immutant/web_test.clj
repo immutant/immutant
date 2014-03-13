@@ -25,6 +25,11 @@
   (with-redefs [hello (handler "hi")]
     (is (= "hi" (get-body url)))))
 
+(deftest run-non-var
+  (let [handler hello]
+    (run handler)
+    (is (= "hello") (get-body url))))
+
 (deftest mount-pedestal-service
   (mount-servlet (server) pedestal/servlet)
   (is (= "Hello World!" (get-body url))))

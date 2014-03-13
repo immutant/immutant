@@ -55,5 +55,7 @@
 (defmacro run
   "Composes server and mount fns; ensures handler is var-quoted"
   [handler & opts]
-  (let [h (if (symbol? handler) `(var ~handler) handler)]
-    `(mount (server ~@opts) ~h ~@opts)))
+  (let [handler (if (and (symbol? handler) (resolve handler))
+                  `(var ~handler)
+                  handler)]
+    `(mount (server ~@opts) ~handler ~@opts)))
