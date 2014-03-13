@@ -31,7 +31,7 @@
                                           :snapshots true}]
                                         ["jboss"
                                          "https://repository.jboss.org/nexus/content/groups/public-thirdparty-releases/"]]
-
+                         :dependencies [[org.projectodd.wunderboss/wunderboss-clojure _]]
                          :aliases {"-i" ["with-profile" "+fast"]}
 
                          :mailing-list {:name "Immutant users list"
@@ -54,6 +54,7 @@
                         org.immutant/immutant-parent    :immutant
                         
                         org.projectodd.wunderboss/wunderboss-clojure :wunderboss
+                        org.projectodd.wunderboss/wunderboss-web     :wunderboss
 
                         ring/ring-servlet :ring
                         ring/ring-devel   :ring}})

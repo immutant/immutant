@@ -20,7 +20,7 @@
 
   :dependencies [[org.immutant/core _]
                  [ring/ring-devel _]
-                 [org.projectodd.wunderboss/wunderboss-clojure _]]
+                 [org.projectodd.wunderboss/wunderboss-web _]]
 
   :profiles {:dev
              {:dependencies [[io.pedestal/pedestal.service "0.2.2"]
