@@ -12,9 +12,33 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.scheduling)
+(ns immutant.scheduling
+  "Schedule jobs for execution"
+  (:require [immutant.util :as u])
+  (:import org.projectodd.wunderboss.WunderBoss
+           [org.projectodd.wunderboss.scheduling
+            Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(defn ^{:valid-options (conj (u/enum->set Scheduling$CreateOption) :name)}
+  configure
+  "Configures the default scheduler and returns it"
+  [& {:as opts}]
+  (let [opts (->> opts
+               (merge {:name "default" :num-threads 5})
+               (u/validate-options configure))]
+    (WunderBoss/findOrCreateComponent Scheduling
+      (:name opts)
+      (u/extract-options opts Scheduling$CreateOption))))
+
+(defn ^{:valid-options (u/enum->set Scheduling$ScheduleOption)}
+  schedule
+  "Schedules a job to execute"
+  [scheduler name f & {:as opts}]
+  (let [opts (u/validate-options schedule opts)]
+    (.schedule scheduler name f
+      (u/extract-options opts Scheduling$ScheduleOption))))
+
+(defn unschedule
+  "Unschedule a job"
+  [scheduler name]
+  (.unschedule scheduler name))

@@ -53,8 +53,9 @@
                         org.immutant/core               :immutant
                         org.immutant/immutant-parent    :immutant
                         
-                        org.projectodd.wunderboss/wunderboss-clojure :wunderboss
-                        org.projectodd.wunderboss/wunderboss-web     :wunderboss
+                        org.projectodd.wunderboss/wunderboss-clojure      :wunderboss
+                        org.projectodd.wunderboss/wunderboss-web          :wunderboss
+                        org.projectodd.wunderboss/wunderboss-scheduling   :wunderboss
 
                         ring/ring-servlet :ring
                         ring/ring-devel   :ring}})
