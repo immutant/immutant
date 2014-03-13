@@ -60,7 +60,9 @@
                       [(first args) (next args)]
                       ["/" args])
         [handler & opts] args]
-    (if (and (symbol? handler) (resolve handler))
+    (if (and (symbol? handler)
+          (not (get &env handler))
+          (resolve handler))
       `(start-handler ~path (var ~handler) ~@opts)
       `(start-handler ~path ~handler ~@opts))))
 

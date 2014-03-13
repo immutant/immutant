@@ -27,8 +27,14 @@
     (spit file (str "(ns basic-ring.spittle) (defn content [] \"" v "\")"))
     (Thread/sleep 1000)))
 
-(deftest test-reload-changes
-  (let [path "/test-reload"]
+(defn wrong-handler [req]
+  {:status 200
+   :headers {"Content-Type" "text/plain"}
+   :body "WRONG"})
+
+(let [path "/test-reload"]
+  
+  (deftest test-reload-changes
     (web/start path reload-test-handler)
     (is (= "foo" (:body (http/get (str (util/app-uri) path)))))
     (drool "bar")
@@ -41,5 +47,13 @@
       (web/start path handler)
       (is (= "foo" (:body (http/get (str (util/app-uri) path)))))
       (drool "bar")
-      (is (= "bar" (:body (http/get (str (util/app-uri) path))))))))
+      (is (= "bar" (:body (http/get (str (util/app-uri) path)))))))
+
+  (deftest test-shadowed-var
+    (let [wrong-handler (constantly
+                          {:status 200
+                           :headers {"Content-Type" "text/plain"}
+                           :body "RIGHT"})]
+      (web/start path wrong-handler)
+      (is (= "RIGHT" (:body (http/get (str (util/app-uri) path))))))))
 
