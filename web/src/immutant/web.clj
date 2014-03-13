@@ -21,9 +21,7 @@
                                              validate-options enum->set mapply]]
             [immutant.web.middleware :refer [add-middleware]])
   (:import org.projectodd.wunderboss.WunderBoss
-           org.projectodd.wunderboss.web.Web
-           org.projectodd.wunderboss.web.Web$CreateOption
-           org.projectodd.wunderboss.web.Web$RegisterOption))
+           [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
 (defn ^{:valid-options (conj (enum->set Web$CreateOption) :name)}
   server
@@ -50,16 +48,17 @@
 (defn unmount
   "Unmount handler at context path"
   ([] (unmount "/"))
-  ([context-path] (unmount (server) context-path))
-  ([server context-path]
+  ([context-path] (unmount context-path (server)))
+  ([context-path server]
      (.unregister server context-path)))
 
-(defn mount-servlet
+(defn ^{:valid-options #{:context-path}}
+  mount-servlet
   "Mount a servlet on a server"
   [server servlet & {:as opts}]
   (let [opts (->> opts
                (merge {:context-path "/"})
-               (validate-options mount))]
+               (validate-options mount-servlet))]
     (.registerServlet server servlet
       (extract-options opts Web$RegisterOption))))
 
