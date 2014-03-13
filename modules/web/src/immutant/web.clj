@@ -69,7 +69,9 @@
   run
   "Composes server and mount fns; ensures handler is var-quoted"
   [handler & {:as opts}]
-  (let [handler (if (and (symbol? handler) (resolve handler))
+  (let [handler (if (and (symbol? handler)
+                      (not (get &env handler))
+                      (resolve handler))
                   `(var ~handler)
                   handler)]
     `(let [options# (validate-options run ~opts)]

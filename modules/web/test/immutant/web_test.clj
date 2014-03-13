@@ -26,6 +26,11 @@
     (is (= "hi" (get-body url)))))
 
 (deftest run-non-var
+  (let [h hello]
+    (run h)
+    (is (= "hello" (get-body url)))))
+
+(deftest run-non-var-that-shadows
   (let [handler hello]
     (run handler)
     (is (= "hello" (get-body url)))))
