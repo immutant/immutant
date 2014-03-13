@@ -36,5 +36,10 @@
     (web/start path #'reload-test-handler)
     (is (= "bar" (:body (http/get (str (util/app-uri) path)))))
     (drool "foo")
-    (is (= "foo" (:body (http/get (str (util/app-uri) path)))))))
+    (is (= "foo" (:body (http/get (str (util/app-uri) path)))))
+    (let [handler reload-test-handler]
+      (web/start path handler)
+      (is (= "foo" (:body (http/get (str (util/app-uri) path)))))
+      (drool "bar")
+      (is (= "bar" (:body (http/get (str (util/app-uri) path))))))))
 
