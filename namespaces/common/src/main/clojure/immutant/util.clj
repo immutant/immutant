@@ -22,9 +22,7 @@
             [clojure.java.io   :as io]
             [dynapath.util     :as dp]
             [immutant.logging  :as log])
-  (:import clojure.lang.IDeref
-           java.lang.management.ManagementFactory
-           javax.management.ObjectName))
+  (:import clojure.lang.IDeref))
 
 (defn in-immutant?
   "Returns true if running inside an Immutant container"

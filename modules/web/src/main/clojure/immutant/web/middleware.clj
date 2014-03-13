@@ -18,10 +18,8 @@
 (ns ^{:no-doc true} immutant.web.middleware
     (:use ring.middleware.stacktrace
           ring.middleware.reload)
-    (:require [immutant.registry :as registry]
-              [immutant.util     :as util]
-              [clojure.java.io :as io]
-              dynapath.util))
+    (:require [immutant.util   :as util]
+              [clojure.java.io :as io]))
 
 (def ^{:dynamic true} *dev*)
 
@@ -39,7 +37,7 @@
   "Default reload-paths to all directories in the classpath, whether
   they exist at time of deployment or not"
   [options]
-  (let [cp (map io/file (dynapath.util/all-classpath-urls (clojure.lang.RT/baseLoader)))
+  (let [cp (map io/file (util/classpath))
         dirs (map str (remove #(and (.exists %) (not (.isDirectory %))) cp))]
     (:reload-paths options dirs)))
 

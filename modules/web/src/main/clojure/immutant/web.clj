@@ -36,7 +36,7 @@
 
 (defn start-handler
   "Typically not called directly; use start instead"
-  [sub-context-path handler & {:keys [init destroy] :as opts}]
+  [sub-context-path handler & {:as opts}]
   (log/info (format "Starting ring handler for %s at: %s%s" (util/app-name)
               (util/app-uri) sub-context-path))
   (start* sub-context-path
