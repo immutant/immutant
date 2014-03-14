@@ -16,10 +16,8 @@
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 (ns jobs.at
-  (:use clojure.test
-        jobs.helper)
-  (:require [immutant.jobs :as job]
-            [immutant.messaging :as msg])
+  (:use clojure.test)
+  (:require [immutant.jobs :as job])
   (:import java.util.Date))
 
 (defmacro with-job [action spec & body]
