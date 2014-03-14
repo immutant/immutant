@@ -12,7 +12,28 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.scheduling-test
-  (:require [clojure.test :refer :all]
-            [immutant.scheduling :refer :all]))
+(ns ^{:no-doc true} immutant.scheduling.options
+    (:require [immutant.scheduling.dates :refer [as-date]]
+              [immutant.scheduling.periods :refer [as-period]]))
 
+(defn at [opts]
+  (if-let [v (:at opts)]
+    (assoc opts :at (as-date v))
+    opts))
+
+(defn until [opts]
+  (if-let [v (:until opts)]
+    (assoc opts :until (as-date v))
+    opts))
+
+(defn every [opts]
+  (if-let [v (:every opts)]
+    (assoc opts :every (as-period v))
+    opts))
+
+(defn in [opts]
+  (if-let [v (:in opts)]
+    (assoc opts :in (as-period v))
+    opts))
+
+(def resolve-options (comp at until every in))

@@ -14,7 +14,8 @@
 
 (ns immutant.scheduling
   "Schedule jobs for execution"
-  (:require [immutant.util :as u])
+  (:require [immutant.util :as u]
+            [immutant.scheduling.options :refer [resolve-options]])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.scheduling
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
@@ -34,7 +35,9 @@
   schedule
   "Schedules a job to execute"
   [scheduler name f & {:as opts}]
-  (let [opts (u/validate-options schedule opts)]
+  (let [opts (->> opts
+               resolve-options
+               (u/validate-options schedule))]
     (.schedule scheduler name f
       (u/extract-options opts Scheduling$ScheduleOption))))
 
