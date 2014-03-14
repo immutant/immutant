@@ -16,24 +16,16 @@
     (:require [immutant.scheduling.dates :refer [as-date]]
               [immutant.scheduling.periods :refer [as-period]]))
 
-(defn at [opts]
-  (if-let [v (:at opts)]
-    (assoc opts :at (as-date v))
-    opts))
+(defn option [k f]
+  (fn [opts]
+    (if-let [v (k opts)]
+      (assoc opts k (f v))
+      opts)))
 
-(defn until [opts]
-  (if-let [v (:until opts)]
-    (assoc opts :until (as-date v))
-    opts))
+(def at (option :at as-date))
+(def in (option :in as-period))
 
-(defn every [opts]
-  (if-let [v (:every opts)]
-    (assoc opts :every (as-period v))
-    opts))
-
-(defn in [opts]
-  (if-let [v (:in opts)]
-    (assoc opts :in (as-period v))
-    opts))
+(def until (option :until as-date))
+(def every (option :every as-period))
 
 (def resolve-options (comp at until every in))

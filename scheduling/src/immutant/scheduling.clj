@@ -34,14 +34,15 @@
 (defn ^{:valid-options (u/enum->set Scheduling$ScheduleOption)}
   schedule
   "Schedules a job to execute"
-  [scheduler name f & {:as opts}]
+  [scheduler id f & {:as opts}]
   (let [opts (->> opts
                resolve-options
                (u/validate-options schedule))]
-    (.schedule scheduler name f
+    (.schedule scheduler (name id) f
       (u/extract-options opts Scheduling$ScheduleOption))))
 
 (defn unschedule
   "Unschedule a job"
-  [scheduler name]
-  (.unschedule scheduler name))
+  ([id] (unschedule (configure) id))
+  ([scheduler id]
+     (.unschedule scheduler (name id))))
