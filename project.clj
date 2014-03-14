@@ -30,7 +30,7 @@
                                          {:url "https://repository-projectodd.forge.cloudbees.com/snapshot"
                                           :snapshots true}]
                                         ["jboss"
-                                         "https://repository.jboss.org/nexus/content/groups/public-thirdparty-releases/"]]
+                                         "http://repository.jboss.org/nexus/content/groups/public/"]]
                          :dependencies [[org.projectodd.wunderboss/wunderboss-clojure _]]
                          :aliases {"-i" ["with-profile" "+fast"]}
 
