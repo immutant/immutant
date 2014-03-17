@@ -29,3 +29,13 @@
 (def every (option :every as-period))
 
 (def resolve-options (comp at until every in))
+
+(defmacro defoption [sym]
+  `(defn ~sym [& opts#]
+     (let [[m# & opts#] (if (map? (first opts#))
+                          opts#
+                          (cons {} opts#))
+           opts# (if (> (count opts#) 1)
+                   opts#
+                   (first opts#))]
+       (assoc m# ~(keyword (name sym)) opts#))))
