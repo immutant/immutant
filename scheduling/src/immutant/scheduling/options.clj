@@ -30,8 +30,8 @@
 
 (def resolve-options (comp at until every in))
 
-(defmacro defoption [sym]
-  `(defn ~sym [& opts#]
+(defmacro defoption [sym doc]
+  `(defn ~sym ~doc [& opts#]
      (let [[m# & opts#] (if (map? (first opts#))
                           opts#
                           (cons {} opts#))

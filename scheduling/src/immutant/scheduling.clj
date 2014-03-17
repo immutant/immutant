@@ -33,7 +33,17 @@
 
 (defn ^{:valid-options (u/enum->set Scheduling$ScheduleOption)}
   schedule
-  "Schedules a job to execute according to a specification map"
+  "Schedules a function to execute according to a specification map.
+  Option functions (defined below) can be combined to create the
+  spec, e.g.
+
+    (schedule id f
+      (-> (in 5 :minutes)
+        (every 2 :hours, 30 :minutes)
+        (until \"1730\")))
+
+  All jobs must have a unique id, used to unschedule or, when schedule
+  is called with the same id, to reschedule jobs."
   ([id f spec] (schedule (configure) id f spec))
   ([scheduler id f spec]
      (let [opts (->> spec
@@ -43,14 +53,30 @@
          (u/extract-options opts Scheduling$ScheduleOption)))))
 
 (defn unschedule
-  "Unschedule a job"
+  "Unschedule a job given its id"
   ([id] (unschedule (configure) id))
   ([scheduler id]
      (.unschedule scheduler (name id))))
 
-(defoption in)
-(defoption at)
-(defoption every)
-(defoption until)
-(defoption repeat)
-(defoption cron)
+(defoption in
+  "Takes a duration after which the job will fire, e.g. (in 5 :minutes)")
+
+(defoption at
+  "Takes a time denoting when the job should fire, can be a
+  java.util.Date, ms-since-epoch, or a string in HH:mm format")
+
+(defoption every
+  "Takes a delay interval between job firings, e.g. (every 2 :hours)")
+
+(defoption until
+  "Limits the firings when every is specified by time, can be a
+  java.util.Date, ms-since-epoch, or a string in HH:mm format,
+  e.g. (-> (every :hour) (until \"17:00\"))")
+
+(defoption repeat
+  "Limits the firings when every is specified by count, not including
+  the first one, e.g. (-> (every :hour) (repeat 9))")
+
+(defoption cron
+  "Takes a Quartz-style cron spec, e.g. (cron \"0 0 12 ? * WED\"), see
+  http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06")
