@@ -88,10 +88,9 @@
 the appropriate servers."
   [config]
   (let [ring-nrepl-config (-> (registry/get :project) :ring :nrepl)
-        port (or (:nrepl-port config)
-                 (and (:start? ring-nrepl-config)
+        port (or (and (:start? ring-nrepl-config)
                       (:port ring-nrepl-config))
-                 (if (util/dev-mode?) 0 nil))
+               (:nrepl-port config (and (nil? ring-nrepl-config) (util/dev-mode?) 0)))
         interface (:nrepl-interface config)]
     (if (or port interface)
       (if-let [nrepl (start-nrepl interface (or port 0))]
