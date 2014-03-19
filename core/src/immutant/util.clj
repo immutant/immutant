@@ -21,7 +21,8 @@
             [clojure.java.classpath :as cp]
             [clojure.walk           :refer [stringify-keys]])
   (:import clojure.lang.IDeref
-           java.util.EnumSet))
+           java.util.EnumSet
+           org.projectodd.wunderboss.WunderBoss))
 
 
 ;; TODO: cleanup this namespace
@@ -34,7 +35,7 @@
 (defn app-root
   "Returns a file pointing to the root dir of the application"
   []
-  (registry/get "app-root"))
+  (io/file (get (WunderBoss/options) "root")))
 
 (defn app-name
   "Returns the internal name for the app as Immutant sees it"

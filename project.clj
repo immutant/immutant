@@ -49,7 +49,7 @@
                         :immutant                       "2.0.0-SNAPSHOT"
                         :ring                           "1.2.1"
                         :wunderboss                     "0.1.0-SNAPSHOT"
-
+                        
                         org.immutant/core               :immutant
                         org.immutant/immutant-parent    :immutant
                         
@@ -58,4 +58,6 @@
                         org.projectodd.wunderboss/wunderboss-scheduling   :wunderboss
 
                         ring/ring-servlet :ring
-                        ring/ring-devel   :ring}})
+                        ring/ring-devel   :ring
+
+                        org.clojure/tools.nrepl "0.2.3"}})
