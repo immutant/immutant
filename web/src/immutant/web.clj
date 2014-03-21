@@ -18,7 +18,7 @@
   (:require [immutant.logging        :as log]
             [immutant.web.undertow   :as undertow]
             [immutant.util           :refer [concat-valid-options extract-options
-                                             validate-options enum->set mapply]]
+                                             validate-options enum->set mapply dev-mode?]]
             [immutant.web.middleware :refer [add-middleware]]
             [clojure.walk            :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
@@ -69,7 +69,8 @@
   "Composes server and mount fns; ensures handler is var-quoted"
   ([handler] `(run ~handler {}))
   ([handler options]
-     (let [handler (if (and (symbol? handler)
+     (let [handler (if (and (dev-mode?)
+                         (symbol? handler)
                          (not (get &env handler))
                          (resolve handler))
                      `(var ~handler)
