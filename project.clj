@@ -41,23 +41,10 @@
                          :url "http://immutant.org"
                          :scm {:name "git", :url "https://github.com/immutant/immutant/"}}
 
-             :versions {org.clojure/clojure             "1.6.0-RC1"
-                        org.clojure/java.classpath      "0.2.2"
-
-                        :infinispan                     "6.0.0.Final"
-                        :hornetq                        "2.3.1.Final"
-                        :immutant                       "2.0.0-SNAPSHOT"
-                        :ring                           "1.2.1"
-                        :wunderboss                     "0.1.0-SNAPSHOT"
+             :versions {clojure                    "1.6.0-RC1"
+                        java.classpath             "0.2.2"
+                        tools.nrepl                "0.2.3"
+                        ring                       "1.2.1"
                         
-                        org.immutant/core               :immutant
-                        org.immutant/immutant-parent    :immutant
-                        
-                        org.projectodd.wunderboss/wunderboss-clojure      :wunderboss
-                        org.projectodd.wunderboss/wunderboss-web          :wunderboss
-                        org.projectodd.wunderboss/wunderboss-scheduling   :wunderboss
-
-                        ring/ring-servlet :ring
-                        ring/ring-devel   :ring
-
-                        org.clojure/tools.nrepl "0.2.3"}})
+                        org.immutant               "2.0.0-SNAPSHOT"
+                        org.projectodd.wunderboss  "0.1.0-SNAPSHOT"}})

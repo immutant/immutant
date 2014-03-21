@@ -20,4 +20,4 @@
 
   :dependencies [[org.immutant/core _]
                  ^:replace [org.clojure/tools.nrepl _]
-                 [org.projectodd.wunderboss/wunderboss-wildfly :wunderboss]])
+                 [org.projectodd.wunderboss/wunderboss-wildfly _]])
