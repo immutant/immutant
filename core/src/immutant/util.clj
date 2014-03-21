@@ -246,8 +246,7 @@
 (defn dev-mode?
   "Returns true if the app is running in dev mode."
   []
-  (and (not (System/getenv "LEIN_NO_DEV"))
-       (profile-active? :dev)))
+  (not (System/getenv "LEIN_NO_DEV")))
 
 (defn set-bean-property
   "Calls a java bean-style setter (.setFooBar) for the given property (:foo-bar) and value."

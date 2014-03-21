@@ -20,7 +20,7 @@
             [immutant.util           :refer [concat-valid-options extract-options
                                              validate-options enum->set mapply]]
             [immutant.web.middleware :refer [add-middleware]]
-            [clojure.walk           :refer [keywordize-keys]])
+            [clojure.walk            :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
@@ -35,7 +35,8 @@
       (:name opts)
       (extract-options opts Web$CreateOption))))
 
-(defn ^{:valid-options (enum->set Web$RegisterOption)}
+(defn ^{:valid-options (conj (enum->set Web$RegisterOption)
+                         :stacktraces? :auto-reload? :reload-paths)}
   mount
   "Mount a Ring handler on a server"
   [server handler & {:as opts}]
@@ -43,7 +44,7 @@
                (merge {:context-path "/"})
                (validate-options mount))]
     (.registerHandler server
-      (undertow/create-http-handler handler)
+      (undertow/create-http-handler (add-middleware handler opts))
       (extract-options opts Web$RegisterOption))))
 
 (defn unmount
