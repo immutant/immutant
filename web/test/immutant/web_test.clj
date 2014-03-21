@@ -62,12 +62,17 @@
 
 (deftest mount-should-call-init
   (let [p (promise)]
-    (run hello :init #(deliver p 'init))
+    (run hello {:init #(deliver p 'init)})
     (is (= 'init @p))))
 
 (deftest unmount-should-call-destroy
   (let [p (promise)]
-    (run hello :destroy #(deliver p 'destroy))
+    (run hello {:destroy #(deliver p 'destroy)})
     (is (not (realized? p)))
     (unmount)
     (is (= 'destroy @p))))
+
+(deftest string-args-should-work
+  (run hello {"port" "8042" "name" "ralph"})
+  (is (= "hello" (get-body "http://localhost:8042")))
+  (.stop (server :name "ralph")))

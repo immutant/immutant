@@ -19,7 +19,8 @@
             [immutant.web.undertow   :as undertow]
             [immutant.util           :refer [concat-valid-options extract-options
                                              validate-options enum->set mapply]]
-            [immutant.web.middleware :refer [add-middleware]])
+            [immutant.web.middleware :refer [add-middleware]]
+            [clojure.walk           :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
@@ -27,7 +28,7 @@
   server
   "Create an HTTP server or return existing one matching :name"
   [& {:as opts}]
-  (let [opts (->> opts
+  (let [opts (->> (keywordize-keys opts)
                (merge {:name "default" :host "localhost" :port 8080})
                (validate-options server))]
     (WunderBoss/findOrCreateComponent Web
@@ -38,7 +39,7 @@
   mount
   "Mount a Ring handler on a server"
   [server handler & {:as opts}]
-  (let [opts (->> opts
+  (let [opts (->> (keywordize-keys opts)
                (merge {:context-path "/"})
                (validate-options mount))]
     (.registerHandler server
@@ -56,7 +57,7 @@
   mount-servlet
   "Mount a servlet on a server"
   [server servlet & {:as opts}]
-  (let [opts (->> opts
+  (let [opts (->> (keywordize-keys opts)
                (merge {:context-path "/"})
                (validate-options mount-servlet))]
     (.registerServlet server servlet
@@ -65,11 +66,12 @@
 (defmacro ^{:valid-options (concat-valid-options #'server #'mount)}
   run
   "Composes server and mount fns; ensures handler is var-quoted"
-  [handler & {:as opts}]
-  (let [handler (if (and (symbol? handler)
-                      (not (get &env handler))
-                      (resolve handler))
-                  `(var ~handler)
-                  handler)]
-    `(let [options# (validate-options run ~opts)]
-       (mapply mount (mapply server options#) ~handler options#))))
+  ([handler] `(run ~handler {}))
+  ([handler options]
+     (let [handler (if (and (symbol? handler)
+                         (not (get &env handler))
+                         (resolve handler))
+                     `(var ~handler)
+                     handler)]
+       `(let [options# (validate-options run (keywordize-keys ~options))]
+          (mapply mount (mapply server options#) ~handler options#)))))
