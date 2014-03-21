@@ -14,11 +14,10 @@
 
 (defproject org.immutant/wildfly "2.0.0-SNAPSHOT"
   :parent [org.immutant/immutant-parent _ :relative-path "../project.clj"]
-  :plugins [[lein-modules "0.2.0"]]
+  :plugins [[lein-modules "0.2.1"]]
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.immutant/core _]
-                 [org.clojure/tools.nrepl _]
-                 [org.projectodd.wunderboss/wunderboss-clojure :wunderboss]
+                 ^:replace [org.clojure/tools.nrepl _]
                  [org.projectodd.wunderboss/wunderboss-wildfly :wunderboss]])
