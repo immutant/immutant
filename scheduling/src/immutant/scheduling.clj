@@ -14,6 +14,7 @@
 
 (ns immutant.scheduling
   "Schedule jobs for execution"
+  (:refer-clojure :exclude [repeat])
   (:require [immutant.util :as u]
             [immutant.scheduling.options :refer [resolve-options defoption]])
   (:import org.projectodd.wunderboss.WunderBoss
