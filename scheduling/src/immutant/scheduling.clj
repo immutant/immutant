@@ -81,3 +81,7 @@
 (defoption cron
   "Takes a Quartz-style cron spec, e.g. (cron \"0 0 12 ? * WED\"), see
   http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06")
+
+(defoption singleton
+  "Takes a boolean. If true (the default), only one instance of a given job name
+   will run in a cluster.")

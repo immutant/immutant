@@ -23,4 +23,8 @@
               :in [2 :seconds]
               :every :minute}]
     (is (= (resolve-options opts)
-          {:at now, :until now, :in 2000, :every 60000}))))
+          {:at now, :until now, :in 2000, :every 60000 :singleton true}))))
+
+(deftest option-resolution-with-singleton
+  (is (= (resolve-options {:singleton nil})
+        {:singleton false})))

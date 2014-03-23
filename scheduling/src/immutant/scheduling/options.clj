@@ -28,7 +28,10 @@
 (def until (option :until as-date))
 (def every (option :every as-period))
 
-(def resolve-options (comp at until every in))
+(defn singleton [opts]
+  (assoc opts :singleton (boolean (:singleton opts true))))
+
+(def resolve-options (comp at until every in singleton))
 
 (defmacro defoption [sym doc]
   `(defn ~sym ~doc [& opts#]
