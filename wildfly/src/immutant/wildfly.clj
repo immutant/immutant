@@ -13,11 +13,53 @@
 ;; limitations under the License.
 
 (ns immutant.wildfly
-  (:require [immutant.wildfly.repl :as repl]))
+  (:require [immutant.util :as u]
+            [immutant.wildfly.repl :as repl]
+            [clojure.java.io :as io])
+  (:import org.jboss.modules.ModuleClassLoader
+           java.net.URL))
+
+(defn- get-resource-loaders
+  [cl]
+  (-> (doto (.getDeclaredMethod ModuleClassLoader "getResourceLoaders"
+              (make-array Class 0))
+        (.setAccessible true))
+    (.invoke cl (make-array Class 0))))
+
+(defn- if-exists?
+  "Returns the given url if it matches a file that exists."
+  [url]
+  (if (.exists (io/file url))
+    url))
+
+(defn- loader->url
+  "Converts a ResourceLoader into a url."
+  [l]
+  (if-let [r (.getResource l "/")]
+    (.getURL r)))
+
+(defn- vfs->file
+  "Converts a vfs: url to a file: url."
+  [url]
+  (if-let [match (and url (re-find #"^vfs(:.*)" (.toExternalForm url)))]
+    (URL. (str "file" (last match)))
+    url))
+
+(defn- get-module-loader-urls [loader]
+  (->> loader
+    get-resource-loaders
+    (map (comp if-exists? vfs->file loader->url))
+    (keep identity)))
+
+(defmacro extend-module-classloader []
+  (if (u/try-resolve 'clojure.java.classpath/URLClasspath)
+    `(extend-protocol clojure.java.classpath/URLClasspath
+       ModuleClassLoader
+       (urls [loader#]
+         (get-module-loader-urls loader#)))))
 
 (defn init [init-fn opts]
+  (extend-module-classloader)
   (require (symbol (namespace init-fn)))
   ((resolve init-fn))
   (if-let [nrepl (:nrepl opts)] (repl/start nrepl)))
-
-
