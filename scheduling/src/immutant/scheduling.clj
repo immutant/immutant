@@ -14,7 +14,6 @@
 
 (ns immutant.scheduling
   "Schedule jobs for execution"
-  (:refer-clojure :exclude [repeat])
   (:require [immutant.util :as u]
             [immutant.scheduling.options :refer [resolve-options defoption]])
   (:import org.projectodd.wunderboss.WunderBoss
@@ -70,13 +69,14 @@
   "Takes a delay interval between job firings, e.g. (every 2 :hours)")
 
 (defoption until
-  "Limits the firings when every is specified by time, can be a
+  "When every is specified, limits the firings by time; can be a
   java.util.Date, ms-since-epoch, or a string in HH:mm format,
   e.g. (-> (every :hour) (until \"17:00\"))")
 
-(defoption repeat
-  "Limits the firings when every is specified by count, not including
-  the first one, e.g. (-> (every :hour) (repeat 9))")
+(defoption limit
+  "When every is specified, limits the firings by count, including the
+  first one, e.g. (-> (every :hour) (limit 10)). When until and limit
+  are combined, whichever triggers first ends the iteration")
 
 (defoption cron
   "Takes a Quartz-style cron spec, e.g. (cron \"0 0 12 ? * WED\"), see
