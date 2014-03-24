@@ -29,7 +29,7 @@
 (defn- if-exists?
   "Returns the given url if it matches a file that exists."
   [url]
-  (if (.exists (io/file url))
+  (if (and url (.exists (io/file url)))
     url))
 
 (defn- loader->url
