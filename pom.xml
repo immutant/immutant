@@ -373,7 +373,7 @@
     <version.hamcrest>1.1</version.hamcrest>
     <version.jbossas>7.2.x.slim.incremental.16</version.jbossas>
     <!-- <version.jbossas>7.2.0.Final-polyglot-slim-1-SNAPSHOT</version.jbossas> -->
-    <version.clojure>1.5.1</version.clojure>
+    <version.clojure>1.6.0</version.clojure>
     <version.clojure-contrib>1.2.0</version.clojure-contrib>
     <version.clojure.tools.namespace>0.1.3</version.clojure.tools.namespace>
     <version.clojure.tools.reader>0.7.6</version.clojure.tools.reader>

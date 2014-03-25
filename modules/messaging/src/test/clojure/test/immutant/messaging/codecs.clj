@@ -121,7 +121,8 @@
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}
         encoded (encode (session-mock) message {:encoding :json})]
     (is (= message (decode encoded)))
-    (is (.contains (.getText encoded) "{\"a\":\"b\",\"c\":[1,2,3,{\"foo\":42}]}"))))
+    (is (.contains (.getText encoded) "\"a\":\"b\""))
+    (is (.contains (.getText encoded) "\"c\":[1,2,3,{\"foo\":42}]"))))
 
 (deftest text
   (test-codec "ham biscuit" :text))
