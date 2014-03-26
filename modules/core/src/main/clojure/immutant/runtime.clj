@@ -26,7 +26,8 @@ bootstrapping process. Applications shouldn't use anything here."
             [immutant.util              :as util]
             [immutant.resource-util     :as rutil]
             [immutant.registry          :as registry])
-  (:import org.immutant.core.ApplicationBootstrapProxy))
+  (:import org.immutant.core.ApplicationBootstrapProxy
+           java.sql.DriverManager))
 
 (defn ^{:internal true} require-and-invoke 
   "Takes a string of the form \"namespace/fn\", requires the namespace, then invokes fn"
@@ -131,7 +132,15 @@ in the registry."
   "Called when an app is undeployed to handle runtime shutdown."
   []
   (ApplicationBootstrapProxy/clearBootstrapClassLoader
-   (registry/get "app-root"))
+    (registry/get "app-root"))
+  
+  ;; Clear any drivers the app registered to prevent permgen leaks
+  ;; getDrivers will only return drivers we have the right to see, so
+  ;; this shouldn't affect drivers registered by other apps.
+  ;; see IMMUTANT-417
+  (doseq [d (enumeration-seq (DriverManager/getDrivers))]
+    (DriverManager/deregisterDriver d))
+  
   (shutdown-agents))
 
 
