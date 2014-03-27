@@ -187,7 +187,7 @@
     (put c :b 2)
     (is (= (:b c) (:b d) 2))
     (let [e (create "foo" :seed {})]
-      (is (every? empty? [c d e])))))
+      (is (empty? e)))))
 
 (deftest test-persistent-seeding
   (let [c (create "cachey" :persist "src/test/resources/cache-store")
@@ -221,8 +221,8 @@
   (let [c (create "terrence")]
     (put c :a 1)
     (is (= 1 (:a c)))
-    (create "terrence")
-    (is (empty? c))))
+    (empty? (create "terrence"))
+    (is (thrown? IllegalStateException (empty? c)))))
 
 (deftest test-eviction
   (let [c (create "nelly" :max-entries 2)]

@@ -21,10 +21,10 @@
             [immutant.util         :as util]
             [immutant.logging      :as log])
   (:import [org.infinispan.configuration.cache Configuration ConfigurationBuilder]
-           org.infinispan.manager.DefaultCacheManager))
+           [org.infinispan.manager DefaultCacheManager EmbeddedCacheManager]))
 
-(def service (delay (registry/get org.projectodd.polyglot.cache.as.CacheService/CACHE)))
-(def manager (delay (or (and @service (.getCacheContainer @service)) (DefaultCacheManager.))))
+(defonce service (delay (registry/get org.projectodd.polyglot.cache.as.CacheService/CACHE)))
+(defonce manager (delay (or (and @service (.getCacheContainer @service)) (DefaultCacheManager.))))
 
 (defn clustered? []
   (and @service (.isClustered @service)))
@@ -64,7 +64,7 @@
   "Returns the named cache if it exists, otherwise nil"
   ([name]
      (get-cache name @manager))
-  ([name manager]
+  ([name ^EmbeddedCacheManager manager]
      (if (.isRunning manager name)
        (.getCache manager name))))
   
@@ -72,13 +72,13 @@
   "Defines and [re]starts a named cache"
   ([name ^Configuration config]
      (start name config @manager))
-  ([name ^Configuration config manager]
+  ([name ^Configuration config ^EmbeddedCacheManager manager]
+     (when (.isRunning manager name)
+       (log/info "Removing existing cache:" name)
+       (.removeCache manager name))
+     (.defineConfiguration manager name config)
      (log/info "Creating cache:" name)
      (log/debug (format "Infinispan options for cache [%s]: %s" name config))
-     (.defineConfiguration manager name config)
-     (when-let [cache (get-cache name manager)]
-        (.stop cache)
-        (.start cache))
      (let [cache (.getCache manager name)]
        (util/at-exit #(.stop cache))
        cache)))
