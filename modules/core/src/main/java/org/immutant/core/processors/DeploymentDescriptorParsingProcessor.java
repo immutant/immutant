@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
@@ -83,7 +84,9 @@ public class DeploymentDescriptorParsingProcessor implements DeploymentUnitProce
 
             if (!root.isDirectory()) {
                 // Expand the referenced root if it's not a directory (ie .ima archive)
-                mountHandle = new MountHandle( VFS.mountZipExpanded( virtualRoot, virtualRoot, TempFileProviderService.provider() ) );
+                VirtualFile actualRoot = virtualRoot;
+                virtualRoot = VFS.getChild(root.getAbsolutePath() + UUID.randomUUID().toString());
+                mountHandle = new MountHandle( VFS.mountZipExpanded( actualRoot, virtualRoot, TempFileProviderService.provider() ) );
             }
             
             deploymentUnit.putAttachment( Attachments.DEPLOYMENT_ROOT, new ResourceRoot( virtualRoot, mountHandle ) );
