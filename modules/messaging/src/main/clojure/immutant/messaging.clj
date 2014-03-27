@@ -192,7 +192,7 @@
         (.setMessageListener (consumer-fn session)
           (create-listener handler))))
     (.start connection)
-    connection
+    [connection (destination-name dest)]
     (catch Throwable e
       (close-connection connection)
       (throw e))))
@@ -202,9 +202,10 @@
                      {:keys [izer connection listener-name setup-fn]}
                      {:keys [concurrency] :as opts}]
   (log/info "Creating in-vm listener for:" dest)
-  (let [group (.createGroup
+  (let [dest-name (destination-name dest)
+        group (.createGroup
                 izer
-                (destination-name dest)
+                dest-name
                 false ;; TODO: singleton
                 concurrency
                 (not (nil? (:client-id opts)))
@@ -213,7 +214,7 @@
                     (str (:client-id opts) listener-fn)))
                 connection
                 setup-fn)]
-    (waiting-derefable #(.hasStartedAtLeastOnce group) group)))
+    (waiting-derefable #(.hasStartedAtLeastOnce group) [group dest-name])))
 
 (defn- remote-listen? [dest {:keys [izer connection]} {:keys [host]}]
   (or (not izer)
@@ -351,7 +352,8 @@
    call. The deref will resolve to a boolean that is true if there was
    actually something to unlisten, false otherwise."
   [listener]
-  (when-let [group (maybe-deref listener)]
+  (when-let [[group dest-name] (maybe-deref listener)]
+    (log/info "Removing listener for:" dest-name)
     (future
       (if (or (instance? java.io.Closeable group)
               (instance? javax.jms.Connection group))
