@@ -82,7 +82,6 @@
                                           "master"
                                           version))
           (assoc :version version
-                 :namespaces (->> (apply load-indexes base-dirs)
-                                  (remove :no-doc)))
+                 :namespaces (apply load-indexes base-dirs))
           (html/write-docs))))
   (shutdown-agents))
