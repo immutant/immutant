@@ -104,6 +104,16 @@
     (destination-name? match) (jms-dest-name match)
     :else                     (throw (destination-name-error match))))
 
+(defn ^:private set-companion-options
+  "Checks for options that need to be set together. Currently just
+  forces :address-full-message-policy to be !:page for
+  a :last-value-queue, since that's broken in HornetQ."
+  [opts]
+  (if (and (:last-value-queue opts)
+        (= :page (:address-full-message-policy opts :page)))
+    (assoc opts :address-full-message-policy :drop)
+    opts))
+
 (defn ^{:valid-options
         #{:address-full-message-policy :dead-letter-address :expiry-address
           :expiry-delay :last-value-queue :max-delivery-attempts :max-size-bytes
@@ -144,7 +154,9 @@
      default :ttl for messages that don't have a :ttl > 0 set. 
 
    * :last-value-queue [false] - If true, only the most recent message
-      for a last-value property will be retained. See
+      for a last-value property will be retained. Setting this option will
+      also cause :address-full-message-policy to be set to :drop, as HornetQ
+      has a bug related to paging last value queues. See
       http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/last-value-queues.html
 
    * :max-delivery-attempts [10] - The number of times delivery will
@@ -196,5 +208,5 @@
                   (k address-settings-aliases k)
                   ((address-settings-coercions k identity) v))))
             (eval '(AddressSettings.))
-            settings))))))
+            (set-companion-options settings)))))))
 

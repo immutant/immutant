@@ -54,3 +54,17 @@
   (doseq [match ["jms.#" "*" "foo"]]
     (is (thrown? IllegalArgumentException
           (#'immutant.messaging.hornetq/normalize-destination-match match)))))
+
+(deftest set-companion-options-works
+  (are [exp given] (= exp (#'immutant.messaging.hornetq/set-companion-options given))
+       {:last-value-queue true, :address-full-message-policy :drop}
+       {:last-value-queue true}
+
+       {:last-value-queue true, :address-full-message-policy :block}
+       {:last-value-queue true, :address-full-message-policy :block}
+
+       {:last-value-queue true, :address-full-message-policy :drop}
+       {:last-value-queue true, :address-full-message-policy :page}
+       
+       {:last-value-queue false, :address-full-message-policy :page}
+       {:last-value-queue false, :address-full-message-policy :page}))
