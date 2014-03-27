@@ -20,11 +20,18 @@
         clojure.test
         [immutant.integs.integ-helper :only [get-as-data]]))
 
-(use-fixtures :once (with-deployment *file*
-                      {:root (str (System/getProperty "user.dir") "/target/apps/basic-ring.ima")
-                       :context-path "/basic-archive"}
-                      ))
+(use-fixtures :once (with-deployments
+                      {"archive-app1"
+                       {:root (str (System/getProperty "user.dir") "/target/apps/basic-ring.ima")
+                        :context-path "/basic-archive"}
+                       "archive-app2"
+                       {:root (str (System/getProperty "user.dir") "/target/apps/basic-ring.ima")
+                        :context-path "/basic-archive2"}}))
 
-(deftest simple "it should work"
+(deftest mounted-ima-should-be-available
   (is (= :basic-ring (:app (get-as-data "/basic-archive")))))
+
+(deftest ima-should-be-mountable-more-than-once
+  (is (= :basic-ring (:app (get-as-data "/basic-archive"))))
+  (is (= :basic-ring (:app (get-as-data "/basic-archive2")))))
 
