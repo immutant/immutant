@@ -377,6 +377,11 @@
    =listen= is asynchronous; if you need to synchronize on the
    completion of its initialization, you should deref the result.
 
+   *Note:* =:concurrency= determines the number of consumers connected
+   to the destination and thus you'll rarely want a concurrency
+   greater than =1= for topics since this will cause you to process
+   duplicate messages.
+
 *** Transactional by default
 
     By default, message handlers are transactional, so the function
