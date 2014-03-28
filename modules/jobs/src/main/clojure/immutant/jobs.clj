@@ -28,6 +28,25 @@
 
 (defonce ^{:private true} current-jobs (atom {}))
 
+(defn ^{:valid-options #{:thread-count}}
+  set-scheduler-options
+  "Sets defaults for the quartz scheduler(s).
+Must be called before any jobs are scheduled.
+
+Available options [default]:
+  :thread-count   Specifies the number of worker threads for the scheduler's
+                  thread pool [5]"
+  [options]
+  (u/validate-options set-scheduler-options options)
+  (if (internal/scheduler-active?)
+    (throw (IllegalStateException. "Can't set scheduler options - the scheduler already exists.")))
+  (if-let [thread-count (:thread-count options)]
+    (-> (internal/job-schedulizer)
+      .getSchedulerController
+      .getValue
+      (.setThreadCount thread-count)))
+  nil)
+
 (defn unschedule
   "Removes the named job from the scheduler"
   [name]

@@ -47,13 +47,16 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
 
     @SuppressWarnings("rawtypes")
     public synchronized JobScheduler activateScheduler() {
-        ServiceController controller = 
-            getUnit().getServiceRegistry().getService(JobsServices.scheduler(getUnit()));
+        ServiceController controller = getSchedulerController();
         if (controller.getMode() != Mode.ACTIVE) {
           controller.setMode(Mode.ACTIVE);
         }
 
         return (JobScheduler)controller.getValue();
+    }
+
+    public boolean schedulerIsActive() {
+        return getSchedulerController().getMode() == Mode.ACTIVE;
     }
 
     @SuppressWarnings("rawtypes")
@@ -90,7 +93,11 @@ public class JobSchedulizer extends AtRuntimeInstaller<JobSchedulizer> {
 
         return job;
     }
-    
+
+    public ServiceController getSchedulerController() {
+        return getUnit().getServiceRegistry().getService(JobsServices.scheduler(getUnit()));
+    }
+
     private void installJob(final BaseJob job) {
         activateScheduler();
         final ServiceName serviceName = JobsServices.job( getUnit(), job.getName() );

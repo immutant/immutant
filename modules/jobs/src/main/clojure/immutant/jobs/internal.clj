@@ -24,10 +24,13 @@
 (defn ^:internal job-schedulizer []
   (wait-for-start (registry/get "job-schedulizer")))
 
-(defn ^{:internal true} scheduler
+(defn ^:internal scheduler
   "Retrieves the appropriate scheduler, starting it if necessary"
   []
   (wait-for-start (.activateScheduler (job-schedulizer))))
+
+(defn ^:internal scheduler-active? []
+  (.schedulerIsActive (job-schedulizer)))
 
 (defn ^:internal quartz-scheduler
   "Returns the internal quartz scheduler"
