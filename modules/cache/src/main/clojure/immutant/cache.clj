@@ -180,43 +180,56 @@
    core.cache/CacheProtocol. A name is the only required argument. If
    a cache by that name already exists, it will be restarted and all
    its non-durable entries lost. Use lookup to obtain a reference to
-   an existing cache. The following options are supported:
+   an existing cache.
 
-   The following options are supported [default]:
-     :mode        Replication mode [:distributed or :local]
-                    :local, :invalidated, :distributed, or :replicated
-     :sync        Whether replication occurs synchronously [true]
-     :tx          Whether the cache is transactional [true]
-     :persist     Durability. If non-nil, data persists across server
-                    restarts in a file store; a string value names the
-                    directory [nil]
-     :seed        A map of initial entries [nil]
-     :locking     Transactional locking schemes [nil]
-                    :optimisitic or :pessimistic
-     :encoding    :edn :fressian :json or :none [:edn]
+   The following groups of options are supported, each listed with its
+   [default] value. A negative value for any numeric option means
+   \"unlimited\".
+
+   Eviction - Turned off by default, :max-entries may be set to
+   mitigate the risk of memory exhaustion. When :persist is also
+   enabled, evicted entries are written to disk, so that the entries
+   in the file store are a superset of those in RAM, transparently
+   reloaded upon request. If :persist is true, cache entries will
+   persist in the current directory. Override this by setting :persist
+   to a string naming the desired directory.
+
      :max-entries The maximum number of entries allowed in the cache [-1]
      :eviction    How entries are evicted when :max-entries is exceeded [:lirs]
                     :lru, :lirs, or :unordered
+     :persist     Durability. If non-nil, data persists across server
+                    restarts in a file store; a string value names the
+                    directory [nil]
+
+   Expiration - The lifespan-oriented options (:ttl :idle :units)
+   become the default options for the functions of the Mutable
+   protocol. Any options passed to those functions override these. See
+   the Mutable protocol's doc for more info.
+
      :ttl         The max time the entry will live before expiry [-1]
      :idle        The time after which an entry will expire if not accessed [-1]
      :units       The units for the values of :ttl and :idle [:seconds]
-     :config      An Infinispan Configuration instance that takes precedence
-                    over other possibly conflicting options [nil]
 
-   The replication mode defaults to :distributed when clustered. When
-   not clustered, the value of :mode is ignored, and the cache will
-   be :local.
+   Replication - The replication mode defaults to :distributed when
+   clustered. When not clustered, the value of :mode is ignored, and
+   the cache will be :local. Setting :sync to false may yield a slight
+   performance increase at the risk of potential cache inconsistency.
 
-   If :persist is true, cache entries will persist in the current
-   directory. Override this by setting :persist to a string naming the
-   desired directory.
+     :mode        Replication mode [:distributed or :local]
+                    :local, :invalidated, :distributed, or :replicated
+     :sync        Whether replication occurs synchronously [true]
 
-   A negative value for any numeric option means \"unlimited\".
+   Transactions - Caches are transactional, by default.
 
-   The lifespan-oriented options (:ttl :idle :units) become the
-   default options for the functions of the Mutable protocol. But any
-   options passed to those functions take precedence over these. See
-   the Mutable doc for more info."
+     :tx          Whether the cache is transactional [true]
+     :locking     Transactional locking schemes [nil]
+                    :optimisitic or :pessimistic
+
+   Miscellaneous:
+     :encoding    :edn :fressian :json or :none [:edn]
+     :seed        A map of initial entries [nil]
+     :config      An Infinispan Configuration instance will take precedence
+                    over other possibly conflicting options [nil]"
   [name & {:keys [seed config] :as options}]
   (let [options (u/validate-options create options)]
     (cc/seed
