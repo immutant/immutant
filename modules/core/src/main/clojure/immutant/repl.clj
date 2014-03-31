@@ -26,6 +26,16 @@
     (Integer. port)
     port))
 
+(defn ^:private spit-nrepl-files
+  [port file]
+  (doseq [f (map util/app-relative
+                 (if file
+                   [file]
+                   [".nrepl-port" "target/repl-port"]))]
+    (.mkdirs (.getParentFile f))
+    (spit f port)
+    (.deleteOnExit f)))
+
 (defn stop-nrepl
   "Stops the given nrepl server."
   [server]
@@ -69,33 +79,38 @@
                                 :port (fix-port port)
                                 :bind interface-address)]
                (util/at-exit (partial stop-nrepl server))
+               (let [ss (-> server deref :ss)
+                     host (-> ss .getInetAddress .getHostAddress)
+                     bound-port (.getLocalPort ss)]
+                 (log/info "nREPL bound to" (str host ":" bound-port))
+                 (spit-nrepl-files bound-port (:nrepl-port-file (registry/get :config))))
                server))))))
   ([port]
    (start-nrepl nil port)))
 
-(defn ^:private spit-nrepl-files
-  [port file]
-  (doseq [f (map util/app-relative
-                 (if file
-                   [file]
-                   [".nrepl-port" "target/repl-port"]))]
-    (.mkdirs (.getParentFile f))
-    (spit f port)
-    (.deleteOnExit f)))
+(defn ^:private immutant-nrepl-config [config]
+  (if (some #{:nrepl-port :nrepl-interface} (keys config))
+    (let [port (:nrepl-port config)
+          interface (:nrepl-interface config)]
+      {:port port
+       :interface interface
+       :start? (or port
+                 interface
+                 (not (contains? config :nrepl-port)))})))
+
+(defn ^:private ring-nrepl-config [project]
+  (if-let [nrepl (-> project :ring :nrepl)]
+    (update-in nrepl [:start?] boolean)))
 
 (defn ^{:internal true :no-doc true} init-repl
   "Looks for nrepl-port value in the given config, and starts
 the appropriate servers."
-  [config]
-  (let [ring-nrepl-config (-> (registry/get :project) :ring :nrepl)
-        port (or (and (:start? ring-nrepl-config)
-                      (:port ring-nrepl-config))
-               (:nrepl-port config (and (nil? ring-nrepl-config) (util/dev-mode?) 0)))
-        interface (:nrepl-interface config)]
-    (if (or port interface)
-      (if-let [nrepl (start-nrepl interface (or port 0))]
-        (let [ss (-> nrepl deref :ss)
-              host (-> ss .getInetAddress .getHostAddress)
-              bound-port (.getLocalPort ss)]
-          (log/info "nREPL bound to" (str host ":" bound-port))
-          (spit-nrepl-files bound-port (:nrepl-port-file config)))))))
+  [config project]
+  (let [cfg (merge
+              {:port 0
+               :interface nil
+               :start? (util/dev-mode?)}
+              (ring-nrepl-config project)
+              (immutant-nrepl-config config))]
+    (when (:start? cfg)
+      (start-nrepl (:interface cfg) (:port cfg)))))

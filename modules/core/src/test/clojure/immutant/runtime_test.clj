@@ -21,6 +21,7 @@
         immutant.test.helpers)
   (:require [immutant.registry     :as registry]
             [immutant.dev          :as dev]
+            [immutant.repl         :as repl]
             [clojure.java.io       :as io]
             [immutant.logging      :as log]
             [dynapath.util         :as dp]))
@@ -79,12 +80,15 @@
   (initialize "immutant.runtime-test/update-a-value")
   (is (= "biscuit" @a-value)))
 
-(deftest initialize-with-no-init-fn-and-no-init-ns-should-do-nothing
-  (let [log-data (atom nil)]
+(deftest initialize-with-no-init-fn-and-no-init-ns-should-only-init-repl
+  (let [log-data (atom nil)
+        repl (atom nil)]
     (with-redefs [log/log* (fn [_ _ msg]
-                             (reset! log-data msg))]
+                             (reset! log-data msg))
+                  repl/init-repl (fn [_ _] (reset! repl :started))]
       (initialize nil)
-      (is (re-find #"no initialization" @log-data)))))
+      (is (re-find #"no initialization" @log-data))
+      (is (= :started @repl)))))
 
 (deftest initialize-from-lein-ring-options
   (add-url (io/resource "lein-ring-test/src/"))
