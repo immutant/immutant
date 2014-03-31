@@ -95,6 +95,8 @@
     configuration, or by calling [[./apidoc/immutant.repl.html#var-start-nrepl][immutant.repl/start-nrepl]] from
     application code.
 
+*** Starting nREPL via configuration
+
     To have Immutant start a nREPL service on your behalf, you can specify
     one or both of the following options:
 
@@ -121,6 +123,13 @@
     To prevent the nREPL server from starting by default, simply
     deploy your application without the =:dev= profile active, or set
     =:nrepl-port= to =nil=.
+
+    Immutant also honors any [[https://github.com/weavejester/lein-ring#web-server-options][lein-ring options]] specified in your
+    =project.clj=. These options will only be used if no =:nrepl-port=
+    is specified in your configuration. If =:start?= is falsey, no
+    nREPL will be started even when the =:dev= profile is active.
+
+*** Starting nREPL from code
 
     You can also start an nREPL service from your own code, which is
     useful if you need to start it in response to a runtime event. To
