@@ -51,15 +51,25 @@
     (map (comp if-exists? vfs->file loader->url))
     (keep identity)))
 
-(defmacro extend-module-classloader []
+(defmacro extend-module-classloader-to-cjc []
   (if (u/try-resolve 'clojure.java.classpath/URLClasspath)
-    `(extend-protocol clojure.java.classpath/URLClasspath
+    `(extend-type ModuleClassLoader
+       clojure.java.classpath/URLClasspath
+       (urls [cl#]
+         (get-module-loader-urls cl#)))))
+
+(defmacro extend-module-classloader-to-dynapath []
+  (if (u/try-resolve 'dynapath.dynamic-classpath/DynamicClasspath)
+    `(extend-protocol dynapath.dynamic-classpath/DynamicClasspath
        ModuleClassLoader
-       (urls [loader#]
-         (get-module-loader-urls loader#)))))
+       (can-read? [cl#] true)
+       (can-add? [cl#] false)
+       (classpath-urls [cl#]
+         (get-module-loader-urls cl#)))))
 
 (defn init [init-fn opts]
-  (extend-module-classloader)
+  (extend-module-classloader-to-cjc)
+  (extend-module-classloader-to-dynapath)
   (require (symbol (namespace init-fn)))
   ((resolve init-fn))
   (if-let [nrepl (:nrepl opts)] (repl/start nrepl)))
