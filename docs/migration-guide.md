@@ -35,7 +35,14 @@ useful inside the container with 2.x.
 
 ## immutant.jobs -> immutant.scheduling
 
-TODO: talk about API changes
+The API is similar. `schedule` now takes a map instead of kwargs, and
+there are now helpers for each option that help you generate that
+map. A cronspec is no longer a top-level arg, but instead is specified
+in the map using the `:cron` key.
+
+The `set-scheduler-options` is now handled by
+`configure`. `internal-scheduler` is gone, use `(.implementation
+(configure))` instead. (Maybe we should restore `internal-scheduler`?)
 
 ### immutant.jobs.internal REMOVED
 
@@ -83,7 +90,10 @@ Currently still fairly similar to 1.x, but needs cleanup.
 
 ## immutant.web
 
-TODO: doc API changes.
+* `start` is now `run` or `mount`, the latter with a different signature
+* `stop` is now `unmount`
+* `start-servlet` is now `mount-servlet`, but with a different signature
+* `current-servlet-request` currently has no analogue 
 
 ### immutant.web.session -> ?
 ### immutant.web.servlet -> ? 
