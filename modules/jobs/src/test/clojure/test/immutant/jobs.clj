@@ -18,7 +18,6 @@
 (ns test.immutant.jobs
   (:use immutant.jobs
         immutant.jobs.internal
-        [immutant.util :only [at-exit]]
         immutant.test.helpers
         clojure.test)
   (:require [immutant.registry :as registry])
