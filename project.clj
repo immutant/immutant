@@ -19,10 +19,7 @@
 
   :profiles {:provided {:dependencies [[org.clojure/clojure _]]}
              :fast {:modules {:subprocess false}}
-             :incremental {:deploy-repositories [["release"
-                                                   {:url "dav:https://repository-projectodd.forge.cloudbees.com/incremental"
-                                                    :username :env/bees_username
-                                                    :password :env/bees_password}]]
+             :incremental {:deploy-repositories [["release" "dav:https://repository-projectodd.forge.cloudbees.com/incremental"]]
                            :plugins [[lein-webdav "0.1.0"]]}}
   
   :modules  {:inherited {:repositories [["projectodd-upstream"
