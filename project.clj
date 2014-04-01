@@ -32,8 +32,11 @@
                                          {:url "http://repository-projectodd.forge.cloudbees.com/release"
                                           :snapshots false}]
                                         ["projectodd-snapshot"
-                                         {:url "https://repository-projectodd.forge.cloudbees.com/snapshot"
+                                         {:url "http://repository-projectodd.forge.cloudbees.com/snapshot"
                                           :snapshots true}]
+                                        ["projectodd-incremental"
+                                         {:url "https://repository-projectodd.forge.cloudbees.com/incremental"
+                                          :snapshots false}]
                                         ["jboss"
                                          "http://repository.jboss.org/nexus/content/groups/public/"]]
                          :dependencies [[org.projectodd.wunderboss/wunderboss-clojure _]]
