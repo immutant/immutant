@@ -122,21 +122,8 @@
 
 (defn stop-destination [name]
   (log/info (format "Stopping %s: %s" (if (queue-name? name) "queue" "topic") name))
-  (let [izer (registry/get "destinationizer")
-        manager (registry/get "jboss.messaging.default.jms.manager")
-        removed? (when izer
-                   (.destroyDestination izer
-                                        (destination-name name)))]
-    (if (and (not removed?) manager)
-      (try
-        (let [result (if (queue-name? name)
-                       (.destroyQueue manager (str name))
-                       (.destroyTopic manager (str name)))]
-          (log/info "Stopped:" name)
-          result)
-        (catch Throwable e
-          (log/warn e)))
-      removed?)))
+  (when-let [izer (registry/get "destinationizer")]
+    (.destroyDestination izer (destination-name name))))
 
 (defn stop-queue [name & {:keys [force]}]
   (if force
