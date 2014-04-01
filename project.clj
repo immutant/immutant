@@ -41,7 +41,7 @@
                          :url "http://immutant.org"
                          :scm {:name "git", :url "https://github.com/immutant/immutant/"}}
 
-             :versions {clojure                    "1.6.0-RC1"
+             :versions {clojure                    "1.6.0"
                         java.classpath             "0.2.2"
                         tools.nrepl                "0.2.3"
                         ring                       "1.2.1"
