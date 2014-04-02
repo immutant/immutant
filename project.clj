@@ -46,7 +46,10 @@
                                         :subscribe "immutant-users-subscribe@immutant.org"
                                         :post "immutant-users@immutant.org"}
                          :url "http://immutant.org"
-                         :scm {:name "git", :url "https://github.com/immutant/immutant/"}}
+                         :scm {:name "git", :url "https://github.com/immutant/immutant/"}
+                         :license {:name "Apache Software License - v 2.0"
+                                   :url "http://www.apache.org/licenses/LICENSE-2.0"
+                                   :distribution :repo}}
 
              :versions {clojure                    "1.6.0"
                         java.classpath             "0.2.2"
