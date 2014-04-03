@@ -35,19 +35,22 @@
 (let [path "/test-reload"]
   
   (deftest test-reload-changes
-    (web/start path reload-test-handler)
-    (is (= "foo" (:body (http/get (str (util/app-uri) path)))))
-    (drool "bar")
-    (is (= "bar" (:body (http/get (str (util/app-uri) path)))))
-    (web/start path #'reload-test-handler)
-    (is (= "bar" (:body (http/get (str (util/app-uri) path)))))
-    (drool "foo")
-    (is (= "foo" (:body (http/get (str (util/app-uri) path)))))
-    (let [handler reload-test-handler]
-      (web/start path handler)
+    (try
+      (web/start path reload-test-handler)
       (is (= "foo" (:body (http/get (str (util/app-uri) path)))))
       (drool "bar")
-      (is (= "bar" (:body (http/get (str (util/app-uri) path)))))))
+      (is (= "bar" (:body (http/get (str (util/app-uri) path)))))
+      (web/start path #'reload-test-handler)
+      (is (= "bar" (:body (http/get (str (util/app-uri) path)))))
+      (drool "foo")
+      (is (= "foo" (:body (http/get (str (util/app-uri) path)))))
+      (let [handler reload-test-handler]
+        (web/start path handler)
+        (is (= "foo" (:body (http/get (str (util/app-uri) path)))))
+        (drool "bar")
+        (is (= "bar" (:body (http/get (str (util/app-uri) path))))))
+      (finally
+        (drool "foo"))))
 
   (deftest test-shadowed-var
     (let [wrong-handler (constantly
