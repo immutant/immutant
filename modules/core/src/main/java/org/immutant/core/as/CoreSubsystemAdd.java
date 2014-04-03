@@ -40,6 +40,8 @@ import org.immutant.core.processors.ClojureRuntimeInstaller;
 import org.immutant.core.processors.CloserInstaller;
 import org.immutant.core.processors.DeploymentDescriptorParsingProcessor;
 import org.immutant.core.processors.FullAppConfigLoadingProcessor;
+import org.immutant.core.processors.ImmutantArchiveStructureProcessor;
+import org.immutant.core.processors.ImmutantDescriptorRootMountProcessor;
 import org.immutant.core.processors.TmpResourceMounterInstaller;
 import org.immutant.core.processors.TmpResourceMounterRegisteringInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
@@ -59,8 +61,6 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core.processors.ApplicationExploder;
-import org.projectodd.polyglot.core.processors.ArchiveStructureProcessor;
-import org.projectodd.polyglot.core.processors.DescriptorRootMountProcessor;
 
 class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
     
@@ -90,8 +90,8 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
     }
 
     protected void addDeploymentProcessors(final DeploymentProcessorTarget processorTarget) {
-        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, 0, new DescriptorRootMountProcessor( Immutant.DESCRIPTOR_SUFFIX ) );
-        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, 0, new ArchiveStructureProcessor( Immutant.ARCHIVE_SUFFIX ) );
+        processorTarget.addDeploymentProcessor(CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, 0, new ImmutantDescriptorRootMountProcessor());
+        processorTarget.addDeploymentProcessor(CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, 0, new ImmutantArchiveStructureProcessor());
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 10, new ArchiveRecognizer() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 20, new DeploymentDescriptorParsingProcessor() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 30, new ApplicationExploder() );
