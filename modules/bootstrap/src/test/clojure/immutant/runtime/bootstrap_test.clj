@@ -52,17 +52,17 @@
       (get-in (read-project another-app-root nil nil) [:immutant :shaq]) => :oneal)
     
     (fact "read-and-stringify-full-app-config should work"
-      (read-and-stringify-full-app-config nil app-root) => (contains {"ham" "basket"}))
+      (read-and-stringify-full-app-config nil app-root true) => (contains {"ham" "basket"}))
 
     (facts "read-and-stringify-full-app-config should stringify an init fn"
-      ((read-and-stringify-full-app-config nil app-root) "init") => "some.namespace/init"
-      ((read-and-stringify-full-app-config nil another-app-root) "init") => "some.namespace/string")
+      ((read-and-stringify-full-app-config nil app-root true) "init") => "some.namespace/init"
+      ((read-and-stringify-full-app-config nil another-app-root true) "init") => "some.namespace/string")
 
     (facts "resource-paths"
       (fact "should return the proper paths"
         (let [paths (map #(.getAbsolutePath (io/file app-root %))
                          ["test" "resources" "src" "target/classes"])]
-          (resource-paths app-root nil) => (just paths :in-any-order)))
+          (resource-paths app-root nil true) => (just paths :in-any-order)))
 
       (fact "should include checkout deps"
         (let [app-root (io/file (io/resource "project-with-checkout-deps"))
@@ -75,11 +75,10 @@
                                 (io/file app-root "target/classes")
                                 (io/file app-root "checkouts/other-project/target/classes"))
                           (map (memfn getAbsolutePath) %))]
-          (resource-paths app-root default-profiles) => (just paths :in-any-order))))
+          (resource-paths app-root default-profiles true) => (just paths :in-any-order))))
     
     (facts "get-dependencies"
-      (let [deps (get-dependencies app-root nil true)]
-
+      (let [deps (get-dependencies app-root nil true true)]
         (fact "should return deps from project.clj"
           deps => (contains (aether/dependency-files
                              (aether/resolve-dependencies
@@ -96,7 +95,7 @@
                                           :coordinates [['org.clojure/tools.logging "0.2.3"]])))))))
 
     (fact "get-dependencies without resolve-deps should only return jars from lib"
-      (get-dependencies app-root nil false) => (just
+      (get-dependencies app-root nil false true) => (just
                                                 (io/file (io/resource "project-root/lib/some.jar"))
                                                 (io/file (io/resource "project-root/lib/some-other.jar"))
                                                 (io/file (io/resource "project-root/lib/tools.logging-0.2.3.jar"))
@@ -108,16 +107,16 @@
       (read-project app-root nil nil) => nil?)
 
     (fact "resource-paths should work"
-      (resource-paths app-root nil) => (just (map #(.getAbsolutePath (io/file app-root %))
+      (resource-paths app-root nil true) => (just (map #(.getAbsolutePath (io/file app-root %))
                                                   ["test" "resources" "native" "src" "classes"])
                                              :in-any-order))
     
     (fact "get-dependencies should return deps from lib"
-      (get-dependencies app-root nil true) =>
+      (get-dependencies app-root nil true true) =>
       (contains (io/file (io/resource "non-project-root/lib/some.jar"))))
 
     (fact "get-dependencies without resolve-deps should only return jars from lib"
-      (get-dependencies app-root nil false) =>
+      (get-dependencies app-root nil false true) =>
       (just
        (io/file (io/resource "non-project-root/lib/some.jar"))
        (io/file (io/resource "non-project-root/lib/some-other.jar"))
@@ -165,27 +164,27 @@
 
       (facts "with a project"
         (fact "should work"
-          (read-full-app-config descriptor project-root) => {:init "my.namespace/init"
+          (read-full-app-config descriptor project-root true) => {:init "my.namespace/init"
                                                              :ham "biscuit"
                                                              :biscuit "gravy"
                                                              :resolve-dependencies false
                                                              :lein-profiles [:cheese]})
 
         (fact "should work with an internal dd"
-          (read-full-app-config descriptor id-project-root) => {:init "my.namespace/init"
+          (read-full-app-config descriptor id-project-root true) => {:init "my.namespace/init"
                                                                 :ham "biscuit"
                                                                 :biscuit "gravy"
                                                                 :resolve-dependencies false
                                                                 :lein-profiles [:biscuit :gravy]})
         (fact "should work with no descriptor"
-          (read-full-app-config nil project-root) => {:ham "basket"
+          (read-full-app-config nil project-root true) => {:ham "basket"
                                                       :biscuit "gravy"
                                                       :init 'some.namespace/init
                                                       :resolve-dependencies false
                                                       :lein-profiles [:cheese]})
 
         (fact "should work with no descriptor and an internal dd"
-          (read-full-app-config nil id-project-root) => {:ham "basket"
+          (read-full-app-config nil id-project-root true) => {:ham "basket"
                                                          :biscuit "gravy"
                                                          :init 'some.namespace/init
                                                          :resolve-dependencies false
@@ -193,17 +192,17 @@
 
       (facts "with no project"
         (fact "should work"
-          (read-full-app-config descriptor non-project-root) => {:init "my.namespace/init"
+          (read-full-app-config descriptor non-project-root true) => {:init "my.namespace/init"
                                                                  :ham "biscuit"})
 
         (fact "should work with an internal dd"
-          (read-full-app-config descriptor id-non-project-root) => {:init "my.namespace/init"
+          (read-full-app-config descriptor id-non-project-root true) => {:init "my.namespace/init"
                                                                     :ham "biscuit"
                                                                     :lein-profiles [:biscuit :gravy]}))
       
 
       
       (fact "should work with no descriptor and no project"
-        (read-full-app-config nil non-project-root) => {}))))
+        (read-full-app-config nil non-project-root true) => {}))))
 
 

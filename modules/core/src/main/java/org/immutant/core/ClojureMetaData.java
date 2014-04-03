@@ -70,7 +70,19 @@ public class ClojureMetaData extends ApplicationMetaData {
             return true;
         }
     }
-    
+
+    /**
+     * See if the user has explicitly set :resolve-plugin-dependencies. If not,
+     * resolve by default.
+     */
+    public boolean resolvePluginDependencies() {
+        if (this.config.containsKey( "resolve-plugin-dependencies" )) {
+            return (Boolean)get( "resolve-plugin-dependencies" );
+        } else {
+            return true;
+        }
+    }
+
     public String getString(String key) {
         return (String)get( key );
     }

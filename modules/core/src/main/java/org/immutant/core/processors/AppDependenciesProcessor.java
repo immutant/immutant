@@ -62,13 +62,14 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
         
         try {
             
-            for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles() )) {
+            for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles(), metaData.resolvePluginDependencies() )) {
                 final ResourceRoot childResource = ResourceLoaderUtil.createResourceRoot(each, true);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
             }
             
             List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, 
                                                                                    metaData.resolveDependencies(),
+                                                                                   metaData.resolvePluginDependencies(),
                                                                                    metaData.getLeinProfiles() );
             
             boolean clojureProvided = false;

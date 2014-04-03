@@ -89,46 +89,58 @@ public class ApplicationBootstrapUtils {
     }
 
     @SuppressWarnings("rawtypes")
-    public static Map readFullAppConfig(final File descriptor, final File applicationRoot) throws Exception {
+    public static Map readFullAppConfig(final File descriptor, final File applicationRoot,
+                                        final boolean resolvePluginDependencies) throws Exception {
         return (Map) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "read-and-stringify-full-app-config" ).invoke( descriptor, applicationRoot ); 
+                return bootstrapVar( "read-and-stringify-full-app-config" ).
+                        invoke( descriptor, applicationRoot,  resolvePluginDependencies );
             }
         } );
     }
-    
+
+    public static Map readFullAppConfig(final File descriptor, final File applicationRoot) throws Exception {
+        return readFullAppConfig(descriptor, applicationRoot, false);
+    }
+
     @SuppressWarnings("rawtypes")
-    public static String readFullAppConfigAsString(final File descriptor, final File applicationRoot) throws Exception {
+    public static String readFullAppConfigAsString(final File descriptor, final File applicationRoot,
+                                                   final boolean resolvePluginDependencies) throws Exception {
         return (String) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "read-full-app-config-to-string" ).invoke( descriptor, applicationRoot ); 
+                return bootstrapVar( "read-full-app-config-to-string" ).invoke( descriptor, applicationRoot,
+                                                                                resolvePluginDependencies );
             }
         } );
     }
     
     @SuppressWarnings("rawtypes")
     public static String readProjectAsString(final File applicationRoot, final List profiles,
-                                             final boolean escapeMemoization) throws Exception {
+                                             final boolean escapeMemoization,
+                                             final boolean resolvePluginDependencies) throws Exception {
         return (String) inCL( new Callable() {
             public Object call() throws Exception {
                 return bootstrapVar( "read-project-to-string" ).
-                        invoke(applicationRoot, profiles, escapeMemoization ? System.currentTimeMillis() : null);
+                        invoke(applicationRoot, profiles,
+                               escapeMemoization ? System.currentTimeMillis() : null,
+                               resolvePluginDependencies);
             }
         } );
     }
     
     @SuppressWarnings("rawtypes")
-    public static String readProjectAsString(final File descriptor, final File applicationRoot) throws Exception {
-        final Map config = readFullAppConfig( descriptor, applicationRoot );
+    public static String readProjectAsString(final File descriptor, final File applicationRoot,
+                                             final boolean resolvePluginDependencies) throws Exception {
+        final Map config = readFullAppConfig( descriptor, applicationRoot, resolvePluginDependencies );
 
-        return readProjectAsString( applicationRoot, (List)config.get( "lein-profiles" ), false );
+        return readProjectAsString(applicationRoot, (List)config.get( "lein-profiles" ), false, resolvePluginDependencies);
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static List<String> resourceDirs(final File applicationRoot, final List profiles) throws Exception {
+    public static List<String> resourceDirs(final File applicationRoot, final List profiles, final boolean resolvePluginDeps) throws Exception {
         return (List<String>) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "resource-paths" ).invoke( applicationRoot, profiles ); 
+                return bootstrapVar( "resource-paths" ).invoke( applicationRoot, profiles, resolvePluginDeps );
             }
         } );
     }
@@ -143,19 +155,23 @@ public class ApplicationBootstrapUtils {
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static List<File> getDependencies(final File applicationRoot, final boolean resolveDeps, final List profiles) throws Exception {
+    public static List<File> getDependencies(final File applicationRoot, final boolean resolveDeps,
+                                             final boolean resolvePluginDeps, final List profiles) throws Exception {
         return (List<File>) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "get-dependencies" ).invoke( applicationRoot, profiles, resolveDeps ); 
+                return bootstrapVar( "get-dependencies" ).invoke( applicationRoot, profiles, resolveDeps, resolvePluginDeps );
             }
         } );
     }
     
     @SuppressWarnings({ "rawtypes" })
-    public static String getDependenciesAsString(final String projectAsString, final boolean resolveDeps) throws Exception {
+    public static String getDependenciesAsString(final String projectAsString, final boolean resolveDeps,
+                                                 final boolean resolvePluginDeps) throws Exception {
         return (String) inCL( new Callable() {
             public Object call() throws Exception {
-                return bootstrapVar( "get-dependencies-from-project-string-as-string" ).invoke( projectAsString, resolveDeps ); 
+                return bootstrapVar( "get-dependencies-from-project-string-as-string" ).invoke(projectAsString,
+                                                                                               resolveDeps,
+                                                                                               resolvePluginDeps);
             }
         } );
     }

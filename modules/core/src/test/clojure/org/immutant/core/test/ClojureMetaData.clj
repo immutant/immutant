@@ -43,7 +43,8 @@
   (let [merged-md (doto (ClojureMetaData. "app-name" descriptor)
                     (.setConfig (bootstrap/read-and-stringify-full-app-config
                                  (io/file (io/resource "simple-descriptor.clj"))
-                                 (io/file (io/resource "project-root")) )))]
+                                 (io/file (io/resource "project-root"))
+                                 true)))]
     (deftest the-immutant-map-from-project-clj-should-be-included
       (is (= "gravy" (.getString merged-md "biscuit"))))
 

@@ -26,13 +26,14 @@ import org.immutant.bootstrap.ApplicationBootstrapUtils;
 
 public class ApplicationBootstrapProxy {
     
-    public static String getDependenciesAsString(String projectAsString, boolean resolveDeps) throws Exception {
-        return ApplicationBootstrapUtils.getDependenciesAsString( projectAsString, resolveDeps );
+    public static String getDependenciesAsString(String projectAsString, boolean resolveDeps,
+                                                 boolean resolvePluginDeps) throws Exception {
+        return ApplicationBootstrapUtils.getDependenciesAsString( projectAsString, resolveDeps, resolvePluginDeps );
     }
     
     @SuppressWarnings("rawtypes")
     public static String readProjectAsString(File applicationRoot, List profiles, boolean escapeMemoization) throws Exception {
-        return ApplicationBootstrapUtils.readProjectAsString( applicationRoot, profiles, escapeMemoization );
+        return ApplicationBootstrapUtils.readProjectAsString(applicationRoot, profiles, escapeMemoization, true);
     }
     
     public static String getResourceDirsAsString(String projectAsString) throws Exception {

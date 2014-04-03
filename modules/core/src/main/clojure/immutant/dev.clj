@@ -38,7 +38,7 @@ shouldn't be used in production."
 (defn ^:private get-dependency-paths [project]
   (-> project
       runtime/pr-str-with-meta
-      (ApplicationBootstrapProxy/getDependenciesAsString true)
+      (ApplicationBootstrapProxy/getDependenciesAsString true true)
       read-string
       mount-paths))
 
