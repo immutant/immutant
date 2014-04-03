@@ -65,15 +65,17 @@
   ([name]
      (get-cache name @manager))
   ([name ^EmbeddedCacheManager manager]
-     (if (.isRunning manager name)
-       (.getCache manager name))))
+     (when-let [c (and (.isRunning manager name) (.getCache manager name))]
+       (if-not (.allowInvocations (.getStatus c))
+         (.start c))
+       c)))
   
 (defn start
   "Defines and [re]starts a named cache"
   ([name ^Configuration config]
      (start name config @manager))
   ([name ^Configuration config ^EmbeddedCacheManager manager]
-     (when (.isRunning manager name)
+     (when (get-cache name manager)
        (log/info "Removing existing cache:" name)
        (.removeCache manager name))
      (.defineConfiguration manager name config)

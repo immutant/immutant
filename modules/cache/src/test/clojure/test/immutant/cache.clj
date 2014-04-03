@@ -224,6 +224,13 @@
     (empty? (create "terrence"))
     (is (thrown? IllegalStateException (empty? c)))))
 
+(deftest test-create-reconfigures
+  (let [n "foo"]
+    (is (= -1 (.. (create n)
+                cache getCacheConfiguration eviction maxEntries)))
+    (is (= 42 (.. (create n :max-entries 42)
+                cache getCacheConfiguration eviction maxEntries)))))
+
 (deftest test-eviction
   (let [c (create "nelly" :max-entries 2)]
     (put c :a 1)
@@ -240,10 +247,15 @@
 (deftest default-to-local "should not raise exception"
   (create "remote" :mode :replicated))
 
-(deftest lookup-of-stopped-cache "should return nil"
+(deftest lookup-of-stopped-cache "should restart it"
   (let [c (create "stopped")]
     (.stop (.cache c))
-    (is (nil? (lookup "stopped")))))
+    (is (empty? (lookup "stopped")))))
+
+(deftest create-of-stopped-cache "should restart it"
+  (let [c (create "stopped")]
+    (.stop (.cache c))
+    (is (empty? (create "stopped")))))
 
 (defmacro test-invalid-opts [form]
   `(is (~'thrown-with-msg? IllegalArgumentException

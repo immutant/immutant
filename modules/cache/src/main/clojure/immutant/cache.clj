@@ -248,8 +248,7 @@
   [name & {:as options}]
   (let [options (u/validate-options lookup options)]
     (if-let [c (get-cache name)]
-      (if (.allowInvocations (.getStatus c))
-        (InfinispanCache. c options)))))
+      (InfinispanCache. c options))))
 
 (defn lookup-or-create
   "A convenience method for creating a cache only if it doesn't
