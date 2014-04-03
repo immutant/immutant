@@ -164,22 +164,22 @@
      (msg/start "queue.foo"
        :dead-letter-address "queue.dead-letters"
        :max-delivery-attempts 20)
-     
+
      ;; setting options for an existing queue
      (hornetq/set-address-options "queue.foo"
-       :dead-letter-address "queue.dead-letters"
-       :max-delivery-attempts 20)
-     
+       {:dead-letter-address "queue.dead-letters"
+        :max-delivery-attempts 20})
+
      ;; setting options for all queues of a certain prefix
      ;; will match: queue.notifications.ham, queue.notifications.biscuits
      (hornetq/set-address-options "queue.notifications.*"
-       :dead-letter-address "queue.dead-letters"
-       :max-delivery-attempts 20)
-     
+       {:dead-letter-address "queue.dead-letters"
+        :max-delivery-attempts 20})
+
      ;; match *all* destinations
      (hornetq/set-address-options "#"
-       :dead-letter-address "queue.dead-letters"
-       :max-delivery-attempts 20)
+       {:dead-letter-address "queue.dead-letters"
+        :max-delivery-attempts 20})
    #+END_SRC
 
 ** Accessing Destinations Controllers
