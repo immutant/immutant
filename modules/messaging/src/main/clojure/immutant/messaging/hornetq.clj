@@ -116,9 +116,9 @@
 
 (defn ^{:valid-options
         #{:address-full-message-policy :dead-letter-address :expiry-address
-          :expiry-delay :last-value-queue :max-delivery-attempts :max-size-bytes
-          :page-cache-max-size :page-size-bytes :redelivery-delay :redelivery-multiplier
-          :redistribution-delay :send-to-dla-on-no-route}}
+          :expiry-delay :last-value-queue :max-delivery-attempts :max-redelivery-delay
+          :max-size-bytes :page-cache-max-size :page-size-bytes :redelivery-delay 
+          :redelivery-multiplier :redistribution-delay :send-to-dla-on-no-route}}
   set-address-options
   "Sets the HornetQ-specific address options for the given match.
    This provides programatic access to options that are normally set
@@ -164,6 +164,9 @@
      is set, the message will be delivered there, or removed otherwise. See
      http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/undelivered-messages.html#undelivered-messages.configuring
 
+   * :max-redelivery-delay [:redelivery-delay] - Specifies the maximum
+     redelivery delay (in ms) when a :redelivery-multiplier is used. 
+
    * :max-size-bytes [20971520 (20MB)] - The maximum size (in bytes) of retained messages
      on an address before :address-full-message-policy is applied. See
      http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/paging.html
@@ -182,7 +185,8 @@
 
    * :redelivery-multiplier [1.0] - Controls the backoff for redeliveries. The
      delay between redelivery attempts is calculated as
-     :redelivery-delay * (:redelivery-multiplier ^ attempt-count)
+     :redelivery-delay * (:redelivery-multiplier ^ attempt-count). This won't have
+     any effect if you don't also set :redelivery-delay and :max-redelivery-delay.
 
    * :redistribution-delay [1000] - Specifies the delay (in ms) to wait before
      redistributing messages from a node in a cluster to other nodes when the
