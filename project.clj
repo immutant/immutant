@@ -1,11 +1,11 @@
 ;; Copyright 2014 Red Hat, Inc, and individual contributors.
-;; 
+;;
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
 ;; You may obtain a copy of the License at
-;; 
+;;
 ;; http://www.apache.org/licenses/LICENSE-2.0
-;; 
+;;
 ;; Unless required by applicable law or agreed to in writing, software
 ;; distributed under the License is distributed on an "AS IS" BASIS,
 ;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,9 @@
                                                   {:url "dav:https://repository-projectodd.forge.cloudbees.com/incremental"
                                                    :sign-releases false}]]
                            :plugins [[lein-webdav "0.1.0"]]}}
-  
+
+  :aliases {"docs-from-index" ["build-helper" "docs" "generate" "caching" "core" "messaging" "scheduling" "web" "wildfly"]
+            "docs" ["do" "modules" "doc-index" "," "docs-from-index"]}
   :modules  {:inherited {:repositories [["projectodd-upstream"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
                                           :snapshots false}]
@@ -39,7 +41,8 @@
                                         ["jboss"
                                          "http://repository.jboss.org/nexus/content/groups/public/"]]
                          :dependencies [[org.projectodd.wunderboss/wunderboss-clojure _]]
-                         :aliases {"-i" ["with-profile" "+fast"]}
+                         :aliases {"-i" ["with-profile" "+fast"]
+                                   "doc-index" ["build-helper" "docs" "generate-index"]}
 
                          :mailing-list {:name "Immutant users list"
                                         :unsubscribe "immutant-users-unsubscribe@immutant.org"
@@ -49,12 +52,12 @@
                          :scm {:name "git", :url "https://github.com/immutant/immutant/"}
                          :license {:name "Apache Software License - v 2.0"
                                    :url "http://www.apache.org/licenses/LICENSE-2.0"
-                                   :distribution :repo}}
-
+                                   :distribution :repo}
+                         :plugins [[org.immutant/build-helper "0.1.0"]]}
              :versions {clojure                    "1.6.0"
                         java.classpath             "0.2.2"
                         tools.nrepl                "0.2.3"
                         ring                       "1.2.1"
-                        
+
                         org.immutant               "2.0.0-SNAPSHOT"
                         org.projectodd.wunderboss  "1.x.incremental.3"}})
