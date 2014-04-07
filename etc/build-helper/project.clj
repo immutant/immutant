@@ -19,4 +19,5 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"
             :distribution :repo}
   :dependencies [[org.clojars.tcrawley/codox.core "0.6.3.2"]]
-  :eval-in-leiningen true)
+  :eval-in-leiningen true
+  :signing {:gpg-key "BFC757F9"})
