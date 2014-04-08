@@ -1,11 +1,11 @@
 ;; Copyright 2014 Red Hat, Inc, and individual contributors.
-;; 
+;;
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
 ;; You may obtain a copy of the License at
-;; 
+;;
 ;; http://www.apache.org/licenses/LICENSE-2.0
-;; 
+;;
 ;; Unless required by applicable law or agreed to in writing, software
 ;; distributed under the License is distributed on an "AS IS" BASIS,
 ;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,8 +14,7 @@
 
 (ns immutant.wildfly.repl
   (:require [clojure.tools.nrepl.server :as nrepl]
-            [immutant.util :as u]
-            [wunderboss.util :as wu]))
+            [immutant.util :as u]))
 
 (defn ^:private spit-nrepl-files
   [port file]
@@ -38,7 +37,7 @@
 ;; TODO: bring over the 1.x impl for middleware, et al
 (defn start [{:keys [host port]}]
   (let [server (nrepl/start-server :port (or port 0) :bind (or host "localhost"))]
-    (wu/at-exit (partial stop server))
+    (u/at-exit (partial stop server))
     (let [[host bound-port] (nrepl-host-port server)]
       (println "nREPL bound to" (format "%s:%s" host bound-port))
           (spit-nrepl-files bound-port nil ;(:nrepl-port-file config)

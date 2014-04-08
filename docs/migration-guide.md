@@ -66,9 +66,7 @@ Will likely be merged with `internal`?
 
 ## immutant.pipeline -> ?
 
-## immutant.registry
-
-Do we still need this?
+## immutant.registry REMOVED
 
 ## immutant.repl
 
@@ -86,17 +84,21 @@ middleware support.
 
 ## immutant.util
 
-Currently still fairly similar to 1.x, but needs cleanup.
+Split across three namespaces:
+
+* immutant.util - fns appropriate for app use
+* immutant.internal.util - fns used by Immutant itself, and not intended for app use
+* immutant.wildfly - in-container specific functions
 
 ## immutant.web
 
 * `start` is now `run` or `mount`, the latter with a different signature
 * `stop` is now `unmount`
 * `start-servlet` is now `mount-servlet`, but with a different signature
-* `current-servlet-request` currently has no analogue 
+* `current-servlet-request` currently has no analogue
 
 ### immutant.web.session -> ?
-### immutant.web.servlet -> ? 
+### immutant.web.servlet -> ?
 ### immutant.web.session.internal -> ?
 
 ### immutant.web.middleware
@@ -111,12 +113,3 @@ by users?
 ### immutant.xa.wrappers -> ?
 
 ### immutant.xa.transaction -> ?
-
-
-
-
-
-
-
-
- 
