@@ -35,7 +35,7 @@
   </modules>
 
   <profiles>
-  
+
     <profile>
       <id>bees</id>
       <activation>
@@ -179,7 +179,7 @@
         <artifactId>tools.namespace</artifactId>
         <version>${version.clojure.tools.namespace}</version>
       </dependency>
-      
+
       <dependency>
         <groupId>org.clojure</groupId>
         <artifactId>tools.reader</artifactId>
@@ -312,7 +312,7 @@
         <artifactId>clojure-complete</artifactId>
         <version>${version.clojure-complete}</version>
       </dependency>
-      
+
       <dependency>
         <groupId>cheshire</groupId>
         <artifactId>cheshire</artifactId>
@@ -325,7 +325,7 @@
         <version>${version.deploy-tools}</version>
       </dependency>
 
-      <!-- we explicitly bring these in here to workaround 
+      <!-- we explicitly bring these in here to workaround
            pomegranate's deps colliding with those of maven. -->
       <dependency>
         <groupId>org.apache.maven.wagon</groupId>
@@ -362,7 +362,7 @@
   </dependencyManagement>
 
   <properties>
-    <codename>AlignedCompetencies</codename>
+    <codename>BlueChicago</codename>
     <!-- <version.polyglot>1.21.0-SNAPSHOT</version.polyglot> -->
     <!-- <version.polyglot>1.x.incremental.62</version.polyglot> -->
     <version.polyglot>1.20.0</version.polyglot>
