@@ -49,7 +49,7 @@
 (defn classpath
   "Returns the effective classpath for the app"
   []
-  (dp/all-classpath-urls clojure.lang.RT/baseLoader))
+  (dp/all-classpath-urls (clojure.lang.RT/baseLoader)))
 
 (defn at-exit
   "Registers a function to be called when the application is undeployed.
