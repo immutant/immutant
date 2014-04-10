@@ -1,15 +1,15 @@
 ;; Copyright 2008-2014 Red Hat, Inc, and individual contributors.
-;; 
+;;
 ;; This is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU Lesser General Public License as
 ;; published by the Free Software Foundation; either version 2.1 of
 ;; the License, or (at your option) any later version.
-;; 
+;;
 ;; This software is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ;; Lesser General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU Lesser General Public
 ;; License along with this software; if not, write to the Free
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -49,7 +49,7 @@
 (defn classpath
   "Returns the effective classpath for the app"
   []
-  (dp/all-classpath-urls))
+  (dp/all-classpath-urls clojure.lang.RT/baseLoader))
 
 (defn at-exit
   "Registers a function to be called when the application is undeployed.
@@ -210,7 +210,7 @@
      (wait-for #(.isStarted x) f attempts)))
 
 (defn waiting-derefable
-  "Returns an IDeref/IBlockingDeref that completes the deref and returns x when 
+  "Returns an IDeref/IBlockingDeref that completes the deref and returns x when
    (t) is true."
   [t x]
   (reify
