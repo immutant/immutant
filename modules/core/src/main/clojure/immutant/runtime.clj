@@ -1,15 +1,15 @@
 ;; Copyright 2008-2014 Red Hat, Inc, and individual contributors.
-;; 
+;;
 ;; This is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU Lesser General Public License as
 ;; published by the Free Software Foundation; either version 2.1 of
 ;; the License, or (at your option) any later version.
-;; 
+;;
 ;; This software is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ;; Lesser General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU Lesser General Public
 ;; License along with this software; if not, write to the Free
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -29,7 +29,7 @@ bootstrapping process. Applications shouldn't use anything here."
   (:import org.immutant.core.ApplicationBootstrapProxy
            java.sql.DriverManager))
 
-(defn ^{:internal true} require-and-invoke 
+(defn ^{:internal true} require-and-invoke
   "Takes a string of the form \"namespace/fn\", requires the namespace, then invokes fn"
   [namespaced-fn & args]
   (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
@@ -104,7 +104,7 @@ bootstrapping process. Applications shouldn't use anything here."
       (log/info "Initialized" (util/app-name) "from :ring options in project.clj")
       true)))
 
-(defn ^{:internal true} initialize 
+(defn ^{:internal true} initialize
   "Attempts to initialize the app by calling an init-fn (if given) or, lacking that,
 tries to load the immutant.init namespace. In either case,
 post-initialize is called to finalize initialization."
@@ -126,21 +126,22 @@ and makes them available as data under the :config and :project keys
 in the registry."
   [config project]
   (registry/put :config (read-string config))
-  (registry/put :project (read-string project)))
+  (try
+    (registry/put :project (read-string project))
+    (catch Exception _
+      (log/warn "Unexpected error loading project.clj in app runtime - :project won't be available in the registry"))))
 
 (defn ^:internal shutdown
   "Called when an app is undeployed to handle runtime shutdown."
   []
   (ApplicationBootstrapProxy/clearBootstrapClassLoader
     (registry/get "app-root"))
-  
+
   ;; Clear any drivers the app registered to prevent permgen leaks
   ;; getDrivers will only return drivers we have the right to see, so
   ;; this shouldn't affect drivers registered by other apps.
   ;; see IMMUTANT-417
   (doseq [d (enumeration-seq (DriverManager/getDrivers))]
     (DriverManager/deregisterDriver d))
-  
+
   (shutdown-agents))
-
-

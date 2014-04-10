@@ -1,15 +1,15 @@
 ;; Copyright 2008-2014 Red Hat, Inc, and individual contributors.
-;; 
+;;
 ;; This is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU Lesser General Public License as
 ;; published by the Free Software Foundation; either version 2.1 of
 ;; the License, or (at your option) any later version.
-;; 
+;;
 ;; This software is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ;; Lesser General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU Lesser General Public
 ;; License along with this software; if not, write to the Free
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -128,44 +128,38 @@
                     (set/difference other-profiles
                       normalized-profiles)))))))))))
 
-(defn ^:private strip-reduce-metadata [v]
-  (reduce (fn [acc k]
-            (if (-> acc k meta :reduce)
-              (update-in acc [k] vary-meta dissoc :reduce)
-              acc))
-          v
-          (keys v)))
+(defn ^:private remove-reduce-metadata [v]
+  (if (fn? (:reduce v))
+    (dissoc v :reduce)
+    v))
 
 (defn ^:private remove-checkout-deps-paths-fn [v]
-  (update-in v [:checkout-deps-shares]
-             #(vec (remove var? %))))
+  (if (:checkout-deps-shares v)
+    (update-in v [:checkout-deps-shares]
+      #(vec (remove var? %)))
+    v))
 
-(defn ^:private update-in-meta [v path f]
-  (vary-meta v #(update-in % path f)))
+(defn postwalk-with-meta [f meta-f form]
+  (walk/postwalk
+    #(if (instance? clojure.lang.IObj %)
+       (with-meta (f %) (postwalk-with-meta meta-f meta-f (meta %)))
+       (f %))
+    form))
 
 (defn ^{:internal true} read-project-to-string
   "Returns the project map as a pr string with metadata so it can be
   moved across runtimes."
   [app-root profiles escape-memoization? resolve-plugin-deps?]
   (pr-str-with-meta
-    (if-let [p (with-dependency-resolution resolve-plugin-deps?
-                 (read-project app-root profiles
-                   escape-memoization?))]
-     (-> p
-         ;; reduce metadata points to a function, which won't serialize, so
-         ;; we have to strip it out. pre-1.5, walk/postwalk worked, but it
-         ;; now preserves the original metadata (which I consider a bug).
-         strip-reduce-metadata
-         (update-in-meta [:without-profiles] strip-reduce-metadata)
-         ;; As of lein 2.3.0, we also need to strip a fn out of the
-         ;; :checkout-deps-shares commection in three places. A side affect
-         ;; of this is that transitive checkout deps won't be available under
-         ;; Immutant.
-         remove-checkout-deps-paths-fn
-         (update-in-meta [:profiles :base] remove-checkout-deps-paths-fn)
-         (update-in-meta [:without-profiles]
-                         #(update-in-meta % [:profiles :base]
-                                          remove-checkout-deps-paths-fn))))))
+            (when-let [p (with-dependency-resolution resolve-plugin-deps?
+                           (read-project app-root profiles
+                             escape-memoization?))]
+              (postwalk-with-meta
+                remove-checkout-deps-paths-fn
+                #(-> %
+                   remove-reduce-metadata
+                   remove-checkout-deps-paths-fn)
+                p))))
 
 (defn ^{:internal true} read-full-app-config
   "Returns the full configuration for an app. This consists of
