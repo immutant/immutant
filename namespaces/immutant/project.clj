@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant "1.1.1-SNAPSHOT"
   :description "An aggregate lib that pulls in all of the public Immutant libs."
-  :plugins [[lein-modules "0.2.0"]]
+  :plugins [[lein-modules "0.2.2"]]
   :modules {:parent "../project.clj"}
   :dependencies [[org.immutant/immutant-cache :immutant]
                  [org.immutant/immutant-daemons :immutant]

@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-messaging "1.1.1-SNAPSHOT"
   :description "The Immutant messaging module."
-  :plugins [[lein-modules "0.2.0"]]
+  :plugins [[lein-modules "0.2.2"]]
   :modules {:parent "../project.clj"}
   :dependencies [[io.netty/netty "3.6.2.Final"]
                  [org.hornetq/hornetq-core-client :hornetq]

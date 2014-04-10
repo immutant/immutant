@@ -1,10 +1,11 @@
 (defproject org.immutant/immutant-bootstrap-module "1.1.1-SNAPSHOT"
   :parent [org.immutant/immutant-modules-parent _ :relative-path "../pom.xml"]
-  :plugins [[lein-modules "0.2.0"]]
+  :plugins [[lein-modules "0.2.2"]]
   :profiles {:provided
              {:dependencies [[org.immutant/immutant-common-module _]]}}
-  :dependencies [[leiningen-core _]
-                 [org.immutant/immutant-dependency-exclusions "0.1.0"]
+  :dependencies [[org.clojure/clojure _]
+                 [leiningen-core _]
+                 [org.immutant/immutant-dependency-exclusions _]
                  [org.tcrawley/dynapath _]
                  [s3-wagon-private "1.1.2"]])
 

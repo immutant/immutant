@@ -1,13 +1,13 @@
 (defproject org.immutant/immutant-parent "1.1.1-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.2.0"]]
+  :plugins [[lein-modules "0.2.2"]]
   :packaging "pom"
 
   :profiles {:provided
              {:dependencies [[org.clojure/clojure _]
                              [org.jboss.as/jboss-as-server _]]}
              :dev
-             {:dependencies [[midje/midje "1.6.0"]]}
+             {:dependencies [[midje/midje "1.6.3"]]}
 
              :dist {}
              :integ {}
@@ -46,7 +46,7 @@
                          :url "http://immutant.org"
                          :scm {:name "git", :url "https://github.com/immutant/immutant/"}}
 
-             :versions {org.clojure/clojure               "1.5.1"
+             :versions {org.clojure/clojure               "1.6.0"
                         org.clojure/tools.nrepl           "0.2.3"
                         leiningen-core/leiningen-core     "2.3.4"
                         org.infinispan/infinispan-core    "6.0.0.Final"
@@ -55,46 +55,20 @@
                         clojure-complete/clojure-complete "0.2.2"
                         org.tcrawley/dynapath             "0.2.3"
                         
-                        :immutant                       "1.1.1-SNAPSHOT"
-                        :ring                           "1.2.1"
-                        :jbossas                        "7.2.x.slim.incremental.14"
-                        :polyglot                       "1.19.0"
-                        :hornetq                        "2.3.1.Final"
-                        :shimdandy                      "1.0.1"
+                        :immutant                 "1.1.1-SNAPSHOT"
+                        :ring                     "1.2.1"
+                        :jbossas                  "7.2.x.slim.incremental.16"
+                        :polyglot                 "1.20.0"
+                        :hornetq                  "2.3.1.Final"
+                        :shimdandy                "1.0.1"
 
-                        org.hornetq/hornetq-core-client            :hornetq
-                        
-                        org.immutant/immutant                      :immutant
-                        org.immutant/immutant-parent               :immutant
-                        org.immutant/immutant-build                :immutant
-                        org.immutant/immutant-modules-parent       :immutant
-                        org.immutant/immutant-support-parent       :immutant
-                        org.immutant/immutant-namespaces-parent    :immutant
-                        org.immutant/immutant-core-module          :immutant
-                        org.immutant/immutant-common-module        :immutant
-                        org.immutant/immutant-common               :immutant
-                        org.immutant/immutant-xa-module            :immutant
-                        org.immutant/immutant-bootstrap-module     :immutant
-                        org.immutant/immutant-clojure-test-support :immutant
-                        org.immutant/immutant-as-test-support      :immutant
+                        ring                      :ring
+                        org.hornetq               :hornetq
+                        org.immutant              :immutant
+                        org.jboss.as              :jbossas
+                        org.projectodd            :polyglot
+                        org.projectodd.shimdandy  :shimdandy
 
-                        org.jboss.as/jboss-as-server    :jbossas
-                        org.jboss.as/jboss-as-jmx       :jbossas
-                        org.jboss.as/jboss-as-messaging :jbossas
-                        org.jboss.as/jboss-as-web       :jbossas
-                        org.jboss.as/jboss-as-dist      :jbossas
-
-                        ring/ring-servlet :ring
-                        ring/ring-devel   :ring
-                        
-                        org.projectodd/polyglot-core             :polyglot
-                        org.projectodd/polyglot-xa               :polyglot
-                        org.projectodd/polyglot-web              :polyglot
-                        org.projectodd/polyglot-jobs             :polyglot
-                        org.projectodd/polyglot-cache            :polyglot
-                        org.projectodd/polyglot-hasingleton      :polyglot
-                        org.projectodd/polyglot-messaging        :polyglot
-                        org.projectodd/polyglot-as-test-support  :polyglot
-
-                        org.projectodd.shimdandy/shimdandy-api   :shimdandy
-                        org.projectodd.shimdandy/shimdandy-impl  :shimdandy}})
+                        org.immutant/immutant-dependency-exclusions "0.1.0"
+                        org.immutant/deploy-tools "0.12.0"
+                        org.immutant/fntest "0.5.2"}})
