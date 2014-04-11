@@ -13,8 +13,7 @@
 ;; limitations under the License.
 
 (defproject org.immutant/web "2.0.0-SNAPSHOT"
-  :parent [org.immutant/immutant-parent _ :relative-path "../project.clj"]
-  :plugins [[lein-modules "0.2.1"]]
+  :plugins [[lein-modules "0.2.2"]]
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
