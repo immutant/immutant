@@ -1,4 +1,4 @@
-(defproject org.immutant/immutant-xa "1.1.1-SNAPSHOT"
+(defproject org.immutant/immutant-xa "1.1.2-SNAPSHOT"
   :description "The Immutant xa module."
   :plugins [[lein-modules "0.2.2"]]
   :modules {:parent "../project.clj"}

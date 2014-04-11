@@ -1,4 +1,4 @@
-(defproject org.immutant/immutant-common "1.1.1-SNAPSHOT"
+(defproject org.immutant/immutant-common "1.1.2-SNAPSHOT"
   :description "Common utilities and functions used by all the Immutant namespaces."
   :plugins [[lein-modules "0.2.2"]]
   :modules {:parent "../project.clj"}

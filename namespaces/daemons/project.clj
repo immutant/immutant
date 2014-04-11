@@ -1,4 +1,4 @@
-(defproject org.immutant/immutant-daemons "1.1.1-SNAPSHOT"
+(defproject org.immutant/immutant-daemons "1.1.2-SNAPSHOT"
   :description "The Immutant daemons module."
   :plugins [[lein-modules "0.2.2"]]
   :modules {:parent "../project.clj"}
