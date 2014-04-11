@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/build-helper "0.1.0"
+(defproject org.immutant/build-helper "0.1.1"
   :description "A plugin to aid in building Immutant"
   :url "https://github.com/immutant/immutant"
   :license {:name "Apache Software License - v 2.0"
