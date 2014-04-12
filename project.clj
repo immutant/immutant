@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-parent "1.1.2-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.2.2"]]
+  :plugins [[lein-modules "0.2.3"]]
   :packaging "pom"
 
   :profiles {:provided

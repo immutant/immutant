@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-web-module "1.1.2-SNAPSHOT"
   :parent [org.immutant/immutant-modules-parent _ :relative-path "../pom.xml"]
-  :plugins [[lein-modules "0.2.2"]]
+  :plugins [[lein-modules "0.2.3"]]
   :dependencies [[ring/ring-servlet _ :exclusions [org.clojure/clojure]]
                  [ring/ring-devel _ :exclusions [org.clojure/clojure org.clojure/java.classpath]]
                  [org.clojure/tools.namespace "0.1.3"]]

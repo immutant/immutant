@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-core-module "1.1.2-SNAPSHOT"
   :parent [org.immutant/immutant-modules-parent _ :relative-path "../pom.xml"]
-  :plugins [[lein-modules "0.2.2"]]
+  :plugins [[lein-modules "0.2.3"]]
   :profiles {:provided
              {:dependencies [[org.projectodd/polyglot-core _]
                              [org.immutant/immutant-common-module _]
