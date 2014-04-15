@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-integration-tests "1.1.2-SNAPSHOT"
   :parent [org.immutant/immutant-parent _ :relative-path "../pom.xml"]
-  :plugins [[lein-modules "0.2.3"]
+  :plugins [[lein-modules "0.2.4"]
             [lein-resource "0.3.4"]
             [lein-environ "0.4.0"]]
   :dependencies [[org.immutant/immutant-build-assembly :immutant :extension "pom"]

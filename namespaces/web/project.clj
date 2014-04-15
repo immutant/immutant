@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-web "1.1.2-SNAPSHOT"
   :description "The Immutant web module."
-  :plugins [[lein-modules "0.2.3"]]
+  :plugins [[lein-modules "0.2.4"]]
   :modules {:parent "../project.clj"}
   :dependencies [[javax.servlet/javax.servlet-api "3.0.1"]
                  [org.immutant/immutant-common _]

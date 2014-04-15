@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-common "1.1.2-SNAPSHOT"
   :description "Common utilities and functions used by all the Immutant namespaces."
-  :plugins [[lein-modules "0.2.3"]]
+  :plugins [[lein-modules "0.2.4"]]
   :modules {:parent "../project.clj"}
   :dependencies [[cheshire/cheshire _]
                  [org.clojure/data.fressian "0.2.0"]

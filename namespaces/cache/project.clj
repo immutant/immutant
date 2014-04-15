@@ -1,6 +1,6 @@
 (defproject org.immutant/immutant-cache "1.1.2-SNAPSHOT"
   :description "The Immutant cache module."
-  :plugins [[lein-modules "0.2.3"]]
+  :plugins [[lein-modules "0.2.4"]]
   :modules {:parent "../project.clj"}
   :dependencies [[org.clojure/core.memoize "0.5.5"]
                  [org.immutant/immutant-common _]
