@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (defproject org.immutant/core "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.2.3"]]
+  :plugins [[lein-modules "0.2.4"]]
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 

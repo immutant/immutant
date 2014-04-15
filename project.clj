@@ -14,7 +14,7 @@
 
 (defproject org.immutant/immutant-parent "2.0.0-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.2.3"]]
+  :plugins [[lein-modules "0.2.4"]]
   :packaging "pom"
 
   :profiles {:provided {:dependencies [[org.clojure/clojure _]]}
@@ -62,6 +62,6 @@
                         ring                       "1.2.1"
 
                         org.immutant               "2.0.0-SNAPSHOT"
-                        org.projectodd.wunderboss  "1.x.incremental.4"
+                        org.projectodd.wunderboss  "1.x.incremental.11"
                         ;;org.projectodd.wunderboss  "0.1.0-SNAPSHOT"
                         }})
