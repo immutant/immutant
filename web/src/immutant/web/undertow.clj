@@ -97,10 +97,12 @@
 
 (defn handle-request [f ^HttpServerExchange exchange]
   (.startBlocking exchange)
-  (with-open [output-stream (.getOutputStream exchange)]
+  (try
     (if-let [response (f (ring-request exchange))]
       (write-response exchange response)
-      (throw (NullPointerException. "Ring handler returned nil")))))
+      (throw (NullPointerException. "Ring handler returned nil")))
+    (finally
+      (.endExchange exchange))))
 
 (defn create-http-handler [handler]
   (reify HttpHandler
