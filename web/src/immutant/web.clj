@@ -18,14 +18,14 @@
   (:require [immutant.logging        :as log]
             [immutant.web.undertow   :as undertow]
             [immutant.internal.util  :refer [concat-valid-options extract-options
-                                             validate-options enum->set]]
+                                             validate-options opts->set]]
             [immutant.util           :refer [mapply dev-mode?]]
             [immutant.web.middleware :refer [add-middleware]]
             [clojure.walk            :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
-(defn ^{:valid-options (conj (enum->set Web$CreateOption) :name)}
+(defn ^{:valid-options (conj (opts->set Web$CreateOption) :name)}
   server
   "Create an HTTP server or return existing one matching :name"
   [& {:as opts}]
@@ -36,7 +36,7 @@
       (:name opts)
       (extract-options opts Web$CreateOption))))
 
-(defn ^{:valid-options (conj (enum->set Web$RegisterOption)
+(defn ^{:valid-options (conj (opts->set Web$RegisterOption)
                          :stacktraces? :auto-reload? :reload-paths)}
   mount
   "Mount a Ring handler on a server"

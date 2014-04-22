@@ -20,7 +20,7 @@
            [org.projectodd.wunderboss.scheduling
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
 
-(defn ^{:valid-options (conj (u/enum->set Scheduling$CreateOption) :name)}
+(defn ^{:valid-options (conj (u/opts->set Scheduling$CreateOption) :name)}
   configure
   "Configures the default scheduler and returns it"
   [& {:as opts}]
@@ -31,7 +31,7 @@
       (:name opts)
       (u/extract-options opts Scheduling$CreateOption))))
 
-(defn ^{:valid-options (u/enum->set Scheduling$ScheduleOption)}
+(defn ^{:valid-options (u/opts->set Scheduling$ScheduleOption)}
   schedule
   "Schedules a function to execute according to a specification map.
   Option functions (defined below) can be combined to create the

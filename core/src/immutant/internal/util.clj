@@ -16,9 +16,8 @@
   "Various internal utility functions."
   (:require [immutant.util :as u]
             [clojure.walk  :refer [stringify-keys]])
-  (:import java.util.EnumSet
-           clojure.lang.IDeref
-           org.projectodd.wunderboss.WunderBoss))
+  (:import clojure.lang.IDeref
+           [org.projectodd.wunderboss Option WunderBoss]))
 
 (defn ^:no-doc validate-options*
   [name valid-keys opts]
@@ -46,34 +45,34 @@
   [& vars]
   (set (mapcat #(-> % meta :valid-options) vars)))
 
-(defn enum->map
-  "Converts a java Enum that provides a value field into a map of value -> Enum instance."
-  [enum]
-  (->> enum
-    EnumSet/allOf
-    (map #(vector (.value %) %))
+(defn opts->map
+  "Converts an Option class into a map of name -> Option instance."
+  [class]
+  (->> class
+    Option/optsFor
+    (map #(vector (.name %) %))
     (into {})))
 
-(defn enum->keywords
-  "Converts a java Enum that provides a value field into a list of those values as keywords.
+(defn opts->keywords
+  "Converts an Option class into a list of names for those Options as keywords.
    Auto-converts \"foo_bar\" to :foo-bar."
-  [enum]
-  (->> enum enum->map keys (map #(keyword (.replace % \_ \-)))))
+  [class]
+  (->> class opts->map keys (map #(keyword (.replace % \_ \-)))))
 
-(defn enum->set
-  "Converts a java Enum that provides a value field into a set of keywords."
-  [enum]
-  (-> enum enum->keywords set))
+(defn opts->set
+  "Converts an Option class into a set of keywords."
+  [class]
+  (-> class opts->keywords set))
 
 (defn extract-options
   "Converts a clojure map into a WunderBoss options map."
   [m c]
-  (let [optsm (enum->map c)]
+  (let [optsm (opts->map c)]
     (->> m
       stringify-keys
       (map (fn [[k v]]
-             (when-let [enum (optsm k (optsm (.replace k \- \_)))]
-               [enum v])))
+             (when-let [opts (optsm k (optsm (.replace k \- \_)))]
+               [opts v])))
       (into {}))))
 
 (defn require-resolve
