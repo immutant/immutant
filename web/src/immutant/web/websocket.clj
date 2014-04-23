@@ -13,79 +13,46 @@
 ;; limitations under the License.
 
 (ns immutant.web.websocket
-  (:require [clojure.string :as str]
-            [clojure.java.io :as io]
-            [immutant.web.undertow :refer [create-http-handler]])
-  (:import [java.nio ByteBuffer]
-           [org.xnio ChannelListener]
-           [io.undertow.websockets WebSocketProtocolHandshakeHandler WebSocketConnectionCallback]
-           [io.undertow.websockets.spi WebSocketHttpExchange]
-           [io.undertow.websockets.core WebSocketChannel WebSockets AbstractReceiveListener
-            BufferedTextMessage BufferedBinaryMessage CloseMessage]
-           [io.undertow.server.handlers ResponseCodeHandler]))
+  (:require [immutant.logging :as log]
+            [immutant.web.undertow.websocket :as undertow]
+            [ring.util.response :refer [response]])
+  (:import io.undertow.websockets.core.WebSocketChannel))
 
-(defn send!
-  [channel message & [callback]]
-  (letfn [(bytes? [x] (= Byte/TYPE (.getComponentType (class x))))]
-    (cond
-      (string? message)
-      (WebSockets/sendText message channel callback)
-      (bytes? message)
-      (WebSockets/sendBinary (ByteBuffer/wrap message) channel callback)
-      :else (throw (IllegalArgumentException. "Message must be a String or byte[]")))))
+(defprotocol Channel
+  (open? [ch])
+  (close [ch])
+  (send! [ch message]))
 
-(defn- callback
-  [f & args]
-  (when f (apply f args)))
-
-(defn- callback-close
-  "TODO: remove this once onCloseMessage is available"
-  [on-close ^WebSocketChannel channel, ^BufferedBinaryMessage message]
-  (when on-close
-    (let [data (.getData message)]
-      (try
-        (let [cm (CloseMessage. (.getResource data))]
-          (on-close channel {:code (.getReason cm) :reason (.getString cm)}))
-        (finally
-          (.free data))))))
-
-(defn- callback-binary-message
-  "TODO: figure out messages across multiple ByteBuffers"
-  [on-message ^WebSocketChannel channel, ^BufferedBinaryMessage message]
-  (when on-message
-    (let [data (.getData message)]
-      (try
-        (let [payload (.getResource data)
-              buffer (first payload)]
-          (if (and buffer (.hasArray buffer) (= 1 (count payload)))
-            (on-message (.array buffer))
-            (throw (UnsupportedOperationException. "TODO: binary messages across multiple ByteBuffers"))))
-        (finally
-          (.free data))))))
+(extend-type WebSocketChannel
+  Channel
+  (send! [ch message] (undertow/send! ch message))
+  (open? [ch] (.isOpen ch))
+  (close [ch] (.sendClose ch)))
 
 (defn create-handler
   "The following callbacks are supported:
     :on-message (fn [message])
     :on-open    (fn [channel])
     :on-close   (fn [channel {:keys [code reason]}])
-    :on-error   (fn [channel Throwable])
-    :fallback   (fn [request] response), i.e. a valid Ring handler"
-  [& {:keys [on-message on-open on-close on-error fallback]}]
-  (WebSocketProtocolHandshakeHandler.
-    (reify WebSocketConnectionCallback
-      (^void onConnect [_ ^WebSocketHttpExchange exchange ^WebSocketChannel channel]
-        (callback on-open channel)
-        (.. channel getReceiveSetter
-          (set (proxy [AbstractReceiveListener] []
-                 (onError [^WebSocketChannel channel, ^Throwable error]
-                   (proxy-super onError channel error)
-                   (callback on-error channel error))
-                 (onFullCloseMessage [^WebSocketChannel channel, ^BufferedBinaryMessage message]
-                   ;; TODO: Use onCloseMessage to avoid having to call super
-                   (proxy-super onFullCloseMessage channel message)
-                   (callback-close on-close channel message))
-                 (onFullTextMessage [^WebSocketChannel channel, ^BufferedTextMessage message]
-                   (callback on-message (.getData message)))
-                 (onFullBinaryMessage [^WebSocketChannel channel, ^BufferedBinaryMessage message]
-                   (callback-binary-message on-message channel message)))))))
-    (if fallback (create-http-handler fallback) ResponseCodeHandler/HANDLE_404)))
+    :on-error   (fn [channel throwable])
+    :fallback   (fn [request] (response ...))"
+  [& {:keys [on-message on-open on-close on-error fallback] :as args}]
+  (undertow/create-websocket-handler args))
+
+(defn create-logging-handler
+  "A convenience fn that defaults any callbacks you don't provide to
+  functions that simply log their arguments"
+  [& {:as opts}]
+  (undertow/create-websocket-handler
+    (merge
+      {:on-message (fn [message]
+                     (log/info "on-message" message))
+       :on-open    (fn [channel]
+                     (log/info "on-open" channel))
+       :on-close   (fn [channel {c :code r :reason}]
+                     (log/info "on-close" channel c r))
+       :on-error   (fn [channel error]
+                     (log/error "on-error" channel error))
+       :fallback   (fn [request]
+                     (response "Unable to create websocket"))}
+      opts)))

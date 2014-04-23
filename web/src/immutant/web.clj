@@ -15,16 +15,15 @@
 (ns immutant.web
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
-  (:require [immutant.logging        :as log]
-            [immutant.web.undertow   :as undertow]
+  (:require [immutant.web.undertow.http :as undertow]
             [immutant.web.websocket  :as ws]
             [immutant.internal.util  :refer [concat-valid-options extract-options
                                              validate-options opts->set]]
             [immutant.util           :refer [mapply dev-mode?]]
             [immutant.web.middleware :refer [add-middleware]]
-            [clojure.walk            :refer [keywordize-keys]]
-            [ring.util.response      :refer [response]])
+            [clojure.walk            :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
+           io.undertow.server.HttpHandler
            [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
 (defn ^{:valid-options (conj (opts->set Web$CreateOption) :name)}
@@ -43,13 +42,18 @@
 (defn ^{:valid-options (conj (opts->set Web$RegisterOption)
                          :stacktraces? :auto-reload? :reload-paths)}
   mount
-  "Mount a Ring handler on a server"
+  "Mount a handler at a context path on a server. The handler is
+  typically a Ring function, taking a request map and returning a
+  response map, but it can also be an instance of
+  io.undertow.server.HttpHandler"
   [server handler & {:as opts}]
   (let [opts (->> (keywordize-keys opts)
                (merge {:context-path "/"})
                (validate-options mount))]
     (.registerHandler server
-      (undertow/create-http-handler (add-middleware handler opts))
+      (if (instance? HttpHandler handler)
+        handler
+        (undertow/create-http-handler (add-middleware handler opts)))
       (extract-options opts Web$RegisterOption))))
 
 (defmacro ^{:valid-options (concat-valid-options #'server #'mount)}
@@ -81,26 +85,4 @@
                (merge {:context-path "/"})
                (validate-options mount-servlet))]
     (.registerServlet server servlet
-      (extract-options opts Web$RegisterOption))))
-
-(defn mount-websocket
-  "Register callbacks for a websocket session. The only required one
-  is the single-arity on-message. The signatures for the optional ones
-  are listed in the :or clause."
-  [server on-message
-   & {:keys [on-open on-close on-error fallback]
-      :or {on-open  (fn [channel]
-                      (log/info "on-open" channel))
-           on-close (fn [channel {c :code r :reason}]
-                      (log/info "on-close" channel c r))
-           on-error (fn [channel error]
-                      (log/error "on-error" channel error))
-           fallback (fn [request]
-                      (response "Unable to create websocket"))}
-      :as opts}]
-  (let [opts (->> (keywordize-keys opts)
-               (merge {:context-path "/"}))]
-    (.registerHandler server
-      (ws/create-handler :on-message on-message, :on-open on-open,
-        :on-close on-close, :on-error on-error, :fallback fallback)
       (extract-options opts Web$RegisterOption))))

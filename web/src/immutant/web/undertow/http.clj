@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.web.undertow
+(ns immutant.web.undertow.http
   (:require [clojure.string :as str]
             [clojure.java.io :as io])
   (:import [io.undertow.server HttpHandler HttpServerExchange]
