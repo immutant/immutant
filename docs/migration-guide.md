@@ -41,8 +41,8 @@ map. A cronspec is no longer a top-level arg, but instead is specified
 in the map using the `:cron` key.
 
 The `set-scheduler-options` is now handled by
-`configure`. `internal-scheduler` is gone, use `(.implementation
-(configure))` instead. (Maybe we should restore `internal-scheduler`?)
+`scheduler`. `internal-scheduler` is gone, use `(.scheduler
+(scheduler))` instead. (Maybe we should restore `internal-scheduler`?)
 
 ### immutant.jobs.internal REMOVED
 
