@@ -29,7 +29,9 @@
 
 (defn ^{:valid-options (conj (opts->set Web$CreateOption) :name)}
   server
-  "Create an HTTP server or return existing one matching :name"
+  "Create an HTTP server or return existing one matching :name (defaults to \"default\").
+   Any options here are applied to the server with the given name,
+   but only if it has not yet been instantiated."
   [& {:as opts}]
   (let [opts (->> (keywordize-keys opts)
                (merge {:name "default" :host "localhost" :port 8080})

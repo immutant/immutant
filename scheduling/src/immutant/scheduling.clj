@@ -21,12 +21,14 @@
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
 
 (defn ^{:valid-options (conj (u/opts->set Scheduling$CreateOption) :name)}
-  configure
-  "Configures the default scheduler and returns it"
+  scheduler
+  "Create a scheduler or return existing one matching :name (defaults to \"default\").
+   Any options here are applied to the scheduler with the given name,
+   but only if it has not yet been instantiated."
   [& {:as opts}]
   (let [opts (->> opts
                (merge {:name "default" :num-threads 5})
-               (u/validate-options configure))]
+               (u/validate-options scheduler))]
     (WunderBoss/findOrCreateComponent Scheduling
       (:name opts)
       (u/extract-options opts Scheduling$CreateOption))))
@@ -44,7 +46,7 @@
 
   All jobs must have a unique id, used to unschedule or, when schedule
   is called with the same id, to reschedule jobs."
-  ([id f spec] (schedule (configure) id f spec))
+  ([id f spec] (schedule (scheduler) id f spec))
   ([scheduler id f spec]
      (let [opts (->> spec
                   resolve-options
@@ -54,7 +56,7 @@
 
 (defn unschedule
   "Unschedule a job given its id"
-  ([id] (unschedule (configure) id))
+  ([id] (unschedule (scheduler) id))
   ([scheduler id]
      (.unschedule scheduler (name id))))
 
