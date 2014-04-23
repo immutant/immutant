@@ -67,7 +67,7 @@
   "The following callbacks are supported:
     :on-message (fn [message])
     :on-open    (fn [channel])
-    :on-close   (fn [channel {:keys [:code :reason]}])
+    :on-close   (fn [channel {:keys [code reason]}])
     :on-error   (fn [channel Throwable])
     :fallback   (fn [request] response), i.e. a valid Ring handler"
   [& {:keys [on-message on-open on-close on-error fallback]}]
