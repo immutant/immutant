@@ -45,7 +45,7 @@
   "Mount a handler at a context path on a server. The handler is
   typically a Ring function, taking a request map and returning a
   response map, but it can also be an instance of
-  io.undertow.server.HttpHandler"
+  io.undertow.server.HttpHandler. Returns the server instance."
   [server handler & {:as opts}]
   (let [opts (->> (keywordize-keys opts)
                (merge {:context-path "/"})
@@ -79,7 +79,8 @@
 
 (defn ^{:valid-options #{:context-path}}
   mount-servlet
-  "Mount a servlet on a server"
+  "Mount a servlet on a server.
+   Returns the server instance."
   [server servlet & {:as opts}]
   (let [opts (->> (keywordize-keys opts)
                (merge {:context-path "/"})
