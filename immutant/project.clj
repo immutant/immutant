@@ -18,6 +18,7 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :packaging "pom"
 
-  :dependencies [[org.immutant/messaging _]
+  :dependencies [[org.immutant/caching _]
+                 [org.immutant/messaging _]
                  [org.immutant/scheduling _]
                  [org.immutant/web _]])
