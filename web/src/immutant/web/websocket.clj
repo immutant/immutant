@@ -16,18 +16,25 @@
   (:require [immutant.logging :as log]
             [immutant.web.undertow.websocket :as undertow]
             [ring.util.response :refer [response]])
-  (:import io.undertow.websockets.core.WebSocketChannel))
+  (:import io.undertow.websockets.core.WebSocketChannel
+           javax.websocket.Session))
 
 (defprotocol Channel
   (open? [ch])
   (close [ch])
   (send! [ch message]))
 
-(extend-type WebSocketChannel
-  Channel
+(extend-protocol Channel
+
+  WebSocketChannel
   (send! [ch message] (undertow/send! ch message))
   (open? [ch] (.isOpen ch))
-  (close [ch] (.sendClose ch)))
+  (close [ch] (.sendClose ch))
+
+  Session
+  (send! [ch message] (.sendObject (.getAsyncRemote ch) message))
+  (open? [ch] (.isOpen ch))
+  (close [ch] (.close ch)))
 
 (defn create-handler
   "The following callbacks are supported:

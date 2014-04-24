@@ -19,6 +19,7 @@
 
   :dependencies [[org.immutant/core _]
                  [ring/ring-devel _]
+                 [ring/ring-servlet _]
                  [org.projectodd.wunderboss/wunderboss-web _]]
 
   :profiles {:dev
