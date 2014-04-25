@@ -19,7 +19,7 @@
   (:require [ring.util.servlet :as ring])
   (:import [javax.servlet.http HttpServlet HttpServletRequest]
            [javax.websocket Endpoint MessageHandler$Whole]
-           [javax.websocket.server ServerEndpointConfig$Builder]))
+           [javax.websocket.server ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
 (defn create-servlet
   "Encapsulate a ring handler within a servlet's service method"
@@ -51,9 +51,13 @@
       (proxy-super init servlet-config)
       (let [context (.getServletContext servlet-config)
             path (.getContextPath context)
+            container (.getAttribute context "javax.websocket.server.ServerContainer")
             endpoint (create-endpoint callbacks)
-            config (.build (ServerEndpointConfig$Builder/create (class endpoint) path))
-            container (.getAttribute context "javax.websocket.server.ServerContainer")]
+            config (.. ServerEndpointConfig$Builder
+                     (create (class endpoint) path)
+                     (configurator (proxy [ServerEndpointConfig$Configurator] []
+                                     (getEndpointInstance [c] endpoint)))
+                     build)]
         (.addEndpoint container config)))
     (service [request response]
       (if-let [fallback (and fallback (ring/make-service-method fallback))]
