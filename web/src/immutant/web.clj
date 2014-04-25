@@ -77,7 +77,7 @@
   ([context-path server]
      (.unregister server context-path)))
 
-(defn ^{:valid-options #{:context-path}}
+(defn ^{:valid-options #{:context-path :static-dir}}
   mount-servlet
   "Mount a servlet on a server.
    Returns the server instance."
