@@ -39,12 +39,12 @@
     (finally
       (unmount))))
 
-;; (deftest happy-servlet
-;;   (mount-servlet (server) (javax/create-endpoint-servlet {:on-message #(send! %1 (upper-case %2))}))
-;;   (let [socket (ws/connect "ws://localhost:8080/"
-;;                  :on-receive #(prn 'received %))]
-;;     (try
-;;       (ws/send-msg socket "hello")
-;;       (finally
-;;         (ws/close socket)
-;;         (unmount)))))
+(deftest happy-servlet
+  (mount-servlet (server) (javax/create-endpoint-servlet {:on-message #(send! %1 (upper-case %2))}))
+  (let [socket (ws/connect "ws://localhost:8080/"
+                 :on-receive #(prn 'received %))]
+    (try
+      (ws/send-msg socket "hello")
+      (finally
+        (ws/close socket)
+        (unmount)))))

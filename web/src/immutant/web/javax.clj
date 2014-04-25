@@ -46,20 +46,19 @@
 (defn create-endpoint-servlet
   "Create a servlet for a JSR-356 endpoint"
   [{:keys [fallback] :as callbacks}]
-  (let [fallback (and fallback (ring/make-service-method fallback))
-        endpoint (create-endpoint callbacks)]
-    (proxy [HttpServlet] []
-      (init [servlet-config]
-        (proxy-super init servlet-config)
-        (let [context (.getServletContext servlet-config)
-              path (str (.getContextPath context) "/")
-              config (.build (ServerEndpointConfig$Builder/create (class endpoint) path))
-              container (.getAttribute context "javax.websocket.server.ServerContainer")]
-          (.addEndpoint container config)))
-      (service [request response]
-        (if fallback
-          (fallback this request response)
-          (proxy-super service request response))))))
+  (proxy [HttpServlet] []
+    (init [servlet-config]
+      (proxy-super init servlet-config)
+      (let [context (.getServletContext servlet-config)
+            path (.getContextPath context)
+            endpoint (create-endpoint callbacks)
+            config (.build (ServerEndpointConfig$Builder/create (class endpoint) path))
+            container (.getAttribute context "javax.websocket.server.ServerContainer")]
+        (.addEndpoint container config)))
+    (service [request response]
+      (if-let [fallback (and fallback (ring/make-service-method fallback))]
+        (fallback this request response)
+        (proxy-super service request response)))))
 
 (defn session
   "Returns the servlet session from the ring request"
