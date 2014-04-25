@@ -24,4 +24,5 @@
 
   :profiles {:dev
              {:dependencies [[io.pedestal/pedestal.service "0.2.2"]
-                             [clj-http "0.9.0"]]}})
+                             [clj-http "0.9.0"]
+                             [stylefruits/gniazdo "0.1.0"]]}})
