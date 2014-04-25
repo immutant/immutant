@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.web.undertow.websocket
+(ns ^{:no-doc true} immutant.web.undertow.websocket
   (:require [immutant.logging :as log]
             [immutant.web.undertow.http :refer [create-http-handler]])
   (:import [java.nio ByteBuffer]
