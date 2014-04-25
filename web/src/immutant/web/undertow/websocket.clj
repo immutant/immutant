@@ -57,14 +57,14 @@
         (let [payload (.getResource data)
               buffer (first payload)]
           (if (and buffer (.hasArray buffer) (= 1 (count payload)))
-            (on-message (.array buffer))
+            (on-message channel (.array buffer))
             (throw (UnsupportedOperationException. "TODO: binary messages across multiple ByteBuffers"))))
         (finally
           (.free data))))))
 
 (defn create-websocket-handler
   "The following callbacks are supported:
-    :on-message (fn [message])
+    :on-message (fn [channel message])
     :on-open    (fn [channel])
     :on-close   (fn [channel {:keys [code reason]}])
     :on-error   (fn [channel throwable])
@@ -77,14 +77,15 @@
         (.. channel getReceiveSetter
           (set (proxy [AbstractReceiveListener] []
                  (onError [^WebSocketChannel channel, ^Throwable error]
-                   (proxy-super onError channel error)
-                   (callback on-error channel error))
+                   (callback on-error channel error)
+                   (proxy-super onError channel error))
                  (onFullCloseMessage [^WebSocketChannel channel, ^BufferedBinaryMessage message]
                    ;; TODO: Use onCloseMessage to avoid having to call super
-                   (proxy-super onFullCloseMessage channel message)
-                   (callback-close on-close channel message))
+                   (callback-close on-close channel message)
+                   (proxy-super onFullCloseMessage channel message))
                  (onFullTextMessage [^WebSocketChannel channel, ^BufferedTextMessage message]
-                   (callback on-message (.getData message)))
+                   (callback on-message channel (.getData message)))
                  (onFullBinaryMessage [^WebSocketChannel channel, ^BufferedBinaryMessage message]
-                   (callback-binary-message on-message channel message)))))))
+                   (callback-binary-message on-message channel message)))))
+        (.resumeReceives channel)))
     (if fallback (create-http-handler fallback) ResponseCodeHandler/HANDLE_404)))

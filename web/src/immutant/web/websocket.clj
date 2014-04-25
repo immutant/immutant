@@ -38,7 +38,7 @@
 
 (defn create-handler
   "The following callbacks are supported:
-    :on-message (fn [message])
+    :on-message (fn [channel message])
     :on-open    (fn [channel])
     :on-close   (fn [channel {:keys [code reason]}])
     :on-error   (fn [channel throwable])
@@ -52,8 +52,8 @@
   [& {:as opts}]
   (undertow/create-websocket-handler
     (merge
-      {:on-message (fn [message]
-                     (log/info "on-message" message))
+      {:on-message (fn [channel message]
+                     (log/info "on-message" channel message))
        :on-open    (fn [channel]
                      (log/info "on-open" channel))
        :on-close   (fn [channel {c :code r :reason}]

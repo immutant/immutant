@@ -35,7 +35,7 @@
       (when on-message
         (.addMessageHandler session
           (reify MessageHandler$Whole
-            (onMessage [_ message] (on-message message))))))
+            (onMessage [_ message] (on-message session message))))))
     (onClose [session reason]
       (when on-close (on-close session
                        {:code (.. reason getReasonCode getCode)
@@ -50,6 +50,7 @@
         endpoint (create-endpoint callbacks)]
     (proxy [HttpServlet] []
       (init [servlet-config]
+        (proxy-super init servlet-config)
         (let [context (.getServletContext servlet-config)
               path (str (.getContextPath context) "/")
               config (.build (ServerEndpointConfig$Builder/create (class endpoint) path))
