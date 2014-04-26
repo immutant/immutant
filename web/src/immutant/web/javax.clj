@@ -17,7 +17,8 @@
 
 (ns immutant.web.javax
   (:require [ring.util.servlet :as ring])
-  (:import [javax.servlet.http HttpServlet HttpServletRequest]
+  (:import [org.projectodd.wunderboss.web Util]
+           [javax.servlet.http HttpServlet HttpServletRequest]
            [javax.websocket Endpoint MessageHandler$Whole]
            [javax.websocket.server ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
@@ -33,24 +34,24 @@
     (onOpen [session config]
       (when on-open (on-open session))
       (when on-message
-        (.addMessageHandler session
-          (reify MessageHandler$Whole
-            (onMessage [_ message] (on-message session message))))))
+        (let [handler (reify MessageHandler$Whole
+                        (onMessage [_ message] (on-message session message)))]
+          (.addMessageHandler session (Util/createTextHandler handler))
+          (.addMessageHandler session (Util/createBinaryHandler handler)))))
     (onClose [session reason]
       (when on-close (on-close session
-                       {:code (.. reason getReasonCode getCode)
+                       {:code (.. reason getCloseCode getCode)
                         :reason (.getReasonPhrase reason)})))
     (onError [session error]
       (when on-error (on-error session error)))))
 
 (defn create-endpoint-servlet
   "Create a servlet for a JSR-356 endpoint"
-  [{:keys [fallback] :as callbacks}]
+  [& {:keys [fallback path] :or {path "/"} :as callbacks}]
   (proxy [HttpServlet] []
     (init [servlet-config]
       (proxy-super init servlet-config)
       (let [context (.getServletContext servlet-config)
-            path (.getContextPath context)
             container (.getAttribute context "javax.websocket.server.ServerContainer")
             endpoint (create-endpoint callbacks)
             config (.. ServerEndpointConfig$Builder

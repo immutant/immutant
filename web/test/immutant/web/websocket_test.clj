@@ -16,35 +16,36 @@
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
             [immutant.web.websocket :refer :all]
-            [immutant.web.javax :as javax]
-            [gniazdo.core :as ws]
-            [clojure.string :refer [upper-case]]))
+            [immutant.web.javax :refer [create-endpoint-servlet]]
+            [gniazdo.core :as ws]))
 
-(deftest happy-native-undertow
-  (try
-    (let [events (atom [])
-          result (promise)
-          handler (create-handler
-                    :on-open    (fn [_]
-                                  (swap! events conj :open))
-                    :on-close   (fn [_ {c :code}]
-                                  (deliver result (swap! events conj c)))
-                    :on-message (fn [_ m]
-                                  (swap! events conj m)))]
-      (mount (server) handler)
-      (let [socket (ws/connect "ws://localhost:8080/")]
+(defn test-websocket
+  [create-handler deploy]
+  (let [path "/test"
+        events (atom [])
+        result (promise)
+        handler (create-handler
+                  :on-open    (fn [_]
+                                (swap! events conj :open))
+                  :on-close   (fn [_ {c :code}]
+                                (deliver result (swap! events conj c)))
+                  :on-message (fn [_ m]
+                                (swap! events conj m)))]
+    (try
+      (deploy handler :context-path path)
+      (let [socket (ws/connect (str "ws://localhost:8080" path))]
         (ws/send-msg socket "hello")
         (ws/close socket))
-      (is (= [:open "hello" 1000] (deref result 2000 :fail))))
-    (finally
-      (unmount))))
-
-(deftest happy-servlet
-  (mount-servlet (server) (javax/create-endpoint-servlet {:on-message #(send! %1 (upper-case %2))}))
-  (let [socket (ws/connect "ws://localhost:8080/"
-                 :on-receive #(prn 'received %))]
-    (try
-      (ws/send-msg socket "hello")
+      (deref result 2000 :fail)
       (finally
-        (ws/close socket)
-        (unmount)))))
+        (unmount path)))))
+
+(deftest undertow-websocket
+  (let [expected [:open "hello" 1000]
+        mounter (partial mount (server))]
+    (is (= expected (test-websocket create-handler mounter)))))
+
+(deftest jsr-356-websocket
+  (let [expected [:open "hello" 1005]   ; TODO: UNDERTOW-223
+        mounter (partial mount-servlet (server))]
+    (is (= expected (test-websocket create-endpoint-servlet mounter)))))
