@@ -20,6 +20,7 @@
   :dependencies [[org.immutant/core _]
                  [ring/ring-devel _]
                  [ring/ring-servlet _]
+                 [io.undertow/undertow-websockets-jsr "1.1.0.Beta1-SNAPSHOT"]
                  [org.projectodd.wunderboss/wunderboss-web _]]
 
   :profiles {:dev
