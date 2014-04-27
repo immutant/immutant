@@ -12,12 +12,11 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.web.websocket
+(ns immutant.websocket
   (:require [immutant.logging :as log]
             [immutant.web.undertow.websocket :as undertow]
-            [ring.util.response :refer [response]])
-  (:import io.undertow.websockets.core.WebSocketChannel
-           javax.websocket.Session))
+            [immutant.web.javax :as javax]
+            [ring.util.response :refer [response]]))
 
 (defprotocol Channel
   (open? [ch])
@@ -26,18 +25,20 @@
 
 (extend-protocol Channel
 
-  WebSocketChannel
+  io.undertow.websockets.core.WebSocketChannel
   (send! [ch message] (undertow/send! ch message))
   (open? [ch] (.isOpen ch))
   (close [ch] (.sendClose ch))
 
-  Session
+  javax.websocket.Session
   (send! [ch message] (.sendObject (.getAsyncRemote ch) message))
   (open? [ch] (.isOpen ch))
   (close [ch] (.close ch)))
 
 (defn create-handler
-  "The following callbacks are supported:
+  "The following callbacks are supported, where Channel is an instance
+  of io.undertow.websockets.core.WebSocketChannel:
+
     :on-message (fn [channel message])
     :on-open    (fn [channel])
     :on-close   (fn [channel {:keys [code reason]}])
@@ -46,20 +47,12 @@
   [& {:keys [on-message on-open on-close on-error fallback] :as args}]
   (undertow/create-websocket-handler args))
 
-(defn create-logging-handler
-  "A convenience fn that defaults any callbacks you don't provide to
-  functions that simply log their arguments"
-  [& {:as opts}]
-  (undertow/create-websocket-handler
-    (merge
-      {:on-message (fn [channel message]
-                     (log/info "on-message" channel message))
-       :on-open    (fn [channel]
-                     (log/info "on-open" channel))
-       :on-close   (fn [channel {c :code r :reason}]
-                     (log/info "on-close" channel c r))
-       :on-error   (fn [channel error]
-                     (log/error "on-error" channel error))
-       :fallback   (fn [request]
-                     (response "Unable to create websocket"))}
-      opts)))
+(defn create-servlet
+  "The same callbacks accepted by create-handler are supported, where
+  the Channel passed to the callbacks is an instance of
+  javax.websocket.Session
+
+  In addition, a :path may be specified. It will be resolved relative
+  to the :context-path on which the returned servlet is mounted"
+  [& {:keys [path on-message on-open on-close on-error fallback] :as args}]
+  (javax/create-endpoint-servlet args))

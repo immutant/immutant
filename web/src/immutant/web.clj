@@ -16,7 +16,6 @@
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
   (:require [immutant.web.undertow.http :as undertow]
-            [immutant.web.websocket  :as ws]
             [immutant.internal.util  :refer [concat-valid-options extract-options
                                              validate-options opts->set]]
             [immutant.util           :refer [mapply dev-mode?]]

@@ -12,11 +12,10 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.web.websocket-test
+(ns immutant.websocket-test
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
-            [immutant.web.websocket :refer :all]
-            [immutant.web.javax :refer [create-endpoint-servlet]]
+            [immutant.websocket :refer :all]
             [gniazdo.core :as ws]))
 
 (defn test-websocket
@@ -48,4 +47,4 @@
 (deftest jsr-356-websocket
   (let [expected [:open "hello" 1005]   ; TODO: UNDERTOW-223
         mounter (partial mount-servlet (server))]
-    (is (= expected (test-websocket create-endpoint-servlet mounter)))))
+    (is (= expected (test-websocket create-servlet mounter)))))

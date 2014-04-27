@@ -47,7 +47,7 @@
 
 (defn create-endpoint-servlet
   "Create a servlet for a JSR-356 endpoint"
-  [& {:keys [fallback path] :or {path "/"} :as callbacks}]
+  [{:keys [fallback path] :or {path "/"} :as callbacks}]
   (proxy [HttpServlet] []
     (init [servlet-config]
       (proxy-super init servlet-config)
