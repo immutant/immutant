@@ -45,6 +45,6 @@
     (is (= expected (test-websocket create-handler mounter)))))
 
 (deftest jsr-356-websocket
-  (let [expected [:open "hello" 1005]   ; TODO: UNDERTOW-223
+  (let [expected [:open "hello" 1000]
         mounter (partial mount-servlet (server))]
     (is (= expected (test-websocket create-servlet mounter)))))

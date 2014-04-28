@@ -37,17 +37,6 @@
   [f & args]
   (when f (apply f args)))
 
-(defn- callback-close
-  "TODO: remove this once onCloseMessage is available"
-  [on-close ^WebSocketChannel channel, ^BufferedBinaryMessage message]
-  (when on-close
-    (let [data (.getData message)]
-      (try
-        (let [cm (CloseMessage. (.getResource data))]
-          (on-close channel {:code (.getReason cm) :reason (.getString cm)}))
-        (finally
-          (.free data))))))
-
 (defn- callback-binary-message
   "TODO: figure out messages across multiple ByteBuffers"
   [on-message ^WebSocketChannel channel, ^BufferedBinaryMessage message]
@@ -79,10 +68,8 @@
                  (onError [^WebSocketChannel channel, ^Throwable error]
                    (callback on-error channel error)
                    (proxy-super onError channel error))
-                 (onFullCloseMessage [^WebSocketChannel channel, ^BufferedBinaryMessage message]
-                   ;; TODO: Use onCloseMessage to avoid having to call super
-                   (callback-close on-close channel message)
-                   (proxy-super onFullCloseMessage channel message))
+                 (onCloseMessage [^CloseMessage cm, ^WebSocketChannel channel]
+                   (callback on-close channel {:code (.getReason cm) :reason (.getString cm)}))
                  (onFullTextMessage [^WebSocketChannel channel, ^BufferedTextMessage message]
                    (callback on-message channel (.getData message)))
                  (onFullBinaryMessage [^WebSocketChannel channel, ^BufferedBinaryMessage message]
