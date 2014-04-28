@@ -47,13 +47,12 @@
 
 (defn create-endpoint-servlet
   "Create a servlet for a JSR-356 endpoint"
-  [{:keys [fallback path] :or {path "/"} :as callbacks}]
+  [endpoint {:keys [fallback path] :or {path "/"}}]
   (proxy [HttpServlet] []
     (init [servlet-config]
       (proxy-super init servlet-config)
       (let [context (.getServletContext servlet-config)
             container (.getAttribute context "javax.websocket.server.ServerContainer")
-            endpoint (create-endpoint callbacks)
             config (.. ServerEndpointConfig$Builder
                      (create (class endpoint) path)
                      (configurator (proxy [ServerEndpointConfig$Configurator] []

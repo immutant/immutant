@@ -56,4 +56,4 @@
   In addition, a :path may be specified. It will be resolved relative
   to the :context-path on which the returned servlet is mounted"
   [& {:keys [path on-message on-open on-close on-error fallback] :as args}]
-  (javax/create-endpoint-servlet args))
+  (javax/create-endpoint-servlet (javax/create-endpoint args) args))
