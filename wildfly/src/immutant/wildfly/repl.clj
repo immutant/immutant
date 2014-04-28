@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.wildfly.repl
+(ns ^:no-doc immutant.wildfly.repl
   (:require [clojure.tools.nrepl.server :as nrepl]
             [immutant.util :as u]))
 

@@ -13,6 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.wildfly
+  "Utility functions only useful within a WildFly container."
   (:require [immutant.internal.util :as u]
             [immutant.wildfly.repl  :as repl]
             [wunderboss.util        :as wu]
