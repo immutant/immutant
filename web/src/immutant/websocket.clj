@@ -19,9 +19,10 @@
             [ring.util.response :refer [response]]))
 
 (defprotocol Channel
-  (open? [ch])
-  (close [ch])
-  (send! [ch message]))
+  "Websocket channel interface"
+  (open? [ch] "Is the channel open?")
+  (close [ch] "Gracefully close the channel")
+  (send! [ch message] "Send a message asynchronously"))
 
 (extend-protocol Channel
 

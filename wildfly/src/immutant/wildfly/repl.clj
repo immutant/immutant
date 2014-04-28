@@ -30,13 +30,17 @@
   (let [ss (-> server deref :ss)]
     [(-> ss .getInetAddress .getHostAddress) (.getLocalPort ss)]))
 
-(defn stop [server]
+(defn stop
+  "Stop the REPL"
+  [server]
   (println "Shutting down nREPL at" (apply format "%s:%s" (nrepl-host-port server)))
   (.close server))
 
 ;; TODO: bring over the 1.x impl for middleware, et al
-(defn start [{:keys [host port]}]
-  (let [server (nrepl/start-server :port (or port 0) :bind (or host "localhost"))]
+(defn start
+  "Fire up a repl bound to host/port"
+  [{:keys [host port] :or {host "localhost", port 0}}]
+  (let [server (nrepl/start-server :port port :bind host)]
     (u/at-exit (partial stop server))
     (let [[host bound-port] (nrepl-host-port server)]
       (println "nREPL bound to" (format "%s:%s" host bound-port))
