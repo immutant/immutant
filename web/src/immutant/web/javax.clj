@@ -15,7 +15,7 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.web.javax
+(ns ^{:no-doc true} immutant.web.javax
   (:require [ring.util.servlet :as ring])
   (:import [org.projectodd.wunderboss.web Util]
            [javax.servlet.http HttpServlet HttpServletRequest]

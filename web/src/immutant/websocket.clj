@@ -13,6 +13,9 @@
 ;; limitations under the License.
 
 (ns immutant.websocket
+  "Provides the creation of asynchronous Websocket services deployed
+  as either an Undertow HttpHandler (create-handler) or a JSR 356
+  Endpoint (create-servlet)"
   (:require [immutant.logging :as log]
             [immutant.web.undertow.websocket :as undertow]
             [immutant.web.javax :as javax]
