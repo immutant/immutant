@@ -12,12 +12,13 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/build-helper "0.1.1"
+;; *** NOTE: update the version in docs.clj when you change it here ***
+(defproject org.immutant/build-helper "0.1.2"
   :description "A plugin to aid in building Immutant"
   :url "https://github.com/immutant/immutant"
   :license {:name "Apache Software License - v 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"
             :distribution :repo}
-  :dependencies [[org.clojars.tcrawley/codox.core "0.6.3.2"]]
+  :dependencies [[org.clojars.tcrawley/codox.core "0.6.3.3"]]
   :eval-in-leiningen true
   :signing {:gpg-key "BFC757F9"})
