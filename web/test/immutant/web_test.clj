@@ -1,11 +1,11 @@
 ;; Copyright 2014 Red Hat, Inc, and individual contributors.
-;; 
+;;
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
 ;; You may obtain a copy of the License at
-;; 
+;;
 ;; http://www.apache.org/licenses/LICENSE-2.0
-;; 
+;;
 ;; Unless required by applicable law or agreed to in writing, software
 ;; distributed under the License is distributed on an "AS IS" BASIS,
 ;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,27 @@
             [immutant.web :refer :all]
             [testing.web  :refer [get-body hello handler]]
             [testing.hello.service :as pedestal])
-  (import clojure.lang.ExceptionInfo))
+  (import clojure.lang.ExceptionInfo
+    org.projectodd.wunderboss.web.Web))
 
 (def url "http://localhost:8080/")
+
+(def mock-web-args (atom {}))
+
+(def mock-web
+  (reify Web
+    (registerHandler [this handler opts]
+      (swap! mock-web-args assoc
+        :register-handler {:handler handler :opts opts})
+      this)
+    (registerServlet [this servlet opts]
+      (swap! mock-web-args assoc
+        :register-servlet {:servlet servlet :opts opts})
+      this)
+    (unregister [this context]
+      (swap! mock-web-args assoc
+        :unregister {:context context})
+      this)))
 
 (deftest run-should-var-quote
   (run hello)
@@ -76,3 +94,9 @@
   (run hello {"port" "8042" "name" "ralph"})
   (is (= "hello" (get-body "http://localhost:8042")))
   (.stop (server {:name "ralph"})))
+
+(deftest server-option-to-mount-should-be-honored
+  (reset! mock-web-args {})
+  (let [f #()]
+    (mount f {:server mock-web})
+    (is (= (-> @mock-web-args :register-handler)))))

@@ -31,6 +31,9 @@
                      k name valid-keys)))))
       (assoc opts ::validated? true))))
 
+(defn ^:no-doc valid-options [src]
+  (-> src meta :valid-options))
+
 (defmacro ^:no-doc validate-options
   "Validates that (keys opts) is a subset of :valid-options from (meta src)"
   ([src opts]
@@ -38,12 +41,12 @@
   ([alt-name src opts]
      (let [src-var# (resolve src)]
        `(validate-options* (name (quote ~alt-name))
-          (:valid-options (meta ~src-var#)) ~opts))))
+          (valid-options ~src-var#) ~opts))))
 
 (defn concat-valid-options
   "Grabs the :valid-options metadata from all of the passed vars, and concats them together into a set."
   [& vars]
-  (set (mapcat #(-> % meta :valid-options) vars)))
+  (set (mapcat valid-options vars)))
 
 (defn opts->map
   "Converts an Option class into a map of name -> Option instance."

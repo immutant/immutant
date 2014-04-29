@@ -17,7 +17,8 @@
    at unique context paths"
   (:require [immutant.web.undertow.http :as undertow]
             [immutant.internal.util  :refer [concat-valid-options extract-options
-                                             validate-options opts->set]]
+                                             validate-options validate-options*
+                                             valid-options opts->set]]
             [immutant.util           :refer [mapply dev-mode?]]
             [immutant.web.middleware :refer [add-middleware]]
             [clojure.walk            :refer [keywordize-keys]])
@@ -27,50 +28,39 @@
            [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
 (defprotocol Handler
-  (mount [handler] [handler options]))
+  (-mount [handler options])
+  (-validate-options [handler options]))
 
-(defn server
+(defn ^{:valid-options (conj (opts->set Web$CreateOption) :name :server)}
+  server
   "Create an HTTP server or return existing one matching :name (defaults to \"default\").
    Any options here are applied to the server with the given name,
    but only if it has not yet been instantiated."
-  ([{:as opts}]
+  ([] (server nil))
+  ([opts]
      (if-let [result (:server opts)]
        result
        (let [opts (->> (keywordize-keys opts)
-                    (merge {:name "default" :host "localhost" :port 8080}))]
+                    (merge {:name "default" :host "localhost" :port 8080})
+                    (validate-options server))]
          (WunderBoss/findOrCreateComponent Web
            (:name opts)
-           (extract-options opts Web$CreateOption)))))
-  ([] (server {})))
+           (extract-options opts Web$CreateOption))))))
 
-(extend-protocol Handler
-
-  javax.servlet.Servlet
-  (mount
-    ([this]
-       (mount this {}))
-    ([this opts]
-      (.registerServlet (server opts) this (extract-options opts Web$RegisterOption))))
-
-  io.undertow.server.HttpHandler
-  (mount
-    ([this]
-       (mount this {}))
-    ([this opts]
-       (.registerHandler (server opts) this (extract-options opts Web$RegisterOption))))
-  
-  clojure.lang.IFn
-  (mount
-    ([this]
-       (mount this {}))
-    ([this opts]
-      (.registerHandler (server opts)
-        (undertow/create-http-handler (add-middleware this opts))
-        (extract-options opts Web$RegisterOption)))))
+(defn ^{:valid-options (set (concat (valid-options #'server)
+                              (opts->set Web$RegisterOption)))}
+  mount
+  "Mounts the given handler.
+   handler can be a ring handler fn, a servlet, or an undertow HttpHandler.
+   Option docs coming soon."
+  ([handler]
+     (mount handler nil))
+  ([handler options]
+     (-mount handler options)))
 
 (defmacro run
   "Composes server and mount fns; ensures handler is var-quoted"
-  ([handler] `(run ~handler {}))
+  ([handler] `(run ~handler nil))
   ([handler options]
      (let [handler (if (and (dev-mode?)
                          (symbol? handler)
@@ -78,7 +68,7 @@
                          (resolve handler))
                      `(var ~handler)
                      handler)]
-       `(let [options# (keywordize-keys ~options)]
+       `(let [options# (-validate-options ~handler (keywordize-keys ~options))]
           (mount ~handler options#)))))
 
 (defn unmount
@@ -87,3 +77,30 @@
   ([context-path] (unmount context-path (server)))
   ([context-path server]
      (.unregister server context-path)))
+
+(extend-protocol Handler
+
+  javax.servlet.Servlet
+  (-mount [servlet opts]
+    (let [opts (-validate-options servlet opts)]
+      (.registerServlet (server opts)
+        servlet (extract-options opts Web$RegisterOption))))
+  (-validate-options [_ opts]
+    (validate-options mount opts))
+
+  io.undertow.server.HttpHandler
+  (-mount [handler opts]
+    (let [opts (-validate-options handler opts)]
+      (.registerHandler (server opts)
+        handler (extract-options opts Web$RegisterOption))))
+  (-validate-options [_ opts]
+    (validate-options mount opts))
+
+  clojure.lang.IFn
+  (-mount [f opts]
+    (let [opts (-validate-options f opts)]
+      (mount (undertow/create-http-handler (add-middleware f opts)) opts)))
+  (-validate-options [_ opts]
+    (validate-options* "mount"
+      (concat-valid-options #'mount #'add-middleware)
+      opts)))
