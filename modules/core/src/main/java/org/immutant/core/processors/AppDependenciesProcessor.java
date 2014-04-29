@@ -19,15 +19,10 @@
 
 package org.immutant.core.processors;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Collections;
-import java.util.List;
-
 import org.immutant.bootstrap.ApplicationBootstrapUtils;
+import org.immutant.common.Timer;
 import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
-import org.immutant.common.Timer;
 import org.immutant.core.TmpResourceMounter;
 import org.immutant.core.as.CoreServices;
 import org.jboss.as.server.deployment.Attachments;
@@ -40,6 +35,11 @@ import org.jboss.as.server.deployment.module.ResourceRoot;
 import org.jboss.logging.Logger;
 import org.projectodd.polyglot.core.as.ArchivedDeploymentMarker;
 import org.projectodd.polyglot.core.util.ResourceLoaderUtil;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Collections;
+import java.util.List;
 
 public class AppDependenciesProcessor implements DeploymentUnitProcessor {
 
@@ -116,10 +116,12 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
        
     }
 
-    File findInModulePath(String name) throws FileNotFoundException {
+    File findInModulePath(String name) throws Exception {
+        log.info("TC: module.path is " + System.getProperty("module.path"));
         String[] dirs = System.getProperty("module.path").split(":");
         for (String dir : dirs) {
             File result = new File(dir, name);
+            log.info("TC: looking for " + result.getCanonicalPath());
             if (result.exists()) {
                 return result;
             }
