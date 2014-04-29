@@ -28,13 +28,13 @@
     (is (= "howdy" (get-body url)))))
 
 (deftest mount-unquoted-handler
-  (mount (server) hello)
+  (mount hello)
   (is (= "hello") (get-body url))
   (with-redefs [hello (handler "hi")]
     (is (= "hello" (get-body url)))))
 
 (deftest mount-quoted-handler
-  (mount (server) #'hello)
+  (mount #'hello)
   (is (= "hello") (get-body url))
   (with-redefs [hello (handler "hi")]
     (is (= "hi" (get-body url)))))
@@ -50,7 +50,7 @@
     (is (= "hello" (get-body url)))))
 
 (deftest mount-pedestal-service
-  (mount-servlet (server) pedestal/servlet)
+  (mount pedestal/servlet)
   (is (= "Hello World!" (get-body url))))
 
 (deftest unmount-yields-404
@@ -75,4 +75,4 @@
 (deftest string-args-should-work
   (run hello {"port" "8042" "name" "ralph"})
   (is (= "hello" (get-body "http://localhost:8042")))
-  (.stop (server :name "ralph")))
+  (.stop (server {:name "ralph"})))

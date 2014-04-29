@@ -23,40 +23,52 @@
             [clojure.walk            :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
            io.undertow.server.HttpHandler
+           javax.servlet.Servlet
            [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
-(defn ^{:valid-options (conj (opts->set Web$CreateOption) :name)}
-  server
+(defprotocol Handler
+  (mount [handler] [handler options]))
+
+(defn server
   "Create an HTTP server or return existing one matching :name (defaults to \"default\").
    Any options here are applied to the server with the given name,
    but only if it has not yet been instantiated."
-  [& {:as opts}]
-  (let [opts (->> (keywordize-keys opts)
-               (merge {:name "default" :host "localhost" :port 8080})
-               (validate-options server))]
-    (WunderBoss/findOrCreateComponent Web
-      (:name opts)
-      (extract-options opts Web$CreateOption))))
+  ([{:as opts}]
+     (if-let [result (:server opts)]
+       result
+       (let [opts (->> (keywordize-keys opts)
+                    (merge {:name "default" :host "localhost" :port 8080}))]
+         (WunderBoss/findOrCreateComponent Web
+           (:name opts)
+           (extract-options opts Web$CreateOption)))))
+  ([] (server {})))
 
-(defn ^{:valid-options (conj (opts->set Web$RegisterOption)
-                         :stacktraces? :auto-reload? :reload-paths)}
-  mount
-  "Mount a handler at a context path on a server. The handler is
-  typically a Ring function, taking a request map and returning a
-  response map, but it can also be an instance of
-  io.undertow.server.HttpHandler. Returns the server instance."
-  [server handler & {:as opts}]
-  (let [opts (->> (keywordize-keys opts)
-               (merge {:context-path "/"})
-               (validate-options mount))]
-    (.registerHandler server
-      (if (instance? HttpHandler handler)
-        handler
-        (undertow/create-http-handler (add-middleware handler opts)))
-      (extract-options opts Web$RegisterOption))))
+(extend-protocol Handler
 
-(defmacro ^{:valid-options (concat-valid-options #'server #'mount)}
-  run
+  javax.servlet.Servlet
+  (mount
+    ([this]
+       (mount this {}))
+    ([this opts]
+      (.registerServlet (server opts) this (extract-options opts Web$RegisterOption))))
+
+  io.undertow.server.HttpHandler
+  (mount
+    ([this]
+       (mount this {}))
+    ([this opts]
+       (.registerHandler (server opts) this (extract-options opts Web$RegisterOption))))
+  
+  clojure.lang.IFn
+  (mount
+    ([this]
+       (mount this {}))
+    ([this opts]
+      (.registerHandler (server opts)
+        (undertow/create-http-handler (add-middleware this opts))
+        (extract-options opts Web$RegisterOption)))))
+
+(defmacro run
   "Composes server and mount fns; ensures handler is var-quoted"
   ([handler] `(run ~handler {}))
   ([handler options]
@@ -66,8 +78,8 @@
                          (resolve handler))
                      `(var ~handler)
                      handler)]
-       `(let [options# (validate-options run (keywordize-keys ~options))]
-          (mapply mount (mapply server options#) ~handler options#)))))
+       `(let [options# (keywordize-keys ~options)]
+          (mount ~handler options#)))))
 
 (defn unmount
   "Unmount handler at context path"
@@ -75,14 +87,3 @@
   ([context-path] (unmount context-path (server)))
   ([context-path server]
      (.unregister server context-path)))
-
-(defn ^{:valid-options #{:context-path :static-dir}}
-  mount-servlet
-  "Mount a servlet on a server.
-   Returns the server instance."
-  [server servlet & {:as opts}]
-  (let [opts (->> (keywordize-keys opts)
-               (merge {:context-path "/"})
-               (validate-options mount-servlet))]
-    (.registerServlet server servlet
-      (extract-options opts Web$RegisterOption))))

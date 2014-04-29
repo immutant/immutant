@@ -19,11 +19,11 @@
             [gniazdo.core :as ws]))
 
 (defn test-websocket
-  [create-handler deploy]
+  [handlerer]
   (let [path "/test"
         events (atom [])
         result (promise)
-        handler (create-handler
+        handler (handlerer
                   :on-open    (fn [_]
                                 (swap! events conj :open))
                   :on-close   (fn [_ {c :code}]
@@ -31,7 +31,7 @@
                   :on-message (fn [_ m]
                                 (swap! events conj m)))]
     (try
-      (deploy handler :context-path path)
+      (mount handler {:context-path path})
       (let [socket (ws/connect (str "ws://localhost:8080" path))]
         (ws/send-msg socket "hello")
         (ws/close socket))
@@ -40,11 +40,7 @@
         (unmount path)))))
 
 (deftest undertow-websocket
-  (let [expected [:open "hello" 1000]
-        mounter (partial mount (server))]
-    (is (= expected (test-websocket create-handler mounter)))))
+  (is (= [:open "hello" 1000] (test-websocket create-handler))))
 
 (deftest jsr-356-websocket
-  (let [expected [:open "hello" 1000]
-        mounter (partial mount-servlet (server))]
-    (is (= expected (test-websocket create-servlet mounter)))))
+  (is (= [:open "hello" 1000] (test-websocket create-servlet))))
