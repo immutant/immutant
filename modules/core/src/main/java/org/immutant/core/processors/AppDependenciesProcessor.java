@@ -118,7 +118,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
 
     File findInModulePath(String name) throws Exception {
         log.info("TC: module.path is " + System.getProperty("module.path"));
-        String[] dirs = System.getProperty("module.path").split(":");
+        String[] dirs = System.getProperty("module.path").split(File.pathSeparator);
         for (String dir : dirs) {
             File result = new File(dir, name);
             log.info("TC: looking for " + result.getCanonicalPath());
