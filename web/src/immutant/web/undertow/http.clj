@@ -50,7 +50,7 @@
 
 (defn- ring-request [^HttpServerExchange exchange]
   (let [headers (delay (.getRequestHeaders exchange))
-        content-type (delay (.getFirst @headers Headers/CONTENT_TYPE))]
+        content-type (delay (.getFirst ^HeaderMap @headers Headers/CONTENT_TYPE))]
     ;; TODO: context, path-info ?
     (LazyMap. {:server-port (delay (-> exchange .getDestinationAddress .getPort))
                :server-name (delay (.getHostName exchange))
@@ -68,11 +68,11 @@
                :body (delay (.getInputStream exchange))})))
 
 (defn- merge-headers [^HeaderMap to-headers from-headers]
-  (doseq [[k v] from-headers]
+  (doseq [[^String k v] from-headers]
     (let [^HttpString k (HttpString. k)]
       (if (coll? v)
         (.addAll to-headers k v)
-        (.add to-headers k v)))))
+        (.add to-headers k ^String v)))))
 
 (defprotocol BodyWriter
   (write-body [body exchange]))
