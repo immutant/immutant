@@ -61,7 +61,7 @@
                :query-string (delay (.getQueryString exchange))
                :scheme (delay (-> exchange .getRequestScheme keyword))
                :request-method (delay (-> exchange .getRequestMethod .toString .toLowerCase keyword))
-               :content-type (delay @content-type)
+               :content-type content-type
                :content-length (delay (.getRequestContentLength exchange))
                :character-encoding (delay (if @content-type
                                             (Headers/extractTokenFromHeader @content-type "charset")))
