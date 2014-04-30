@@ -20,6 +20,7 @@
   :dependencies [[org.immutant/core _]
                  [ring/ring-devel _]
                  [ring/ring-servlet _]
+                 [potemkin "0.3.4"]
                  [org.projectodd.wunderboss/wunderboss-web _]]
 
   :profiles {:dev

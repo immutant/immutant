@@ -14,12 +14,28 @@
 
 (ns ^{:no-doc true} immutant.web.undertow.http
   (:require [clojure.string :as str]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [potemkin :refer [def-map-type]])
   (:import [io.undertow.server HttpHandler HttpServerExchange]
            [io.undertow.util HeaderMap Headers HttpString]
            [java.io File InputStream OutputStream]
            java.nio.channels.FileChannel
            clojure.lang.ISeq))
+
+(def-map-type LazyMap [m]   
+  (get [_ k default-value]
+    (if (contains? m k)
+      (let [v (get m k)]
+        (if (delay? v)
+          @v
+          v))
+      default-value))
+  (assoc [_ k v]
+    (LazyMap. (assoc m k v))
+  (dissoc [_ k]
+     (LazyMap. (dissoc m k)))
+  (keys [_]
+    (keys m))))
 
 (defn- headers->map [^HeaderMap headers]
   (reduce
@@ -33,23 +49,23 @@
     (.getHeaderNames headers)))
 
 (defn- ring-request [^HttpServerExchange exchange]
-  (let [headers (.getRequestHeaders exchange)
-        content-type (.getFirst headers Headers/CONTENT_TYPE)]
+  (let [headers (delay (.getRequestHeaders exchange))
+        content-type (delay (.getFirst @headers Headers/CONTENT_TYPE))]
     ;; TODO: context, path-info ?
-    {:server-port (-> exchange .getDestinationAddress .getPort)
-     :server-name (.getHostName exchange)
-     :remote-addr (-> exchange .getSourceAddress .getAddress .getHostAddress)
-     :uri (.getRequestURI exchange)
-     :query-string (.getQueryString exchange)
-     :scheme (-> exchange .getRequestScheme keyword)
-     :request-method (-> exchange .getRequestMethod .toString .toLowerCase keyword)
-     :content-type content-type
-     :content-length (.getRequestContentLength exchange)
-     :character-encoding (if content-type
-                           (Headers/extractTokenFromHeader content-type "charset"))
-     ;; TODO: :ssl-client-cert
-     :headers (headers->map headers)
-     :body (.getInputStream exchange)}))
+    (LazyMap. {:server-port (delay (-> exchange .getDestinationAddress .getPort))
+               :server-name (delay (.getHostName exchange))
+               :remote-addr (delay (-> exchange .getSourceAddress .getAddress .getHostAddress))
+               :uri (delay (.getRequestURI exchange))
+               :query-string (delay (.getQueryString exchange))
+               :scheme (delay (-> exchange .getRequestScheme keyword))
+               :request-method (delay (-> exchange .getRequestMethod .toString .toLowerCase keyword))
+               :content-type @content-type
+               :content-length (delay (.getRequestContentLength exchange))
+               :character-encoding (delay (if @content-type
+                                            (Headers/extractTokenFromHeader @content-type "charset")))
+               ;; TODO: :ssl-client-cert
+               :headers (delay (headers->map @headers))
+               :body (delay (.getInputStream exchange))})))
 
 (defn- merge-headers [^HeaderMap to-headers from-headers]
   (doseq [[k v] from-headers]
