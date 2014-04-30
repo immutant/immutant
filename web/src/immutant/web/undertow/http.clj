@@ -51,8 +51,8 @@
     (.getHeaderNames headers)))
 
 (defn- ring-request [^HttpServerExchange exchange]
-  (let [headers (delay (.getRequestHeaders exchange))
-        content-type (delay (.getFirst ^HeaderMap @headers Headers/CONTENT_TYPE))]
+  (let [headers (.getRequestHeaders exchange)
+        content-type (delay (.getFirst ^HeaderMap headers Headers/CONTENT_TYPE))]
     ;; TODO: context, path-info ?
     (LazyMap. {:server-port (delay (-> exchange .getDestinationAddress .getPort))
                :server-name (delay (.getHostName exchange))
@@ -61,10 +61,10 @@
                :query-string (delay (.getQueryString exchange))
                :scheme (delay (-> exchange .getRequestScheme keyword))
                :request-method (delay (-> exchange .getRequestMethod .toString .toLowerCase keyword))
-               :content-type content-type
+               :content-type (delay @content-type)
                :content-length (delay (.getRequestContentLength exchange))
-               :character-encoding (delay (if content-type
-                                            (Headers/extractTokenFromHeader content-type "charset")))
+               :character-encoding (delay (if @content-type
+                                            (Headers/extractTokenFromHeader @content-type "charset")))
                ;; TODO: :ssl-client-cert
                :headers (delay (headers->map headers))
                :body (delay (.getInputStream exchange))})))
