@@ -42,9 +42,11 @@
     (fn [accum ^HttpString header-name]
       (assoc accum
         (-> header-name .toString .toLowerCase)
-        (->> header-name
-          (.get headers)
-          (str/join ","))))
+        (if (> 1 (.count headers header-name))
+          (->> header-name
+            (.get headers)
+            (str/join ","))
+          (.getFirst headers header-name))))
     {}
     (.getHeaderNames headers)))
 
@@ -59,12 +61,12 @@
                :query-string (delay (.getQueryString exchange))
                :scheme (delay (-> exchange .getRequestScheme keyword))
                :request-method (delay (-> exchange .getRequestMethod .toString .toLowerCase keyword))
-               :content-type @content-type
+               :content-type content-type
                :content-length (delay (.getRequestContentLength exchange))
-               :character-encoding (delay (if @content-type
-                                            (Headers/extractTokenFromHeader @content-type "charset")))
+               :character-encoding (delay (if content-type
+                                            (Headers/extractTokenFromHeader content-type "charset")))
                ;; TODO: :ssl-client-cert
-               :headers (delay (headers->map @headers))
+               :headers (delay (headers->map headers))
                :body (delay (.getInputStream exchange))})))
 
 (defn- merge-headers [^HeaderMap to-headers from-headers]
