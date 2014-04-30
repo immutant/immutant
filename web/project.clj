@@ -18,7 +18,6 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.immutant/core _]
-                 [ring/ring-devel _]
                  [ring/ring-servlet _]
                  [potemkin "0.3.4"]
                  [org.projectodd.wunderboss/wunderboss-web _]]

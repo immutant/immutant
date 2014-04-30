@@ -20,7 +20,6 @@
                                                 set-valid-options!
                                                 validate-options opts->set]]
             [immutant.util              :refer [mapply dev-mode?]]
-            [immutant.web.middleware    :refer [add-middleware]]
             [clojure.walk               :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
            io.undertow.server.HttpHandler
@@ -53,7 +52,7 @@
     (.registerHandler server
       (if (instance? HttpHandler handler)
         handler
-        (undertow/create-http-handler (add-middleware handler opts)))
+        (undertow/create-http-handler handler))
       (extract-options opts Web$RegisterOption))))
 
 (set-valid-options! mount

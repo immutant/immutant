@@ -13,42 +13,14 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.middleware
-    (:use ring.middleware.stacktrace
-          ring.middleware.reload)
-    (:require [immutant.util          :as util]
-              [clojure.java.classpath :as cp]))
+    (:require [immutant.internal.util :refer [require-resolve]]))
 
-(def ^{:dynamic true} *dev*)
-
-(defn auto-reload?
-  "Automatically reload source files?"
-  [options]
-  (:auto-reload? options *dev*))
-
-(defn stacktraces?
-  "Show stacktraces?"
-  [options]
-  (:stacktraces? options *dev*))
-
-(defn reload-paths
-  "Default reload-paths to all directories in the classpath, whether
-  they exist at time of deployment or not"
-  [options]
-  (:reload-paths options (map str (cp/classpath-directories))))
-
-(defn add-stacktraces [handler options]
-  (if (stacktraces? options)
-    (wrap-stacktrace handler)
-    handler))
-
-(defn add-auto-reload [handler options]
-  (if (auto-reload? options)
-    (wrap-reload handler {:dirs (reload-paths options)})
-    handler))
-
-(defn add-middleware
-  [handler options]
-  (binding [*dev* (util/dev-mode?)]
+(defn wrap-dev-middleware
+  "Assumes ring/ring-devel is available on the classpath"
+  [handler]
+  (let [wrap-reload           (require-resolve 'ring.middleware.reload/wrap-reload)
+        wrap-stacktrace       (require-resolve 'ring.middleware.stacktrace/wrap-stacktrace)
+        classpath-directories (require-resolve 'clojure.java.classpath/classpath-directories)]
     (-> handler
-        (add-auto-reload options)
-        (add-stacktraces options))))
+      (wrap-reload {:dirs (map str (classpath-directories))})
+      wrap-stacktrace)))
