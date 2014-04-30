@@ -14,66 +14,8 @@
 
 (ns ^:no-doc ^:internal immutant.internal.util
   "Various internal utility functions."
-  (:require [immutant.util :as u]
-            [clojure.walk  :refer [stringify-keys]])
-  (:import clojure.lang.IDeref
-           [org.projectodd.wunderboss Option WunderBoss]))
-
-(defn ^:no-doc validate-options*
-  [name valid-keys opts]
-  (if (::validated? opts)
-    opts
-    (do
-      (doseq [k (keys opts)]
-        (if-not (valid-keys k)
-          (throw (IllegalArgumentException.
-                   (format "%s is not a valid option for %s, valid options are: %s"
-                     k name valid-keys)))))
-      (assoc opts ::validated? true))))
-
-(defmacro ^:no-doc validate-options
-  "Validates that (keys opts) is a subset of :valid-options from (meta src)"
-  ([src opts]
-     `(validate-options ~src ~src ~opts))
-  ([alt-name src opts]
-     (let [src-var# (resolve src)]
-       `(validate-options* (name (quote ~alt-name))
-          (:valid-options (meta ~src-var#)) ~opts))))
-
-(defn concat-valid-options
-  "Grabs the :valid-options metadata from all of the passed vars, and concats them together into a set."
-  [& vars]
-  (set (mapcat #(-> % meta :valid-options) vars)))
-
-(defn opts->map
-  "Converts an Option class into a map of name -> Option instance."
-  [class]
-  (->> class
-    Option/optsFor
-    (map #(vector (.name %) %))
-    (into {})))
-
-(defn opts->keywords
-  "Converts an Option class into a list of names for those Options as keywords.
-   Auto-converts \"foo_bar\" to :foo-bar."
-  [class]
-  (->> class opts->map keys (map #(keyword (.replace % \_ \-)))))
-
-(defn opts->set
-  "Converts an Option class into a set of keywords."
-  [class]
-  (-> class opts->keywords set))
-
-(defn extract-options
-  "Converts a clojure map into a WunderBoss options map."
-  [m c]
-  (let [optsm (opts->map c)]
-    (->> m
-      stringify-keys
-      (map (fn [[k v]]
-             (when-let [opts (optsm k (optsm (.replace k \- \_)))]
-               [opts v])))
-      (into {}))))
+  (:require [immutant.util :as u])
+  (:import clojure.lang.IDeref))
 
 (defn require-resolve
   "Requires and resolves the given namespace-qualified symbol."

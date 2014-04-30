@@ -16,17 +16,17 @@
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
   (:require [immutant.web.undertow.http :as undertow]
-            [immutant.internal.util  :refer [concat-valid-options extract-options
-                                             validate-options opts->set]]
-            [immutant.util           :refer [mapply dev-mode?]]
-            [immutant.web.middleware :refer [add-middleware]]
-            [clojure.walk            :refer [keywordize-keys]])
+            [immutant.opts-validation   :refer [concat-valid-options extract-options
+                                                set-valid-options!
+                                                validate-options opts->set]]
+            [immutant.util              :refer [mapply dev-mode?]]
+            [immutant.web.middleware    :refer [add-middleware]]
+            [clojure.walk               :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
            io.undertow.server.HttpHandler
            [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
-(defn ^{:valid-options (conj (opts->set Web$CreateOption) :name)}
-  server
+(defn server
   "Create an HTTP server or return existing one matching :name (defaults to \"default\").
    Any options here are applied to the server with the given name,
    but only if it has not yet been instantiated."
@@ -38,9 +38,10 @@
       (:name opts)
       (extract-options opts Web$CreateOption))))
 
-(defn ^{:valid-options (conj (opts->set Web$RegisterOption)
-                         :stacktraces? :auto-reload? :reload-paths)}
-  mount
+(set-valid-options! server
+  (conj (opts->set Web$CreateOption) :name))
+
+(defn mount
   "Mount a handler at a context path on a server. The handler is
   typically a Ring function, taking a request map and returning a
   response map, but it can also be an instance of
@@ -55,8 +56,11 @@
         (undertow/create-http-handler (add-middleware handler opts)))
       (extract-options opts Web$RegisterOption))))
 
-(defmacro ^{:valid-options (concat-valid-options #'server #'mount)}
-  run
+(set-valid-options! mount
+  (conj (opts->set Web$RegisterOption)
+    :stacktraces? :auto-reload? :reload-paths))
+
+(defmacro run
   "Composes server and mount fns; ensures handler is var-quoted"
   ([handler] `(run ~handler {}))
   ([handler options]
@@ -69,6 +73,9 @@
        `(let [options# (validate-options run (keywordize-keys ~options))]
           (mapply mount (mapply server options#) ~handler options#)))))
 
+(set-valid-options! run
+  (concat-valid-options server mount))
+
 (defn unmount
   "Unmount handler at context path"
   ([] (unmount "/"))
@@ -76,8 +83,7 @@
   ([context-path server]
      (.unregister server context-path)))
 
-(defn ^{:valid-options #{:context-path :static-dir}}
-  mount-servlet
+(defn mount-servlet
   "Mount a servlet on a server.
    Returns the server instance."
   [server servlet & {:as opts}]
@@ -86,3 +92,6 @@
                (validate-options mount-servlet))]
     (.registerServlet server servlet
       (extract-options opts Web$RegisterOption))))
+
+(set-valid-options! mount-servlet
+  #{:context-path :static-dir})

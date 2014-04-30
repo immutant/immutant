@@ -14,27 +14,29 @@
 
 (ns immutant.scheduling
   "Schedule jobs for execution"
-  (:require [immutant.internal.util      :as u]
+  (:require [immutant.opts-validation    :refer [extract-options opts->set
+                                                 set-valid-options! validate-options]]
             [immutant.scheduling.options :refer [resolve-options defoption]])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.scheduling
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
 
-(defn ^{:valid-options (conj (u/opts->set Scheduling$CreateOption) :name)}
-  scheduler
+(defn scheduler
   "Create a scheduler or return existing one matching :name (defaults to \"default\").
    Any options here are applied to the scheduler with the given name,
    but only if it has not yet been instantiated."
   [& {:as opts}]
   (let [opts (->> opts
                (merge {:name "default" :num-threads 5})
-               (u/validate-options scheduler))]
+               (validate-options scheduler))]
     (WunderBoss/findOrCreateComponent Scheduling
       (:name opts)
-      (u/extract-options opts Scheduling$CreateOption))))
+      (extract-options opts Scheduling$CreateOption))))
 
-(defn ^{:valid-options (u/opts->set Scheduling$ScheduleOption)}
-  schedule
+(set-valid-options! scheduler
+  (conj (opts->set Scheduling$CreateOption) :name))
+
+(defn schedule
   "Schedules a function to execute according to a specification map.
   Option functions (defined below) can be combined to create the
   spec, e.g.
@@ -50,9 +52,12 @@
   ([scheduler id f spec]
      (let [opts (->> spec
                   resolve-options
-                  (u/validate-options schedule))]
+                  (validate-options schedule))]
        (.schedule scheduler (name id) f
-         (u/extract-options opts Scheduling$ScheduleOption)))))
+         (extract-options opts Scheduling$ScheduleOption)))))
+
+(set-valid-options! schedule
+  (opts->set Scheduling$ScheduleOption))
 
 (defn unschedule
   "Unschedule a job given its id"
