@@ -23,7 +23,7 @@
 
 (defn- headers->map [^HeaderMap headers]
   (reduce
-    (fn [accum header-name]
+    (fn [accum ^HttpString header-name]
       (assoc accum
         (-> header-name .toString .toLowerCase)
         (->> header-name
@@ -53,7 +53,7 @@
 
 (defn- merge-headers [^HeaderMap to-headers from-headers]
   (doseq [[k v] from-headers]
-    (let [k (HttpString. k)]
+    (let [^HttpString k (HttpString. k)]
       (if (coll? v)
         (.addAll to-headers k v)
         (.add to-headers k v)))))
