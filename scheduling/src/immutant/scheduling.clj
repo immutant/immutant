@@ -26,8 +26,8 @@
    Any options here are applied to the scheduler with the given name,
    but only if it has not yet been instantiated."
   [& {:as opts}]
-  (let [opts (->> opts
-               (merge {:name "default" :num-threads 5})
+  (let [opts (-> opts
+               keywordize-keys
                (validate-options scheduler))]
     (WunderBoss/findOrCreateComponent Scheduling
       (:name opts)
@@ -50,7 +50,8 @@
   is called with the same id, to reschedule jobs."
   ([id f spec] (schedule (scheduler) id f spec))
   ([scheduler id f spec]
-     (let [opts (->> spec
+     (let [opts (-> spec
+                  keywordize-keys
                   resolve-options
                   (validate-options schedule))]
        (.schedule scheduler (name id) f
