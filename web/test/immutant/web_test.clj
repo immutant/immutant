@@ -105,3 +105,22 @@
 (deftest string-args-should-work
   (let [server (start {"port" "8042"} hello)]
     (is (= "hello" (get-body "http://localhost:8042")))))
+
+(deftest request-map-entries
+  (let [request (atom {})
+        handler (comp hello #(swap! request into %))
+        server (start handler)]
+    (get-body url {:content-type "text/html; charset=utf-8"})
+    (are [x expected] (= expected (x @request))
+         :content-type        "text/html; charset=utf-8"
+         :character-encoding  "utf-8"
+         :remote-addr         "127.0.0.1"
+         :server-port         8080
+         :content-length      -1
+         :uri                 "/"
+         :server-name         "localhost"
+         :query-string        ""
+         :scheme              :http
+         :request-method      :get)
+    (is (:body @request))
+    (is (< 3 (count (:headers @request))))))

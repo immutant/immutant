@@ -31,11 +31,11 @@
           v))
       default-value))
   (assoc [_ k v]
-    (LazyMap. (assoc m k v))
+    (LazyMap. (assoc m k v)))
   (dissoc [_ k]
      (LazyMap. (dissoc m k)))
   (keys [_]
-    (keys m))))
+    (keys m)))
 
 (defn- headers->map [^HeaderMap headers]
   (reduce

@@ -22,5 +22,5 @@
 (def hello (handler "hello"))
 
 (defn get-body
-  [url]
-  (:body (http/get url)))
+  [url & [req]]
+  (:body (http/get url req)))
