@@ -17,15 +17,19 @@
   (:require [clojure.walk  :refer [stringify-keys]])
   (:import [org.projectodd.wunderboss Option]))
 
+(defn ->var [x]
+  (if (var? x) x (resolve x)))
+
 (defmacro set-valid-options! [v opts]
-  (let [v# (resolve v)]
+  (let [v# (->var v)]
     `(alter-meta! ~v# assoc :valid-options ~opts)))
 
-(defn valid-options-for [src]
-  (-> src meta :valid-options))
+(defmacro valid-options-for [src]
+  (let [src# (->var src)]
+    `(-> ~src# meta :valid-options)))
 
 (defn validate-options*
-  [name valid-keys opts]
+  [opts valid-keys name]
   (if (::validated? opts)
     opts
     (do
@@ -38,17 +42,18 @@
 
 (defmacro validate-options
   "Validates that (keys opts) is a subset of :valid-options from (meta src)"
-  ([src opts]
-     `(validate-options ~src ~src ~opts))
-  ([alt-name src opts]
-     (let [src-var# (resolve src)]
-       `(validate-options* (name (quote ~alt-name))
-          (valid-options-for ~src-var#) ~opts))))
+  ([opts src]
+     `(validate-options ~opts ~src ~src))
+  ([opts src alt-name]
+     (let [src-var# (->var src)]
+       `(validate-options* ~opts
+          (valid-options-for ~src-var#)
+          (name (quote ~alt-name))))))
 
 (defmacro concat-valid-options
   "Grabs the :valid-options metadata from all of the passed vars, and concats them together into a set."
   [& vars]
-  (let [vars# (mapv resolve vars)]
+  (let [vars# (mapv ->var vars)]
     `(set (mapcat valid-options-for ~vars#))))
 
 (defn opts->map

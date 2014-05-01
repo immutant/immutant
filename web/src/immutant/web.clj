@@ -15,82 +15,48 @@
 (ns immutant.web
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
-  (:require [immutant.web.undertow.http :as undertow]
-            [immutant.opts-validation   :refer [concat-valid-options extract-options
-                                                set-valid-options!
-                                                validate-options opts->set]]
-            [immutant.util              :refer [mapply dev-mode?]]
-            [clojure.walk               :refer [keywordize-keys]])
-  (:import org.projectodd.wunderboss.WunderBoss
-           io.undertow.server.HttpHandler
-           [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
+  (:require [immutant.opts-validation :refer [opts->set set-valid-options!
+                                              validate-options]]
+            [immutant.web.internal    :refer [default-context mount server]]
+            [clojure.walk             :refer [keywordize-keys]])
+  (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
-(defn server
-  "Create an HTTP server or return existing one matching :name (defaults to \"default\").
-   Any options here are applied to the server with the given name,
-   but only if it has not yet been instantiated."
-  [& {:as opts}]
-  (let [opts (->> (keywordize-keys opts)
-               (merge {:name "default" :host "localhost" :port 8080})
-               (validate-options server))]
-    (WunderBoss/findOrCreateComponent Web
-      (:name opts)
-      (extract-options opts Web$CreateOption))))
+(defn start
+  "Starts a handler with the given options.
+   The handler can be a ring handler function, a servlet, or an Undertow
+   HttpHandler. Can be called multiple times - if given the same env,
+   any prior handler with that env will be replaced. Returns the given
+   env with the server object added under :server.
+   Needs: options, examples"
+  ([handler] (start nil handler))
+  ([env handler]
+     (let [options (-> env
+                     keywordize-keys)]
+       (validate-options options start)
+       (let [server (server options)]
+         (mount server handler options)
+         (assoc options :server server)))))
 
-(set-valid-options! server
-  (conj (opts->set Web$CreateOption) :name))
+(set-valid-options! start
+  (-> (concat
+        (opts->set Web$CreateOption)
+        (opts->set Web$RegisterOption))
+    (conj :server)
+    set))
 
-(defn mount
-  "Mount a handler at a context path on a server. The handler is
-  typically a Ring function, taking a request map and returning a
-  response map, but it can also be an instance of
-  io.undertow.server.HttpHandler. Returns the server instance."
-  [server handler & {:as opts}]
-  (let [opts (->> (keywordize-keys opts)
-               (merge {:context-path "/"})
-               (validate-options mount))]
-    (.registerHandler server
-      (if (instance? HttpHandler handler)
-        handler
-        (undertow/create-http-handler handler))
-      (extract-options opts Web$RegisterOption))))
-
-(set-valid-options! mount
-  (conj (opts->set Web$RegisterOption)
-    :stacktraces? :auto-reload? :reload-paths))
-
-(defmacro run
-  "Composes server and mount fns; ensures handler is var-quoted"
-  ([handler] `(run ~handler {}))
-  ([handler options]
-     (let [handler (if (and (dev-mode?)
-                         (symbol? handler)
-                         (not (get &env handler))
-                         (resolve handler))
-                     `(var ~handler)
-                     handler)]
-       `(let [options# (validate-options run (keywordize-keys ~options))]
-          (mapply mount (mapply server options#) ~handler options#)))))
-
-(set-valid-options! run
-  (concat-valid-options server mount))
-
-(defn unmount
-  "Unmount handler at context path"
-  ([] (unmount "/"))
-  ([context-path] (unmount context-path (server)))
-  ([context-path server]
-     (.unregister server context-path)))
-
-(defn mount-servlet
-  "Mount a servlet on a server.
-   Returns the server instance."
-  [server servlet & {:as opts}]
-  (let [opts (->> (keywordize-keys opts)
-               (merge {:context-path "/"})
-               (validate-options mount-servlet))]
-    (.registerServlet server servlet
-      (extract-options opts Web$RegisterOption))))
-
-(set-valid-options! mount-servlet
-  #{:context-path :static-dir})
+(defn stop
+  "Stops a started handler.
+   handler-env should be the return value of a start call. If handler-env
+   isn't provided, the handler at the root context (\"/\") of the default
+   server will be stopped. If there are no handlers remaning on the server,
+   the server itself is stopped."
+  ([]
+     (stop nil))
+  ([handler-env]
+     (validate-options handler-env start "stop")
+     (let [server (server handler-env)
+           context-path (:context-path handler-env default-context)]
+       (.unregister server context-path)
+       (if (empty? (.registeredContexts server))
+         (.stop server)))
+     nil))
