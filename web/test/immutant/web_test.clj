@@ -111,7 +111,7 @@
   (stop {"context-path" "/howdy"})
   (is (= "hello" (get-body (str url "howdy")))))
 
-(deftest run-with-chaining
+(deftest run-with-threading
   (-> (run hello)
     (assoc :context-path "/howdy")
     (run (handler "howdy"))
@@ -120,6 +120,27 @@
   (is (= "hello" (get-body url)))
   (is (= "howdy" (get-body (str url "howdy"))))
   (is (= "howdy" (get-body (str url2 "howdy")))))
+
+(deftest run-dmc-should-work
+  (let [called (promise)]
+    (with-redefs [clojure.java.browse/browse-url (fn [_] (deliver called true))]
+      (let [result (run-dmc hello)]
+        (is (= "hello" (get-body url)))
+        (is (deref called 1 false))
+        (is (= (run hello) result))))))
+
+(deftest run-dmc-with-threading
+  (let [call-count (atom 0)]
+    (with-redefs [clojure.java.browse/browse-url (fn [_] (swap! call-count inc))]
+      (-> (run-dmc hello)
+        (assoc :context-path "/howdy")
+        (run-dmc (handler "howdy"))
+        (assoc :port 8081)
+        (run-dmc (handler "howdy")))
+      (is (= 3 @call-count))
+      (is (= "hello" (get-body url)))
+      (is (= "howdy" (get-body (str url "howdy"))))
+      (is (= "howdy" (get-body (str url2 "howdy")))))))
 
 (deftest request-map-entries
   (let [request (atom {})

@@ -18,9 +18,7 @@
   (:require [immutant.internal.options :refer [opts->set set-valid-options!
                                                validate-options]]
             [immutant.web.internal     :refer :all]
-            [immutant.web.middleware   :refer [wrap-dev-middleware]]
-            [clojure.walk              :refer [keywordize-keys]]
-            [clojure.java.browse       :refer [browse-url]])
+            [clojure.walk              :refer [keywordize-keys]])
   (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
 (defn run
@@ -77,10 +75,4 @@
                          (resolve handler))
                      `(var ~handler)
                      handler)]
-       `((fn [& _#]
-           (let [result# (run ~env (wrap-dev-middleware ~handler))]
-             (browse-url (format "http://%s:%s%s"
-                           (:host         ~env default-host)
-                           (:port         ~env default-port)
-                           (:context-path ~env default-context)))
-             result#))))))
+       `(run-dmc* run ~env ~handler))))

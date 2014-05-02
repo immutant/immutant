@@ -14,7 +14,9 @@
 
 (ns ^:no-doc ^:internal immutant.web.internal
     (:require [immutant.web.undertow.http :as undertow]
-              [immutant.internal.options  :refer [extract-options opts->set]])
+              [immutant.internal.options  :refer [extract-options opts->set]]
+              [immutant.web.middleware    :refer [wrap-dev-middleware]]
+              [clojure.java.browse        :refer [browse-url]])
     (:import org.projectodd.wunderboss.WunderBoss
              io.undertow.server.HttpHandler
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]
@@ -45,3 +47,11 @@
           handler
           (undertow/create-http-handler handler))
         opts))))
+
+(defn ^:internal run-dmc* [run env handler]
+  (let [result (run env (wrap-dev-middleware handler))]
+    (browse-url (format "http://%s:%s%s"
+                  (:host         env default-host)
+                  (:port         env default-port)
+                  (:context-path env default-context)))
+    result))
