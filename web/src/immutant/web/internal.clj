@@ -22,16 +22,19 @@
 
 (def ^:internal default-context (.defaultValue Web$RegisterOption/CONTEXT_PATH))
 
+(def ^:internal default-host (.defaultValue Web$CreateOption/HOST))
+(def ^:internal default-port (.defaultValue Web$CreateOption/PORT))
+
 (defn ^:internal server-name [opts]
-  (str (.hashCode opts)))
+  (->> opts
+    (merge {:host default-host :port default-port})
+    .hashCode
+    str))
 
 (defn ^:internal server [opts]
-  (let [opts (select-keys opts (conj (opts->set Web$CreateOption) :server))]
-    (if-let [server (and (= 1 (count opts)) (:server opts))]
-      server
-      (WunderBoss/findOrCreateComponent Web
-        (server-name (dissoc opts :server))
-        (extract-options opts Web$CreateOption)))))
+  (WunderBoss/findOrCreateComponent Web
+    (server-name (select-keys opts (opts->set Web$CreateOption)))
+    (extract-options opts Web$CreateOption)))
 
 (defn ^:internal mount [server handler opts]
   (let [opts (extract-options opts Web$RegisterOption)]

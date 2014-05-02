@@ -17,7 +17,7 @@
    at unique context paths"
   (:require [immutant.internal.options :refer [opts->set set-valid-options!
                                                validate-options]]
-            [immutant.web.internal     :refer [default-context mount server]]
+            [immutant.web.internal     :refer :all]
             [immutant.web.middleware   :refer [wrap-dev-middleware]]
             [clojure.walk              :refer [keywordize-keys]]
             [clojure.java.browse       :refer [browse-url]])
@@ -51,18 +51,19 @@
    value is not available, you can pass the same env map passed to run for
    the handler you want to stop. If handler-env isn't provided, the handler
    at the root context (\"/\") of the default server will be stopped. If
-   there are no handlers remaning on the server, the server itself is stopped."
+   there are no handlers remaning on the server, the server itself is stopped.
+   Returns true if a handler was actually removed."
   ([]
      (stop nil))
   ([handler-env]
      (let [options (-> handler-env
                      keywordize-keys
                      (validate-options run "stop"))
-           server (server options)]
-       (.unregister server (:context-path options default-context))
+           server (server options)
+           stopped (.unregister server (:context-path options default-context))]
        (if (empty? (.registeredContexts server))
-         (.stop server)))
-     nil))
+         (.stop server))
+       stopped)))
 
 (defmacro run-dmc
   "Run in Development Mode (the 'C' is silent).
@@ -79,7 +80,7 @@
        `((fn [& _#]
            (let [result# (run ~env (wrap-dev-middleware ~handler))]
              (browse-url (format "http://%s:%s%s"
-                           (:host         ~env (.defaultValue Web$CreateOption/HOST))
-                           (:port         ~env (.defaultValue Web$CreateOption/PORT))
+                           (:host         ~env default-host)
+                           (:port         ~env default-port)
                            (:context-path ~env default-context)))
              result#))))))

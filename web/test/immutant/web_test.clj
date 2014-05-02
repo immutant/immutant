@@ -81,14 +81,11 @@
   (is (= "hello" (get-body url)))
   (is (thrown? ConnectException (get-body url2))))
 
-(deftest stop-honors-server-in-opts
+(deftest stop-stops-the-default-server-even-with-explicit-opts
   (run hello)
   (is (= "hello" (get-body url)))
-  (let [opts (run {:port 8081} hello)]
-    (is (= "hello" (get-body url2)))
-    (stop (select-keys opts [:server])))
-  (is (= "hello" (get-body url)))
-  (is (thrown? ConnectException (get-body url2))))
+  (stop {:port 8080})
+  (is (thrown? ConnectException (get-body url))))
 
 (deftest run-should-call-init
   (let [p (promise)]
@@ -113,6 +110,16 @@
   (is (= "howdy" (get-body (str url "howdy"))))
   (stop {"context-path" "/howdy"})
   (is (= "hello" (get-body (str url "howdy")))))
+
+(deftest run-with-chaining
+  (-> (run hello)
+    (assoc :context-path "/howdy")
+    (run (handler "howdy"))
+    (assoc :port 8081)
+    (run (handler "howdy")))
+  (is (= "hello" (get-body url)))
+  (is (= "howdy" (get-body (str url "howdy"))))
+  (is (= "howdy" (get-body (str url2 "howdy")))))
 
 (deftest request-map-entries
   (let [request (atom {})
