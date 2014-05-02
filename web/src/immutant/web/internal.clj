@@ -14,7 +14,7 @@
 
 (ns ^:no-doc ^:internal immutant.web.internal
     (:require [immutant.web.undertow.http :as undertow]
-              [immutant.internal.options  :refer [extract-options opts->set]]
+              [immutant.internal.options  :refer [extract-options opts->set opts->defaults-map]]
               [immutant.web.middleware    :refer [wrap-dev-middleware]]
               [clojure.java.browse        :refer [browse-url]])
     (:import org.projectodd.wunderboss.WunderBoss
@@ -22,14 +22,12 @@
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]
              javax.servlet.Servlet))
 
-(def ^:internal default-context (.defaultValue Web$RegisterOption/CONTEXT_PATH))
-
-(def ^:internal default-host (.defaultValue Web$CreateOption/HOST))
-(def ^:internal default-port (.defaultValue Web$CreateOption/PORT))
+(def ^:internal register-defaults (opts->defaults-map Web$RegisterOption))
+(def ^:internal create-defaults (opts->defaults-map Web$CreateOption))
 
 (defn ^:internal server-name [opts]
   (->> opts
-    (merge {:host default-host :port default-port})
+    (merge create-defaults)
     .hashCode
     str))
 
@@ -51,7 +49,7 @@
 (defn ^:internal run-dmc* [run env handler]
   (let [result (run env (wrap-dev-middleware handler))]
     (browse-url (format "http://%s:%s%s"
-                  (:host         env default-host)
-                  (:port         env default-port)
-                  (:context-path env default-context)))
+                  (:host         env (:host create-defaults))
+                  (:port         env (:port create-defaults))
+                  (:context-path env (:context-path register-defaults))))
     result))

@@ -56,6 +56,9 @@
   (let [vars# (mapv ->var vars)]
     `(set (mapcat valid-options-for ~vars#))))
 
+(defn keywordize [v]
+  (keyword (.replace v \_ \-)))
+
 (defn opts->map
   "Converts an Option class into a map of name -> Option instance."
   [class]
@@ -64,11 +67,19 @@
     (map #(vector (.name %) %))
     (into {})))
 
+(defn opts->defaults-map
+  "Converts an Option class into a map of name as keyword -> default value."
+  [class]
+  (->> class
+    opts->map
+    (map (fn [[k v]] [(keywordize k) (.defaultValue v)]))
+    (into {})))
+
 (defn opts->keywords
   "Converts an Option class into a list of names for those Options as keywords.
    Auto-converts \"foo_bar\" to :foo-bar."
   [class]
-  (->> class opts->map keys (map #(keyword (.replace % \_ \-)))))
+  (->> class opts->map keys (map keywordize)))
 
 (defn opts->set
   "Converts an Option class into a set of keywords."

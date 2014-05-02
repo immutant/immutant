@@ -17,8 +17,7 @@
             [immutant.web :refer :all]
             [testing.web  :refer [get-body hello handler]]
             [testing.hello.service :as pedestal])
-  (:import org.projectodd.wunderboss.WunderBoss
-           clojure.lang.ExceptionInfo
+  (:import clojure.lang.ExceptionInfo
            java.net.ConnectException))
 
 (use-fixtures :each
@@ -26,7 +25,7 @@
     (try
       (f)
       (finally
-        (WunderBoss/shutdownAndReset)))))
+        (immutant.util/reset)))))
 
 (def url "http://localhost:8080/")
 (def url2 "http://localhost:8081/")

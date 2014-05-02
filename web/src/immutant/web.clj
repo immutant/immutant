@@ -58,7 +58,8 @@
                      keywordize-keys
                      (validate-options run "stop"))
            server (server options)
-           stopped (.unregister server (:context-path options default-context))]
+           stopped (.unregister server
+                     (:context-path options (:context-path register-defaults)))]
        (if (empty? (.registeredContexts server))
          (.stop server))
        stopped)))
