@@ -76,9 +76,10 @@
                          (resolve handler))
                      `(var ~handler)
                      handler)]
-       `(do
-          (run ~env (wrap-dev-middleware ~handler))
-          (browse-url (format "http://%s:%s%s"
-                        (:host         ~env (.defaultValue Web$CreateOption/HOST))
-                        (:port         ~env (.defaultValue Web$CreateOption/PORT))
-                        (:context-path ~env default-context)))))))
+       `((fn [& _#]
+           (let [result# (run ~env (wrap-dev-middleware ~handler))]
+             (browse-url (format "http://%s:%s%s"
+                           (:host         ~env (.defaultValue Web$CreateOption/HOST))
+                           (:port         ~env (.defaultValue Web$CreateOption/PORT))
+                           (:context-path ~env default-context)))
+             result#))))))
