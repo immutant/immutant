@@ -14,9 +14,10 @@
 
 (ns immutant.scheduling
   "Schedule jobs for execution"
-  (:require [immutant.opts-validation    :refer [extract-options opts->set
+  (:require [immutant.internal.options   :refer [extract-options opts->set
                                                  set-valid-options! validate-options]]
-            [immutant.scheduling.options :refer [resolve-options defoption]])
+            [immutant.scheduling.options :refer [resolve-options defoption]]
+            [clojure.walk                :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.scheduling
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))

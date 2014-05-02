@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns ^:no-doc ^:internal immutant.opts-validation
+(ns ^:no-doc ^:internal immutant.internal.options
   "Functions for validating options."
   (:require [clojure.walk  :refer [stringify-keys]])
   (:import [org.projectodd.wunderboss Option]))

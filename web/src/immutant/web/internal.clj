@@ -14,7 +14,7 @@
 
 (ns ^:no-doc ^:internal immutant.web.internal
     (:require [immutant.web.undertow.http :as undertow]
-              [immutant.opts-validation   :refer [extract-options opts->set]])
+              [immutant.internal.options  :refer [extract-options opts->set]])
     (:import org.projectodd.wunderboss.WunderBoss
              io.undertow.server.HttpHandler
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]

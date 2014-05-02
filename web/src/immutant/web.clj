@@ -15,12 +15,12 @@
 (ns immutant.web
   "Associate one or more Ring handlers with your application, mounted
    at unique context paths"
-  (:require [immutant.opts-validation :refer [opts->set set-valid-options!
-                                              validate-options]]
-            [immutant.web.internal    :refer [default-context mount server]]
-            [immutant.web.middleware  :refer [wrap-dev-middleware]]
-            [clojure.walk             :refer [keywordize-keys]]
-            [clojure.java.browse      :refer [browse-url]])
+  (:require [immutant.internal.options :refer [opts->set set-valid-options!
+                                               validate-options]]
+            [immutant.web.internal     :refer [default-context mount server]]
+            [immutant.web.middleware   :refer [wrap-dev-middleware]]
+            [clojure.walk              :refer [keywordize-keys]]
+            [clojure.java.browse       :refer [browse-url]])
   (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
 (defn run
