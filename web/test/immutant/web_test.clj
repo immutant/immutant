@@ -102,9 +102,17 @@
     (stop)
     (is (= 'destroy (deref p 10000 :fail)))))
 
-(deftest string-args-should-work
-  (let [server (run {"port" "8042"} hello)]
-    (is (= "hello" (get-body "http://localhost:8042")))))
+(deftest string-args-to-run-should-work
+  (run {"port" "8081"} hello)
+  (is (= "hello" (get-body url2))))
+
+(deftest string-args-to-stop-should-work
+  (run hello)
+  (run {"context-path" "/howdy"} (handler "howdy"))
+  (is (= "hello" (get-body url)))
+  (is (= "howdy" (get-body (str url "howdy"))))
+  (stop {"context-path" "/howdy"})
+  (is (= "hello" (get-body (str url "howdy")))))
 
 (deftest request-map-entries
   (let [request (atom {})
