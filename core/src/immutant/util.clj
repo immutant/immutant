@@ -20,6 +20,12 @@
             [wunderboss.util        :as wu])
   (:import org.projectodd.wunderboss.WunderBoss))
 
+(defn reset
+  "Resets the underlying WunderBoss layer.
+   This stops and clears all services. Intended to be used from a repl."
+  []
+  (WunderBoss/shutdownAndReset))
+
 (defn in-container?
   "Returns true if running inside a container."
   []
