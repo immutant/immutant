@@ -23,10 +23,12 @@
 
 (defn run
   "Runs a handler with the given options.
-   The handler can be a ring handler function, a servlet, or an Undertow
-   HttpHandler. Can be called multiple times - if given the same env,
-   any prior handler with that env will be replaced. Returns the given
-   env with any missing defaults filled in.
+
+   The handler can be a Ring handler function, a Servlet, or an
+   Undertow HttpHandler. Can be called multiple times - if given the
+   same env, any prior handler with that env will be replaced. Returns
+   the given env with any missing defaults filled in.
+
    Needs: options, examples"
   ([handler] (run nil handler))
   ([env handler]
@@ -41,12 +43,14 @@
 
 (defn stop
   "Stops a running handler.
-   handler-env should be the return value of a run call. If that return
-   value is not available, you can pass the same env map passed to run for
-   the handler you want to stop. If handler-env isn't provided, the handler
-   at the root context (\"/\") of the default server will be stopped. If
-   there are no handlers remaning on the server, the server itself is stopped.
-   Returns true if a handler was actually removed."
+
+   The handler-env argument is a map, typically the return value of a
+   run call. If that return value is not available, you can pass the
+   same env map passed to run for the handler you want to stop. If
+   handler-env isn't provided, the handler at the root context (\"/\")
+   of the default server will be stopped. If there are no handlers
+   remaining on the server, the server itself is stopped. Returns true
+   if a handler was actually removed."
   ([]
      (stop nil))
   ([handler-env]
@@ -62,6 +66,7 @@
 
 (defmacro run-dmc
   "Run in Development Mode (the 'C' is silent).
+
    This macro invokes run after ensuring the passed handler is
    var-quoted, with reload and stacktrace middleware applied, and then
    opens the app in a browser. Supports the same options as run."
