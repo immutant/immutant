@@ -65,10 +65,10 @@
      nil))
 
 (defmacro run-dmc
-  "Run in development mode (the 'c' is silent).
-   Runs a handler in 'development mode', ensuring it's var-quoted,
-   with reload and stacktrace middleware applied, and its root page
-   opened in a browser."
+  "Run in Development Mode (the 'C' is silent).
+   This macro invokes run after ensuring the passed handler is
+   var-quoted, with reload and stacktrace middleware applied, and then
+   opens the app in a browser. Supports the same options as run."
   ([handler] `(run-dmc {} ~handler))
   ([env handler]
      (let [handler (if (and (symbol? handler)
