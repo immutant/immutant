@@ -15,7 +15,8 @@
 (ns ^:no-doc ^:internal immutant.internal.util
   "Various internal utility functions."
   (:require [immutant.util :as u])
-  (:import clojure.lang.IDeref))
+  (:import clojure.lang.IDeref
+           java.util.UUID))
 
 (defn require-resolve
   "Requires and resolves the given namespace-qualified symbol."
@@ -120,3 +121,7 @@
                     ~@body
                     (catch Exception e# (if (> x# ~end) (throw e#))))]
        (or result# (do (Thread/sleep x#) (recur (* 2 x#)))))))
+
+(defn uuid []
+  "Generates a random uuid string."
+  (str (java.util.UUID/randomUUID)))

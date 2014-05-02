@@ -14,58 +14,51 @@
 
 (ns immutant.scheduling
   "Schedule jobs for execution"
-  (:require [immutant.internal.options   :refer [extract-options opts->set
-                                                 set-valid-options! validate-options]]
-            [immutant.scheduling.options :refer [resolve-options defoption]]
-            [clojure.walk                :refer [keywordize-keys]])
+  (:require [immutant.scheduling.internal :refer :all]
+            [immutant.internal.options    :refer :all]
+            [immutant.internal.util       :as u]
+            [immutant.scheduling.options  :refer [resolve-options defoption]]
+            [clojure.walk                 :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.scheduling
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
-
-(defn scheduler
-  "Create a scheduler or return existing one matching :name (defaults to \"default\").
-   Any options here are applied to the scheduler with the given name,
-   but only if it has not yet been instantiated."
-  [& {:as opts}]
-  (let [opts (-> opts
-               keywordize-keys
-               (validate-options scheduler))]
-    (WunderBoss/findOrCreateComponent Scheduling
-      (:name opts)
-      (extract-options opts Scheduling$CreateOption))))
-
-(set-valid-options! scheduler
-  (conj (opts->set Scheduling$CreateOption) :name))
 
 (defn schedule
   "Schedules a function to execute according to a specification map.
   Option functions (defined below) can be combined to create the
   spec, e.g.
 
-    (schedule id f
+    (schedule
       (-> (in 5 :minutes)
         (every 2 :hours, 30 :minutes)
-        (until \"1730\")))
+        (until \"1730\"))
+      #(println \"I'm running!\"))
 
-  All jobs must have a unique id, used to unschedule or, when schedule
-  is called with the same id, to reschedule jobs."
-  ([id f spec] (schedule (scheduler) id f spec))
-  ([scheduler id f spec]
-     (let [opts (-> spec
-                  keywordize-keys
-                  resolve-options
-                  (validate-options schedule))]
-       (.schedule scheduler (name id) f
-         (extract-options opts Scheduling$ScheduleOption)))))
+  TODO: flesh this out"
+  [options f]
+  (let [opts (->> options
+               keywordize-keys
+               resolve-options
+               (merge create-defaults schedule-defaults))
+        scheduler (scheduler (validate-options opts schedule))
+        id (:id opts (u/uuid))]
+    (.schedule scheduler (name id) f
+      (extract-options opts Scheduling$ScheduleOption))
+    (assoc opts :id id)))
 
 (set-valid-options! schedule
-  (opts->set Scheduling$ScheduleOption))
+  (conj (opts->set Scheduling$ScheduleOption Scheduling$CreateOption) :id))
 
-(defn unschedule
+(defn stop
   "Unschedule a job given its id"
-  ([id] (unschedule (scheduler) id))
-  ([scheduler id]
-     (.unschedule scheduler (name id))))
+  ([]
+     (stop nil))
+  ([schedule-env]
+     (let [options (-> schedule-env
+                     keywordize-keys
+                     (validate-options schedule "stop"))
+           scheduler (scheduler options)]
+       (.unschedule scheduler (name (:id options))))))
 
 (defoption in
   "Takes a duration after which the job will fire, e.g. (in 5 :minutes)")
@@ -94,3 +87,6 @@
 (defoption singleton
   "Takes a boolean. If true (the default), only one instance of a given job name
    will run in a cluster.")
+
+(defoption id
+  "Takes a String or keyword to use as the id of the job.")
