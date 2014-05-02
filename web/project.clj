@@ -25,4 +25,5 @@
   :profiles {:dev
              {:dependencies [[io.pedestal/pedestal.service "0.2.2"]
                              [clj-http "0.9.0"]
+                             [ring/ring-devel _]
                              [stylefruits/gniazdo "0.1.0"]]}})

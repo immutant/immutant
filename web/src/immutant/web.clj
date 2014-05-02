@@ -18,7 +18,9 @@
   (:require [immutant.opts-validation :refer [opts->set set-valid-options!
                                               validate-options]]
             [immutant.web.internal    :refer [default-context mount server]]
-            [clojure.walk             :refer [keywordize-keys]])
+            [immutant.web.middleware  :refer [wrap-dev-middleware]]
+            [clojure.walk             :refer [keywordize-keys]]
+            [clojure.java.browse      :refer [browse-url]])
   (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
 (defn start
@@ -60,3 +62,21 @@
        (if (empty? (.registeredContexts server))
          (.stop server)))
      nil))
+
+(defmacro run-dmc
+  "Starts a handler in 'development mode', ensuring it's var-quoted,
+  with reload and stacktrace middleware applied, and its root page
+  opened in a browser"
+  ([handler] `(run-dmc {} ~handler))
+  ([opts handler]
+     (let [handler (if (and (symbol? handler)
+                         (not (get &env handler))
+                         (resolve handler))
+                     `(var ~handler)
+                     handler)]
+       `(do
+          (start ~opts (wrap-dev-middleware ~handler))
+          (browse-url (format "http://%s:%s%s"
+                        (:host         ~opts (.defaultValue Web$CreateOption/HOST))
+                        (:port         ~opts (.defaultValue Web$CreateOption/PORT))
+                        (:context-path ~opts (.defaultValue Web$RegisterOption/CONTEXT_PATH))))))))
