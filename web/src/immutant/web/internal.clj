@@ -26,11 +26,12 @@
   (str (.hashCode opts)))
 
 (defn ^:internal server [opts]
-  (if-let [server (:server opts)]
-    server
-    (WunderBoss/findOrCreateComponent Web
-      (server-name (select-keys opts (opts->set Web$CreateOption)))
-      (extract-options opts Web$CreateOption))))
+  (let [opts (select-keys opts (conj (opts->set Web$CreateOption) :server))]
+    (if-let [server (and (= 1 (count opts)) (:server opts))]
+      server
+      (WunderBoss/findOrCreateComponent Web
+        (server-name (dissoc opts :server))
+        (extract-options opts Web$CreateOption)))))
 
 (defn ^:internal mount [server handler opts]
   (let [opts (extract-options opts Web$RegisterOption)]
