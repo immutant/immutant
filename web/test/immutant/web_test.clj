@@ -13,9 +13,10 @@
 ;; limitations under the License.
 
 (ns immutant.web-test
-  (:require [clojure.test :refer :all]
-            [immutant.web :refer :all]
-            [testing.web  :refer [get-body hello handler]]
+  (:require [clojure.test          :refer :all]
+            [immutant.web          :refer :all]
+            [immutant.web.internal :refer :all]
+            [testing.web           :refer [get-body hello handler]]
             [testing.hello.service :as pedestal])
   (:import clojure.lang.ExceptionInfo
            java.net.ConnectException))
@@ -34,10 +35,15 @@
   (run pedestal/servlet)
   (is (= "Hello World!" (get-body url))))
 
-(deftest run-returns-opts-with-server-included
-  (is (= [:server] (keys (run hello))))
+(deftest run-returns-default-opts
+  (let [opts (run hello)]
+    (is (= (-> (merge register-defaults create-defaults) keys set)
+          (-> opts keys set)))))
+
+(deftest run-returns-passed-opts-with-defaults
   (let [opts (run {:context-path "/abc"} hello)]
-    (is (= #{:server :context-path} (set (keys opts))))
+    (is (= (-> (merge register-defaults create-defaults) keys set)
+          (-> opts keys set)))
     (is (= "/abc" (:context-path opts)))))
 
 (deftest run-should-throw-with-invalid-options

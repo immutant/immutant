@@ -82,9 +82,9 @@
   (->> class opts->map keys (map keywordize)))
 
 (defn opts->set
-  "Converts an Option class into a set of keywords."
-  [class]
-  (-> class opts->keywords set))
+  "Converts an Option classes into a set of keywords."
+  [& classes]
+  (->> classes (mapcat opts->keywords) set))
 
 (defn extract-options
   "Converts a clojure map into a WunderBoss options map."

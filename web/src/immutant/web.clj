@@ -26,22 +26,18 @@
    The handler can be a ring handler function, a servlet, or an Undertow
    HttpHandler. Can be called multiple times - if given the same env,
    any prior handler with that env will be replaced. Returns the given
-   env with the server object added under :server.
+   env with any missing defaults filled in.
    Needs: options, examples"
   ([handler] (run nil handler))
   ([env handler]
-     (let [options (keywordize-keys env)]
+     (let [options (->> env
+                     keywordize-keys
+                     (merge create-defaults register-defaults))]
        (validate-options options run)
-       (let [server (server options)]
-         (mount server handler options)
-         (assoc options :server server)))))
+       (mount (server options) handler options)
+       options)))
 
-(set-valid-options! run
-  (-> (concat
-        (opts->set Web$CreateOption)
-        (opts->set Web$RegisterOption))
-    (conj :server)
-    set))
+(set-valid-options! run (opts->set Web$CreateOption Web$RegisterOption))
 
 (defn stop
   "Stops a running handler.
@@ -69,7 +65,7 @@
    This macro invokes run after ensuring the passed handler is
    var-quoted, with reload and stacktrace middleware applied, and then
    opens the app in a browser. Supports the same options as run."
-  ([handler] `(run-dmc {} ~handler))
+  ([handler] `(run-dmc nil ~handler))
   ([env handler]
      (let [handler (if (and (symbol? handler)
                          (not (get &env handler))
