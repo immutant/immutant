@@ -32,25 +32,25 @@
 (def url2 "http://localhost:8081/")
 
 (deftest mount-pedestal-service
-  (start pedestal/servlet)
+  (run pedestal/servlet)
   (is (= "Hello World!" (get-body url))))
 
-(deftest start-returns-opts-with-server-included
-  (is (= [:server] (keys (start hello))))
-  (let [opts (start {:context-path "/abc"} hello)]
+(deftest run-returns-opts-with-server-included
+  (is (= [:server] (keys (run hello))))
+  (let [opts (run {:context-path "/abc"} hello)]
     (is (= #{:server :context-path} (set (keys opts))))
     (is (= "/abc" (:context-path opts)))))
 
-(deftest start-should-throw-with-invalid-options
-  (is (thrown? IllegalArgumentException (start {:invalid true} hello))))
+(deftest run-should-throw-with-invalid-options
+  (is (thrown? IllegalArgumentException (run {:invalid true} hello))))
 
 (deftest stop-should-throw-with-invalid-options
   (is (thrown? IllegalArgumentException (stop {:invalid true}))))
 
 (deftest stop-without-args-stops-default-context
-  (start hello)
+  (run hello)
   (is (= "hello" (get-body url)))
-  (start {:context-path "/howdy"} (handler "howdy"))
+  (run {:context-path "/howdy"} (handler "howdy"))
   (is (= "howdy" (get-body (str url "howdy"))))
   (stop)
   (is (= "howdy" (get-body (str url "howdy"))))
@@ -58,58 +58,58 @@
     (is (= 404 (-> result ex-data :object :status)))))
 
 (deftest stop-with-context-stops-that-context
-  (start hello)
+  (run hello)
   (is (= "hello" (get-body url)))
-  (start {:context-path "/howdy"} (handler "howdy"))
+  (run {:context-path "/howdy"} (handler "howdy"))
   (is (= "howdy" (get-body (str url "howdy"))))
   (stop {:context-path "/howdy"})
   (is (= "hello" (get-body url)))
   (is (= "hello" (get-body (str url "howdy")))))
 
 (deftest stopping-last-handler-stops-the-server
-  (let [root-opts (start hello)]
+  (let [root-opts (run hello)]
     (is (= "hello" (get-body url)))
     (stop root-opts))
   (is (thrown? ConnectException (get-body url))))
 
 (deftest stop-stops-the-requested-server
-  (start hello)
+  (run hello)
   (is (= "hello" (get-body url)))
-  (start {:port 8081} hello)
+  (run {:port 8081} hello)
   (is (= "hello" (get-body url2)))
   (stop {:port 8081})
   (is (= "hello" (get-body url)))
   (is (thrown? ConnectException (get-body url2))))
 
 (deftest stop-honors-server-in-opts
-  (start hello)
+  (run hello)
   (is (= "hello" (get-body url)))
-  (let [opts(start {:port 8081} hello)]
+  (let [opts (run {:port 8081} hello)]
     (is (= "hello" (get-body url2)))
     (stop (select-keys opts [:server])))
   (is (= "hello" (get-body url)))
   (is (thrown? ConnectException (get-body url2))))
 
-(deftest start-should-call-init
+(deftest run-should-call-init
   (let [p (promise)]
-    (start {:init #(deliver p 'init)} hello)
+    (run {:init #(deliver p 'init)} hello)
     (is (= 'init (deref p 10000 :fail)))))
 
 (deftest stop-should-call-destroy
   (let [p (promise)]
-    (start {:destroy #(deliver p 'destroy)} hello)
+    (run {:destroy #(deliver p 'destroy)} hello)
     (is (not (realized? p)))
     (stop)
     (is (= 'destroy (deref p 10000 :fail)))))
 
 (deftest string-args-should-work
-  (let [server (start {"port" "8042"} hello)]
+  (let [server (run {"port" "8042"} hello)]
     (is (= "hello" (get-body "http://localhost:8042")))))
 
 (deftest request-map-entries
   (let [request (atom {})
         handler (comp hello #(swap! request into %))
-        server (start handler)]
+        server (run handler)]
     (get-body (str url "?query=help") {:content-type "text/html; charset=utf-8"})
     (are [x expected] (= expected (x @request))
          :content-type        "text/html; charset=utf-8"

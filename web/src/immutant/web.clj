@@ -23,23 +23,23 @@
             [clojure.java.browse      :refer [browse-url]])
   (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
-(defn start
-  "Starts a handler with the given options.
+(defn run
+  "Runs a handler with the given options.
    The handler can be a ring handler function, a servlet, or an Undertow
    HttpHandler. Can be called multiple times - if given the same env,
    any prior handler with that env will be replaced. Returns the given
    env with the server object added under :server.
    Needs: options, examples"
-  ([handler] (start nil handler))
+  ([handler] (run nil handler))
   ([env handler]
      (let [options (-> env
                      keywordize-keys)]
-       (validate-options options start)
+       (validate-options options run)
        (let [server (server options)]
          (mount server handler options)
          (assoc options :server server)))))
 
-(set-valid-options! start
+(set-valid-options! run
   (-> (concat
         (opts->set Web$CreateOption)
         (opts->set Web$RegisterOption))
@@ -47,15 +47,15 @@
     set))
 
 (defn stop
-  "Stops a started handler.
-   handler-env should be the return value of a start call. If handler-env
+  "Stops a running handler.
+   handler-env should be the return value of a run call. If handler-env
    isn't provided, the handler at the root context (\"/\") of the default
    server will be stopped. If there are no handlers remaning on the server,
    the server itself is stopped."
   ([]
      (stop nil))
   ([handler-env]
-     (validate-options handler-env start "stop")
+     (validate-options handler-env run "stop")
      (let [server (server handler-env)
            context-path (:context-path handler-env default-context)]
        (.unregister server context-path)
@@ -64,9 +64,10 @@
      nil))
 
 (defmacro run-dmc
-  "Starts a handler in 'development mode', ensuring it's var-quoted,
-  with reload and stacktrace middleware applied, and its root page
-  opened in a browser"
+  "Run in development mode (the 'c' is silent).
+   Runs a handler in 'development mode', ensuring it's var-quoted,
+   with reload and stacktrace middleware applied, and its root page
+   opened in a browser"
   ([handler] `(run-dmc {} ~handler))
   ([opts handler]
      (let [handler (if (and (symbol? handler)
@@ -75,8 +76,8 @@
                      `(var ~handler)
                      handler)]
        `(do
-          (start ~opts (wrap-dev-middleware ~handler))
+          (run ~opts (wrap-dev-middleware ~handler))
           (browse-url (format "http://%s:%s%s"
                         (:host         ~opts (.defaultValue Web$CreateOption/HOST))
                         (:port         ~opts (.defaultValue Web$CreateOption/PORT))
-                        (:context-path ~opts (.defaultValue Web$RegisterOption/CONTEXT_PATH))))))))
+                        (:context-path ~opts default-context)))))))
