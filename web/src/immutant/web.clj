@@ -36,10 +36,11 @@
                      keywordize-keys
                      (merge create-defaults register-defaults))]
        (validate-options options run)
-       (mount (server options) handler options)
-       options)))
+       (let [server (server options)]
+         (mount server handler options)
+         (update-in options [:contexts server] conj (:context-path options))))))
 
-(set-valid-options! run (opts->set Web$CreateOption Web$RegisterOption))
+(set-valid-options! run (conj (opts->set Web$CreateOption Web$RegisterOption) :contexts))
 
 (defn stop
   "Stops a running handler.
@@ -57,11 +58,12 @@
      (let [options (-> handler-env
                      keywordize-keys
                      (validate-options run "stop"))
-           server (server options)
-           stopped (.unregister server
-                     (:context-path options (:context-path register-defaults)))]
-       (if (empty? (.registeredContexts server))
-         (.stop server))
+           contexts (:contexts options {(server options)
+                                        [(:context-path options (:context-path register-defaults))]})
+           stopped (some boolean (doall (for [[s cs] contexts, c cs] (.unregister s c))))]
+       (doseq [server (keys contexts)]
+         (if (empty? (.registeredContexts server))
+           (.stop server)))
        stopped)))
 
 (defmacro run-dmc

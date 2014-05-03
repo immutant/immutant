@@ -14,6 +14,7 @@
 
 (ns immutant.web-test
   (:require [clojure.test          :refer :all]
+            [clojure.set           :refer :all]
             [immutant.web          :refer :all]
             [immutant.web.internal :refer :all]
             [testing.web           :refer [get-body hello handler]]
@@ -37,12 +38,12 @@
 
 (deftest run-returns-default-opts
   (let [opts (run hello)]
-    (is (= (-> (merge register-defaults create-defaults) keys set)
+    (is (subset? (-> (merge register-defaults create-defaults) keys set)
           (-> opts keys set)))))
 
 (deftest run-returns-passed-opts-with-defaults
   (let [opts (run {:context-path "/abc"} hello)]
-    (is (= (-> (merge register-defaults create-defaults) keys set)
+    (is (subset? (-> (merge register-defaults create-defaults) keys set)
           (-> opts keys set)))
     (is (= "/abc" (:context-path opts)))))
 
@@ -125,6 +126,17 @@
   (is (= "hello" (get-body url)))
   (is (= "howdy" (get-body (str url "howdy"))))
   (is (= "howdy" (get-body (str url2 "howdy")))))
+
+(deftest stop-should-stop-all-threaded-apps
+  (let [everything (-> (run hello)
+                     (assoc :context-path "/howdy")
+                     (run (handler "howdy"))
+                     (merge {:context-path "/" :port 8081})
+                     (run (handler "howdy")))]
+    (is (true? (stop everything)))
+    (is (thrown? ConnectException (get-body url)))
+    (is (thrown? ConnectException (get-body url2)))
+    (is (not (stop everything)))))
 
 (deftest run-dmc-should-work
   (let [called (promise)]
