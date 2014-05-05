@@ -42,10 +42,10 @@
           (-> opts keys set)))))
 
 (deftest run-returns-passed-opts-with-defaults
-  (let [opts (run {:context-path "/abc"} hello)]
+  (let [opts (run {:path "/abc"} hello)]
     (is (subset? (-> (merge register-defaults create-defaults) keys set)
           (-> opts keys set)))
-    (is (= "/abc" (:context-path opts)))))
+    (is (= "/abc" (:path opts)))))
 
 (deftest run-should-throw-with-invalid-options
   (is (thrown? IllegalArgumentException (run {:invalid true} hello))))
@@ -56,7 +56,7 @@
 (deftest stop-without-args-stops-default-context
   (run hello)
   (is (= "hello" (get-body url)))
-  (run {:context-path "/howdy"} (handler "howdy"))
+  (run {:path "/howdy"} (handler "howdy"))
   (is (= "howdy" (get-body (str url "howdy"))))
   (stop)
   (is (= "howdy" (get-body (str url "howdy"))))
@@ -66,9 +66,9 @@
 (deftest stop-with-context-stops-that-context
   (run hello)
   (is (= "hello" (get-body url)))
-  (run {:context-path "/howdy"} (handler "howdy"))
+  (run {:path "/howdy"} (handler "howdy"))
   (is (= "howdy" (get-body (str url "howdy"))))
-  (stop {:context-path "/howdy"})
+  (stop {:path "/howdy"})
   (is (= "hello" (get-body url)))
   (is (= "hello" (get-body (str url "howdy")))))
 
@@ -93,33 +93,21 @@
   (stop {:port 8080})
   (is (thrown? ConnectException (get-body url))))
 
-(deftest run-should-call-init
-  (let [p (promise)]
-    (run {:init #(deliver p 'init)} hello)
-    (is (= 'init (deref p 10000 :fail)))))
-
-(deftest stop-should-call-destroy
-  (let [p (promise)]
-    (run {:destroy #(deliver p 'destroy)} hello)
-    (is (not (realized? p)))
-    (stop)
-    (is (= 'destroy (deref p 10000 :fail)))))
-
 (deftest string-args-to-run-should-work
   (run {"port" "8081"} hello)
   (is (= "hello" (get-body url2))))
 
 (deftest string-args-to-stop-should-work
   (run hello)
-  (run {"context-path" "/howdy"} (handler "howdy"))
+  (run {"path" "/howdy"} (handler "howdy"))
   (is (= "hello" (get-body url)))
   (is (= "howdy" (get-body (str url "howdy"))))
-  (stop {"context-path" "/howdy"})
+  (stop {"path" "/howdy"})
   (is (= "hello" (get-body (str url "howdy")))))
 
 (deftest run-with-threading
   (-> (run hello)
-    (assoc :context-path "/howdy")
+    (assoc :path "/howdy")
     (run (handler "howdy"))
     (assoc :port 8081)
     (run (handler "howdy")))
@@ -129,9 +117,9 @@
 
 (deftest stop-should-stop-all-threaded-apps
   (let [everything (-> (run hello)
-                     (assoc :context-path "/howdy")
+                     (assoc :path "/howdy")
                      (run (handler "howdy"))
-                     (merge {:context-path "/" :port 8081})
+                     (merge {:path "/" :port 8081})
                      (run (handler "howdy")))]
     (is (true? (stop everything)))
     (is (thrown? ConnectException (get-body url)))
@@ -150,7 +138,7 @@
   (let [call-count (atom 0)]
     (with-redefs [clojure.java.browse/browse-url (fn [_] (swap! call-count inc))]
       (-> (run-dmc hello)
-        (assoc :context-path "/howdy")
+        (assoc :path "/howdy")
         (run-dmc (handler "howdy"))
         (assoc :port 8081)
         (run-dmc (handler "howdy")))

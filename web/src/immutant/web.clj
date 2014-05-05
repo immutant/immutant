@@ -13,8 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.web
-  "Associate one or more Ring handlers with your application, mounted
-   at unique context paths"
+  "Serve web requests using Ring handlers, Servlets, or Undertow HttpHandlers"
   (:require [immutant.internal.options :refer [opts->set set-valid-options!
                                                validate-options]]
             [immutant.web.internal     :refer :all]
@@ -54,7 +53,7 @@
        (validate-options options run)
        (let [server (server options)]
          (mount server handler options)
-         (update-in options [:contexts server] conj (:context-path options))))))
+         (update-in options [:contexts server] conj (:path options))))))
 
 (set-valid-options! run (conj (opts->set Web$CreateOption Web$RegisterOption) :contexts))
 
@@ -64,19 +63,17 @@
    The handler-env argument is a map, typically the return value of a
    run call. If that return value is not available, you can pass the
    same env map passed to run for the handler you want to stop. If
-   handler-env isn't provided, the handler at the root context (\"/\")
-   of the default server will be stopped. If there are no handlers
-   remaining on the server, the server itself is stopped. Returns true
-   if a handler was actually removed."
+   handler-env isn't provided, the handler at the root context path
+   (\"/\") of the default server will be stopped. If there are no
+   handlers remaining on the server, the server itself is stopped.
+   Returns true if a handler was actually removed."
   ([]
      (stop nil))
   ([handler-env]
-     (let [options (-> handler-env
-                     keywordize-keys
-                     (validate-options run "stop"))
-           contexts (:contexts options {(server options)
-                                        [(:context-path options
-                                                        (:context-path register-defaults))]})
+     (let [opts (-> handler-env
+                  keywordize-keys
+                  (validate-options run "stop"))
+           contexts (:contexts opts {(server opts) [(:path opts (:path register-defaults))]})
            stopped (some boolean (doall (for [[s cs] contexts, c cs] (.unregister s c))))]
        (doseq [server (keys contexts)]
          (if (empty? (.registeredContexts server))

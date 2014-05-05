@@ -49,7 +49,7 @@
 (defn ^:internal run-dmc* [run env handler]
   (let [result (run env (wrap-dev-middleware handler))]
     (browse-url (format "http://%s:%s%s"
-                  (:host         env (:host create-defaults))
-                  (:port         env (:port create-defaults))
-                  (:context-path env (:context-path register-defaults))))
+                  (:host env (:host create-defaults))
+                  (:port env (:port create-defaults))
+                  (:path env (:path register-defaults))))
     result))

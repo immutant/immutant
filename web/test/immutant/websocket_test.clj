@@ -31,13 +31,13 @@
                   :on-message (fn [_ m]
                                 (swap! events conj m)))]
     (try
-      (run {:context-path path} handler)
+      (run {:path path} handler)
       (let [socket (ws/connect (str "ws://localhost:8080" path))]
         (ws/send-msg socket "hello")
         (ws/close socket))
       (deref result 2000 :fail)
       (finally
-        (stop {:context-path path})))))
+        (stop {:path path})))))
 
 (deftest undertow-websocket
   (let [expected [:open "hello" 1000]]

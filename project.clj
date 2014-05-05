@@ -62,6 +62,6 @@
                         ring                       "1.2.2"
 
                         org.immutant               "2.0.0-SNAPSHOT"
-                        org.projectodd.wunderboss  "1.x.incremental.26"
+                        org.projectodd.wunderboss  "1.x.incremental.27"
                         ;;org.projectodd.wunderboss  "0.1.0-SNAPSHOT"
                         }})
