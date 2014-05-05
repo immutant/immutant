@@ -25,40 +25,66 @@
 
 (defn schedule
   "Schedules a function to execute according to a specification map.
-  Option functions (defined below) can be combined to create the
+
+  Option helper functions (defined below) can be combined to create the
   spec, e.g.
 
     (schedule
-      (-> (in 5 :minutes)
+      (-> (id :some-job)
+        (in 5 :minutes)
         (every 2 :hours, 30 :minutes)
         (until \"1730\"))
       #(println \"I'm running!\"))
 
-  TODO: flesh this out"
+  The above is the same as:
+
+    (schedule
+      {:id :some-job
+       :in 300000
+       :every 9000000
+       :until a-date-representing-1730-today}
+      #(println \"I'm running!\"))
+
+  If called with an id that has already been scheduled, the prior job will
+  be replaced. If an id is not provided, a uuid is used instead. Returns
+  the options with any missing defaults filled in, including a generated
+  id if necessary.
+
+  TODO: doc scheduler options and scheduler lookup"
   [options f]
   (let [opts (->> options
                keywordize-keys
                resolve-options
                (merge create-defaults schedule-defaults))
-        scheduler (scheduler (validate-options opts schedule))
-        id (:id opts (u/uuid))]
+        id (:id opts (u/uuid))
+        scheduler (scheduler (validate-options opts schedule))]
     (.schedule scheduler (name id) f
       (extract-options opts Scheduling$ScheduleOption))
-    (assoc opts :id id)))
+    (-> opts
+      (update-in [:ids scheduler] conj id)
+      (assoc :id id))))
 
 (set-valid-options! schedule
-  (conj (opts->set Scheduling$ScheduleOption Scheduling$CreateOption) :id))
+  (conj (opts->set Scheduling$ScheduleOption Scheduling$CreateOption) :id :ids))
 
 (defn stop
-  "Unschedule a job given its id"
-  ([]
-     (stop nil))
-  ([schedule-env]
-     (let [options (-> schedule-env
-                     keywordize-keys
-                     (validate-options schedule "stop"))
-           scheduler (scheduler options)]
-       (.unschedule scheduler (name (:id options))))))
+  "Unschedule a scheduled job.
+
+   The schedule-env argument is a map, typically the return value of a
+   schedule. If there are no jobs remaining on the scheduler the scheduler
+   itself is stopped. Returns true if a job was actually removed."
+  [schedule-env]
+  (let [options (-> schedule-env
+                  keywordize-keys
+                  (validate-options schedule "stop"))
+        ids (:ids options {(scheduler options)
+                           [(:id options)]})
+        stopped? (some boolean (doall (for [[s ids] ids, id ids]
+                                        (.unschedule s (name id)))))]
+    (doseq [scheduler (keys ids)]
+      (when (empty? (.scheduledJobs scheduler))
+        (.stop scheduler)))
+    stopped?))
 
 (defoption in
   "Takes a duration after which the job will fire, e.g. (in 5 :minutes)")

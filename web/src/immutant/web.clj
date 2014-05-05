@@ -59,7 +59,8 @@
                      keywordize-keys
                      (validate-options run "stop"))
            contexts (:contexts options {(server options)
-                                        [(:context-path options (:context-path register-defaults))]})
+                                        [(:context-path options
+                                                        (:context-path register-defaults))]})
            stopped (some boolean (doall (for [[s cs] contexts, c cs] (.unregister s c))))]
        (doseq [server (keys contexts)]
          (if (empty? (.registeredContexts server))
