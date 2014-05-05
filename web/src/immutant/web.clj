@@ -61,13 +61,13 @@
 (defn stop
   "Stops a running handler.
 
-   options can be a map or kwargs, but is typically the map returned from a
-   run call. If that return value is not available, you can pass the
-   same options map passed to run for the handler you want to stop. If
-   options isn't provided, the handler at the root context path
-   (\"/\") of the default server will be stopped. If there are no
-   handlers remaining on the server, the server itself is stopped.
-   Returns true if a handler was actually removed."
+  Options can be passed as a map or kwargs, but is typically the map
+  returned from a run call. If that return value is not available, you
+  can pass the same options map passed to run for the handler you want
+  to stop. If options isn't provided, the handler at the root context
+  path (\"/\") of the default server will be stopped. If there are no
+  handlers remaining on the server, the server itself is stopped.
+  Returns true if a handler was actually removed."
   [& options]
   (let [opts (-> options
                kwargs-or-map->map

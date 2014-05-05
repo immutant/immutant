@@ -30,20 +30,29 @@
   spec, e.g.
 
     (schedule
+      #(println \"I'm running!\")
       (-> (id :some-job)
         (in 5 :minutes)
         (every 2 :hours, 30 :minutes)
-        (until \"1730\"))
-      #(println \"I'm running!\"))
+        (until \"1730\")))
 
   The above is the same as:
 
     (schedule
+      #(println \"I'm running!\")
       {:id :some-job
        :in 300000
        :every 9000000
-       :until a-date-representing-1730-today}
-      #(println \"I'm running!\"))
+       :until a-date-representing-1730-today})
+
+  The options can also be specified as kwargs:
+
+    (schedule
+      #(println \"I'm running!\")
+      :id :some-job
+      :in 300000
+      :every 9000000
+      :until a-date-representing-1730-today)
 
   If called with an id that has already been scheduled, the prior job will
   be replaced. If an id is not provided, a uuid is used instead. Returns
@@ -51,8 +60,9 @@
   id if necessary.
 
   TODO: doc scheduler options and scheduler lookup"
-  [options f]
+  [f & options]
   (let [opts (->> options
+               u/kwargs-or-map->map
                keywordize-keys
                resolve-options
                (merge create-defaults schedule-defaults))
@@ -70,11 +80,13 @@
 (defn stop
   "Unschedule a scheduled job.
 
-   The schedule-env argument is a map, typically the return value of a
-   schedule. If there are no jobs remaining on the scheduler the scheduler
-   itself is stopped. Returns true if a job was actually removed."
-  [schedule-env]
-  (let [options (-> schedule-env
+  Options can be passed as either a map or kwargs, but is typically the
+  map returned from a schedule call. If there are no jobs remaining on
+  the scheduler the scheduler itself is stopped. Returns true if a job
+  was actually removed."
+  [options & rest]
+  (let [options (-> (cons options rest)
+                  u/kwargs-or-map->map
                   keywordize-keys
                   (validate-options schedule "stop"))
         ids (:ids options {(scheduler options)

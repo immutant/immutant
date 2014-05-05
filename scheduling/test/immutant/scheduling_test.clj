@@ -27,11 +27,16 @@
 
 (deftest scheduling-should-work
   (let [p (promise)]
-    (schedule {} #(deliver p :success))
+    (schedule #(deliver p :success) {})
+    (is (= :success (deref p 10000 :failure)))))
+
+(deftest scheduling-should-take-kwargs
+  (let [p (promise)]
+    (schedule #(deliver p :success) :limit 1 :every 1)
     (is (= :success (deref p 10000 :failure)))))
 
 (deftest should-return-opts-with-the-defaults
-  (let [result (schedule (in 1) #())]
+  (let [result (schedule #() (in 1))]
     (is (= (-> (merge create-defaults schedule-defaults) keys (conj :id :ids) set)
           (-> result keys set)))
     (is (:id result))
@@ -39,7 +44,7 @@
 
 (deftest should-return-given-opts-not-overridden-by-defaults
   (let [opts {:id :foo :num-threads 1}
-        result (schedule opts #())]
+        result (schedule #() opts)]
     (is (= (-> (merge create-defaults schedule-defaults) keys (conj :id :ids) set)
           (-> result keys set)))
     (is (= opts (select-keys result (keys opts))))))
@@ -48,20 +53,34 @@
     (let [started? (promise)
           should-run? (atom true)
           env (schedule
-                (-> (every 100)
-                  (limit 5))
                 (fn []
                   (is @should-run?)
-                  (deliver started? true)))]
+                  (deliver started? true))
+                (-> (every 100)
+                  (limit 5)))]
       (is (deref started? 5000 false))
       (is (stop env))
       (is (not (stop env)))
       (reset! should-run? false)))
 
+(deftest stop-should-take-kwargs
+    (let [started? (promise)
+          should-run? (atom true)]
+      (schedule
+        (fn []
+          (is @should-run?)
+          (deliver started? true))
+        (-> (id :foo)
+          (every 1)
+          (limit 5)))
+      (is (deref started? 5000 false))
+      (is (stop :id :foo))
+      (reset! should-run? false)))
+
 (deftest stop-should-stop-the-scheduler-when-no-jobs-remain
   (immutant.util/reset)
-  (let [job1 (schedule {} #())
-        job2 (schedule {} #())
+  (let [job1 (schedule #())
+        job2 (schedule #())
         scheduler (.scheduler (scheduler {}))]
     (is (not (.isShutdown scheduler)))
     (stop job1)
@@ -71,11 +90,11 @@
 
 (deftest stop-should-stop-all-threaded-jobs
   (immutant.util/reset)
-  (let [everything (-> (schedule {} #())
+  (let [everything (-> (schedule #())
                      (dissoc :id)
-                     (schedule #())
+                     (->> (schedule #()))
                      (dissoc :id)
-                     (schedule #()))
+                     (->> (schedule #())))
         scheduler (scheduler {})]
     (is (true? (stop everything)))
     (is (empty? (.scheduledJobs scheduler)))
