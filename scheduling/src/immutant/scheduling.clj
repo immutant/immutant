@@ -84,19 +84,20 @@
   map returned from a schedule call. If there are no jobs remaining on
   the scheduler the scheduler itself is stopped. Returns true if a job
   was actually removed."
-  [options & rest]
-  (let [options (-> (cons options rest)
-                  u/kwargs-or-map->map
-                  keywordize-keys
-                  (validate-options schedule "stop"))
-        ids (:ids options {(scheduler options)
-                           [(:id options)]})
-        stopped? (some boolean (doall (for [[s ids] ids, id ids]
-                                        (.unschedule s (name id)))))]
-    (doseq [scheduler (keys ids)]
-      (when (empty? (.scheduledJobs scheduler))
-        (.stop scheduler)))
-    stopped?))
+  ([key value & key-values]
+     (stop (apply hash-map key value key-values)))
+  ([options]
+      (let [options (-> options
+                      keywordize-keys
+                      (validate-options schedule "stop"))
+            ids (:ids options {(scheduler options)
+                               [(:id options)]})
+            stopped? (some boolean (doall (for [[s ids] ids, id ids]
+                                            (.unschedule s (name id)))))]
+        (doseq [scheduler (keys ids)]
+          (when (empty? (.scheduledJobs scheduler))
+            (.stop scheduler)))
+        stopped?)))
 
 (defoption in
   "Takes a duration after which the job will fire, e.g. (in 5 :minutes)")
