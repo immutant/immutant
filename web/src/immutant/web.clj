@@ -38,9 +38,9 @@
    Because env is the first argument, run calls can be threaded together, e.g.
 
      (-> (run hello)
-       (assoc :path "/howdy")
+       (assoc :path \"/howdy\")
        (run howdy))
-       (merge {:path "/" :port 8081})
+       (merge {:path \"/\" :port 8081})
        (run ola)))
 
    The above actually creates two web server instances, one listening
