@@ -29,7 +29,23 @@
    same env, any prior handler with that env will be replaced. Returns
    the given env with any missing defaults filled in.
 
-   Needs: options, examples"
+   The env is a map with these valid keys and [default] values:
+
+     :host  The interface bind address [localhost]
+     :port  The port listening for requests [8080]
+     :path  Maps the handler to a prefix of the url path [/]
+
+   Because env is the first argument, run calls can be threaded together, e.g.
+
+     (-> (run hello)
+       (assoc :path "/howdy")
+       (run howdy))
+       (merge {:path "/" :port 8081})
+       (run ola)))
+
+   The above actually creates two web server instances, one listening
+   for hello and howdy requests on port 8080, and another listening
+   for ola requests on 8081"
   ([handler] (run nil handler))
   ([env handler]
      (let [options (->> env
