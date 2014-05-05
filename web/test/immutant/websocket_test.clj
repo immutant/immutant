@@ -24,12 +24,12 @@
         events (atom [])
         result (promise)
         handler (create-handler
-                  :on-open    (fn [_]
-                                (swap! events conj :open))
-                  :on-close   (fn [_ {c :code}]
-                                (deliver result (swap! events conj c)))
-                  :on-message (fn [_ m]
-                                (swap! events conj m)))]
+                  {:on-open    (fn [_]
+                                 (swap! events conj :open))
+                   :on-close   (fn [_ {c :code}]
+                                 (deliver result (swap! events conj c)))
+                   :on-message (fn [_ m]
+                                 (swap! events conj m))})]
     (try
       (run {:path path} handler)
       (let [socket (ws/connect (str "ws://localhost:8080" path))]

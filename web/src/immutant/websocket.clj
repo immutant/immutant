@@ -48,7 +48,7 @@
     :on-close   (fn [channel {:keys [code reason]}])
     :on-error   (fn [channel throwable])
     :fallback   (fn [request] (response ...))"
-  [& {:keys [on-message on-open on-close on-error fallback] :as args}]
+  [{:keys [on-message on-open on-close on-error fallback] :as args}]
   (undertow/create-websocket-handler args))
 
 (defn create-servlet
@@ -58,5 +58,5 @@
 
   In addition, a :path may be specified. It will be resolved relative
   to the path on which the returned servlet is mounted"
-  [& {:keys [path on-message on-open on-close on-error fallback] :as args}]
+  [{:keys [path on-message on-open on-close on-error fallback] :as args}]
   (javax/create-endpoint-servlet (javax/create-endpoint args) args))
