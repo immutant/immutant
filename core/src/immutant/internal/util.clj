@@ -18,6 +18,13 @@
   (:import clojure.lang.IDeref
            java.util.UUID))
 
+(defn kwargs-or-map->map
+  "If vals contains one value, return it. Otherwise, treat as kwargs and coerce to a map."
+  [vals]
+  (if (= 1 (count vals))
+    (first vals)
+    (apply hash-map vals)))
+
 (defn require-resolve
   "Requires and resolves the given namespace-qualified symbol."
   [sym]

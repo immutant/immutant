@@ -16,6 +16,7 @@
   "Serve web requests using Ring handlers, Servlets, or Undertow HttpHandlers"
   (:require [immutant.internal.options :refer [opts->set set-valid-options!
                                                validate-options]]
+            [immutant.internal.util    :refer [kwargs-or-map->map]]
             [immutant.web.internal     :refer :all]
             [clojure.walk              :refer [keywordize-keys]])
   (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
@@ -25,60 +26,59 @@
 
    The handler can be a Ring handler function, a Servlet, or an
    Undertow HttpHandler. Can be called multiple times - if given the
-   same env, any prior handler with that env will be replaced. Returns
-   the given env with any missing defaults filled in.
+   same options, any prior handler with those options will be replaced. Returns
+   the given options with any missing defaults filled in.
 
-   The env is a map with these valid keys and [default] values:
+   options can be a map or kwargs, with these valid keys and [default] values:
 
      :host  The interface bind address [localhost]
      :port  The port listening for requests [8080]
      :path  Maps the handler to a prefix of the url path [/]
 
-   Because env is the first argument, run calls can be threaded together, e.g.
+   Run calls can be threaded together, e.g.
 
      (-> (run hello)
        (assoc :path \"/howdy\")
-       (run howdy))
+       (->> (run howdy))
        (merge {:path \"/\" :port 8081})
-       (run ola)))
+       (->> (run ola)))
 
    The above actually creates two web server instances, one listening
    for hello and howdy requests on port 8080, and another listening
-   for ola requests on 8081"
-  ([handler] (run nil handler))
-  ([env handler]
-     (let [options (->> env
-                     keywordize-keys
-                     (merge create-defaults register-defaults))]
-       (validate-options options run)
-       (let [server (server options)]
-         (mount server handler options)
-         (update-in options [:contexts server] conj (:path options))))))
+   for ola requests on 8081."
+  [handler & options]
+  (let [options (->> options
+                  kwargs-or-map->map
+                  keywordize-keys
+                  (merge create-defaults register-defaults))]
+    (validate-options options run)
+    (let [server (server options)]
+      (mount server handler options)
+      (update-in options [:contexts server] conj (:path options)))))
 
 (set-valid-options! run (conj (opts->set Web$CreateOption Web$RegisterOption) :contexts))
 
 (defn stop
   "Stops a running handler.
 
-   The handler-env argument is a map, typically the return value of a
+   options can be a map or kwargs, but is typically the map returned from a
    run call. If that return value is not available, you can pass the
-   same env map passed to run for the handler you want to stop. If
-   handler-env isn't provided, the handler at the root context path
+   same options map passed to run for the handler you want to stop. If
+   options isn't provided, the handler at the root context path
    (\"/\") of the default server will be stopped. If there are no
    handlers remaining on the server, the server itself is stopped.
    Returns true if a handler was actually removed."
-  ([]
-     (stop nil))
-  ([handler-env]
-     (let [opts (-> handler-env
-                  keywordize-keys
-                  (validate-options run "stop"))
-           contexts (:contexts opts {(server opts) [(:path opts (:path register-defaults))]})
-           stopped (some boolean (doall (for [[s cs] contexts, c cs] (.unregister s c))))]
-       (doseq [server (keys contexts)]
-         (if (empty? (.registeredContexts server))
-           (.stop server)))
-       stopped)))
+  [& options]
+  (let [opts (-> options
+               kwargs-or-map->map
+               keywordize-keys
+               (validate-options run "stop"))
+        contexts (:contexts opts {(server opts) [(:path opts (:path register-defaults))]})
+        stopped (some boolean (doall (for [[s cs] contexts, c cs] (.unregister s c))))]
+    (doseq [server (keys contexts)]
+      (if (empty? (.registeredContexts server))
+        (.stop server)))
+    stopped))
 
 (defmacro run-dmc
   "Run in Development Mode (the 'C' is silent).
@@ -86,11 +86,10 @@
    This macro invokes run after ensuring the passed handler is
    var-quoted, with reload and stacktrace middleware applied, and then
    opens the app in a browser. Supports the same options as run."
-  ([handler] `(run-dmc nil ~handler))
-  ([env handler]
-     (let [handler (if (and (symbol? handler)
-                         (not (get &env handler))
-                         (resolve handler))
-                     `(var ~handler)
-                     handler)]
-       `(run-dmc* run ~env ~handler))))
+  [handler & options]
+  (let [handler (if (and (symbol? handler)
+                      (not (get &env handler))
+                      (resolve handler))
+                  `(var ~handler)
+                  handler)]
+    `(run-dmc* run ~handler ~@options)))

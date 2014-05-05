@@ -31,7 +31,7 @@
                    :on-message (fn [_ m]
                                  (swap! events conj m))})]
     (try
-      (run {:path path} handler)
+      (run handler {:path path})
       (let [socket (ws/connect (str "ws://localhost:8080" path))]
         (ws/send-msg socket "hello")
         (ws/close socket))

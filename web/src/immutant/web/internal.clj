@@ -46,10 +46,10 @@
           (undertow/create-http-handler handler))
         opts))))
 
-(defn ^:internal run-dmc* [run env handler]
-  (let [result (run env (wrap-dev-middleware handler))]
+(defn ^:internal run-dmc* [run handler & options]
+  (let [result (apply run (wrap-dev-middleware handler) options)]
     (browse-url (format "http://%s:%s%s"
-                  (:host env (:host create-defaults))
-                  (:port env (:port create-defaults))
-                  (:path env (:path register-defaults))))
+                  (:host options (:host create-defaults))
+                  (:port options (:port create-defaults))
+                  (:path options (:path register-defaults))))
     result))

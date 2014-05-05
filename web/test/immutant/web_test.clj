@@ -36,19 +36,24 @@
   (run pedestal/servlet)
   (is (= "Hello World!" (get-body url))))
 
+(deftest run-takes-kwargs
+  (run hello :path "/kwarg")
+  (is (= "hello" (get-body (str url "kwarg")))))
+
 (deftest run-returns-default-opts
   (let [opts (run hello)]
     (is (subset? (-> (merge register-defaults create-defaults) keys set)
           (-> opts keys set)))))
 
+
 (deftest run-returns-passed-opts-with-defaults
-  (let [opts (run {:path "/abc"} hello)]
+  (let [opts (run hello {:path "/abc"})]
     (is (subset? (-> (merge register-defaults create-defaults) keys set)
           (-> opts keys set)))
     (is (= "/abc" (:path opts)))))
 
 (deftest run-should-throw-with-invalid-options
-  (is (thrown? IllegalArgumentException (run {:invalid true} hello))))
+  (is (thrown? IllegalArgumentException (run hello {:invalid true}))))
 
 (deftest stop-should-throw-with-invalid-options
   (is (thrown? IllegalArgumentException (stop {:invalid true}))))
@@ -56,7 +61,7 @@
 (deftest stop-without-args-stops-default-context
   (run hello)
   (is (= "hello" (get-body url)))
-  (run {:path "/howdy"} (handler "howdy"))
+  (run (handler "howdy") {:path "/howdy"})
   (is (= "howdy" (get-body (str url "howdy"))))
   (stop)
   (is (= "howdy" (get-body (str url "howdy"))))
@@ -66,11 +71,15 @@
 (deftest stop-with-context-stops-that-context
   (run hello)
   (is (= "hello" (get-body url)))
-  (run {:path "/howdy"} (handler "howdy"))
+  (run (handler "howdy") {:path "/howdy"})
   (is (= "howdy" (get-body (str url "howdy"))))
   (stop {:path "/howdy"})
   (is (= "hello" (get-body url)))
   (is (= "hello" (get-body (str url "howdy")))))
+
+(deftest stop-should-accept-kwargs
+  (run hello)
+  (is (stop :path "/")))
 
 (deftest stopping-last-handler-stops-the-server
   (let [root-opts (run hello)]
@@ -81,7 +90,7 @@
 (deftest stop-stops-the-requested-server
   (run hello)
   (is (= "hello" (get-body url)))
-  (run {:port 8081} hello)
+  (run hello {:port 8081})
   (is (= "hello" (get-body url2)))
   (stop {:port 8081})
   (is (= "hello" (get-body url)))
@@ -94,12 +103,12 @@
   (is (thrown? ConnectException (get-body url))))
 
 (deftest string-args-to-run-should-work
-  (run {"port" "8081"} hello)
+  (run hello {"port" "8081"})
   (is (= "hello" (get-body url2))))
 
 (deftest string-args-to-stop-should-work
   (run hello)
-  (run {"path" "/howdy"} (handler "howdy"))
+  (run (handler "howdy") {"path" "/howdy"})
   (is (= "hello" (get-body url)))
   (is (= "howdy" (get-body (str url "howdy"))))
   (stop {"path" "/howdy"})
@@ -108,9 +117,9 @@
 (deftest run-with-threading
   (-> (run hello)
     (assoc :path "/howdy")
-    (run (handler "howdy"))
+    (->> (run (handler "howdy")))
     (assoc :port 8081)
-    (run (handler "howdy")))
+    (->> (run (handler "howdy"))))
   (is (= "hello" (get-body url)))
   (is (= "howdy" (get-body (str url "howdy"))))
   (is (= "howdy" (get-body (str url2 "howdy")))))
@@ -118,9 +127,9 @@
 (deftest stop-should-stop-all-threaded-apps
   (let [everything (-> (run hello)
                      (assoc :path "/howdy")
-                     (run (handler "howdy"))
+                     (->> (run (handler "howdy")))
                      (merge {:path "/" :port 8081})
-                     (run (handler "howdy")))]
+                     (->> (run (handler "howdy"))))]
     (is (true? (stop everything)))
     (is (thrown? ConnectException (get-body url)))
     (is (thrown? ConnectException (get-body url2)))
@@ -134,14 +143,21 @@
         (is (deref called 1 false))
         (is (= (run hello) result))))))
 
+(deftest run-dmc-should-take-kwargs
+  (let [called (promise)]
+    (with-redefs [clojure.java.browse/browse-url (fn [_] (deliver called true))]
+      (run-dmc hello :path "/foo")
+      (is (= "hello" (get-body (str url "foo"))))
+      (is (deref called 1 false)))))
+
 (deftest run-dmc-with-threading
   (let [call-count (atom 0)]
     (with-redefs [clojure.java.browse/browse-url (fn [_] (swap! call-count inc))]
       (-> (run-dmc hello)
         (assoc :path "/howdy")
-        (run-dmc (handler "howdy"))
+        (->> (run-dmc (handler "howdy")))
         (assoc :port 8081)
-        (run-dmc (handler "howdy")))
+        (->> (run-dmc (handler "howdy"))))
       (is (= 3 @call-count))
       (is (= "hello" (get-body url)))
       (is (= "howdy" (get-body (str url "howdy"))))
