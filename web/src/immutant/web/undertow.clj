@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns ^{:no-doc true} immutant.web.undertow.http
+(ns ^{:no-doc true} immutant.web.undertow
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
             [potemkin :refer [def-map-type]])

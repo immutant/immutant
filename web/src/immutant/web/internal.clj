@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns ^:no-doc ^:internal immutant.web.internal
-    (:require [immutant.web.undertow.http :as undertow]
+    (:require [immutant.web.undertow :as undertow]
               [immutant.internal.options  :refer [extract-options opts->set opts->defaults-map]]
               [immutant.web.middleware    :refer [wrap-dev-middleware]]
               [clojure.java.browse        :refer [browse-url]])

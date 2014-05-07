@@ -17,9 +17,9 @@
   as either an Undertow HttpHandler (create-handler) or a JSR 356
   Endpoint (create-servlet)"
   (:require [immutant.logging :as log]
-            [immutant.web.undertow.websocket :as undertow]
-            [immutant.web.javax :as javax]
-            [ring.util.response :refer [response]]))
+            [immutant.web.undertow :refer [create-http-handler]]
+            [immutant.web.javax :as javax])
+  (:import [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint]))
 
 (defprotocol Channel
   "Websocket channel interface"
@@ -30,7 +30,7 @@
 (extend-protocol Channel
 
   io.undertow.websockets.core.WebSocketChannel
-  (send! [ch message] (undertow/send! ch message))
+  (send! [ch message] (UndertowWebsocket/send ch message nil))
   (open? [ch] (.isOpen ch))
   (close [ch] (.sendClose ch))
 
@@ -50,8 +50,18 @@
     :fallback   (fn [request] (response ...))"
   ([key value & key-values]
      (create-handler (apply hash-map key value key-values)))
-  ([{:keys [on-message on-open on-close on-error fallback] :as args}]
-     (undertow/create-websocket-handler args)))
+  ([{:keys [on-message on-open on-close on-error fallback]}]
+     (UndertowWebsocket/create
+       (reify Endpoint
+         (onMessage [_ channel message]
+           (if on-message (on-message channel message)))
+         (onOpen [_ channel exchange]
+           (if on-open (on-open channel)))
+         (onClose [_ channel cm]
+           (if on-close (on-close channel {:code (.getReason cm) :reason (.getString cm)})))
+         (onError [_ channel error]
+           (if on-error (on-error channel error))))
+       (if fallback (create-http-handler fallback)))))
 
 (defn create-servlet
   "The same callbacks accepted by create-handler are supported, where

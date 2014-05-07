@@ -17,7 +17,7 @@
 
 (ns ^{:no-doc true} immutant.web.javax
   (:require [ring.util.servlet :as ring])
-  (:import [org.projectodd.wunderboss.web Util]
+  (:import [org.projectodd.wunderboss.websocket Util]
            [javax.servlet.http HttpServlet HttpServletRequest]
            [javax.websocket Endpoint MessageHandler$Whole]
            [javax.websocket.server ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
