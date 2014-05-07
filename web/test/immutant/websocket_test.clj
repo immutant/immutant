@@ -16,7 +16,8 @@
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
             [immutant.websocket :refer :all]
-            [gniazdo.core :as ws]))
+            [gniazdo.core :as ws]
+            [clojure.string :refer [upper-case]]))
 
 (defn test-websocket
   [create-handler]
@@ -46,3 +47,14 @@
 (deftest jsr-356-websocket
   (let [expected [:open "hello" 1000]]
     (is (= expected (test-websocket create-servlet)))))
+
+(deftest remote-sending-to-client
+  (let [result (promise)
+        server (run (create-handler {:on-message (fn [c m] (send! c (upper-case m)))}))
+        socket (ws/connect "ws://localhost:8080" :on-receive #(deliver result %))]
+    (try
+      (ws/send-msg socket "hello")
+      (is (= "HELLO" (deref result 2000 "goodbye")))
+      (finally
+        (ws/close socket)
+        (stop server)))))
