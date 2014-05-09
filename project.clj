@@ -19,6 +19,7 @@
 
   :profiles {:provided {:dependencies [[org.clojure/clojure _]]}
              :fast {:modules {:subprocess false}}
+             :travis {:modules {:subprocess "lein2"}}
              :incremental {:deploy-repositories [["releases"
                                                   {:url "dav:https://repository-projectodd.forge.cloudbees.com/incremental"
                                                    :sign-releases false}]]

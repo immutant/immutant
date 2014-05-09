@@ -1,0 +1,12 @@
+language: clojure
+lein: lein2
+script: lein2 with-profile +travis modules all
+branches:
+  only:
+    - thedeuce
+jdk:
+  - openjdk7
+  - oraclejdk7
+notifications:
+  email:
+    - admin@immutant.org
