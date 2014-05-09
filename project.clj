@@ -60,9 +60,10 @@
              :versions {clojure                    "1.6.0"
                         java.classpath             "0.2.2"
                         tools.nrepl                "0.2.3"
+                        tools.reader               "0.8.4"
                         ring                       "1.2.2"
 
                         org.immutant               "2.0.0-SNAPSHOT"
-                        org.projectodd.wunderboss  "1.x.incremental.28"
+                        org.projectodd.wunderboss  "1.x.incremental.29"
                         ;;org.projectodd.wunderboss  "0.1.0-SNAPSHOT"
                         }})

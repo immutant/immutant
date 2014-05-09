@@ -15,6 +15,7 @@
 (ns ^:no-doc ^:internal immutant.web.internal
     (:require [immutant.web.undertow :as undertow]
               [immutant.internal.options  :refer [extract-options opts->set opts->defaults-map]]
+              [immutant.internal.util     :as u]
               [immutant.web.middleware    :refer [wrap-dev-middleware]]
               [clojure.java.browse        :refer [browse-url]])
     (:import org.projectodd.wunderboss.WunderBoss
@@ -25,11 +26,8 @@
 (def ^:internal register-defaults (opts->defaults-map Web$RegisterOption))
 (def ^:internal create-defaults (opts->defaults-map Web$CreateOption))
 
-(defn ^:internal server-name [opts]
-  (->> opts
-    (merge create-defaults)
-    .hashCode
-    str))
+(def ^:internal server-name
+  (partial u/hash-based-component-name create-defaults))
 
 (defn ^:internal server [opts]
   (WunderBoss/findOrCreateComponent Web

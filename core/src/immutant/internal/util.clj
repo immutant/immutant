@@ -18,6 +18,12 @@
   (:import clojure.lang.IDeref
            java.util.UUID))
 
+(defn hash-based-component-name [defaults opts]
+  (->> opts
+    (merge defaults)
+    .hashCode
+    str))
+
 (defn kwargs-or-map->map
   "If vals contains one value, return it. Otherwise, treat as kwargs and coerce to a map."
   [vals]

@@ -59,7 +59,7 @@
 (defn keywordize [v]
   (keyword (.replace v \_ \-)))
 
-(defn opts->map
+(defn ^java.util.Map opts->map
   "Converts an Option class into a map of name -> Option instance."
   [class]
   (->> class
@@ -86,13 +86,16 @@
   [& classes]
   (->> classes (mapcat opts->keywords) set))
 
-(defn extract-options
+(defn ^java.util.Map extract-options
   "Converts a clojure map into a WunderBoss options map."
   [m c]
   (let [optsm (opts->map c)]
     (->> m
       stringify-keys
       (map (fn [[k v]]
-             (when-let [opts (optsm k (optsm (.replace k \- \_)))]
-               [opts v])))
+             (when-let [key (optsm k
+                              (optsm (-> k
+                                       (.replace \- \_)
+                                       (.replace "?" ""))))]
+               [key v])))
       (into {}))))

@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (ns ^:no-doc ^:internal immutant.scheduling.internal
-    (:require [immutant.internal.options :refer :all])
+    (:require [immutant.internal.options :refer :all]
+              [immutant.internal.util    :as u])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.scheduling
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
@@ -21,11 +22,8 @@
 (def ^:internal create-defaults (opts->defaults-map Scheduling$CreateOption))
 (def ^:internal schedule-defaults (opts->defaults-map Scheduling$ScheduleOption))
 
-(defn scheduler-name [opts]
-  (->> opts
-    (merge create-defaults)
-    .hashCode
-    str))
+(def scheduler-name
+  (partial u/hash-based-component-name create-defaults))
 
 (defn scheduler [opts]
   (WunderBoss/findOrCreateComponent Scheduling
