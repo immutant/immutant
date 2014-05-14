@@ -29,7 +29,7 @@
 
   * :in - a period after which f will be called
   * :at - a time after which f will be called
-  * :every - the period between calls 
+  * :every - the period between calls
   * :until - stops the calls at a specific time
   * :limit - limits the calls to a specific count
   * :cron - calls f according to a [Quartz-style](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06) cron spec
@@ -138,13 +138,13 @@
 
 (defoption limit
   "When {{every}} is specified, this helper limits the invocations by
-  count, including the first one, e.g. `(-> (every :hour) (limit
-  10))`. When {{until}} and `limit` are combined, whichever triggers
+  count, including the first one, e.g. `(-> (every :hour) (limit 10))`.
+  When {{until}} and `limit` are combined, whichever triggers
   first ends the iteration. See {{schedule}}.")
 
 (defoption cron
-  "Helper that takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ?
-   * WED\")`, see the [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
+  "Helper that takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ? * WED\")`,
+   see the [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
    for more details.")
 
 (defoption singleton
