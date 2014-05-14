@@ -22,11 +22,11 @@
       (assoc opts k (f v))
       opts)))
 
-(def at (option :at as-date))
-(def in (option :in as-period))
+(def at (option :at #'as-date))
+(def in (option :in #'as-period))
 
-(def until (option :until as-date))
-(def every (option :every as-period))
+(def until (option :until #'as-date))
+(def every (option :every #'as-period))
 
 (def resolve-options (comp at until every in))
 

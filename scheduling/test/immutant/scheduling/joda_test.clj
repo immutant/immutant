@@ -16,7 +16,7 @@
   (:require [clojure.test :refer :all]
             [immutant.scheduling.joda :refer :all]
             [immutant.scheduling :as s]
-            [immutant.scheduling.options :refer [resolve-options] :reload true]
+            [immutant.scheduling.options :refer [resolve-options]]
             [clj-time.core :as t]
             [clj-time.periodic :refer [periodic-seq]]))
 
