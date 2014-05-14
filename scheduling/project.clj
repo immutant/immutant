@@ -18,4 +18,6 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.immutant/core _]
-                 [org.projectodd.wunderboss/wunderboss-scheduling _]])
+                 [org.projectodd.wunderboss/wunderboss-scheduling _]]
+
+  :profiles {:dev {:dependencies [[clj-time "0.7.0"]]}})

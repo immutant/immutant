@@ -103,15 +103,16 @@
   "Takes a duration after which the job will fire, e.g. (in 5 :minutes)")
 
 (defoption at
-  "Takes a time denoting when the job should fire, can be a
-  java.util.Date, ms-since-epoch, or a string in HH:mm format")
+  "Takes a time before which the job will not fire, so it will run
+  immediately if the time is in the past; can be a java.util.Date,
+  millis-since-epoch, or a string in HH:mm format")
 
 (defoption every
   "Takes a delay interval between job firings, e.g. (every 2 :hours)")
 
 (defoption until
   "When every is specified, limits the firings by time; can be a
-  java.util.Date, ms-since-epoch, or a string in HH:mm format,
+  java.util.Date, millis-since-epoch, or a string in HH:mm format,
   e.g. (-> (every :hour) (until \"17:00\"))")
 
 (defoption limit
