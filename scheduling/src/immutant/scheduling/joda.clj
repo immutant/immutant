@@ -13,7 +13,9 @@
 ;; limitations under the License.
 
 (ns immutant.scheduling.joda
-  "Adapts the clj-time library"
+  "Adapts the [clj-time](https://github.com/clj-time/clj-time)
+  library, which must be included among your app's dependencies to
+  load this namespace"
   (:require [immutant.scheduling.dates]
             [immutant.scheduling    :as i]
             [immutant.internal.util :as u])
@@ -24,10 +26,10 @@
   (as-date [x] (.toDate x)))
 
 (defn schedule
-  "Lazily schedule a task for each DateTime in a sequence, typically
-  returned from clj-time.periodic/periodic-seq. For any two successive
-  elements, the second is scheduled upon completion of the first, and
-  they will all have the same id."
+  "Lazily schedule a task for each `DateTime` in a sequence, typically
+  returned from `clj-time.periodic/periodic-seq`. For any two
+  successive elements, the second is scheduled upon completion of the
+  first, and they will all have the same id."
   [task seq]
   (let [id (u/uuid)]
     (letfn [(f [t & ts]

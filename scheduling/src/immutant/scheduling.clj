@@ -24,50 +24,64 @@
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
 
 (defn schedule
-  "Schedules a function to execute according to a specification map.
+  "Schedules a function to run according to a specification map
+  comprised of any of the following keys:
 
-  Option helper functions (defined below) can be combined to create the
-  spec, e.g.
+  * `:in` - a period after which f will be called
+  * `:at` - a time after which f will be called
+  * `:every` - the period between calls 
+  * `:until` - stops the calls at a specific time
+  * `:limit` - limits the calls to a specific count
+  * `:cron` - calls f according to a [Quartz-style](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06) cron spec
 
-  ```
-  (schedule
-    #(println \"I'm running!\")
-      (-> (id :some-job)
-        (in 5 :minutes)
-        (every 2 :hours, 30 :minutes)
-        (until \"1730\")))
-  ```
+  Units for periods (`:in` and `:every`) are milliseconds, but can
+  also be represented as a keyword or a vector of number/keyword
+  pairs, e.g. `[1 :week, 4 :days, 2 :hours, 30 :minutes, 59 :seconds]`.
 
-  The above is the same as:
+  Date/Time values (`:at` and `:until`) can be a `java.util.Date`,
+  millis-since-epoch, or a String in `HH:mm` format.
 
-  ```
-  (schedule
-    #(println \"I'm running!\")
-      {:id :some-job
-       :in 300000
-       :every 9000000
-       :until a-date-representing-1730-today})
-  ```
-
-  The options can also be specified as kwargs:
+  For example:
 
   ```
-  (schedule
-    #(println \"I'm running!\")
-    :id :some-job
-    :in 300000
-    :every 9000000
-    :until a-date-representing-1730-today)
+  (schedule #(println \"I'm running!\")
+    {:in [5 :minutes]
+     :every [2 :hours, 30 :minutes]
+     :until \"17:30\"})
   ```
 
-  If called with an id that has already been scheduled, the prior job will
-  be replaced. If an id is not provided, a uuid is used instead. Returns
-  the options with any missing defaults filled in, including a generated
-  id if necessary.
+  The spec can be passed as either an explicit map or as keyword arguments:
+
+  ```
+  (schedule #(println \"I'm running!\")
+    :at \"08:00\"
+    :every :day
+    :limit 10)
+  ```
+
+  Optional helper functions can be combined to create the spec as well:
+
+  ```
+  (schedule #(println \"I'm running!\")
+    (-> (in 5 :minutes)
+      (every 2 :hours, 30 :minutes)
+      (until \"1730\")))
+  ```
+
+  Two additional options may be passed in the spec:
+
+  * `:id` - a unique identifier for the scheduled job
+  * `:singleton` - a boolean denoting the job's behavior in a cluster [true]
+
+  If called with an `:id` that has already been scheduled, the prior job
+  will be replaced. If an id is not provided, a UUID is used instead.
+
+  The return value is a map of the options with any missing defaults
+  filled in, including a generated id if necessary.
 
   TODO: doc scheduler options and scheduler lookup"
-  [f & options]
-  (let [opts (->> options
+  [f & spec]
+  (let [opts (->> spec
                u/kwargs-or-map->map
                keywordize-keys
                resolve-options
@@ -106,34 +120,40 @@
         stopped?)))
 
 (defoption in
-  "Takes a duration after which the job will fire, e.g. `(in 5 :minutes)`")
+  "Helper that specifies the period after which the job will fire,
+  e.g. `(in 5 :minutes)`. See {{schedule}}.")
 
 (defoption at
-  "Takes a time before which the job will not fire, so it will run
-  immediately if the time is in the past; can be a java.util.Date,
-  millis-since-epoch, or a string in 'HH:mm' format")
+  "Helper that takes a time after which the job will fire, so it will
+  run immediately if the time is in the past; can be a
+  `java.util.Date`, millis-since-epoch, or a String in `HH:mm` format.
+  See {{schedule}}.")
 
 (defoption every
-  "Takes a delay interval between job firings, e.g. `(every 2 :hours)`")
+  "Helper that specifies a period between function calls,
+  e.g. `(every 2 :hours)`. See {{schedule}}.")
 
 (defoption until
-  "When {{every}} is specified, limits the firings by time; can be a
-  java.util.Date, millis-since-epoch, or a string in 'HH:mm' format,
-  e.g. `(-> (every :hour) (until \"17:00\"))`")
+  "When {{every}} is specified, this helper limits the invocations by
+  time; can be a `java.util.Date`, millis-since-epoch, or a String in
+  `HH:mm` format, e.g. `(-> (every :hour) (until \"17:00\"))`. See
+  {{schedule}}.")
 
 (defoption limit
-  "When {{every}} is specified, limits the firings by count, including the
-  first one, e.g. `(-> (every :hour) (limit 10))`. When {{until}} and `limit`
-  are combined, whichever triggers first ends the iteration.")
+  "When {{every}} is specified, this helper limits the invocations by
+  count, including the first one, e.g. `(-> (every :hour) (limit
+  10))`. When {{until}} and `limit` are combined, whichever triggers
+  first ends the iteration. See {{schedule}}.")
 
 (defoption cron
-  "Takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ? * WED\")`, see the
-   [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
+  "Helper that takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ?
+   * WED\")`, see the [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
    for more details.")
 
 (defoption singleton
-  "Takes a boolean. If true (the default), only one instance of a given job name
-   will run in a cluster.")
+  "Helper that takes a boolean. If true (the default), only one
+   instance of a given job name will run in a cluster.")
 
 (defoption id
-  "Takes a String or keyword to use as the id of the job.")
+  "Helper that takes a String or keyword to use as the unique id for
+  the job.")
