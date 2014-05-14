@@ -55,7 +55,7 @@
                          :license {:name "Apache Software License - v 2.0"
                                    :url "http://www.apache.org/licenses/LICENSE-2.0"
                                    :distribution :repo}
-                         :plugins [[org.immutant/build-helper "0.1.3"]]
+                         :plugins [[org.immutant/build-helper "0.1.4"]]
                          :hooks [build-helper.plugin.pom/hooks]}
              :versions {clojure                    "1.6.0"
                         java.classpath             "0.2.2"
