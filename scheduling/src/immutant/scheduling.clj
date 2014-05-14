@@ -29,30 +29,36 @@
   Option helper functions (defined below) can be combined to create the
   spec, e.g.
 
-    (schedule
-      #(println \"I'm running!\")
+  ```
+  (schedule
+    #(println \"I'm running!\")
       (-> (id :some-job)
         (in 5 :minutes)
         (every 2 :hours, 30 :minutes)
         (until \"1730\")))
+  ```
 
   The above is the same as:
 
-    (schedule
-      #(println \"I'm running!\")
+  ```
+  (schedule
+    #(println \"I'm running!\")
       {:id :some-job
        :in 300000
        :every 9000000
        :until a-date-representing-1730-today})
+  ```
 
   The options can also be specified as kwargs:
 
-    (schedule
-      #(println \"I'm running!\")
-      :id :some-job
-      :in 300000
-      :every 9000000
-      :until a-date-representing-1730-today)
+  ```
+  (schedule
+    #(println \"I'm running!\")
+    :id :some-job
+    :in 300000
+    :every 9000000
+    :until a-date-representing-1730-today)
+  ```
 
   If called with an id that has already been scheduled, the prior job will
   be replaced. If an id is not provided, a uuid is used instead. Returns
@@ -81,7 +87,7 @@
   "Unschedule a scheduled job.
 
   Options can be passed as either a map or kwargs, but is typically the
-  map returned from a schedule call. If there are no jobs remaining on
+  map returned from a {{schedule}} call. If there are no jobs remaining on
   the scheduler the scheduler itself is stopped. Returns true if a job
   was actually removed."
   ([key value & key-values]
@@ -100,29 +106,30 @@
         stopped?)))
 
 (defoption in
-  "Takes a duration after which the job will fire, e.g. (in 5 :minutes)")
+  "Takes a duration after which the job will fire, e.g. `(in 5 :minutes)`")
 
 (defoption at
   "Takes a time before which the job will not fire, so it will run
   immediately if the time is in the past; can be a java.util.Date,
-  millis-since-epoch, or a string in HH:mm format")
+  millis-since-epoch, or a string in 'HH:mm' format")
 
 (defoption every
-  "Takes a delay interval between job firings, e.g. (every 2 :hours)")
+  "Takes a delay interval between job firings, e.g. `(every 2 :hours)`")
 
 (defoption until
-  "When every is specified, limits the firings by time; can be a
-  java.util.Date, millis-since-epoch, or a string in HH:mm format,
-  e.g. (-> (every :hour) (until \"17:00\"))")
+  "When {{every}} is specified, limits the firings by time; can be a
+  java.util.Date, millis-since-epoch, or a string in 'HH:mm' format,
+  e.g. `(-> (every :hour) (until \"17:00\"))`")
 
 (defoption limit
-  "When every is specified, limits the firings by count, including the
-  first one, e.g. (-> (every :hour) (limit 10)). When until and limit
-  are combined, whichever triggers first ends the iteration")
+  "When {{every}} is specified, limits the firings by count, including the
+  first one, e.g. `(-> (every :hour) (limit 10))`. When {{until}} and `limit`
+  are combined, whichever triggers first ends the iteration.")
 
 (defoption cron
-  "Takes a Quartz-style cron spec, e.g. (cron \"0 0 12 ? * WED\"), see
-  http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06")
+  "Takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ? * WED\")`, see the
+   [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
+   for more details.")
 
 (defoption singleton
   "Takes a boolean. If true (the default), only one instance of a given job name

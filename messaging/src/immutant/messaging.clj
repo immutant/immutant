@@ -32,14 +32,13 @@
 
    Options are [default]:
 
-     :broadcast? If true, this is a broadcast endpoint (aka a JMS Topic).
-                 Otherwise, it's a queue-based endpoint. [false]
+   * :broadcast? - If true, this is a broadcast endpoint (aka a JMS
+      Topic).  Otherwise, it's a queue-based endpoint. [false]
 
-   The following options are supported for non-broadcast endpoints
-   only [default]:
+   The following options are supported for non-broadcast endpoints only [default]:
 
-     :durable?   whether messages persist across restarts [true]
-     :selector   a JMS (SQL 92) expression to filter published messages [nil]
+   * :durable? - whether messages persist across restarts [true]
+   * :selector - a JMS (SQL 92) expression to filter published messages [nil]
 
    This creates the endpoint if necessary."
   [endpoint-name & options]
@@ -55,7 +54,9 @@
 (defn ^Connection connection
   "Creates a connection to the messaging broker.
 
-   :subscription identifies a durable topic subscriber, ignored for queues [nil]
+   Options are [default]:
+
+   * :subscription - identifies a durable topic subscriber, ignored for queues [nil]
 
    TODO: more docs"
   [& options]
@@ -68,7 +69,7 @@
   (o/opts->set Messaging$CreateConnectionOption))
 
 (defn ^:internal ^:no-doc with-connection
-  "If `:connection` is in `options`, `f` is called with that
+  "If :connection is in `options`, `f` is called with that
   connection. If a connection isn't available, one is created, `f` is
   called with it, then the connection is closed."
   [options f]
@@ -80,18 +81,19 @@
 (defn publish
   "Send a message to an endpoint.
 
-   If the message contains metadata, it will be transferred as headers
+   If `message` has metadata, it will be transferred as headers
    and reconstituted upon receipt. Metadata keys must be valid Java
    identifiers (because they can be used in selectors) and can be overridden
    using the :properties option.
 
    The following options are supported [default]:
-     :encoding        :clojure :edn :fressian :json or :text [:edn]
-     :priority        0-9 or :low :normal :high :critical [4]
-     :ttl             time to live, in ms [0=forever]
-     :persistent      whether undelivered messages survive restarts [true]
-     :properties      a map to which selectors may be applied, overrides metadata [nil]
-     :connection      a connection to use; caller expected to close [nil]"
+
+     * :encoding   - one of: :clojure, :edn, :fressian, :json, :text [:edn]
+     * :priority   - 0-9, or one of: :low, :normal, :high, :critical [4]
+     * :ttl        - time to live, in ms [0 (forever)]
+     * :persistent - whether undelivered messages survive restarts [true]
+     * :properties - a map to which selectors may be applied, overrides metadata [nil]
+     * :connection - a connection to use; caller expected to close [nil]"
   [^Endpoint endpoint message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -115,6 +117,7 @@
 
 (defn subscribe
   "Creates a durable subscription.
+
    TODO: more docs"
   ([endpoint subscription-name]
      (subscribe endpoint subscription-name nil))
@@ -130,15 +133,16 @@
    that expression may be received.
 
    The following options are supported [default]:
-     :timeout      time in ms, after which the timeout-val is returned. 0
-                   means wait forever, -1 means don't wait at all [10000]
-     :timeout-val  the value to return when a timeout occurs. Also returned when
-                   a timeout of -1 is specified, and no message is available [nil]
-     :selector     A JMS (SQL 92) expression matching message metadata/properties [nil]
-     :decode?      if true, the decoded message body is returned. Otherwise, the
-                   base message object is returned [true]
-     :subscription identifies a durable topic subscriber, ignored for queues [nil]
-     :connection   a connection to use; caller expected to close [nil]"
+
+     * :timeout      - time in ms, after which the timeout-val is returned. 0
+                       means wait forever, -1 means don't wait at all [10000]
+     * :timeout-val  - the value to return when a timeout occurs. Also returned when
+                       a timeout of -1 is specified, and no message is available [nil]
+     * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
+     * :decode?      - if true, the decoded message body is returned. Otherwise, the
+                       base message object is returned [true]
+     * :subscription - identifies a durable topic subscriber, ignored for queues [nil]
+     * :connection   - a connection to use; caller expected to close [nil]"
   [^Endpoint endpoint & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -166,14 +170,15 @@
    metadata/properties matching that expression may be received.
 
    The following options are supported [default]:
-     :concurrency  the number of threads handling messages [1]
-     :xa           Whether the handler demarcates an XA transaction [true]
-     :selector     A JMS (SQL 92) expression matching message metadata/properties [nil]
-     :decode?      if true, the decoded message body is passed to f. Otherwise, the
-                   javax.jms.Message object is passed [true]
-     :subscription identifies a durable topic subscriber, ignored for queues [nil]
 
-   Returns a listener object that can can be stopped by passing it to stop, or by
+     * :concurrency  - the number of threads handling messages [1]
+     * :xa           - Whether the handler demarcates an XA transaction [true]
+     * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
+     * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
+                       javax.jms.Message object is passed [true]
+     * :subscription - identifies a durable topic subscriber, ignored for queues [nil]
+
+   Returns a listener object that can can be stopped by passing it to {{stop}}, or by
    calling .close on it."
   [^Endpoint endpoint f & options]
   (let [options (-> options
@@ -195,12 +200,12 @@
     (conj :decode?)))
 
 (defn request
-  "Send a message to an endpoint and return a Future that will retrieve the response.
+  "Send `message` to `endpoint` and return a Future that will retrieve the response.
 
    Implements the request-response pattern, and is used in conjunction
-   with respond. endpoint must be a non-broadcast endpoint.
+   with {{respond}}. endpoint must be a non-broadcast endpoint.
 
-   It takes the same options as publish."
+   It takes the same options as {{publish}}."
   [^Endpoint endpoint message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -218,14 +223,14 @@
     (delegating-future future codecs/decode)))
 
 (defn respond
-  "Listen for messages on endpoint sent by the request function and
-   respond with the result of applying f to the message.
+  "Listen for messages on `endpoint` sent by the {{request}} function and
+   respond with the result of applying `f` to the message.
 
-   endpoint must be a non-broadcast endpoint.
+   `endpoint` must be a non-broadcast endpoint.
 
-   Accepts the same options as listen, along with [default]:
+   Accepts the same options as {{listen}}, along with [default]:
 
-     :ttl  time for the response mesage to live, in ms [60000, 1 minute]"
+     * :ttl  - time for the response mesage to live, in ms [60000 (1 minute)]"
   [^Endpoint endpoint f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
