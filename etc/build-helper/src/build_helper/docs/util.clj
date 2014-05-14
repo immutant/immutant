@@ -84,7 +84,7 @@
    state])
 
 (defn keyword->code [text state]
-  [(str/replace text #"(\s+|>|^)(:[:0-9a-zA-Z?+_?-]+)"
+  [(str/replace text #"([^a-zA-Z0-9])(:[:0-9a-zA-Z?+_?-]+)"
      (fn [[_ prefix kw]]
        (format "%s<code>%s</code>" prefix kw))) state])
 
