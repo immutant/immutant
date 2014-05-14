@@ -19,7 +19,7 @@
             [codox.utils       :as cu]
             [codox.reader.clojure :as cr]
             [codox.writer.html :as html]
-            [hiccup.element    :refer [link-to javascript-tag]]
+            [hiccup.element    :refer [link-to javascript-tag unordered-list]]
             [hiccup.core       :refer [h]]
             [hiccup.page       :as hp]
             [markdown.core     :as md])
@@ -97,7 +97,17 @@
   (md/md-to-html-string content
     :custom-transformers [(partial fn->code-link namespace) keyword->code default->em]))
 
+
+
 ;; pulled from codox so we can easily apply markdown to the docstrings
+
+(def default-includes
+  (list
+    [:meta {:charset "UTF-8"}]
+    (hp/include-css "css/default.css")
+    (hp/include-css "css/docs.css")
+    (hp/include-js "js/jquery.min.js")
+    (hp/include-js "js/page_effects.js")))
 
 (defn header [project]
   [:div#header
@@ -126,12 +136,7 @@
 (defn- namespace-page [project namespace]
   (hp/html5
     [:head
-       (list
-         [:meta {:charset "UTF-8"}]
-         (hp/include-css "css/default.css")
-         (hp/include-css "css/docs.css")
-         (hp/include-js "js/jquery.min.js")
-         (hp/include-js "js/page_effects.js"))
+     default-includes
      [:title (h (:name namespace)) " documentation"]]
    [:body
     (header project)
@@ -142,6 +147,27 @@
      [:div.doc (md->html namespace (:doc namespace))]
      (for [var (#'html/sorted-public-vars namespace)]
        (var-docs namespace var (#'html/var-source-link project var)))]]))
+
+(defn- index-page [project]
+  (hp/html5
+   [:head
+    default-includes
+    [:title (h (#'html/project-title project)) " API documentation"]]
+   [:body
+    (header project)
+    (#'html/namespaces-menu project)
+    [:div#content.namespace-index
+     [:h2 (h (#'html/project-title project))]
+     [:div.doc (h (:description project))]
+     (for [namespace (sort-by :name (:namespaces project))]
+       [:div.namespace
+        [:h3 (link-to (#'html/ns-filename namespace) (h (:name namespace)))]
+        [:div.doc (md->html namespace (:doc namespace))]
+        [:div.index
+         [:p "Public variables and functions:"]
+         (unordered-list
+           (for [var (#'html/sorted-public-vars namespace)]
+             (link-to (#'html/var-uri namespace var) (h (:name var)))))]])]]))
 
 ;; end pullage
 
@@ -155,6 +181,7 @@
   (let [target-dir (.getCanonicalPath (io/file target-path "apidocs"))]
     (println "Generating api docs to" target-dir "...")
     (with-redefs [html/namespace-page namespace-page
+                  html/index-page index-page
                   html/var-docs var-docs]
       (-> codox-options
         (update-in [:src-dir-uri] str (if (re-find #"SNAPSHOT|incremental" version)
