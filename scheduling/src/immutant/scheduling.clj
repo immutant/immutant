@@ -27,22 +27,21 @@
   "Schedules a function to run according to a specification map
   comprised of any of the following keys:
 
-  * `:in` - a period after which f will be called
-  * `:at` - a time after which f will be called
-  * `:every` - the period between calls 
-  * `:until` - stops the calls at a specific time
-  * `:limit` - limits the calls to a specific count
-  * `:cron` - calls f according to a [Quartz-style](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06) cron spec
+  * :in - a period after which f will be called
+  * :at - a time after which f will be called
+  * :every - the period between calls 
+  * :until - stops the calls at a specific time
+  * :limit - limits the calls to a specific count
+  * :cron - calls f according to a [Quartz-style](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06) cron spec
 
-  Units for periods (`:in` and `:every`) are milliseconds, but can
+  Units for periods (:in and :every) are milliseconds, but can
   also be represented as a keyword or a vector of number/keyword
   pairs, e.g. `[1 :week, 4 :days, 2 :hours, 30 :minutes, 59 :seconds]`.
 
-  Date/Time values (`:at` and `:until`) can be a `java.util.Date`,
+  Date/Time values (:at and :until) can be a `java.util.Date`,
   millis-since-epoch, or a String in `HH:mm` format.
 
   For example:
-
   ```
   (schedule #(println \"I'm running!\")
     {:in [5 :minutes]
@@ -51,7 +50,6 @@
   ```
 
   The spec can be passed as either an explicit map or as keyword arguments:
-
   ```
   (schedule #(println \"I'm running!\")
     :at \"08:00\"
@@ -60,7 +58,6 @@
   ```
 
   Optional helper functions can be combined to create the spec as well:
-
   ```
   (schedule #(println \"I'm running!\")
     (-> (in 5 :minutes)
@@ -70,10 +67,10 @@
 
   Two additional options may be passed in the spec:
 
-  * `:id` - a unique identifier for the scheduled job
-  * `:singleton` - a boolean denoting the job's behavior in a cluster [true]
+  * :id - a unique identifier for the scheduled job
+  * :singleton - a boolean denoting the job's behavior in a cluster [true]
 
-  If called with an `:id` that has already been scheduled, the prior job
+  If called with an :id that has already been scheduled, the prior job
   will be replaced. If an id is not provided, a UUID is used instead.
 
   The return value is a map of the options with any missing defaults
