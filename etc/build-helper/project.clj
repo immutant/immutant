@@ -21,8 +21,6 @@
             :distribution :repo}
   :dependencies [[org.clojars.tcrawley/codox.core "0.8.0a"]
                  ;;[codox/codox.core "0.8.0"]
-                 [org.clojars.tcrawley/markdown-clj "0.9.43a"]
-                 ;;[markdown-clj "0.9.43"]
-                 ]
+                 [markdown-clj "0.9.44"]]
   :eval-in-leiningen true
   :signing {:gpg-key "BFC757F9"})
