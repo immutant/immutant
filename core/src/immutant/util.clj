@@ -32,37 +32,35 @@
   (wu/in-container?))
 
 (defn app-root
-  "Returns a file pointing to the root dir of the application"
+  "Returns a file pointing to the root dir of the application."
   []
   (io/file (get (WunderBoss/options) "root")))
 
 (defn app-relative
-  "Returns an absolute file relative to app-root"
+  "Returns an absolute file relative to {{app-root}}."
   [& path]
   (if-let [root (app-root)]
     (apply io/file root path)
     (apply io/file path)))
 
 (defn classpath
-  "Returns the effective classpath for the app"
+  "Returns the effective classpath for the application."
   []
   (cp/classpath))
 
 (defn dev-mode?
-  "Returns true if the app is running in dev mode."
+  "Returns true if the app is running in dev mode.
+
+   This is controlled by the `LEIN_NO_DEV` environment variable."
   []
   (not (System/getenv "LEIN_NO_DEV")))
 
 (defn at-exit
-  "Registers a function to be called when the application is undeployed.
+  "Registers `f` to be called when the application is undeployed.
    Used internally to shutdown various services, but can be used by
    application code as well."
   [f]
   (wu/at-exit f))
-
-(defn mapply [f & args]
-  "Applies args to f, and expands the last arg into a kwarg seq if it is a map"
-  (apply f (apply concat (butlast args) (last args))))
 
 (defn set-bean-property
   "Calls a java bean-style setter (.setFooBar) for the given property (:foo-bar) and value."

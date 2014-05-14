@@ -14,8 +14,8 @@
 
 (ns immutant.websocket
   "Provides the creation of asynchronous Websocket services deployed
-  as either an Undertow HttpHandler (create-handler) or a JSR 356
-  Endpoint (create-servlet)"
+  as either an Undertow HttpHandler ({{create-handler}}) or a JSR 356
+  Endpoint ({{create-servlet}})"
   (:require [immutant.logging :as log]
             [immutant.web.undertow :refer [create-http-handler]]
             [immutant.web.javax :as javax])
@@ -40,14 +40,14 @@
   (close [ch] (.close ch)))
 
 (defn create-handler
-  "The following callbacks are supported, where Channel is an instance
+  "The following callbacks are supported, where `channel` is an instance
   of io.undertow.websockets.core.WebSocketChannel:
 
-    :on-message (fn [channel message])
-    :on-open    (fn [channel])
-    :on-close   (fn [channel {:keys [code reason]}])
-    :on-error   (fn [channel throwable])
-    :fallback   (fn [request] (response ...))"
+    * :on-message `(fn [channel message])`
+    * :on-open    `(fn [channel])`
+    * :on-close   `(fn [channel {:keys [code reason]}])`
+    * :on-error   `(fn [channel throwable])`
+    * :fallback   `(fn [request] (response ...))`"
   ([key value & key-values]
      (create-handler (apply hash-map key value key-values)))
   ([{:keys [on-message on-open on-close on-error fallback]}]
@@ -64,12 +64,12 @@
        (if fallback (create-http-handler fallback)))))
 
 (defn create-servlet
-  "The same callbacks accepted by create-handler are supported, where
-  the Channel passed to the callbacks is an instance of
-  javax.websocket.Session
+  "The same callbacks accepted by {{create-handler}} are supported, where
+  the `channel` passed to the callbacks is an instance of
+  javax.websocket.Session.
 
   In addition, a :path may be specified. It will be resolved relative
-  to the path on which the returned servlet is mounted"
+  to the path on which the returned servlet is mounted."
   ([key value & key-values]
      (create-servlet (apply hash-map key value key-values)))
   ([{:keys [path on-message on-open on-close on-error fallback] :as args}]

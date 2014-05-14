@@ -22,26 +22,28 @@
   (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
 (defn run
-  "Runs a handler with the given options.
+  "Runs `handler` with the given `options`.
 
-   The handler can be a Ring handler function, a Servlet, or an
+   `handler` can be a Ring handler function, a Servlet, or an
    Undertow HttpHandler. Can be called multiple times - if given the
    same options, any prior handler with those options will be replaced. Returns
    the given options with any missing defaults filled in.
 
-   options can be a map or kwargs, with these valid keys and [default] values:
+   options can be a map or kwargs, with these valid keys [default]:
 
-     :host  The interface bind address [localhost]
-     :port  The port listening for requests [8080]
-     :path  Maps the handler to a prefix of the url path [/]
+     * :host  The interface bind address [localhost]
+     * :port  The port listening for requests [8080]
+     * :path  Maps the handler to a prefix of the url path [/]
 
    Run calls can be threaded together, e.g.
 
+   ```
      (-> (run hello)
        (assoc :path \"/howdy\")
        (->> (run howdy))
        (merge {:path \"/\" :port 8081})
        (->> (run ola)))
+   ```
 
    The above actually creates two web server instances, one listening
    for hello and howdy requests on port 8080, and another listening
@@ -61,9 +63,9 @@
 (defn stop
   "Stops a running handler.
 
-  Options can be passed as a map or kwargs, but is typically the map
-  returned from a run call. If that return value is not available, you
-  can pass the same options map passed to run for the handler you want
+  `options` can be passed as a map or kwargs, but is typically the map
+  returned from a {{run}} call. If that return value is not available, you
+  can pass the same options map passed to {{run}} for the handler you want
   to stop. If options isn't provided, the handler at the root context
   path (\"/\") of the default server will be stopped. If there are no
   handlers remaining on the server, the server itself is stopped.
@@ -83,9 +85,9 @@
 (defmacro run-dmc
   "Run in Development Mode (the 'C' is silent).
 
-   This macro invokes run after ensuring the passed handler is
+   This macro invokes {{run}} after ensuring the passed handler is
    var-quoted, with reload and stacktrace middleware applied, and then
-   opens the app in a browser. Supports the same options as run."
+   opens the app in a browser. Supports the same options as {{run}}."
   [handler & options]
   (let [handler (if (and (symbol? handler)
                       (not (get &env handler))

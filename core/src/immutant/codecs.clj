@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.codecs
+(ns ^:no-doc immutant.codecs
   "Common codecs used when [de]serializing data structures."
   (:require [clojure.tools.reader.edn :as edn]
             [clojure.tools.reader     :as r]
