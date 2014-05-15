@@ -12,9 +12,14 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns ^{:no-doc true} immutant.scheduling.periods)
+(ns immutant.scheduling.coercions
+  "Defines AsPeriod and AsTime protocols for schedule specifications"
+  (:import (java.util Calendar Date)))
+
+;;; Periods
 
 (def period-aliases
+  ":second :seconds :minute :minutes :hour :hours :day :days :week :weeks"
   {:second  1000
    :seconds :second
    :minute  (* 60 1000)
@@ -27,8 +32,7 @@
    :weeks   :week})
 
 (defprotocol AsPeriod
-  "Ultimately, return a positive number of milliseconds or nil"
-  (as-period [x]))
+  (as-period [x] "Should return a positive number of milliseconds or nil"))
 
 (extend-type nil
   AsPeriod
@@ -58,3 +62,49 @@
       (partition 2)
       (map (fn [[x p]] (* x (as-period p))))
       (reduce +))))
+
+
+;;; Times
+
+(defprotocol AsTime
+  (as-time [x] "Should return a `java.util.Date` instance or nil"))
+
+(extend-type nil
+  AsTime
+  (as-time [_] nil))
+
+(extend-type Date
+  AsTime
+  (as-time [x] x))
+
+(extend-type java.lang.Long
+  AsTime
+  (as-time [x]
+    (when (< 0 x) (Date. x))))
+
+(defn- calendar
+  "A wrapper around Calendar/getInstance to facilitate testing"
+  []
+  (Calendar/getInstance))
+
+(defn- next-occurrence-of-time [hour min]
+  (let [now (calendar)
+        then (doto (calendar)
+               (.set Calendar/HOUR_OF_DAY hour)
+               (.set Calendar/MINUTE      min)
+               (.set Calendar/SECOND      0))]
+    (when (> 0 (.compareTo then now))
+      (.add then Calendar/DAY_OF_YEAR 1))
+    (.getTime then)))
+
+(extend-type String
+  AsTime
+  (as-time [x]
+    (if-let [match (re-find #"(\d\d):?(\d\d)" x)]
+      (->> (rest match)
+           (map #(Integer/parseInt %))
+           (apply next-occurrence-of-time))
+      (throw (IllegalArgumentException.
+              (format
+               "%s is not a valid time specification. Valid specifications: HH:mm, HHmm"
+               x))))))

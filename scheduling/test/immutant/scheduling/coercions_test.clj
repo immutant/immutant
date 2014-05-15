@@ -12,9 +12,33 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.scheduling.periods-test
+(ns immutant.scheduling.coercions-test
   (:require [clojure.test :refer :all]
-            [immutant.scheduling.periods :refer :all]))
+            [immutant.scheduling.coercions :refer :all])
+  (:import [java.util Date Calendar]))
+
+(def since-epoch 1368779460000)
+(def eight-thirty-one (doto (Calendar/getInstance)
+                        (.setTimeZone (java.util.TimeZone/getTimeZone "UTC"))
+                        (.setTimeInMillis since-epoch)))
+
+(deftest times
+  (let [now (.getTime eight-thirty-one)]
+    (testing "simple types"
+      (are [x expected] (= expected (as-time x))
+           since-epoch    now
+           nil            nil
+           now            now))
+    (testing "string formats"
+      (with-redefs-fn {#'immutant.scheduling.coercions/calendar #(.clone eight-thirty-one)}
+        #(are [x expected] (= (as-period expected) (- (.getTime (as-time x)) since-epoch))
+              "1630"  [7 :hours, 59 :minutes]
+              "16:30" [7 :hours, 59 :minutes]
+              "0900"  [29 :minutes]
+              "09:00" [29 :minutes]
+              "0700"  [22 :hours, 29 :minutes]
+              "07:00" [22 :hours, 29 :minutes]
+              "08:30" [23 :hours, 59 :minutes])))))
 
 (deftest periods
   (testing "simple numbers"

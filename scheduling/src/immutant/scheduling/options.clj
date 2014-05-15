@@ -13,8 +13,7 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.scheduling.options
-    (:require [immutant.scheduling.dates :refer [as-date]]
-              [immutant.scheduling.periods :refer [as-period]]))
+    (:require [immutant.scheduling.coercions :refer [as-time as-period]]))
 
 (defn option [k f]
   (fn [opts]
@@ -22,10 +21,10 @@
       (assoc opts k (f v))
       opts)))
 
-(def at (option :at #'as-date))
+(def at (option :at #'as-time))
 (def in (option :in #'as-period))
 
-(def until (option :until #'as-date))
+(def until (option :until #'as-time))
 (def every (option :every #'as-period))
 
 (def resolve-options (comp at until every in))
