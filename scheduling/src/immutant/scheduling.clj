@@ -24,46 +24,47 @@
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
 
 (defn schedule
-  "Schedules a function to run according to a specification map
-  comprised of any of the following keys:
+  "Schedules a function to run according to a specification composed from any of the following:
 
-  * :in - a period after which f will be called
-  * :at - a time after which f will be called
-  * :every - the period between calls
-  * :until - stops the calls at a specific time
-  * :limit - limits the calls to a specific count
-  * :cron - calls f according to a [Quartz-style](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06) cron spec
+  * {{in}} - a period after which f will be called
+  * {{at}} - a time after which f will be called
+  * {{every}} - the period between calls
+  * {{until}} - stops the calls at a specific time
+  * {{limit}} - limits the calls to a specific count
+  * {{cron}} - calls f according to a [Quartz-style](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06) cron spec
 
-  Units for periods (:in and :every) are milliseconds, but can
-  also be represented as a keyword or a vector of number/keyword
-  pairs, e.g. `[1 :week, 4 :days, 2 :hours, 30 :minutes, 59 :seconds]`.
+  Units for periods are milliseconds, but can also be represented as a
+  keyword or a sequence of multiplier/keyword pairs,
+  e.g. `[1 :week, 4 :days, 2 :hours, 30 :minutes, 59 :seconds]`.
 
-  Date/Time values (:at and :until) can be a `java.util.Date`,
-  millis-since-epoch, or a String in `HH:mm` format.
+  Time values can be a `java.util.Date`, a long denoting
+  milliseconds-since-epoch, or a String in `HH:mm` format, interpreted
+  as the next occurence of \"HH:mm:00\" in the currently active
+  timezone.
 
-  Some syntactic sugar functions corresponding to the above keywords
-  can be composed to create the schedule spec:
+  For example:
+
   ```
-  (schedule #(println \"I'm running!\")
+  (schedule #(prn 'fire!)
     (-> (in 5 :minutes)
       (every 2 :hours, 30 :minutes)
       (until \"1730\")))
+
+  (schedule #(prn 'fire!)
+    (-> (at some-date)
+      (every :second)
+      (limit 60)))
   ```
 
-  Which is equivalent to this:
-  ```
-  (schedule #(println \"I'm running!\")
-    {:in [5 :minutes]
-     :every [2 :hours, 30 :minutes]
-     :until \"17:30\"})
-  ```
+  Ultimately, the spec is just a map, and the syntactic sugar
+  functions are just assoc'ing keys corresponding to their names. The
+  map can be passed either explicitly or via keyword arguments. All of
+  the following are equivalent:
 
-  If you prefer, you can pass the spec as keyword arguments:
   ```
-  (schedule #(println \"I'm running!\")
-    :at \"08:00\"
-    :every :day
-    :limit 10)
+  (schedule #(prn 'fire!) (-> (in 5 :minutes) (every :day)))
+  (schedule #(prn 'fire!) {:in [5 :minutes], :every :day})
+  (schedule #(prn 'fire!) :in [5 :minutes], :every :day)
   ```
 
   Two additional options may be passed in the spec:
@@ -134,16 +135,17 @@
   `(every 1 :hour 20 :minutes)`. See {{schedule}}.")
 
 (defoption ^{:arglists '([date] [ms] [HHmm])} until
-  "When {{every}} is specified, this limits the invocations by
-  time; can be a `java.util.Date`, millis-since-epoch, or a String in
-  `HH:mm` format, e.g. `(-> (every :hour) (until \"17:00\"))`. See
-  {{schedule}}.")
+  "When {{every}} is specified, this limits the invocations by time;
+  can be a `java.util.Date`, millis-since-epoch, or a String in
+  `HH:mm` format, e.g. `(-> (every :hour) (until \"17:00\"))`. When
+  combined with {{limit}}, whichever triggers first ends the
+  iteration. See {{schedule}}.")
 
 (defoption ^{:arglists '([n])} limit
-  "When {{every}} is specified, this limits the invocations by
-  count, including the first one, e.g. `(-> (every :hour) (limit 10))`.
-  When {{until}} and `limit` are combined, whichever triggers
-  first ends the iteration. See {{schedule}}.")
+  "When {{every}} is specified, this limits the invocations by count,
+  including the first one, e.g. `(-> (every :hour) (limit 10))`. When
+  combined with {{until}}, whichever triggers first ends the
+  iteration. See {{schedule}}.")
 
 (defoption ^{:arglists '([str])} cron
   "Takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ? * WED\")`,
