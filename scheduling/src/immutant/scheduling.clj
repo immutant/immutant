@@ -116,41 +116,41 @@
             (.stop scheduler)))
         stopped?)))
 
-(defoption in
+(defoption ^{:arglists '([n] [kw] [n kw & n-kws])} in
   "Helper that specifies the period after which the job will fire,
   e.g. `(in 5 :minutes)`. See {{schedule}}.")
 
-(defoption at
+(defoption ^{:arglists '([date] [ms] [str-HHmm])} at
   "Helper that takes a time after which the job will fire, so it will
   run immediately if the time is in the past; can be a
   `java.util.Date`, millis-since-epoch, or a String in `HH:mm` format.
   See {{schedule}}.")
 
-(defoption every
+(defoption ^{:arglists '([n] [kw] [n kw & n-kws])} every
   "Helper that specifies a period between function calls,
   e.g. `(every 2 :hours)`. See {{schedule}}.")
 
-(defoption until
+(defoption ^{:arglists '([date] [ms] [str-HHmm])} until
   "When {{every}} is specified, this helper limits the invocations by
   time; can be a `java.util.Date`, millis-since-epoch, or a String in
   `HH:mm` format, e.g. `(-> (every :hour) (until \"17:00\"))`. See
   {{schedule}}.")
 
-(defoption limit
+(defoption ^{:arglists '([n])} limit
   "When {{every}} is specified, this helper limits the invocations by
   count, including the first one, e.g. `(-> (every :hour) (limit 10))`.
   When {{until}} and `limit` are combined, whichever triggers
   first ends the iteration. See {{schedule}}.")
 
-(defoption cron
+(defoption ^{:arglists '([str])} cron
   "Helper that takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ? * WED\")`,
    see the [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
    for more details.")
 
-(defoption singleton
+(defoption ^{:arglists '([boolean])} singleton
   "Helper that takes a boolean. If true (the default), only one
    instance of a given job name will run in a cluster.")
 
-(defoption id
+(defoption ^{:arglists '([str])} id
   "Helper that takes a String or keyword to use as the unique id for
   the job.")
