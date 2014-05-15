@@ -25,7 +25,7 @@
   immutant.scheduling.coercions/AsTime
   (as-time [x] (.toDate x)))
 
-(defn schedule
+(defn schedule-seq
   "Lazily schedule a task for each `DateTime` in a sequence, typically
   returned from `clj-time.periodic/periodic-seq`. For any two
   successive elements, the second is scheduled upon completion of the

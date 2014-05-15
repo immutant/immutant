@@ -24,7 +24,7 @@
   (let [result (atom [])
         now (t/now)]
     (with-redefs [s/schedule (fn [f {t :at}] (swap! result conj t) (f))]
-      (schedule #() (take 10 (periodic-seq now (t/minutes 42)))))
+      (schedule-seq #() (take 10 (periodic-seq now (t/minutes 42)))))
     (is (= (repeat 9 42) (map (comp t/in-minutes (partial apply t/interval)) (partition 2 1 @result))))))
 
 (deftest option-resolution
