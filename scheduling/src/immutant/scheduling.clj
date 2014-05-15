@@ -36,6 +36,7 @@
   Units for periods are milliseconds, but can also be represented as a
   keyword or a sequence of multiplier/keyword pairs,
   e.g. `[1 :week, 4 :days, 2 :hours, 30 :minutes, 59 :seconds]`.
+  See {{every}} or {{in}} for a full list of valid period keywords.
 
   Time values can be a `java.util.Date`, a long denoting
   milliseconds-since-epoch, or a String in `HH:mm` format, interpreted
@@ -121,7 +122,9 @@
 (defoption ^{:arglists '([n] [kw] [n kw & n-kws])} in
   "Specifies the period after which the job will fire, in
   milliseconds, a period keyword, or multiplier/keyword pairs, e.g.
-  `(in 5 :minutes 30 :seconds)`. See {{schedule}}.")
+  `(in 5 :minutes 30 :seconds)`. Valid period keywords
+  are: :second :seconds :minute :minutes :hour :hours :day :days :week :weeks. See
+  {{schedule}}.")
 
 (defoption ^{:arglists '([date] [ms] [HHmm])} at
   "Takes a time after which the job will fire, so it will run
@@ -132,7 +135,9 @@
 (defoption ^{:arglists '([n] [kw] [n kw & n-kws])} every
   "Specifies a period between function calls, in milliseconds, a
   period keyword, or multiplier/keyword pairs, e.g.
-  `(every 1 :hour 20 :minutes)`. See {{schedule}}.")
+  `(every 1 :hour 20 :minutes)`.  Valid period keywords
+  are: :second :seconds :minute :minutes :hour :hours :day :days :week :weeks.
+  See {{schedule}}.")
 
 (defoption ^{:arglists '([date] [ms] [HHmm])} until
   "When {{every}} is specified, this limits the invocations by time;
@@ -150,11 +155,11 @@
 (defoption ^{:arglists '([str])} cron
   "Takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ? * WED\")`,
    see the [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
-   for more details.")
+   for the syntax. See {{schedule}}.")
 
 (defoption ^{:arglists '([boolean])} singleton
   "If true (the default), only one instance of a given job name will
-   run in a cluster.")
+   run in a cluster. See {{schedule}}.")
 
 (defoption ^{:arglists '([str])} id
-  "Takes a String or keyword to use as the unique id for the job.")
+  "Takes a String or keyword to use as the unique id for the job. See {{schedule}}.")

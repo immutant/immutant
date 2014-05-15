@@ -13,13 +13,12 @@
 ;; limitations under the License.
 
 (ns immutant.scheduling.coercions
-  "Defines AsPeriod and AsTime protocols for schedule specifications"
+  "Defines {{AsPeriod}} and {{AsTime}} protocols for schedule specifications"
   (:import (java.util Calendar Date)))
 
 ;;; Periods
 
-(def period-aliases
-  ":second :seconds :minute :minutes :hour :hours :day :days :week :weeks"
+(def ^:no-doc period-aliases
   {:second  1000
    :seconds :second
    :minute  (* 60 1000)
