@@ -41,7 +41,16 @@
   Date/Time values (:at and :until) can be a `java.util.Date`,
   millis-since-epoch, or a String in `HH:mm` format.
 
-  For example:
+  Some syntactic sugar functions corresponding to the above keywords
+  can be composed to create the schedule spec:
+  ```
+  (schedule #(println \"I'm running!\")
+    (-> (in 5 :minutes)
+      (every 2 :hours, 30 :minutes)
+      (until \"1730\")))
+  ```
+
+  Which is equivalent to this:
   ```
   (schedule #(println \"I'm running!\")
     {:in [5 :minutes]
@@ -49,20 +58,12 @@
      :until \"17:30\"})
   ```
 
-  The spec can be passed as either an explicit map or as keyword arguments:
+  If you prefer, you can pass the spec as keyword arguments:
   ```
   (schedule #(println \"I'm running!\")
     :at \"08:00\"
     :every :day
     :limit 10)
-  ```
-
-  Optional helper functions can be combined to create the spec as well:
-  ```
-  (schedule #(println \"I'm running!\")
-    (-> (in 5 :minutes)
-      (every 2 :hours, 30 :minutes)
-      (until \"1730\")))
   ```
 
   Two additional options may be passed in the spec:
@@ -117,40 +118,41 @@
         stopped?)))
 
 (defoption ^{:arglists '([n] [kw] [n kw & n-kws])} in
-  "Helper that specifies the period after which the job will fire,
-  e.g. `(in 5 :minutes)`. See {{schedule}}.")
+  "Specifies the period after which the job will fire, in
+  milliseconds, a period keyword, or multiplier/keyword pairs, e.g.
+  `(in 5 :minutes 30 :seconds)`. See {{schedule}}.")
 
-(defoption ^{:arglists '([date] [ms] [str-HHmm])} at
-  "Helper that takes a time after which the job will fire, so it will
-  run immediately if the time is in the past; can be a
-  `java.util.Date`, millis-since-epoch, or a String in `HH:mm` format.
-  See {{schedule}}.")
+(defoption ^{:arglists '([date] [ms] [HHmm])} at
+  "Takes a time after which the job will fire, so it will run
+  immediately if the time is in the past; can be a `java.util.Date`,
+  millis-since-epoch, or a String in `HH:mm` format. See
+  {{schedule}}.")
 
 (defoption ^{:arglists '([n] [kw] [n kw & n-kws])} every
-  "Helper that specifies a period between function calls,
-  e.g. `(every 2 :hours)`. See {{schedule}}.")
+  "Specifies a period between function calls, in milliseconds, a
+  period keyword, or multiplier/keyword pairs, e.g.
+  `(every 1 :hour 20 :minutes)`. See {{schedule}}.")
 
-(defoption ^{:arglists '([date] [ms] [str-HHmm])} until
-  "When {{every}} is specified, this helper limits the invocations by
+(defoption ^{:arglists '([date] [ms] [HHmm])} until
+  "When {{every}} is specified, this limits the invocations by
   time; can be a `java.util.Date`, millis-since-epoch, or a String in
   `HH:mm` format, e.g. `(-> (every :hour) (until \"17:00\"))`. See
   {{schedule}}.")
 
 (defoption ^{:arglists '([n])} limit
-  "When {{every}} is specified, this helper limits the invocations by
+  "When {{every}} is specified, this limits the invocations by
   count, including the first one, e.g. `(-> (every :hour) (limit 10))`.
   When {{until}} and `limit` are combined, whichever triggers
   first ends the iteration. See {{schedule}}.")
 
 (defoption ^{:arglists '([str])} cron
-  "Helper that takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ? * WED\")`,
+  "Takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ? * WED\")`,
    see the [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
    for more details.")
 
 (defoption ^{:arglists '([boolean])} singleton
-  "Helper that takes a boolean. If true (the default), only one
-   instance of a given job name will run in a cluster.")
+  "If true (the default), only one instance of a given job name will
+   run in a cluster.")
 
 (defoption ^{:arglists '([str])} id
-  "Helper that takes a String or keyword to use as the unique id for
-  the job.")
+  "Takes a String or keyword to use as the unique id for the job.")
