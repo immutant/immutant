@@ -45,7 +45,8 @@
         opts))))
 
 (defn ^:internal run-dmc* [run handler & options]
-  (let [result (apply run (wrap-dev-middleware handler) options)]
+  (let [result (apply run (wrap-dev-middleware handler) options)
+        options (u/kwargs-or-map->map options)]
     (browse-url (format "http://%s:%s%s"
                   (:host options (:host create-defaults))
                   (:port options (:port create-defaults))
