@@ -137,11 +137,12 @@
 
 (deftest run-dmc-should-work
   (let [called (promise)]
-    (with-redefs [clojure.java.browse/browse-url (fn [_] (deliver called true))]
-      (let [result (run-dmc hello)]
-        (is (= "hello" (get-body url)))
-        (is (deref called 1 false))
-        (is (= (run hello) result))))))
+    (with-redefs [clojure.java.browse/browse-url (fn [u] (deliver called u))]
+      (let [result (run-dmc hello :path "/hello")
+            uri (str url "hello")]
+        (is (= "hello" (get-body uri)))
+        (is (= uri (deref called 1 false)))
+        (is (= (run hello :path "/hello") result))))))
 
 (deftest run-dmc-should-take-kwargs
   (let [called (promise)]
