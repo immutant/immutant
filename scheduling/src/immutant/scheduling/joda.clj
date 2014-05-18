@@ -26,13 +26,13 @@
   (as-time [x] (.toDate x)))
 
 (defn schedule-seq
-  "Lazily schedule a task for each `DateTime` in a sequence, typically
+  "Lazily schedule a job for each `DateTime` in a sequence, typically
   returned from `clj-time.periodic/periodic-seq`. For any two
   successive elements, the second is scheduled upon completion of the
   first, and they will all have the same id."
-  [task seq]
+  [job seq]
   (let [id (u/uuid)]
     (letfn [(f [t & ts]
-              (i/schedule #(do (task) (if ts (apply f ts)))
+              (i/schedule #(do (job) (if ts (apply f ts)))
                 {:id id, :at t}))]
       (apply f seq))))
