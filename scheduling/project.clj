@@ -14,8 +14,6 @@
 
 (defproject org.immutant/scheduling "2.0.0-SNAPSHOT"
   :plugins [[lein-modules "0.3.1"]]
-  :license {:name "Apache License, Version 2.0"
-            :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.immutant/core _]
                  [org.projectodd.wunderboss/wunderboss-scheduling _]]
