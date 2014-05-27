@@ -19,10 +19,10 @@
               [immutant.codecs           :as core-codecs])
     (:import org.projectodd.wunderboss.WunderBoss
              [org.projectodd.wunderboss.messaging Connection
-              Connection$SendOption
               Messaging Messaging$CreateOption
               Messaging$CreateConnectionOption
-              MessageHandler ReplyableMessage]))
+              MessageHandler ReplyableMessage
+              Session$Mode]))
 
 (def ^:internal create-defaults (o/opts->defaults-map Messaging$CreateOption))
 
@@ -35,12 +35,6 @@
         (broker-name (select-keys opts (o/opts->set Messaging$CreateOption)))
         (o/extract-options opts Messaging$CreateOption))
     .start))
-
-(defn multi-closer [& xs]
-  (reify java.lang.AutoCloseable
-    (close [_]
-      (doseq [x xs]
-        (.close x)))))
 
 (defn delegating-future [future result-fn]
   (reify
@@ -59,7 +53,7 @@
 (defn message-handler [f]
   (let [bound-f (bound-fn [m] (f m))]
     (reify MessageHandler
-      (onMessage [_ message]
+      (onMessage [_ message _]
         (bound-f message)))))
 
 (defn response-handler [f options]
@@ -73,11 +67,11 @@
               message))
           (core-codecs/content-type->encoding (.contentType message)))))))
 
-(defn connection* [options]
-    (.createConnection (broker options)
-      (o/extract-options options Messaging$CreateConnectionOption)))
-
-(defrecord Subscription [client-id subscriber-name]
-  java.lang.AutoCloseable
-  (close [_]
-    ()))
+(defn coerce-session-mode [mode]
+  (case mode
+    nil         (Session$Mode/AUTO_ACK)
+    :auto-ack   (Session$Mode/AUTO_ACK)
+    :client-ack (Session$Mode/CLIENT_ACK)
+    :transacted (Session$Mode/TRANSACTED)
+    (throw (IllegalArgumentException.
+             (str mode " is not a valid session mode")))))

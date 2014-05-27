@@ -14,77 +14,117 @@
 
 (ns immutant.messaging
   "Easily publish and receive messages containing any type of nested
-   data structure to dynamically-created endpoints."
+   data structure to dynamically-created queues and topics.
+   TODO: cover default connection here?"
   (:require [immutant.internal.options :as o]
             [immutant.internal.util    :as u]
             [immutant.messaging.codecs :as codecs]
             [immutant.messaging.internal :refer :all])
-  (:import [org.projectodd.wunderboss.messaging Connection
-            Connection$SendOption Connection$ListenOption
-            Connection$ReceiveOption
-            Endpoint Messaging
-            Messaging$CreateConnectionOption
-            Messaging$CreateEndpointOption Messaging$CreateOption
-            Messaging$CreateSubscriptionOption]))
+  (:import [org.projectodd.wunderboss.messaging Connection Destination
+            Connection$CreateSessionOption
+            Destination$SendOption Destination$ListenOption
+            Destination$ReceiveOption
+            Messaging Messaging$CreateConnectionOption
+            Messaging$CreateOption Messaging$CreateQueueOption
+            Messaging$CreateTopicOption
+            Queue Topic
+            Topic$SubscribeOption Topic$UnsubscribeOption
+            Session]))
 
-(defn endpoint
-  "Establishes a handle to a messaging endpoint.
+(defn queue
+  "Establishes a handle to a messaging queue.
 
-   Options are [default]:
-
-   * :broadcast? - If true, this is a broadcast endpoint (aka a JMS
-      Topic).  Otherwise, it's a queue-based endpoint. [false]
-
-   The following options are supported for non-broadcast endpoints only [default]:
+   The following options are supported [default]:
 
    * :durable? - whether messages persist across restarts [true]
    * :selector - a JMS (SQL 92) expression to filter published messages [nil]
 
-   This creates the endpoint if necessary."
-  [endpoint-name & options]
+   This creates the queue if necessary."
+  [queue-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (o/validate-options endpoint))]
-    (.findOrCreateEndpoint (broker options) endpoint-name
-      (o/extract-options options Messaging$CreateEndpointOption))))
+                  (o/validate-options queue))]
+    (.findOrCreateQueue (broker options) queue-name
+      (o/extract-options options Messaging$CreateQueueOption))))
 
-(o/set-valid-options! endpoint
-  (conj (o/opts->set Messaging$CreateEndpointOption) :broadcast? :durable?))
+(o/set-valid-options! queue
+  (conj (o/opts->set Messaging$CreateQueueOption) :durable?))
+
+(defn topic
+  "Establishes a handle to a messaging topic.
+
+   This creates the topic if necessary."
+  [topic-name & options]
+  (let [options (-> options
+                  u/kwargs-or-map->map
+                  (o/validate-options topic))]
+    (.findOrCreateTopic (broker options) topic-name
+      (o/extract-options options Messaging$CreateTopicOption))))
+
+(o/set-valid-options! topic
+  (o/opts->set Messaging$CreateTopicOption))
 
 (defn ^Connection connection
   "Creates a connection to the messaging broker.
 
+   You are responsible for closing any connection created via this
+   function.
+
    Options are [default]:
 
-   * :subscription - identifies a durable topic subscriber, ignored for queues [nil]
+   * :client-id - identifies the client id for use with a durable topic subscriber [nil]
+   * :host
+   * :port
 
    TODO: more docs"
   [& options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (o/validate-options connection))]
-    (connection* options)))
+    (.createConnection (broker nil)
+      (o/extract-options options Messaging$CreateConnectionOption))))
 
 (o/set-valid-options! connection
   (o/opts->set Messaging$CreateConnectionOption))
 
-(defn ^:internal ^:no-doc with-connection
-  "If :connection is in `options`, `f` is called with that
-  connection. If a connection isn't available, one is created, `f` is
-  called with it, then the connection is closed."
-  [options f]
-  (if-let [connection (:connection options)]
-    (f connection)
-    (with-open [connection (connection options)]
-      (f connection))))
+(defn ^Session session
+  "Creates a session from the given `connection`.
+
+   If no connection is provided, the default shared connection is
+   used.
+
+   The following options are supported [default]:
+
+     * :mode       - one of: :auto-ack, :client-ack, :transacted [:auto-ack]
+     * :connection - a connection to use; caller expected to close [nil]
+
+   You are responsible for closing any sessions created via this
+   function.
+
+   TODO: more docs/examples"
+  [& options]
+  (let [options (-> options
+                  u/kwargs-or-map->map
+                  (update-in [:mode] coerce-session-mode)
+                  (o/validate-options session))
+        connection (:connection options (.defaultConnection (broker nil)))]
+    (.createSession connection
+      (o/extract-options options Connection$CreateSessionOption))))
+
+(o/set-valid-options! session
+  (conj (o/opts->set Connection$CreateSessionOption)
+    :connection))
 
 (defn publish
-  "Send a message to an endpoint.
+  "Send a message to a destination.
 
    If `message` has metadata, it will be transferred as headers
    and reconstituted upon receipt. Metadata keys must be valid Java
    identifiers (because they can be used in selectors) and can be overridden
    using the :properties option.
+
+   If no connection is provided, the default shared connection is
+   used. If no session is provided, a new one is opened and closed.
 
    The following options are supported [default]:
 
@@ -93,44 +133,42 @@
      * :ttl        - time to live, in ms [0 (forever)]
      * :persistent - whether undelivered messages survive restarts [true]
      * :properties - a map to which selectors may be applied, overrides metadata [nil]
-     * :connection - a connection to use; caller expected to close [nil]"
-  [^Endpoint endpoint message & options]
+     * :connection - a connection to use; caller expected to close [nil]
+     * :session    - a session to use; caller expected to close [nil]"
+  [^Destination destination message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (o/validate-options publish)
                   (update-in [:properties] (fn [p] (or p (meta message)))))
         [msg ^String content-type] (codecs/encode message (:encoding options :edn))
-        coerced-options (o/extract-options options Connection$SendOption)]
-    (with-connection options
-      (fn [^Connection connection]
-        (if (instance? String msg)
-          (.send connection endpoint ^String msg content-type
-            coerced-options)
-          (.send connection endpoint ^"bytes" msg content-type
-            coerced-options))))))
+        coerced-options (o/extract-options options Destination$SendOption)]
+    (if (instance? String msg)
+      (.send destination ^String msg content-type coerced-options)
+      (.send destination ^"bytes" msg content-type coerced-options))))
 
 (o/set-valid-options! publish
-  (-> (o/opts->set Connection$SendOption)
-    (concat (o/valid-options-for connection))
-    set
-    (conj :connection :encoding)))
+  (conj (o/opts->set Destination$SendOption)
+    :encoding))
 
-(defn subscribe
-  "Creates a durable subscription.
+#_(defn subscribe
+    "Creates a durable subscription.
 
    TODO: more docs"
-  ([endpoint subscription-name]
-     (subscribe endpoint subscription-name nil))
-  ([endpoint subscription-name selector]
-     (.createSubscription (broker {}) endpoint
-       subscription-name
-       {Messaging$CreateSubscriptionOption/SELECTOR selector})))
+    ([destination subscription-name]
+       (subscribe destination subscription-name nil))
+    ([destination subscription-name selector]
+       (.createSubscription (broker {}) destination
+         subscription-name
+         {Messaging$CreateSubscriptionOption/SELECTOR selector})))
 
 (defn receive
-  "Receive a message from an endpoint.
+  "Receive a message from an destination.
 
    If a :selector is provided, then only having metadata/headers matching
    that expression may be received.
+
+   If no connection is provided, the default shared connection is
+   used. If no session is provided, a new one is opened and closed.
 
    The following options are supported [default]:
 
@@ -142,15 +180,14 @@
      * :decode?      - if true, the decoded message body is returned. Otherwise, the
                        base message object is returned [true]
      * :subscription - identifies a durable topic subscriber, ignored for queues [nil]
-     * :connection   - a connection to use; caller expected to close [nil]"
-  [^Endpoint endpoint & options]
+     * :connection   - a connection to use; caller expected to close [nil]
+     * :session   - a session to use; caller expected to close [nil]"
+  [^Destination destination & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (o/validate-options receive))
-        ^Message message (with-connection options
-                           (fn [^Connection c]
-                             (.receive c endpoint
-                               (o/extract-options options Connection$ReceiveOption))))]
+        ^Message message (.receive destination
+                           (o/extract-options options Destination$ReceiveOption))]
     (if message
       (if (:decode? options true)
         (codecs/decode message)
@@ -158,16 +195,17 @@
       (:timeout-val options))))
 
 (o/set-valid-options! receive
-  (-> (o/opts->set Connection$ReceiveOption)
-    (concat (o/valid-options-for connection))
-    set
-    (conj :connection :decode? :encoding :timeout-val)))
+  (conj (o/opts->set Destination$ReceiveOption)
+    :decode? :encoding :timeout-val))
 
 (defn listen
-  "The handler function, f, will receive each message sent to endpoint.
+  "The handler function, `f`, will receive each message sent to `destination`.
 
    If a :selector is provided, then only messages having
    metadata/properties matching that expression may be received.
+
+   If no connection is provided, the default shared connection is
+   used.
 
    The following options are supported [default]:
 
@@ -176,75 +214,128 @@
      * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
      * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
                        javax.jms.Message object is passed [true]
-     * :subscription - identifies a durable topic subscriber, ignored for queues [nil]
+     * :connection   - a connection to use; caller expected to close [nil]
 
    Returns a listener object that can can be stopped by passing it to {{stop}}, or by
    calling .close on it."
-  [^Endpoint endpoint f & options]
+  [^Destination destination f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (o/validate-options listen))
-        connection (connection options)
-        listener (.listen connection endpoint
-                   (message-handler
-                     #(f (if (:decode? options true)
-                           (codecs/decode %)
-                           %)))
-                   (o/extract-options options Connection$ListenOption))]
-    (multi-closer listener connection)))
+                  (o/validate-options listen))]
+    (.listen destination
+      (message-handler
+        #(f (if (:decode? options true)
+              (codecs/decode %)
+              %)))
+      (o/extract-options options Destination$ListenOption))))
 
 (o/set-valid-options! listen
-  (-> (o/opts->set Connection$ListenOption)
-    (concat (o/valid-options-for connection))
-    set
-    (conj :decode?)))
+  (conj (o/opts->set Destination$ListenOption) :decode?))
 
 (defn request
-  "Send `message` to `endpoint` and return a Future that will retrieve the response.
+  "Send `message` to `queue` and return a Future that will retrieve the response.
 
    Implements the request-response pattern, and is used in conjunction
-   with {{respond}}. endpoint must be a non-broadcast endpoint.
+   with {{respond}}.
 
    It takes the same options as {{publish}}."
-  [^Endpoint endpoint message & options]
+  [^Queue queue message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (o/validate-options publish)
                   (update-in [:properties] (fn [p] (or p (meta message)))))
         [msg ^String content-type] (codecs/encode message (:encoding options :edn))
-        coerced-options (o/extract-options options Connection$SendOption)
-        future (with-connection options
-                 (fn [^Connection connection]
-                   (if (instance? String msg)
-                     (.request connection endpoint ^String msg content-type
-                       coerced-options)
-                     (.request connection endpoint ^"bytes" msg content-type
-                       coerced-options))))]
+        coerced-options (o/extract-options options Destination$SendOption)
+        future (if (instance? String msg)
+                 (.request queue ^String msg content-type coerced-options)
+                 (.request queue ^"bytes" msg content-type coerced-options))]
     (delegating-future future codecs/decode)))
 
 (defn respond
-  "Listen for messages on `endpoint` sent by the {{request}} function and
+  "Listen for messages on `queue` sent by the {{request}} function and
    respond with the result of applying `f` to the message.
-
-   `endpoint` must be a non-broadcast endpoint.
 
    Accepts the same options as {{listen}}, along with [default]:
 
      * :ttl  - time for the response mesage to live, in ms [60000 (1 minute)]"
-  [^Endpoint endpoint f & options]
+  [^Queue queue f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (o/validate-options respond))
-        connection (connection options)
-        listener (.respond connection endpoint
-                   (response-handler f options)
-                   (o/extract-options options Connection$ListenOption))]
-    (multi-closer listener connection)))
+                  (o/validate-options respond))]
+    (.respond queue
+      (response-handler f options)
+      (o/extract-options options Destination$ListenOption))))
 
 (o/set-valid-options! respond (conj (o/valid-options-for listen)
                                 :ttl))
 
+(defn subscribe
+  "Sets up a durable subscription to `topic`, and registers a listener with `f`.
+
+   `subscription-name` is used to identify the subscription, allowing
+   you to stop the listener and resubscribe with the same name in the
+   future without losing messages sent in the interim.
+
+   If a :selector is provided, then only messages having
+   metadata/properties matching that expression may be received.
+
+   If no connection is provided, a new connection is created for this
+   subscriber. If a connection is provided, it must have its :client-id
+   set.
+
+   The following options are supported [default]:
+
+     * :xa           - Whether the handler demarcates an XA transaction [true]
+     * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
+     * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
+                       javax.jms.Message object is passed [true]
+     * :connection   - a connection to use; caller expected to close [nil]
+
+   Returns a listener object that can can be stopped by passing it to {{stop}}, or by
+   calling .close on it.
+
+   Subscriptions should be torn down when no longer needed - see {{unsubscribe}}."
+  [^Topic topic subscription-name f & options]
+  (let [options (-> options
+                  u/kwargs-or-map->map
+                  (o/validate-options listen subscribe))]
+    (.subscribe topic (name subscription-name)
+      (message-handler
+        #(f (if (:decode? options true)
+              (codecs/decode %)
+              %)))
+      (o/extract-options options Topic$UnsubscribeOption))))
+
+(o/set-valid-options! subscribe
+  (conj (o/opts->set Topic$SubscribeOption) :decode?))
+
+(defn unsubscribe
+  "Tears down the durable topic subscription on `topic` named `subscription-name`.
+
+   If no connection is provided, a new connection is created for this
+   action. If a connection is provided, it must have its :client-id set
+   to the same value used when creating the subscription. See
+   {{subscribe}}.
+
+   The following options are supported [default]:
+
+     * :connection   - a connection to use; caller expected to close [nil]"
+  [^Topic topic subscription-name & options]
+  (let [options (-> options
+                  u/kwargs-or-map->map
+                  (o/validate-options unsubscribe))]
+    (.unsubscribe topic (name subscription-name)
+      (o/extract-options options Topic$UnsubscribeOption))))
+
+(o/set-valid-options! unsubscribe
+  (o/opts->set Topic$UnsubscribeOption))
+
 (defn stop
-  "Stops the given connection, listener, endpoint, or subscription."
+  "Stops the given connection, destination, listener, session, or subscription listener.
+
+   Note that stopping a destination may remove it from the broker if
+   called outside of the container."
   [x]
-  (.close x))
+  (if (instance? Destination x)
+    (.stop x)
+    (.close x)))
