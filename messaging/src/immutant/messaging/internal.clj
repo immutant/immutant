@@ -30,11 +30,9 @@
   (partial u/hash-based-component-name create-defaults))
 
 (defn broker [opts]
-  (doto
-      (WunderBoss/findOrCreateComponent Messaging
-        (broker-name (select-keys opts (o/opts->set Messaging$CreateOption)))
-        (o/extract-options opts Messaging$CreateOption))
-    .start))
+  (WunderBoss/findOrCreateComponent Messaging
+    (broker-name (select-keys opts (o/opts->set Messaging$CreateOption)))
+    (o/extract-options opts Messaging$CreateOption)))
 
 (defn delegating-future [future result-fn]
   (reify

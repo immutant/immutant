@@ -36,10 +36,11 @@
 
    The following options are supported [default]:
 
-   * :durable? - whether messages persist across restarts [true]
-   * :selector - a JMS (SQL 92) expression to filter published messages [nil]
+   * :connection - a connection to a remote broker [nil]
+   * :durable?   - whether messages persist across restarts [true]
+   * :selector   - a JMS (SQL 92) expression to filter published messages [nil]
 
-   This creates the queue if necessary."
+   This creates the queue if no :connection is provided and it does not yet exist."
   [queue-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -53,7 +54,11 @@
 (defn topic
   "Establishes a handle to a messaging topic.
 
-   This creates the topic if necessary."
+   The following options are supported [default]:
+
+   * :connection - a connection to a remote broker [nil]
+
+   This creates the topic if no :connection is provided and it does not yet exist."
   [topic-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
