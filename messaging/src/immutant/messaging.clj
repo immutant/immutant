@@ -135,7 +135,7 @@
 
      * :encoding   - one of: :clojure, :edn, :fressian, :json, :text [:edn]
      * :priority   - 0-9, or one of: :low, :normal, :high, :critical [4]
-     * :ttl        - time to live, in ms [0 (forever)]
+     * :ttl        - time to live, in millis [0 (forever)]
      * :persistent - whether undelivered messages survive restarts [true]
      * :properties - a map to which selectors may be applied, overrides metadata [nil]
      * :connection - a connection to use; caller expected to close [nil]
@@ -154,17 +154,6 @@
 (o/set-valid-options! publish
   (conj (o/opts->set Destination$SendOption)
     :encoding))
-
-#_(defn subscribe
-    "Creates a durable subscription.
-
-   TODO: more docs"
-    ([destination subscription-name]
-       (subscribe destination subscription-name nil))
-    ([destination subscription-name selector]
-       (.createSubscription (broker {}) destination
-         subscription-name
-         {Messaging$CreateSubscriptionOption/SELECTOR selector})))
 
 (defn receive
   "Receive a message from an destination.
