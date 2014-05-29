@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (defproject org.immutant/wildfly "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.2"]]
+  :plugins [[lein-modules "0.3.3"]]
 
   :dependencies [[org.immutant/core _]
                  [org.clojure/tools.nrepl "_"]
