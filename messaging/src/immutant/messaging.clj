@@ -78,8 +78,8 @@
    Options are [default]:
 
    * :client-id - identifies the client id for use with a durable topic subscriber [nil]
-   * :host
-   * :port
+   * :host - the host of a remote broker [nil]
+   * :port - the port of a remote broker [nil, 5445 if :host provided]
 
    TODO: more docs"
   [& options]
@@ -156,26 +156,25 @@
     :encoding))
 
 (defn receive
-  "Receive a message from an destination.
+  "Receive a message from `destination`.
 
-   If a :selector is provided, then only having metadata/headers matching
-   that expression may be received.
+   If a :selector is provided, then only messages having
+   metadata/properties matching that expression may be received.
 
    If no connection is provided, the default shared connection is
    used. If no session is provided, a new one is opened and closed.
 
    The following options are supported [default]:
 
-     * :timeout      - time in ms, after which the timeout-val is returned. 0
+     * :timeout      - time in millis, after which the timeout-val is returned. 0
                        means wait forever, -1 means don't wait at all [10000]
      * :timeout-val  - the value to return when a timeout occurs. Also returned when
                        a timeout of -1 is specified, and no message is available [nil]
      * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
      * :decode?      - if true, the decoded message body is returned. Otherwise, the
                        base message object is returned [true]
-     * :subscription - identifies a durable topic subscriber, ignored for queues [nil]
      * :connection   - a connection to use; caller expected to close [nil]
-     * :session   - a session to use; caller expected to close [nil]"
+     * :session      - a session to use; caller expected to close [nil]"
   [^Destination destination & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -193,10 +192,10 @@
     :decode? :encoding :timeout-val))
 
 (defn listen
-  "The handler function, `f`, will receive each message sent to `destination`.
+  "Registers `f` to receive each message sent to `destination`.
 
    If a :selector is provided, then only messages having
-   metadata/properties matching that expression may be received.
+   metadata/properties matching that expression will be received.
 
    If no connection is provided, the default shared connection is
    used.
@@ -204,13 +203,12 @@
    The following options are supported [default]:
 
      * :concurrency  - the number of threads handling messages [1]
-     * :xa           - Whether the handler demarcates an XA transaction [true]
      * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
      * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
-                       javax.jms.Message object is passed [true]
+                       base message object is passed [true]
      * :connection   - a connection to use; caller expected to close [nil]
 
-   Returns a listener object that can can be stopped by passing it to {{stop}}, or by
+   Returns a listener object that can be stopped by passing it to {{stop}}, or by
    calling .close on it."
   [^Destination destination f & options]
   (let [options (-> options
@@ -251,7 +249,7 @@
 
    Accepts the same options as {{listen}}, along with [default]:
 
-     * :ttl  - time for the response mesage to live, in ms [60000 (1 minute)]"
+     * :ttl  - time for the response mesage to live, in millis [60000 (1 minute)]"
   [^Queue queue f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -279,7 +277,6 @@
 
    The following options are supported [default]:
 
-     * :xa           - Whether the handler demarcates an XA transaction [true]
      * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
      * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
                        javax.jms.Message object is passed [true]

@@ -67,9 +67,9 @@
 
 (defn coerce-session-mode [mode]
   (case mode
-    nil         (Session$Mode/AUTO_ACK)
-    :auto-ack   (Session$Mode/AUTO_ACK)
-    :client-ack (Session$Mode/CLIENT_ACK)
-    :transacted (Session$Mode/TRANSACTED)
+    nil         Session$Mode/AUTO_ACK
+    :auto-ack   Session$Mode/AUTO_ACK
+    :client-ack Session$Mode/CLIENT_ACK
+    :transacted Session$Mode/TRANSACTED
     (throw (IllegalArgumentException.
              (str mode " is not a valid session mode")))))
