@@ -13,4 +13,4 @@
 ;; limitations under the License.
 
 (defproject org.immutant/caching "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.3"]])
+  :plugins [[lein-modules "0.3.4"]])

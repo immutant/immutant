@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (defproject org.immutant/core "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.3"]]
+  :plugins [[lein-modules "0.3.4"]]
 
   :dependencies [[org.clojure/java.classpath _]
                  [org.clojure/tools.reader _]]
