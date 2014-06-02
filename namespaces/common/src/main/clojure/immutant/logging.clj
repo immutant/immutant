@@ -29,22 +29,41 @@
   (binding [*out* *err*]
     (println level msg)))
 
+(defn tools-logging-logger []
+  (try
+    (require 'clojure.tools.logging)
+    (eval '(let [l (reify immutant.logging/Logger
+                     (trace [_ msg]
+                       (clojure.tools.logging/trace msg))
+                     (debug [_ msg]
+                       (clojure.tools.logging/debug msg))
+                     (info [_ msg]
+                       (clojure.tools.logging/info msg))
+                     (warn [_ msg]
+                       (clojure.tools.logging/warn msg))
+                     (error [_ msg]
+                       (clojure.tools.logging/error msg)))]
+             (constantly l)))
+    (catch java.io.FileNotFoundException _)))
+
 (def ^:private logger-lookup-fn
   (delay
-    (try
-      (eval `(import 'org.immutant.core.Immutant))
-      (eval '(fn [n] (Immutant/getLogger n)))
-      (catch Throwable _
-        (let [l (reify Logger
-                  (trace [_ msg])
-                  (debug [_ msg])
-                  (info [_ msg]
-                    (print-err "INFO:" msg))
-                  (warn [_ msg]
-                    (print-err "WARN:" msg))
-                  (error [_ msg]
-                    (print-err "ERROR:" msg)))]
-          (constantly l))))))
+    (if-let [logger-fn (tools-logging-logger)]
+      logger-fn
+      (try
+        (eval `(import 'org.immutant.core.Immutant))
+        (eval '(fn [n] (Immutant/getLogger n)))
+        (catch Throwable _
+          (let [l (reify Logger
+                    (trace [_ msg])
+                    (debug [_ msg])
+                    (info [_ msg]
+                      (print-err "INFO:" msg))
+                    (warn [_ msg]
+                      (print-err "WARN:" msg))
+                    (error [_ msg]
+                      (print-err "ERROR:" msg)))]
+            (constantly l)))))))
 
 (defn ^:private logger [name]
   (@logger-lookup-fn name))
