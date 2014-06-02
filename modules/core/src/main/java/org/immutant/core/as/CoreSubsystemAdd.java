@@ -19,16 +19,6 @@
 
 package org.immutant.core.as;
 
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
-
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.List;
-
-import javax.management.MBeanServer;
-
 import org.immutant.core.Immutant;
 import org.immutant.core.ImmutantMBean;
 import org.immutant.core.processors.AppDependenciesProcessor;
@@ -42,6 +32,7 @@ import org.immutant.core.processors.DeploymentDescriptorParsingProcessor;
 import org.immutant.core.processors.FullAppConfigLoadingProcessor;
 import org.immutant.core.processors.ImmutantArchiveStructureProcessor;
 import org.immutant.core.processors.ImmutantDescriptorRootMountProcessor;
+import org.immutant.core.processors.ResourceRootSearchingLoggingDeploymentUnitProcessor;
 import org.immutant.core.processors.TmpResourceMounterInstaller;
 import org.immutant.core.processors.TmpResourceMounterRegisteringInstaller;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
@@ -61,6 +52,13 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceController.Mode;
 import org.jboss.msc.service.ServiceName;
 import org.projectodd.polyglot.core.processors.ApplicationExploder;
+
+import javax.management.MBeanServer;
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.List;
+
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.*;
 
 class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
     
@@ -95,6 +93,7 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 10, new ArchiveRecognizer() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 20, new DeploymentDescriptorParsingProcessor() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 30, new ApplicationExploder() );
+
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 50, new FullAppConfigLoadingProcessor() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 90, new TmpResourceMounterInstaller() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 100, new AppDependenciesProcessor() );
@@ -106,6 +105,8 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 140, new AppNameRegisteringProcessor() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 141, new AppRootRegisteringProcessor() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, 142, new TmpResourceMounterRegisteringInstaller() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.POST_MODULE, Phase.POST_MODULE_LOGGING_CONFIG,
+                                                new ResourceRootSearchingLoggingDeploymentUnitProcessor());
         
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.INSTALL, 10000, new ApplicationInitializerInstaller() );
     }

@@ -53,15 +53,16 @@
         <module name="org.jboss.as.controller"/>
         <module name="org.jboss.as.ee"/>
         <module name="org.jboss.as.jmx"/>
+        <module name="org.jboss.as.logging"/>
         <module name="org.jboss.as.server"/>
         <module name="org.jboss.as.clustering.jgroups"/>
         <module name="org.jboss.modules"/>
         <module name="org.jboss.msc"/>
         <module name="org.jboss.logging"/>
+        <module name="org.jboss.logmanager"/>
         <module name="org.jboss.vfs"/>
         <module name="org.jboss.metadata"/>
         <module name="sun.jdk"/>
         <module name="org.projectodd.polyglot.core"/>
     </dependencies>
 </module>
-

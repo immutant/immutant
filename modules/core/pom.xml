@@ -59,7 +59,7 @@
       <artifactId>tools.nrepl</artifactId>
       <scope>compile</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>clj-stacktrace</groupId>
       <artifactId>clj-stacktrace</artifactId>
@@ -98,6 +98,11 @@
       <artifactId>jboss-logging</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.jboss.as</groupId>
+      <artifactId>jboss-as-logging</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- needed so we can get its version for the build info -->
     <dependency>
@@ -108,7 +113,7 @@
   </dependencies>
 
   <build>
-    <plugins> 
+    <plugins>
 
       <plugin>
         <groupId>de.saumya.mojo</groupId>
