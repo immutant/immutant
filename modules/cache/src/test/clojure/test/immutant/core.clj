@@ -21,12 +21,12 @@
   (:import org.infinispan.configuration.cache.CacheMode))
 
 (deftest builder-defaults-to-local-mode
-  (let [config (.build (builder {}))]
+  (let [config (.build (builder))]
     (is (= CacheMode/LOCAL (.. config clustering cacheMode)))))
 
 (deftest builder-defaults-to-dist-sync-mode-when-clustered
   (with-redefs [clustered? (constantly true)]
-    (let [config (.build (builder {}))]
+    (let [config (.build (builder))]
       (is (= CacheMode/DIST_SYNC (.. config clustering cacheMode))))))
 
 (deftest builder-bombs-with-invalid-cache-mode

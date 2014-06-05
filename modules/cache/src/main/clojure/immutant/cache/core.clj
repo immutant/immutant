@@ -42,23 +42,24 @@
   builder
   "Returns an instance of Infinispan's ConfigurationBuilder, a
    mutable factory for creating mostly-immutable Configuration
-   instances, e.g. (.build (builder {})).
+   instances, e.g. (.build (builder)).
 
    Defaults to :distributed with :sync=true for a clustered cache,
    otherwise :local"
-  [options]
-  (let [opts (merge {:sync true} (default-mode (util/validate-options builder options)))]
-    (log/debug "Creating config builder:"
-      (select-keys opts (-> #'builder meta :valid-options)))
-    (doto (ConfigurationBuilder.)
-      (.read (.getDefaultCacheConfiguration @manager))
-      (.classLoader (.getContextClassLoader (Thread/currentThread)))
-      (config/set-transaction-mode! (nil? @service) opts)
-      (config/set-cache-mode! opts)
-      (config/set-persistence! opts)
-      (config/set-max-entries! opts)
-      (config/set-eviction! opts)
-      (config/set-locking! opts))))
+  ([] (builder {}))
+  ([options]
+     (let [opts (merge {:sync true} (default-mode (util/validate-options builder options)))]
+       (log/debug "Creating config builder:"
+         (select-keys opts (-> #'builder meta :valid-options)))
+       (doto (ConfigurationBuilder.)
+         (.read (.getDefaultCacheConfiguration @manager))
+         (.classLoader (.getContextClassLoader (Thread/currentThread)))
+         (config/set-transaction-mode! (nil? @service) opts)
+         (config/set-cache-mode! opts)
+         (config/set-persistence! opts)
+         (config/set-max-entries! opts)
+         (config/set-eviction! opts)
+         (config/set-locking! opts)))))
 
 (defn get-cache
   "Returns the named cache if it exists, otherwise nil"
