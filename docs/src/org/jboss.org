@@ -6,7 +6,7 @@
   is built. You can go a long way with Immutant without knowing anything
   about the administration of JBoss AS, but for advanced applications, it's
   worth knowing something about how AS is configured and extended. Feel free
-  to skip this section if you're just getting started with Immutant, and use 
+  to skip this section if you're just getting started with Immutant, and use
   it as a reference later.
 
   You'll see references below to =$JBOSS_HOME=. Use the =env= subtask
@@ -16,16 +16,16 @@
 
 * Configuring
 
-  In AS7, all server configuration is kept in two folders, one for each runtime 
-  mode: *standalone* and *domain*. Administrative tasks are simplified from 
-  previous releases because all configuration is in one folder and, in 
+  In AS7, all server configuration is kept in two folders, one for each runtime
+  mode: *standalone* and *domain*. Administrative tasks are simplified from
+  previous releases because all configuration is in one folder and, in
   standalone mode, in a single file.
 
   [[./images/jboss-server.png]]
 
-  Immutant uses standalone mode by default but can be run in domain mode as 
+  Immutant uses standalone mode by default but can be run in domain mode as
   well.
-  
+
   JBoss AS 7 uses a modular architecture - libraries common to all
   server configurations are kept under the =modules/= directory.
   Configuration files are stored inside
@@ -33,14 +33,14 @@
   =$JBOSS_HOME/domain/configuration/= folders.
 
   Both standalone and domain modes have a common folder structure, including
-  the following directories: =configuration/=, =deployments/=, and =lib/=. 
-  In general, it isn't a good idea to remove anything from these directories 
+  the following directories: =configuration/=, =deployments/=, and =lib/=.
+  In general, it isn't a good idea to remove anything from these directories
   that you didn't put there yourself.
 
   [[./images/jboss-standalone-mode.png]]
 
-  Some additional directories are created automatically at runtime, as needed: 
-  =tmp/=, =data/=, and =log/=. Though not typically necessary, you may safely 
+  Some additional directories are created automatically at runtime, as needed:
+  =tmp/=, =data/=, and =log/=. Though not typically necessary, you may safely
   delete these when the server is not running to clear its persistent state.
 
 * Running
@@ -48,18 +48,18 @@
   :CUSTOM_ID: jboss-run
   :END:
 
-  The =$JBOSS_HOME/bin/= directory contains the main JBoss entry point, 
-  =standalone.sh= (or =standalone.bat=), along with its config file, 
+  The =$JBOSS_HOME/bin/= directory contains the main JBoss entry point,
+  =standalone.sh= (or =standalone.bat=), along with its config file,
   =standalone.conf=. Running the JBoss server is simple:
 
   #+begin_src sh
-   $ $JBOSS_HOME/bin/standalone.sh 
+   $ $JBOSS_HOME/bin/standalone.sh
   #+end_src
 
   In fact, this is exactly what the [[./deployment.html#lein-immutant-run][lein-immutant plugin's run task]]
   does.
 
-  Use the =--server-config= option to specify a different configuration. For 
+  Use the =--server-config= option to specify a different configuration. For
   example, to put JBoss in "clustered" mode:
 
   #+begin_src sh
@@ -72,7 +72,7 @@
    $ lein immutant run --clustered
   #+end_src
 
-  You may set Java system properties using the =-D= option. Pass =-h= for a 
+  You may set Java system properties using the =-D= option. Pass =-h= for a
   list of all the available options.
 
   Permanent runtime configuration of JBoss should go in
@@ -224,7 +224,7 @@
        <level name='DEBUG'/>
      </logger>
    #+end_src
-   
+
    This will result in log messages written to the FILE handler, but
    not the CONSOLE, since its threshold level is still set at INFO.
 
@@ -240,6 +240,69 @@
        <level name='DEBUG'/>
      </logger>
    #+end_src
-   
+
    For more information, see the [[https://docs.jboss.org/author/display/AS71/Logging%2BConfiguration][official JBoss logging documentation]].
 
+** Per-application Logging Configuration
+
+   In addition to adjusting the logging settings globally in the xml
+   configuration, you can also provide a =log4j.properties=,
+   =log4j.xml=, or =logging.properties= file on the effective
+   classpath for an application (i.e. in =resources/=, =src/=, etc.).
+   These settings will only affect the logging for the application
+   that provides the file.
+
+   For example, the following =log4j.properties= will cause all log
+   messages from within the application (and from any Immutant
+   namespaces called by the application) to be written to
+   =~/my-app.log=:
+
+   #+BEGIN_SRC conf
+     log4j.rootCategory=INFO, F
+
+     log4j.appender.F=org.apache.log4j.FileAppender
+     log4j.appender.F.append=true
+     log4j.appender.F.file=${user.home}/my-app.log
+     log4j.appender.F.layout=org.apache.log4j.PatternLayout
+     log4j.appender.F.layout.ConversionPattern=%d %-5p %c: %m%n
+   #+END_SRC
+
+   *Note:* due to [[https://issues.jboss.org/browse/IMMUTANT-445][a known issue with the logging system in the
+   application server]], configuring a console appender in
+   =log4j.properties/.xml= won't work - no messages will be written to
+   the console. The current workaround is to use a
+   =logging.properties= file instead.
+
+   The following =logging.properties= will do the same as the above
+   =log4j.properties=, but also display the messages in the console:
+
+   #+BEGIN_SRC conf
+     # Additional loggers to configure (the root logger is always configured)
+     loggers=
+
+     logger.level=INFO
+     logger.handlers=CONSOLE,FILE
+
+     handler.CONSOLE=org.jboss.logmanager.handlers.ConsoleHandler
+     handler.CONSOLE.level=TRACE
+     handler.CONSOLE.formatter=PATTERN
+     handler.CONSOLE.properties=autoFlush,target,enabled
+     handler.CONSOLE.autoFlush=true
+     handler.CONSOLE.target=SYSTEM_OUT
+     handler.CONSOLE.enabled=true
+
+     handler.FILE=org.jboss.logmanager.handlers.FileHandler
+     handler.FILE.level=ALL
+     handler.FILE.formatter=PATTERN
+     handler.FILE.properties=append,autoFlush,enabled,suffix,fileName
+     handler.FILE.constructorProperties=fileName,append
+     handler.FILE.append=true
+     handler.FILE.autoFlush=true
+     handler.FILE.enabled=true
+     handler.FILE.fileName=${user.home}/my-app.log
+
+     formatter.PATTERN=org.jboss.logmanager.formatters.PatternFormatter
+     formatter.PATTERN.properties=pattern
+     formatter.PATTERN.constructorProperties=pattern
+     formatter.PATTERN.pattern=%d %-5p %c: %m%n
+   #+END_SRC
