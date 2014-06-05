@@ -29,53 +29,45 @@
   (binding [*out* *err*]
     (println level msg)))
 
-(defn tools-logging-logger []
-  (try
-    (require 'clojure.tools.logging)
-    (eval '(let [l (reify immutant.logging/Logger
-                     (trace [_ msg]
-                       (clojure.tools.logging/trace msg))
-                     (debug [_ msg]
-                       (clojure.tools.logging/debug msg))
-                     (info [_ msg]
-                       (clojure.tools.logging/info msg))
-                     (warn [_ msg]
-                       (clojure.tools.logging/warn msg))
-                     (error [_ msg]
-                       (clojure.tools.logging/error msg)))]
-             (constantly l)))
-    (catch java.io.FileNotFoundException _)))
+(def ^:private tools-logging-available?
+  (delay
+    (try
+      (require 'clojure.tools.logging)
+      (eval '(alter-var-root #'clojure.tools.logging/*logger-factory*
+               (constantly (clojure.tools.logging.impl/log4j-factory))))
+      true
+      (catch java.io.FileNotFoundException _))))
 
 (def ^:private logger-lookup-fn
   (delay
-    (if-let [logger-fn (tools-logging-logger)]
-      logger-fn
-      (try
-        (eval `(import 'org.immutant.core.Immutant))
-        (eval '(fn [n] (Immutant/getLogger n)))
-        (catch Throwable _
-          (let [l (reify Logger
-                    (trace [_ msg])
-                    (debug [_ msg])
-                    (info [_ msg]
-                      (print-err "INFO:" msg))
-                    (warn [_ msg]
-                      (print-err "WARN:" msg))
-                    (error [_ msg]
-                      (print-err "ERROR:" msg)))]
-            (constantly l)))))))
+    (try
+      (eval `(import 'org.immutant.core.Immutant))
+      (eval '(fn [n] (Immutant/getLogger n)))
+      (catch Throwable _
+        (let [l (reify Logger
+                  (trace [_ msg])
+                  (debug [_ msg])
+                  (info [_ msg]
+                    (print-err "INFO:" msg))
+                  (warn [_ msg]
+                    (print-err "WARN:" msg))
+                  (error [_ msg]
+                    (print-err "ERROR:" msg)))]
+          (constantly l))))))
 
 (defn ^:private logger [name]
   (@logger-lookup-fn name))
 
 (defn log* [ns level msg]
-  (let [l (logger ns)]
-    (case level
-      :trace (.trace l msg)
-      :debug (.debug l msg)
-      :info  (.info l msg)
-      :warn  (.warn l msg)
-      :error (.error l msg))))
+  (if @tools-logging-available?
+    (eval `(clojure.tools.logging/log ~ns ~level nil ~msg))
+    (let [l (logger ns)]
+      (case level
+        :trace (.trace l msg)
+        :debug (.debug l msg)
+        :info  (.info l msg)
+        :warn  (.warn l msg)
+        :error (.error l msg)))))
 
 (defmacro log [level args]
   (let [ns# (-> *ns* ns-name name)]
