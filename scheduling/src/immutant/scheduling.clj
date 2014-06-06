@@ -79,7 +79,18 @@
   The return value is a map of the options with any missing defaults
   filled in, including a generated id if necessary.
 
-  TODO: doc scheduler options and scheduler lookup"
+  You can pass additional options that will be passed on to the scheduler.
+  Currently, the only scheduler option is:
+
+  * :num-threads Specifies the number of worker threads for the scheduler's
+                 thread pool [5]
+
+  The scheduler options also define which scheduler to use, so if you
+  don't pass any with a `schedule` call, you'll get the default
+  scheduler configured with the default options. If you pass scheduler
+  options on a subsequent call, you will get a different scheduler
+  configured with those options. The same scheduler will be used for any
+  future `schedule` calls with those same scheduler options."
   [f & spec]
   (let [opts (->> spec
                u/kwargs-or-map->map

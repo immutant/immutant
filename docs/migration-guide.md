@@ -20,7 +20,9 @@ The ns exists, but is currently empty.
 ### immutant.cache.core -> ?
 ### immutant.cache.wrapper -> ?
 
-## immutant.codecs -> ?
+## immutant.codecs
+
+API should still be the same as 1.x.
 
 ## immutant.daemons -> ?
 
@@ -35,16 +37,21 @@ useful inside the container with 2.x.
 
 ## immutant.jobs -> immutant.scheduling
 
-The API is similar. `schedule` now takes a map instead of kwargs, and
-there are now helpers for each option that help you generate that
-map. A cronspec is no longer a top-level arg, but instead is specified
-in the map using the `:cron` key.
+The API is similar. `schedule` now takes a map or kwargs, and there
+are now helpers for each option that help you generate that map. A
+cronspec is no longer a top-level arg, but instead is specified in the
+map using the `:cron` key. A name is no longer required, but an
+optional id can be provided to allow you to reschedule the job.
 
-The `set-scheduler-options` is now handled by
-`scheduler`. `internal-scheduler` is gone, use `(.scheduler
-(scheduler))` instead. (Maybe we should restore `internal-scheduler`?)
+The `set-scheduler-options` is now handled by passing additional
+options to `schedule`. If different scheduler options are given on
+different schedule calls, new schedulers are created.
 
-### immutant.jobs.internal REMOVED
+If you need access to the raw quartz scheduler, use `(.scheduler
+(immutant.scheduling.internal/scheduler opts)`. (Maybe we should
+restore `internal-scheduler`?)
+
+### immutant.jobs.internal -> immutant.scheduling.internal
 
 ## immutant.logging
 
