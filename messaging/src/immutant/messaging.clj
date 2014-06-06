@@ -14,8 +14,7 @@
 
 (ns immutant.messaging
   "Easily publish and receive messages containing any type of nested
-   data structure to dynamically-created queues and topics.
-   TODO: cover default connection here?"
+   data structure to dynamically-created queues and topics."
   (:require [immutant.internal.options :as o]
             [immutant.internal.util    :as u]
             [immutant.messaging.codecs :as codecs]
@@ -81,7 +80,7 @@
    * :host - the host of a remote broker [nil]
    * :port - the port of a remote broker [nil, 5445 if :host provided]
 
-   TODO: more docs"
+   TODO: bring over reconnection opts"
   [& options]
   (let [options (-> options
                   u/kwargs-or-map->map

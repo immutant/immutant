@@ -59,19 +59,32 @@ Do we still need this?
 
 ## immutant.messaging
 
-The ns exists, but is currently empty.
+Has a similar API, except around destination creation and passing. Fns
+now take destination objects instead of strings, and the destination
+objects must be created via `create-queue` and `create-topic`.
 
-### immutant.messaging.codecs -> ?
+`unlisten` and `stop` have been merged in to `stop`. `message-seq` is
+no more.
 
-### immutant.messaging.core -> ?
+### immutant.messaging.codecs
 
-Will likely be merged with `internal`?
+Brought over with few changes.
+
+### immutant.messaging.core REMOVED
+
+Merged with `immutant.messaging.internal`.
 
 ### immutant.messaging.hornetq -> ?
 
-### immutant.messaging.internal -> ?
+Will likely be brought over.
+
+### immutant.messaging.internal
+
+Brought over, but with a drastically different API.
 
 ## immutant.pipeline -> ?
+
+Will likely be brought over.
 
 ## immutant.registry REMOVED
 
