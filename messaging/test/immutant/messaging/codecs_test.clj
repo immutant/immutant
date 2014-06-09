@@ -28,9 +28,10 @@
        (properties [_] properties)
        (body [_ _] body))))
 
-(defn test-codec [message encoding & [read-eval?]]
-  (is (= message
-        (decode (apply make-message (encode message encoding))))))
+(defn test-codec [message encoding]
+  (let [encoded (encode message encoding)]
+    (is (= message
+          (decode (apply make-message encoded))))))
 
 (deftest json-string
   (test-codec "a random text message" :json))
@@ -42,7 +43,7 @@
   (test-codec (java.util.Date.) :clojure))
 
 (deftest clojure-date-inside-hash
-  (test-codec {:date (java.util.Date.)} :clojure :read-eval))
+  (test-codec {:date (java.util.Date.)} :clojure))
 
 (deftest clojure-date-inside-vector
   (test-codec [(java.util.Date.)] :clojure))
@@ -63,7 +64,7 @@
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
 
 (deftest clojure-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure :read-eval))
+  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
 
 (deftest edn-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
@@ -85,7 +86,7 @@
 
 (deftest complex-json-encoding
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}
-        encoded (apply make-message (encode message {:encoding :json}))]
+        encoded (apply make-message (encode message :json))]
     (is (= message (decode encoded)))
     (is (.contains (.body encoded String) "\"a\":\"b\""))
     (is (.contains (.body encoded String) "\"c\":[1,2,3,{\"foo\":42}]"))))

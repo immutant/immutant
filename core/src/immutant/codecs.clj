@@ -96,7 +96,7 @@
   "Stringify a json data structure"
   (if-let [generate-string (u/try-resolve 'cheshire.core/generate-string)]
     (generate-string data)
-    (throw (Exception. "Can't encode json. Add cheshire to your dependencies."))))
+    (throw (IllegalArgumentException. "Can't encode json. Add cheshire to your dependencies."))))
 
 (defmethod decode :json [data _]
   "Turn a json string into a clojure data structure"
@@ -107,13 +107,14 @@
         (throw (RuntimeException.
                  (str "Invalid json-encoded data (type=" (class data) "): " data)
                  e))))
-    (throw (Exception. "Can't decode json. Add cheshire to your dependencies."))))
+    (throw (IllegalArgumentException. "Can't decode json. Add cheshire to your dependencies."))))
 
 (defmethod encode :fressian [data _]
   "Encode as fressian into a ByteBuffer."
   (if-let [write (u/try-resolve 'clojure.data.fressian/write)]
     (write data :footer? true)
-    (throw (Exception. "Can't encode fressian. Add org.clojure/data.fressian to your dependencies."))))
+    (throw (IllegalArgumentException.
+             "Can't encode fressian. Add org.clojure/data.fressian to your dependencies."))))
 
 (defmethod decode :fressian [data _]
   "Turn fressian bytes back in to clojure data"
@@ -124,7 +125,8 @@
         (throw (RuntimeException.
                  (str "Invalid fressian-encoded data (type=" (class data) "): " data)
                  e))))
-    (throw (Exception. "Can't decode fressian. Add org.clojure/data.fressian to your dependencies."))))
+    (throw (IllegalArgumentException.
+             "Can't decode fressian. Add org.clojure/data.fressian to your dependencies."))))
 
 (defmethod encode :none [data _]
   "Treat the payload as raw. No encoding is done."
@@ -133,6 +135,14 @@
 (defmethod decode :none [data _]
   "Treats the payload as raw. No decoding is done."
   data)
+
+(defmethod encode :text [data _]
+  "Treat the payload as text. No encoding is done."
+  (encode data :none))
+
+(defmethod decode :text [data _]
+  "Treats the payload as text. No decoding is done."
+  (decode data :none))
 
 (defmethod encode :default [_ encoding]
   (throw (RuntimeException. (str "Unknown message encoding: " encoding))))

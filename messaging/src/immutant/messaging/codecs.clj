@@ -18,21 +18,18 @@
 
 ;; Encode
 
-(defmulti encode (fn [_ {encoding :encoding}] encoding))
+(defmulti encode (fn [_ encoding] encoding))
 
-(defmethod encode :default [message {:keys [encoding] :or {encoding :edn}}]
+(defmethod encode :default [message encoding]
   [(core/encode message encoding)
    (core/encoding->content-type encoding)])
 
 (defmethod encode :fressian [message _]
   (let [data (core/encode message :fressian)
         bytes (byte-array (.remaining data))]
-    [(.get data bytes)
+    (.get data bytes)
+    [bytes
      (core/encoding->content-type :fressian)]))
-
-(defmethod encode :text [message _]
-  [(core/encode message :raw)
-   (core/encoding->content-type :text)])
 
 ;; Decode
 

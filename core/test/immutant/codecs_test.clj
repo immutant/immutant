@@ -78,6 +78,9 @@
     (is (= message (decode "{\"a\":\"b\",\"c\":[1,2,3,{\"foo\":42}]}" :json)))))
 
 (deftest text
+  (test-codec "ham biscuit" :text))
+
+(deftest none
   (test-codec "ham biscuit" :none))
 
 (deftest decode-nil
