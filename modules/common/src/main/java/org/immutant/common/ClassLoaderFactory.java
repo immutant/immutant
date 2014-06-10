@@ -19,8 +19,12 @@
 
 package org.immutant.common;
 
+import org.jboss.as.server.deployment.module.ResourceRoot;
+
+import java.util.List;
+
 public interface ClassLoaderFactory {
 
-    public ClassLoader newInstance(ClassLoader parent, Object mountMap);
+    public ClassLoader newInstance(ClassLoader parent, Object mountMap, List<ResourceRoot> resourceRoots);
 
 }

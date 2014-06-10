@@ -19,11 +19,6 @@
 
 package org.immutant.core.as;
 
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
-import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.DESCRIBE;
-
-import java.io.IOException;
-
 import org.immutant.bootstrap.ApplicationBootstrapUtils;
 import org.immutant.common.ClassLoaderUtils;
 import org.immutant.core.Immutant;
@@ -35,8 +30,14 @@ import org.jboss.as.controller.operations.common.GenericSubsystemDescribeHandler
 import org.jboss.as.controller.parsing.ExtensionParsingContext;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import org.jboss.as.controller.registry.OperationEntry;
+import org.jboss.as.server.deployment.Attachments;
 import org.jboss.logging.Logger;
 import org.projectodd.polyglot.core.as.AbstractBootstrappableExtension;
+
+import java.io.IOException;
+
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
+import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.DESCRIBE;
 
 public class CoreExtension extends AbstractBootstrappableExtension {
 
@@ -53,7 +54,8 @@ public class CoreExtension extends AbstractBootstrappableExtension {
             log.error( "Failed to load immutant.properties", e );
         }
         
-        ClassLoaderUtils.init( ImmutantClassLoader.getFactory(), TmpResourceMountMap.ATTACHMENT_KEY );
+        ClassLoaderUtils.init( ImmutantClassLoader.getFactory(), TmpResourceMountMap.ATTACHMENT_KEY,
+                               Attachments.RESOURCE_ROOTS );
         
         final SubsystemRegistration registration = context.registerSubsystem( SUBSYSTEM_NAME, 1, 0 );
         final ManagementResourceRegistration subsystem = registration.registerSubsystemModel( CoreSubsystemProviders.SUBSYSTEM );

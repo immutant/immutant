@@ -19,6 +19,14 @@
 
 package org.immutant.core;
 
+import org.immutant.common.ClassLoaderFactory;
+import org.jboss.as.server.deployment.module.ResourceRoot;
+import org.jboss.modules.ModuleClassLoader;
+import org.jboss.modules.Resource;
+import org.jboss.modules.ResourceLoader;
+import org.jboss.vfs.VirtualFile;
+import org.projectodd.polyglot.core.util.ResourceLoaderUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -29,32 +37,42 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-import org.immutant.common.ClassLoaderFactory;
-import org.jboss.modules.ModuleClassLoader;
-import org.jboss.modules.Resource;
-import org.jboss.modules.ResourceLoader;
-import org.projectodd.polyglot.core.util.ResourceLoaderUtil;
-
 
 /**
  * A ClassLoader wrapper that lets us intercept various parts of the class loading process.
- * Currently, this just turns vfs: urls into file: urls for files that exist outside of an archive and
- * provides a mechanism for accessing all of the paths used by the parent ModuleClassLoader.
+ * Currently, this just turns vfs: urls into file: urls for files that exist outside of an archive,
+ * provides a mechanism for accessing all of the paths used by the parent ModuleClassLoader,
+ * and looks up resources that may have been added after deployment.
  * 
  * @author tcrawley@redhat.com
  *
  */
 public class ImmutantClassLoader extends ClassLoader {
 
-    public ImmutantClassLoader(ClassLoader parent, TmpResourceMountMap mountMap) {
+    public ImmutantClassLoader(ClassLoader parent, TmpResourceMountMap mountMap, List<ResourceRoot> resourceRoots) {
         super( parent );
         this.mountMap = mountMap;
+        this.resourceRoots = resourceRoots;
     }
     
     @Override
     public URL getResource(String name) {
         URL url = getParent().getResource( name );
-        
+        if (url == null) {
+            //see if we can find the file - it may be in a dir created after deployment
+            for(ResourceRoot root : this.resourceRoots) {
+                VirtualFile file = root.getRoot().getChild(name);
+                if (file.exists()) {
+                    try {
+                        url = file.toURL();
+                    } catch (MalformedURLException ffs) {
+                        ffs.printStackTrace();
+                    }
+                    break;
+                }
+            }
+        }
+
         return stripVFS( url );
     }
 
@@ -106,8 +124,8 @@ public class ImmutantClassLoader extends ClassLoader {
     
     public static ClassLoaderFactory getFactory() {
         return new ClassLoaderFactory() {
-            public ClassLoader newInstance( ClassLoader parent, Object mountMap ) {
-                return new ImmutantClassLoader( parent, (TmpResourceMountMap)mountMap );
+            public ClassLoader newInstance(ClassLoader parent, Object mountMap, List<ResourceRoot> resourceRoots) {
+                return new ImmutantClassLoader(parent, (TmpResourceMountMap)mountMap, resourceRoots);
             }
         };
     }
@@ -164,6 +182,7 @@ public class ImmutantClassLoader extends ClassLoader {
         return ImmutantClassLoader.class.getName() + "[" + getParent().toString() + "]";
     }
     
-    private TmpResourceMountMap mountMap;
+    private final TmpResourceMountMap mountMap;
+    private final List<ResourceRoot> resourceRoots;
     
 }

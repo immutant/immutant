@@ -19,19 +19,22 @@
 
 package org.immutant.common;
 
-import java.util.concurrent.Callable;
-
 import org.jboss.as.server.deployment.AttachmentKey;
+import org.jboss.as.server.deployment.AttachmentList;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentUnit;
+import org.jboss.as.server.deployment.module.ResourceRoot;
 import org.jboss.modules.Module;
+
+import java.util.concurrent.Callable;
 
 public class ClassLoaderUtils {
 
     @SuppressWarnings("rawtypes")
-    public static void init(ClassLoaderFactory aLoaderFactory, AttachmentKey aMountMapKey) {
+    public static void init(ClassLoaderFactory aLoaderFactory, AttachmentKey aMountMapKey, AttachmentKey aResourceRootsKey) {
         loaderFactory = aLoaderFactory;
         mountMapKey = aMountMapKey;
+        resourceRootsKey = aResourceRootsKey;
     }
     
     @SuppressWarnings("unchecked")
@@ -40,7 +43,8 @@ public class ClassLoaderUtils {
         
         if (module != null) {
             return loaderFactory.newInstance( module.getClassLoader(),
-                    unit.getAttachment( mountMapKey ) );
+                                              unit.getAttachment( mountMapKey ),
+                                              unit.getAttachmentList(resourceRootsKey));
         } else {
             // this won't happen in production, but helps testing    
             return ClassLoaderUtils.class.getClassLoader(); 
@@ -61,4 +65,5 @@ public class ClassLoaderUtils {
     private static ClassLoaderFactory loaderFactory;
     @SuppressWarnings("rawtypes")
     private static AttachmentKey mountMapKey;
+    private static AttachmentKey<AttachmentList<ResourceRoot>> resourceRootsKey;
 }
