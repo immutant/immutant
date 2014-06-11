@@ -371,7 +371,7 @@
     <version.jmock>2.5.1</version.jmock>
     <version.mockito>1.8.4</version.mockito>
     <version.hamcrest>1.1</version.hamcrest>
-    <version.jbossas>7.2.x.slim.incremental.17</version.jbossas>
+    <version.jbossas>7.2.x.slim.incremental.18</version.jbossas>
     <!-- <version.jbossas>7.2.0.Final-polyglot-slim-1-SNAPSHOT</version.jbossas> -->
     <version.clojure>1.6.0</version.clojure>
     <version.clojure-contrib>1.2.0</version.clojure-contrib>
