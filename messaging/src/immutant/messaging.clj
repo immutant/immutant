@@ -74,13 +74,22 @@
    You are responsible for closing any connection created via this
    function.
 
-   Options are [default]:
+   Options that apply to both local and remote connections are [default]:
 
    * :client-id - identifies the client id for use with a durable topic subscriber [nil]
+
+   Options that apply to only remote connections are [default]:
+
    * :host - the host of a remote broker [nil]
    * :port - the port of a remote broker [nil, 5445 if :host provided]
-
-   TODO: bring over reconnection opts"
+   * :reconnect-attempts - total number of reconnect attempts to make
+                           before giving up (-1 for unlimited) [0]
+   * :reconnect-retry-interval - the period in milliseconds between subsequent
+                                 reconnection attempts [2000]
+   * :reconnect-max-retry-interval - the max retry interval that will be used [2000]
+   * :reconnect-retry-interval-multiplier - a multiplier to apply to the time
+                                            since the last retry to compute the
+                                            time to the next retry [1.0]"
   [& options]
   (let [options (-> options
                   u/kwargs-or-map->map
