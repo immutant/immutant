@@ -178,7 +178,8 @@
   (let [c (create "swap" :seed {:a 1, :b nil})]
     (is (= 2 (swap! c :a inc)))
     (is (= 1 (swap! c :b (fnil inc 0))))
-    (is (thrown? IllegalArgumentException (swap! c :c (fnil inc 0))))))
+    (is (= 1 (swap! c :c (fnil inc 0))))
+    (is (= (into {} (seq c)) {:a 2, :b 1, :c 1}))))
 
 (deftest test-seeding
   (let [c (create "foo" :seed {:a 1})

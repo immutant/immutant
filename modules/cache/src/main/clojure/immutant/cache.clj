@@ -272,8 +272,10 @@
 (defn swap!
   "Atomically swaps the value associated to the key in the cache with
   the result of applying f, passing the current value as the first
-  param along with any args. Function f should have no side effects,
-  as it may be called multiple times.
+  param along with any args, returning the new cached value. Function
+  f should have no side effects, as it may be called multiple times.
+  If the key is missing, the result of applying f to nil will be
+  inserted atomically.
 
   Using swap! with either asynchronously-replicated caches or
   transactional caches without locking configured can result in a race
@@ -286,9 +288,11 @@
   or :pessimistic when write contention will be high."
   [^InfinispanCache cache key f & args]
   (loop [val (get cache key)]
-    (if (or val (contains? cache key))
-      (let [new (apply f val args)]
+    (let [new (apply f val args)]
+      (if (or val (contains? cache key))
         (if (put-if-replace cache key val new)
           new
-          (recur (get cache key))))
-      (throw (IllegalArgumentException. (str "Cache doesn't contain key: " key))))))
+          (recur (get cache key)))
+        (if (not (put-if-absent cache key new))
+          new
+          (recur (get cache key)))))))
