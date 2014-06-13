@@ -23,18 +23,6 @@
 (deftest json-string
   (test-codec "a random text message" :json))
 
-(deftest clojure-string
-  (test-codec "a simple text message" :clojure))
-
-(deftest clojure-date
-  (test-codec (java.util.Date.) :clojure))
-
-(deftest clojure-date-inside-hash
-  (test-codec {:date (java.util.Date.)} :clojure))
-
-(deftest clojure-date-inside-vector
-  (test-codec [(java.util.Date.)] :clojure))
-
 (deftest edn-string
   (test-codec "a simple text message" :edn))
 
@@ -49,9 +37,6 @@
 
 (deftest json-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
-
-(deftest clojure-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
 
 (deftest edn-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
@@ -77,16 +62,12 @@
     (is (= message (decode encoded :json)))
     (is (= message (decode "{\"a\":\"b\",\"c\":[1,2,3,{\"foo\":42}]}" :json)))))
 
-(deftest text
-  (test-codec "ham biscuit" :text))
-
 (deftest none
   (test-codec "ham biscuit" :none))
 
 (deftest decode-nil
   (are [x] (nil? x)
        (decode (encode nil))
-       (decode (encode nil :clojure) :clojure)
        (decode (encode nil :edn) :edn)
        (decode (encode nil :json) :json)
        (decode (encode nil :none) :none)))
@@ -95,12 +76,12 @@
   (is (= '(1 2 3) (decode (encode '(1 2 3))))))
 
 (deftest default-content-type->encoding
-  (is (= :text (content-type->encoding "text/plain")))
+  (is (= :none (content-type->encoding "application/data")))
   (is (thrown? IllegalArgumentException
         (content-type->encoding "invalid"))))
 
 (deftest default-encoding->content-type
-  (is (=  "text/plain" (encoding->content-type :text)))
-  (is (=  "text/plain" (encoding->content-type "text")))
+  (is (=  "application/edn" (encoding->content-type :edn)))
+  (is (=  "application/edn" (encoding->content-type "edn")))
   (is (thrown? IllegalArgumentException
         (encoding->content-type :invalid))))

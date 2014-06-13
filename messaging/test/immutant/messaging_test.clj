@@ -73,8 +73,8 @@
     (is (= "hi" (receive q)))))
 
 (deftest publish-should-accept-kwargs-and-map
-  (publish (queue "foo") "hi" :encoding :text)
-  (publish (queue "foo") "hi" {:encoding :text}))
+  (publish (queue "foo") "hi" :encoding :none)
+  (publish (queue "foo") "hi" {:encoding :none}))
 
 (deftest publish-should-validate-opts
   (is (thrown? IllegalArgumentException (publish (queue "foo") 1 :bad :option))))

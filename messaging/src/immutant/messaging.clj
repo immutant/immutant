@@ -141,7 +141,7 @@
 
    The following options are supported [default]:
 
-     * :encoding   - one of: :clojure, :edn, :fressian, :json, :text [:edn]
+     * :encoding   - one of: :edn, :fressian, :json, :none [:edn]
      * :priority   - 0-9, or one of: :low, :normal, :high, :critical [4]
      * :ttl        - time to live, in millis [0 (forever)]
      * :persistent - whether undelivered messages survive restarts [true]

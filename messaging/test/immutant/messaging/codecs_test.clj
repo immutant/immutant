@@ -36,18 +36,6 @@
 (deftest json-string
   (test-codec "a random text message" :json))
 
-(deftest clojure-string
-  (test-codec "a simple text message" :clojure))
-
-(deftest clojure-date
-  (test-codec (java.util.Date.) :clojure))
-
-(deftest clojure-date-inside-hash
-  (test-codec {:date (java.util.Date.)} :clojure))
-
-(deftest clojure-date-inside-vector
-  (test-codec [(java.util.Date.)] :clojure))
-
 (deftest edn-string
   (test-codec "a simple text message" :edn))
 
@@ -62,9 +50,6 @@
 
 (deftest json-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
-
-(deftest clojure-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
 
 (deftest edn-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
@@ -92,7 +77,7 @@
     (is (.contains (.body encoded String) "\"c\":[1,2,3,{\"foo\":42}]"))))
 
 (deftest text
-  (test-codec "ham biscuit" :text))
+  (test-codec "ham biscuit" :none))
 
 (deftest decode-with-metadata-should-work
   (= {:foo :bar}

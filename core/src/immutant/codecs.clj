@@ -24,11 +24,10 @@
     'r/*data-readers*))
 
 (def ^:private base-encoding->content-types
-  {:clojure  "application/clojure"
-   :edn      "application/edn"
+  {:edn      "application/edn"
    :fressian "application/fressian"
    :json     "application/json"
-   :text     "text/plain"})
+   :none     "application/data"})
 
 (def ^:private base-content-type->encodings
   (zipmap
@@ -62,22 +61,6 @@
 (defmulti decode
   "Decode the data using the given content-type."
   (fn [_ & [content-type]] (or content-type :edn)))
-
-(defmethod encode :clojure [data _]
-  "Stringify a clojure data structure"
-  (binding [*print-dup* true]
-    (pr-str data)))
-
-(defmethod decode :clojure [data _]
-  "Turn a string into a clojure data structure"
-  (try
-    (and data
-      (binding [r/*data-readers* (data-readers)]
-        (r/read-string data)))
-    (catch Throwable e
-      (throw (RuntimeException.
-               (str "Invalid clojure-encoded data (type=" (class data) "): " data)
-               e)))))
 
 (defmethod encode :edn [data & _]
   "Stringify an edn data structure"
@@ -136,35 +119,8 @@
   "Treats the payload as raw. No decoding is done."
   data)
 
-(defmethod encode :text [data _]
-  "Treat the payload as text. No encoding is done."
-  (encode data :none))
-
-(defmethod decode :text [data _]
-  "Treats the payload as text. No decoding is done."
-  (decode data :none))
-
 (defmethod encode :default [_ encoding]
   (throw (RuntimeException. (str "Unknown message encoding: " encoding))))
 
 (defmethod decode :default [_ encoding]
   (throw (RuntimeException. (str "Unknown message encoding: " encoding))))
-
-
-;; Fallback to Java serialization for undefined print-dup methods
-
-(defn serialize [object]
-  (with-open [baos (java.io.ByteArrayOutputStream.)
-              oos (java.io.ObjectOutputStream. baos)]
-    (.writeObject oos object)
-    (.toString baos "ISO-8859-1")))
-
-(defn deserialize [^String s]
-  (with-open [bais (java.io.ByteArrayInputStream. (.getBytes s "ISO-8859-1"))
-              ois (java.io.ObjectInputStream. bais)]
-    (.readObject ois)))
-
-(defmethod clojure.core/print-dup :default [o ^java.io.Writer w]
-  (.write w "#=(immutant.codecs/deserialize ")
-  (print-dup (serialize o) w)
-  (.write w ")"))

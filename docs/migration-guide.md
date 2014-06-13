@@ -22,7 +22,8 @@ The ns exists, but is currently empty.
 
 ## immutant.codecs
 
-API should still be the same as 1.x.
+:text and :clojure codecs were removed. only supplied codecs in 2.x:
+:none, :edn, :json, and :fressian
 
 ## immutant.daemons -> ?
 
