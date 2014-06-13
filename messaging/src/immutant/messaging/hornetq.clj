@@ -17,11 +17,11 @@
             [immutant.internal.util      :as u]
             [immutant.util               :as pu]
             [immutant.messaging.internal :refer [broker]])
-  (:import org.projectodd.wunderboss.messaging.Destination
+  (:import (org.projectodd.wunderboss.messaging Destination Queue)
            org.hornetq.api.core.SimpleString))
 
-(defn hornetq-server
-  "Retrieves the local HornetQ server instance."
+(defn server-manager
+  "Retrieves the local JMS server mananger instance."
   []
   (when-let [broker (broker nil)]
     (.jmsServerManager broker)))
@@ -30,6 +30,33 @@
   (if (instance? Destination dest)
     (.jmsName dest)
     dest))
+
+(defn destination-controller
+  "Returns the destination controller for `destination`.
+
+   `destination` should be the result of calling
+   {{immutant.messaging/queue}} or {{immutant.messaging/queue}}.
+
+   The returned controller depends on the type of the given
+   destination and, for queues, the requested control-type (which
+   defaults to :jms):
+
+   destination  control-type  controller
+   -------------------------------------------------------------------------
+   Queue        :jms          org.hornetq.api.jms.management.JMSQueueControl
+   Queue        :core         org.hornetq.core.management.impl.QueueControl
+   Topic        <ignored>     org.hornetq.api.jms.management.TopicControl
+
+   Refer to the javadocs for those control classes for details on the
+   available operations."
+  ([destination]
+     (destination-controller destination :jms))
+  ([destination control-type]
+     (when-let [hq-server (server-manager)]
+       (.getResource (-> hq-server .getHornetQServer .getManagementService)
+         (str (when (and (instance? Queue destination) (= :core control-type))
+                "core.queue.")
+           (jms-name destination))))))
 
 (def ^:private address-settings-coercions
   {:address-full-message-policy (fn [addr]
@@ -159,7 +186,7 @@
   (u/when-import 'org.hornetq.core.settings.impl.AddressSettings
     (when (seq settings)
       (.addAddressSettings
-        (hornetq-server)
+        (server-manager)
         (normalize-destination-match match)
         (reduce
           (fn [s [k v]]
