@@ -39,13 +39,19 @@
    * :durable?   - whether messages persist across restarts [true]
    * :selector   - a JMS (SQL 92) expression to filter published messages [nil]
 
-   This creates the queue if no :connection is provided and it does not yet exist."
+   If given a :connection, the connection is remembered and used as a
+   default option to any fn that takes a queue and a connection.
+
+   This creates the queue if no :connection is provided and it does not
+   yet exist."
   [queue-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (o/validate-options queue))]
-    (.findOrCreateQueue (broker options) queue-name
-      (o/extract-options options Messaging$CreateQueueOption))))
+    {:destination
+     (.findOrCreateQueue (broker options) queue-name
+       (o/extract-options options Messaging$CreateQueueOption)),
+     :connection (:connection options)}))
 
 (o/set-valid-options! queue
   (conj (o/opts->set Messaging$CreateQueueOption) :durable?))
@@ -57,13 +63,19 @@
 
    * :connection - a connection to a remote broker [nil]
 
-   This creates the topic if no :connection is provided and it does not yet exist."
+   If given a :connection, the connection is remembered and used as a
+   default option to any fn that takes a topic and a connection.
+
+   This creates the topic if no :connection is provided and it does not
+   yet exist."
   [topic-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (o/validate-options topic))]
-    (.findOrCreateTopic (broker options) topic-name
-      (o/extract-options options Messaging$CreateTopicOption))))
+    {:destination
+     (.findOrCreateTopic (broker options) topic-name
+       (o/extract-options options Messaging$CreateTopicOption)),
+     :connection (:connection options)}))
 
 (o/set-valid-options! topic
   (o/opts->set Messaging$CreateTopicOption))
@@ -111,6 +123,9 @@
      * :mode       - one of: :auto-ack, :client-ack, :transacted [:auto-ack]
      * :connection - a connection to use; caller expected to close [nil]
 
+   If given a :connection, the connection is remembered and used as a
+   default option to any fn that takes a session and a connection.
+
    You are responsible for closing any sessions created via this
    function.
 
@@ -119,9 +134,8 @@
   (let [options (-> options
                   u/kwargs-or-map->map
                   (update-in [:mode] coerce-session-mode)
-                  (o/validate-options session))
-        connection (:connection options (.defaultConnection (broker nil)))]
-    (.createSession connection
+                  (o/validate-options session))]
+    (.createSession (or (:connection options) (.defaultConnection (broker nil)))
       (o/extract-options options Connection$CreateSessionOption))))
 
 (o/set-valid-options! session
@@ -148,16 +162,19 @@
      * :properties - a map to which selectors may be applied, overrides metadata [nil]
      * :connection - a connection to use; caller expected to close [nil]
      * :session    - a session to use; caller expected to close [nil]"
-  [^Destination destination message & options]
+  [destination message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
+                  (merge-connection :session)
+                  (merge-connection destination)
                   (o/validate-options publish)
-                  (update-in [:properties] (fn [p] (or p (meta message)))))
+                  (update-in [:properties] #(or % (meta message))))
         [msg ^String content-type] (codecs/encode message (:encoding options :edn))
-        coerced-options (o/extract-options options Destination$SendOption)]
+        coerced-options (o/extract-options options Destination$SendOption)
+        ^Destination dest (:destination destination)]
     (if (instance? String msg)
-      (.send destination ^String msg content-type coerced-options)
-      (.send destination ^"bytes" msg content-type coerced-options))))
+      (.send dest ^String msg content-type coerced-options)
+      (.send dest ^"bytes" msg content-type coerced-options))))
 
 (o/set-valid-options! publish
   (conj (o/opts->set Destination$SendOption)
@@ -183,11 +200,13 @@
                        base message object is returned [true]
      * :connection   - a connection to use; caller expected to close [nil]
      * :session      - a session to use; caller expected to close [nil]"
-  [^Destination destination & options]
+  [destination & options]
   (let [options (-> options
                   u/kwargs-or-map->map
+                  (merge-connection :session)
+                  (merge-connection destination)
                   (o/validate-options receive))
-        ^Message message (.receive destination
+        ^Message message (.receive ^Destination (:destination destination)
                            (o/extract-options options Destination$ReceiveOption))]
     (if message
       (if (:decode? options true)
@@ -218,11 +237,12 @@
 
    Returns a listener object that can be stopped by passing it to {{stop}}, or by
    calling .close on it."
-  [^Destination destination f & options]
+  [destination f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
+                  (merge-connection destination)
                   (o/validate-options listen))]
-    (.listen destination
+    (.listen ^Destination (:destination destination)
       (message-handler
         #(f (if (:decode? options true)
               (codecs/decode %)
@@ -239,16 +259,19 @@
    with {{respond}}.
 
    It takes the same options as {{publish}}."
-  [^Queue queue message & options]
+  [queue message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
+                  (merge-connection :session)
+                  (merge-connection queue)
                   (o/validate-options publish)
                   (update-in [:properties] (fn [p] (or p (meta message)))))
         [msg ^String content-type] (codecs/encode message (:encoding options :edn))
         coerced-options (o/extract-options options Destination$SendOption)
+        ^Queue q (:destination queue)
         future (if (instance? String msg)
-                 (.request queue ^String msg content-type coerced-options)
-                 (.request queue ^"bytes" msg content-type coerced-options))]
+                 (.request q ^String msg content-type coerced-options)
+                 (.request q ^"bytes" msg content-type coerced-options))]
     (delegating-future future codecs/decode)))
 
 (defn respond
@@ -258,11 +281,12 @@
    Accepts the same options as {{listen}}, along with [default]:
 
      * :ttl  - time for the response mesage to live, in millis [60000 (1 minute)]"
-  [^Queue queue f & options]
+  [queue f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
+                  (merge-connection queue)
                   (o/validate-options respond))]
-    (.respond queue
+    (.respond ^Queue (:destination queue)
       (response-handler f options)
       (o/extract-options options Destination$ListenOption))))
 
@@ -294,11 +318,12 @@
    calling .close on it.
 
    Subscriptions should be torn down when no longer needed - see {{unsubscribe}}."
-  [^Topic topic subscription-name f & options]
+  [topic subscription-name f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
+                  (merge-connection topic)
                   (o/validate-options listen subscribe))]
-    (.subscribe topic (name subscription-name)
+    (.subscribe ^Topic (:destination topic) (name subscription-name)
       (message-handler
         #(f (if (:decode? options true)
               (codecs/decode %)
@@ -319,11 +344,12 @@
    The following options are supported [default]:
 
      * :connection   - a connection to use; caller expected to close [nil]"
-  [^Topic topic subscription-name & options]
+  [topic subscription-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
+                  (merge-connection topic)
                   (o/validate-options unsubscribe))]
-    (.unsubscribe topic (name subscription-name)
+    (.unsubscribe ^Topic (:destination topic) (name subscription-name)
       (o/extract-options options Topic$UnsubscribeOption))))
 
 (o/set-valid-options! unsubscribe
@@ -335,6 +361,7 @@
    Note that stopping a destination may remove it from the broker if
    called outside of the container."
   [x]
-  (if (instance? Destination x)
-    (.stop x)
-    (.close x)))
+  (let [x (:destination x (:session x x))]
+    (if (instance? Destination x)
+      (.stop x)
+      (.close x))))

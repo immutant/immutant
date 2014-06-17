@@ -27,15 +27,15 @@
     (.jmsServerManager broker)))
 
 (defn ^:private jms-name [dest]
-  (if (instance? Destination dest)
-    (.jmsName dest)
+  (if-let [wrapped-dest (:destination dest)]
+    (.jmsName wrapped-dest)
     dest))
 
 (defn destination-controller
   "Returns the destination controller for `destination`.
 
    `destination` should be the result of calling
-   {{immutant.messaging/queue}} or {{immutant.messaging/queue}}.
+   {{immutant.messaging/queue}} or {{immutant.messaging/topic}}.
 
    The returned controller depends on the type of the given
    destination and, for queues, the requested control-type (which
@@ -77,7 +77,7 @@
 (defn ^:private normalize-destination-match [match]
   (jms-name
     (if (or
-          (instance? Destination match)
+          (:destination match)
           (= "#" match)
           (re-find #"^jms\.(queue|topic)\." match))
       match

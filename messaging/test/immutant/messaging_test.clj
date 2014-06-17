@@ -22,8 +22,7 @@
     (try
       (f)
       (finally
-        (immutant.util/reset)
-        ))))
+        (immutant.util/reset)))))
 
 (deftest queue-topic-should-work
   (is (queue "foo"))
@@ -142,3 +141,26 @@
         (is (= 50 (deref  r1 2000 :fail)))
         (is (= 100 (deref r2 2000 :fail)))
         (is (= 25 (deref r3 2000 :fail)))))))
+
+(deftest transactional-session-should-work
+  (let [q (queue "tx-queue" :durable false)]
+    (with-open [s (session :mode :transacted)]
+      (publish q :first :session s)
+      (.commit s)
+      (publish q :second :session s)
+      (.rollback s))
+    (is (= :first (receive q :timeout 100 :timeout-val :failure)))
+    (is (= :success (receive q :timeout 100 :timeout-val :success)))))
+
+(deftest remote-connection-should-work
+  (let [no-connection-q (queue "remote" :durable false)]
+    (with-open [c (connection :host "localhost")]
+      (let [q (queue "remote" :connection c)]
+        (publish q :hi)
+        (= :hi (receive q :timeout 100 :timeout-val :failure))
+        (with-open [s (session :connection c)]
+          (publish q :hi :session s)
+          (= :hi (receive q :session s :timeout 100 :timeout-val :failure)))
+        (with-open [s (session :connection c)]
+          (publish no-connection-q :hi :session s)
+          (= :hi (receive no-connection-q :session s :timeout 100 :timeout-val :failure)))))))

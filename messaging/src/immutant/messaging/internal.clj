@@ -17,7 +17,8 @@
               [immutant.internal.util    :as u]
               [immutant.messaging.codecs :as codecs]
               [immutant.codecs           :as core-codecs])
-    (:import org.projectodd.wunderboss.WunderBoss
+    (:import java.lang.AutoCloseable
+             org.projectodd.wunderboss.WunderBoss
              [org.projectodd.wunderboss.messaging Connection
               Messaging Messaging$CreateOption
               Messaging$CreateConnectionOption
@@ -73,3 +74,10 @@
     :transacted Session$Mode/TRANSACTED
     (throw (IllegalArgumentException.
              (str mode " is not a valid session mode")))))
+
+(defn merge-connection [opts x]
+  (if (= :session x)
+    (update-in opts [:connection]
+      #(or % (when-let [s (:session opts)]
+               (.connection s))))
+    (update-in opts [:connection] #(or % (:connection x)))))
