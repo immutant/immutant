@@ -18,9 +18,15 @@
             [immutant.wildfly.repl  :as repl]
             [wunderboss.util        :as wu]
             [clojure.java.io        :as io])
-  (:import java.net.URL))
+  (:import java.net.URL
+           org.projectodd.wunderboss.WunderBoss))
 
 (def module-class-loader-class (memoize #(u/try-import 'org.jboss.modules.ModuleClassLoader)))
+
+(defn in-container?
+  "Returns true if the application is currently running inside WildFly."
+  []
+  (boolean (get (WunderBoss/options) "wildfly-service")))
 
 (defn- get-resource-loaders
   [cl]
