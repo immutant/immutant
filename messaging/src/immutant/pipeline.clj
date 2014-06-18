@@ -283,9 +283,9 @@
    During the execution of each step and each error-handler call, the
    following vars are bound:
 
-   * \\*pipeline*      the pipeline (as a fn) that is being executed
-   * \\*current-step*  the name of the currently executing step
-   * \\*next-step*     the name of the next step in the pipeline
+   * `*pipeline*`      the pipeline (as a fn) that is being executed
+   * `*current-step*`  the name of the currently executing step
+   * `*next-step*`     the name of the next step in the pipeline
 
    This function is *not* idempotent. Attempting to create a pipeline
    with the same name as an existing pipeline will raise an error."
