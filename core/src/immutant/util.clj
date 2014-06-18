@@ -27,7 +27,7 @@
   (WunderBoss/shutdownAndReset))
 
 (defn in-container?
-  "Returns true if running inside a container."
+  "Returns true if running inside a WildFly/EAP container."
   []
   (wu/in-container?))
 
@@ -35,6 +35,11 @@
   "Returns a file pointing to the root dir of the application."
   []
   (io/file (get (WunderBoss/options) "root")))
+
+(defn app-name
+  "Returns the name of the current application."
+  []
+  (get (WunderBoss/options) "deployment-name" ""))
 
 (defn app-relative
   "Returns an absolute file relative to {{app-root}}."
