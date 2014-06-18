@@ -164,3 +164,13 @@
         (with-open [s (session :connection c)]
           (publish no-connection-q :hi :session s)
           (= :hi (receive no-connection-q :session s :timeout 100 :timeout-val :failure)))))))
+
+(deftest publish-from-a-listener-should-work
+  (let [q (queue "pub-listener" :durable false)
+        p (promise)]
+    (let [l (listen q #(deliver p %))]
+      (try
+        (publish q :ham)
+        (is (= :ham (deref p 1000 :failure)))
+        (finally
+          (.close l))))))

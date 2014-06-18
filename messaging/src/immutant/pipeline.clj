@@ -91,10 +91,19 @@
    pipeline steps and error handlers."
   nil)
 
+(def ^:dynamic ^:private *steps*
+  "A map of the currently active steps."
+  nil)
+
 (def halt
   "Halts pipeline processing for a given message if returned from any
    handler function."
   ::halt)
+
+(def ^:private correlation-property "correlationID")
+
+(defn- get-correlation-property [m]
+  (get (.properties m) correlation-property))
 
 (defn fanout
   "A function that takes a seq and places each item in it on the pipeline at the next step.
@@ -137,7 +146,10 @@
     f))
 
 (defn- wrap-decode [f]
-  #(f (codecs/decode %)))
+  #(f
+     (if (-> *steps* (get *current-step*) meta (:decode? true))
+       (codecs/decode %)
+       %)))
 
 (defn- wrap-result-passing
   [f pl current-step next-step opts]
@@ -153,7 +165,7 @@
           (msg/publish pl m
             :encoding :edn
             :properties {"step" next-step
-                         "correlationID" (.id raw-message)}))))
+                         correlation-property (get-correlation-property raw-message)}))))
     f))
 
 #_(defn- wrap-no-tx
@@ -205,7 +217,7 @@
         (msg/receive pl
           :timeout t
           :timeout-val t-val
-          :selector (str "correlationID='" id "' AND result = true"))))
+          :selector (format "%s='%s' AND result = true" correlation-property id))))
     (delay (throw (IllegalStateException.
                     "Attempt to derefence a pipeline that doesn't provide a result")))))
 
@@ -222,7 +234,7 @@
                    (format "'%s' is not one of the available steps: %s" step (vec step-names)))))
         (msg/publish pl m
           :encoding :edn
-          :properties {"step" step, "correlationID" id})
+          :properties {"step" step, correlation-property id})
         (create-delay pl id keep-result?)))
     assoc
     :pipeline pl))
@@ -243,10 +255,10 @@
   "Returns a function that publishes the result of the pipeline so it can be deref'ed"
   [pl ttl]
   (fn [m]
-    (msg/publish pl (codecs/decode m)
-      :encoding :clojure
+    (msg/publish pl (if m (codecs/decode m))
+      :encoding :edn
       :ttl ttl
-      :properties {"result" true, "correlationID" (.id m)})))
+      :properties {"result" true, correlation-property (get-correlation-property m)})))
 
 (defn ^{:valid-options
         #{:concurrency :error-handler :result-ttl :step-deref-timeout :durable}}
@@ -300,14 +312,16 @@
         steps (-> (take-while fn? args)
                 vec
                 (#(if keep-result?
-                    (conj % (sync-result-step-fn pl result-ttl))
+                    (conj % (vary-meta (sync-result-step-fn pl result-ttl) assoc
+                              :decode? false))
                     %))
                 named-steps)
         pl-fn (pipeline-fn pl (map (comp :step meta) steps) keep-result?)]
     (when (get @pipelines pl-name)
       (throw (IllegalArgumentException.
                (str "A pipeline named " pl-name " already exists."))))
-    (binding [*pipeline* pl-fn]
+    (binding [*pipeline* pl-fn
+              *steps* (zipmap (map #(-> % meta :step) steps) steps)]
       (let [listeners (mapv (partial pipeline-listen pl opts) steps)
             final (vary-meta pl-fn assoc
                     :listeners listeners
