@@ -15,7 +15,7 @@
 (ns immutant.web
   "Serve web requests using Ring handlers, Servlets, or Undertow HttpHandlers"
   (:require [immutant.internal.options :refer [opts->set set-valid-options!
-                                               validate-options]]
+                                               validate-options extract-options]]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
             [immutant.web.internal     :refer :all]
             [clojure.walk              :refer [keywordize-keys]])
@@ -56,7 +56,7 @@
     (validate-options options run)
     (let [server (server options)]
       (mount server handler options)
-      (update-in options [:contexts server] conj (:path options)))))
+      (update-in options [:contexts server] conj (select-keys options [:path :vhosts])))))
 
 (set-valid-options! run (conj (opts->set Web$CreateOption Web$RegisterOption) :contexts))
 
@@ -75,8 +75,9 @@
                kwargs-or-map->map
                keywordize-keys
                (validate-options run "stop"))
-        contexts (:contexts opts {(server opts) [(:path opts (:path register-defaults))]})
-        stopped (some boolean (doall (for [[s cs] contexts, c cs] (.unregister s c))))]
+        contexts (:contexts opts {(server opts) [(select-keys opts [:path :vhosts])]})
+        stopped (some boolean (doall (for [[s os] contexts, o os]
+                                       (.unregister s (extract-options o Web$RegisterOption)))))]
     (doseq [server (keys contexts)]
       (if (empty? (.registeredContexts server))
         (.stop server)))
