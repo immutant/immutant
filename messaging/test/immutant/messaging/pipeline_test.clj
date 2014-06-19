@@ -32,7 +32,11 @@
   (deftest it-should-preserve-existing-meta-data
     (is (= (meta (step (with-meta #() {:error-handler :foo})
                    :concurrency 12 :name :biscuit))
-          {:concurrency 12 :name :biscuit :error-handler :foo}))))
+          {:concurrency 12 :name :biscuit :error-handler :foo})))
+
+  (deftest it-should-accept-a-map
+    (is (= {:concurrency 12 :name :biscuit}
+          (meta (step #() {:concurrency 12 :name :biscuit}))))))
 
 (deftest should-call-messaging-stop-with-the-pipeline-from-the-metadata
   (with-redefs [immutant.messaging/stop (fn [q] (is (= :a-queue q)) :called)]

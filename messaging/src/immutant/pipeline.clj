@@ -334,7 +334,7 @@
   step
   "Wraps the given function with the given options, returning a function.
 
-   The following options are supported [default]:
+   The following options can be passed as kwargs or as a map [default]:
 
    * :name                a name to use for the step [the current index of the fn]
    * :concurrency         the number of threads to use, overriding the pipeline
@@ -346,9 +346,10 @@
                           in ms. Overrides the pipeline setting [10 seconds]
    * :fanout?             applies the fanout fn to the result of the step.
                           See {{fanout}} for more details [false]"
-  [f & {:as opts}]
-  (o/validate-options opts step)
-  (vary-meta f merge opts))
+  [f & opts]
+  (let [opts (u/kwargs-or-map->map opts)]
+    (o/validate-options  opts step)
+    (vary-meta f merge opts)))
 
 (defn stop
   "Destroys a pipeline.
