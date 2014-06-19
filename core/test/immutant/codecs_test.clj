@@ -23,6 +23,9 @@
 (deftest json-string
   (test-codec "a random text message" :json))
 
+(deftest clojure-string
+  (test-codec "a simple text message" :clojure))
+
 (deftest edn-string
   (test-codec "a simple text message" :edn))
 
@@ -37,6 +40,9 @@
 
 (deftest json-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
+
+(deftest clojure-complex-hash
+  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
 
 (deftest edn-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
@@ -68,6 +74,7 @@
 (deftest decode-nil
   (are [x] (nil? x)
        (decode (encode nil))
+       (decode (encode nil :clojure) :clojure)
        (decode (encode nil :edn) :edn)
        (decode (encode nil :json) :json)
        (decode (encode nil :none) :none)))
@@ -85,3 +92,8 @@
   (is (=  "application/edn" (encoding->content-type "edn")))
   (is (thrown? IllegalArgumentException
         (encoding->content-type :invalid))))
+
+(defrecord ARecord [x])
+
+(deftest records-via-clojure-encoding
+  (test-codec (->ARecord :x) :clojure))

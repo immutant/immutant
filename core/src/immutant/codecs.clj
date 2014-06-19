@@ -24,7 +24,8 @@
     'r/*data-readers*))
 
 (def ^:private base-encoding->content-types
-  {:edn      "application/edn"
+  {:clojure  "application/clojure"
+   :edn      "application/edn"
    :fressian "application/fressian"
    :json     "application/json"
    :none     "application/data"})
@@ -61,6 +62,22 @@
 (defmulti decode
   "Decode the data using the given content-type."
   (fn [_ & [content-type]] (or content-type :edn)))
+
+(defmethod encode :clojure [data _]
+  "Stringify a clojure data structure"
+  (binding [*print-dup* true]
+    (pr-str data)))
+
+(defmethod decode :clojure [data _]
+  "Turn a string into a clojure data structure"
+  (try
+    (and data
+      (binding [r/*data-readers* (data-readers)]
+        (r/read-string data)))
+    (catch Throwable e
+      (throw (RuntimeException.
+               (str "Invalid clojure-encoded data (type=" (class data) "): " data)
+               e)))))
 
 (defmethod encode :edn [data & _]
   "Stringify an edn data structure"
