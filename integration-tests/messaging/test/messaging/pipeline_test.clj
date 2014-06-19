@@ -23,6 +23,7 @@
     (f)
     (WunderBoss/shutdownAndReset)
     (reset! @#'immutant.pipeline/pipelines {})))
+
 (defn random-queue []
   (msg/queue (str (java.util.UUID/randomUUID))))
 
@@ -275,9 +276,8 @@
 (defrecord TestRecord [a])
 
 (deftest with-a-record
-  (println "with-a-record PENDING")
-  #_(let [pl (pl/pipeline :with-a-record #(update-in % [:a] inc))]
-      (is (= (->TestRecord 2) (deref (pl (->TestRecord 1)) 10000 :timeout)))))
+  (let [pl (pl/pipeline :with-a-record #(update-in % [:a] inc))]
+    (is (= (->TestRecord 2) (deref (pl (->TestRecord 1)) 10000 :timeout)))))
 
 (deftest pipeline-returning-nil-should-return-nil-instead-of-timeout-val
   (let [pl (pl/pipeline :nil-pl (constantly nil))]
