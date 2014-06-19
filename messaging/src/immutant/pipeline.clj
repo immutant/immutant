@@ -251,14 +251,41 @@
         (vary-meta f assoc :step step :next-step next-step))
       fns (partition 2 1 step-names))))
 
+(defn ^{:valid-options
+        #{:name :concurrency :decode? :error-handler :fanout? :step-deref-timeout}}
+  step
+  "Wraps the given function with the given options, returning a function.
+
+   The following options can be passed as kwargs or as a map [default]:
+
+   * :name                a name to use for the step [the current index of the fn]
+   * :concurrency         the number of threads to use, overriding the pipeline
+                          setting [1]
+   * :decode?             if false, the raw message object will be passed to
+                          this step [true]
+   * :error-handler       an error handler function that can override the
+                          pipeline setting [nil]
+   * :fanout?             applies the fanout fn to the result of the step.
+                          See {{fanout}} for more details [false]
+   * :step-deref-timeout  the amount of time to wait when dereferencing
+                          the result of the step if it returns a delay,
+                          in ms. Overrides the pipeline setting [10 seconds]"
+  [f & opts]
+  (let [opts (u/kwargs-or-map->map opts)]
+    (o/validate-options  opts step)
+    (vary-meta f merge opts)))
+
 (defn- sync-result-step-fn
   "Returns a function that publishes the result of the pipeline so it can be deref'ed"
   [pl ttl]
-  (fn [m]
-    (msg/publish pl (if m (codecs/decode m))
-      :encoding :edn
-      :ttl ttl
-      :properties {"result" true, correlation-property (get-correlation-property m)})))
+  (step
+    (fn [m]
+      (msg/publish pl (if m (codecs/decode m))
+        :encoding :edn
+        :ttl ttl
+        :properties {"result" true, correlation-property (get-correlation-property m)}))
+    :decode? false))
+
 
 (defn ^{:valid-options
         #{:concurrency :error-handler :result-ttl :step-deref-timeout :durable}}
@@ -312,8 +339,7 @@
         steps (-> (take-while fn? args)
                 vec
                 (#(if keep-result?
-                    (conj % (vary-meta (sync-result-step-fn pl result-ttl) assoc
-                              :decode? false))
+                    (conj % (sync-result-step-fn pl result-ttl))
                     %))
                 named-steps)
         pl-fn (pipeline-fn pl (map (comp :step meta) steps) keep-result?)]
@@ -328,28 +354,6 @@
                     :name pl-name)]
         (swap! pipelines assoc pl-name final)
         final))))
-
-(defn ^{:valid-options
-        #{:name :concurrency :error-handler :step-deref-timeout :fanout?}}
-  step
-  "Wraps the given function with the given options, returning a function.
-
-   The following options can be passed as kwargs or as a map [default]:
-
-   * :name                a name to use for the step [the current index of the fn]
-   * :concurrency         the number of threads to use, overriding the pipeline
-                          setting [1]
-   * :error-handler       an error handler function that can override the
-                          pipeline setting [nil]
-   * :step-deref-timeout  the amount of time to wait when dereferencing
-                          the result of the step if it returns a delay,
-                          in ms. Overrides the pipeline setting [10 seconds]
-   * :fanout?             applies the fanout fn to the result of the step.
-                          See {{fanout}} for more details [false]"
-  [f & opts]
-  (let [opts (u/kwargs-or-map->map opts)]
-    (o/validate-options  opts step)
-    (vary-meta f merge opts)))
 
 (defn stop
   "Destroys a pipeline.
