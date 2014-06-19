@@ -24,6 +24,9 @@
     (WunderBoss/shutdownAndReset)
     (reset! @#'immutant.pipeline/pipelines {})))
 
+(defn dollarizer [s]
+  (.replace s "S" "$"))
+
 (testing "step"
   (deftest it-should-attach-the-options-as-meta
     (is (= {:concurrency 12 :name :biscuit}
@@ -104,3 +107,15 @@
         #"is not a valid option" (pipeline "name" :ham :biscuit)))
   (is (thrown-with-msg? IllegalArgumentException
         #"is not a valid option" (step println :ham :biscuit))))
+
+(deftest pipelines-should-be-useable-inside-pipelines
+  (println "pipelines-should-be-useable-inside-pipelines PENDING")
+  #_(let [p1 (pipeline
+             "inner"
+             (memfn toUpperCase))
+        p2 (pipeline
+             "outer"
+             p1
+             dollarizer)]
+    (is (= "FANTA$TIC" (deref (p2 "fantastic")
+                         1000 :failure)))))

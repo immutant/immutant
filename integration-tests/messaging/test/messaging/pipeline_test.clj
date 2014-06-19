@@ -261,18 +261,6 @@
       (pl "hi")
       (is (= ["0" "1"] (deref p 1000 :failure))))))
 
-(deftest pipelines-should-be-useable-inside-pipelines
-  (println "pipelines-should-be-useable-inside-pipelines PENDING")
-  #_(let [p1 (pl/pipeline
-               "inner"
-               (memfn toUpperCase))
-          p2 (pl/pipeline
-               "outer"
-               p1
-               dollarizer)]
-      (is (= "FANTA$TIC" (deref (p2 "fantastic")
-                           1000 :failure)))))
-
 (defrecord TestRecord [a])
 
 (deftest with-a-record
