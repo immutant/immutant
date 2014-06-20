@@ -14,7 +14,9 @@
 
 (ns ^:no-doc immutant.wildfly.repl
   (:require [clojure.tools.nrepl.server :as nrepl]
-            [immutant.util :as u]))
+            [immutant.util :as u]
+            [immutant.internal.util :as iu]
+            [wunderboss.util :as wu]))
 
 (defn ^:private spit-nrepl-files
   [port file]
@@ -36,13 +38,24 @@
   (println "Shutting down nREPL at" (apply format "%s:%s" (nrepl-host-port server)))
   (.close server))
 
-;; TODO: bring over the 1.x impl for middleware, et al
 (defn start
   "Fire up a repl bound to host/port"
   [{:keys [host port] :or {host "localhost", port 0}}]
-  (let [server (nrepl/start-server :port port :bind host)]
-    (u/at-exit (partial stop server))
-    (let [[host bound-port] (nrepl-host-port server)]
-      (println "nREPL bound to" (format "%s:%s" host bound-port))
-          (spit-nrepl-files bound-port nil ;(:nrepl-port-file config)
-            ))))
+  (let [{:keys [nrepl-middleware nrepl-handler]}
+        (-> (wu/options) (get "repl-options" "{}") read-string)]
+    (when (and nrepl-middleware nrepl-handler)
+      (throw (IllegalArgumentException.
+               "Can only use one of :nrepl-handler or :nrepl-middleware")))
+    (let [handler (or (and nrepl-handler (iu/require-resolve nrepl-handler))
+                    (->> nrepl-middleware
+                      (map #(cond
+                              (var? %) %
+                              (symbol? %) (iu/require-resolve %)
+                              (list? %) (eval %)))
+                      (apply nrepl/default-handler)))
+          server (nrepl/start-server :port port :bind host :handler handler)]
+      (u/at-exit (partial stop server))
+      (let [[host bound-port] (nrepl-host-port server)]
+        (println "nREPL bound to" (format "%s:%s" host bound-port))
+        (spit-nrepl-files bound-port nil ;(:nrepl-port-file config)
+          )))))
