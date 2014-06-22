@@ -14,7 +14,7 @@
 
 (defproject org.immutant/immutant-parent "2.0.0-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.3.4"]]
+  :plugins [[lein-modules "0.3.6"]]
   :packaging "pom"
 
   :profiles {:provided {:dependencies [[org.clojure/clojure _]]}

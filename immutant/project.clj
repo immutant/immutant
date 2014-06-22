@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (defproject org.immutant/immutant "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.4"]]
+  :plugins [[lein-modules "0.3.6"]]
   :packaging "pom"
 
   :dependencies [[org.immutant/caching _]
