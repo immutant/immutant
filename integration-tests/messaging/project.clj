@@ -14,4 +14,5 @@
 
 (defproject org.immutant/messaging-integ "2.0.0-SNAPSHOT"
   :plugins [[lein-modules "0.3.4"]]
-  :dependencies [[org.immutant/messaging :version]])
+  :dependencies [[org.immutant/messaging _]]
+  :profiles {:integs {}})

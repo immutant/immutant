@@ -19,8 +19,7 @@
   :modules {:parent nil
             :packaging "pom"
             :inherited {:aliases
-                        {"all" ^:displace ["do" "clean," "test"]}
-                        :dependencies [[org.clojure/clojure "1.6.0"]]}}
+                        {"all" ^:replace ["do" "clean," "test"]}}}
 
   :profiles {:integs
              {:modules {:parent ".."}}})
