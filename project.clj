@@ -18,7 +18,6 @@
   :packaging "pom"
 
   :profiles {:provided {:dependencies [[org.clojure/clojure _]]}
-             :fast {:modules {:subprocess false}}
              :travis {:modules {:subprocess "lein2"}}
              :incremental {:deploy-repositories [["releases"
                                                   {:url "dav:https://repository-projectodd.forge.cloudbees.com/incremental"
@@ -28,7 +27,8 @@
 
   :aliases {"docs-from-index" ["build-helper" "docs" "generate" "caching" "core" "messaging" "scheduling" "web" "wildfly"]
             "docs" ["do" "modules" "doc-index" "," "docs-from-index"]}
-  :modules  {:inherited {:repositories [["projectodd-upstream"
+  :modules  {:subprocess false
+             :inherited {:repositories [["projectodd-upstream"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
                                           :snapshots false}]
                                         ["projectodd-release"
@@ -43,7 +43,7 @@
                                         ["jboss"
                                          "http://repository.jboss.org/nexus/content/groups/public/"]]
                          :dependencies [[org.projectodd.wunderboss/wunderboss-clojure _]]
-                         :aliases {"-i" ["with-profile" "+fast"]
+                         :aliases {"-i" ["with-profile" "+integs"]
                                    "doc-index" ["build-helper" "docs" "generate-index"]
                                    "all" ^:displace ["do" "clean," "test," "install"]}
 
