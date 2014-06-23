@@ -109,8 +109,7 @@
         #"is not a valid option" (step println :ham :biscuit))))
 
 (deftest pipelines-should-be-useable-inside-pipelines
-  (println "pipelines-should-be-useable-inside-pipelines PENDING")
-  #_(let [p1 (pipeline
+  (let [p1 (pipeline
              "inner"
              (memfn toUpperCase))
         p2 (pipeline
