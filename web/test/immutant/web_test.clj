@@ -188,14 +188,14 @@
     (is (< 3 (count (:headers @request))))))
 
 (deftest virtual-hosts
-  (let [all (-> (run hello :vhosts ["integ-app1.torquebox.org" "integ-app2.torquebox.org"])
-              (assoc :vhosts "integ-app3.torquebox.org")
+  (let [all (-> (run hello :virtual-hosts ["integ-app1.torquebox.org" "integ-app2.torquebox.org"])
+              (assoc :virtual-hosts "integ-app3.torquebox.org")
               (->> (run (handler "howdy"))))]
     (is (= "hello" (get-body "http://integ-app1.torquebox.org:8080/")))
     (is (= "hello" (get-body "http://integ-app2.torquebox.org:8080/")))
     (is (= "howdy" (get-body "http://integ-app3.torquebox.org:8080/")))
     (is (= 404 (get-error url)))
-    (is (true? (stop :vhosts "integ-app1.torquebox.org")))
+    (is (true? (stop :virtual-hosts "integ-app1.torquebox.org")))
     (is (= 404 (get-error "http://integ-app1.torquebox.org:8080/")))
     (is (= "hello" (get-body "http://integ-app2.torquebox.org:8080/")))
     (is (= "howdy" (get-body "http://integ-app3.torquebox.org:8080/")))

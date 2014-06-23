@@ -31,10 +31,10 @@
 
    options can be a map or kwargs, with these valid keys [default]:
 
-     * :host   The interface bind address [localhost]
-     * :port   The port listening for requests [8080]
-     * :path   Maps the handler to a prefix of the url path [/]
-     * :vhosts Virtual host name[s] (a String or a List of Strings) [nil]
+     * :host          The interface bind address [localhost]
+     * :port          The port listening for requests [8080]
+     * :path          Maps the handler to a prefix of the url path [/]
+     * :virtual-hosts Virtual host name[s] (a String or a List of Strings) [nil]
 
    Run calls may be threaded together, too:
 
@@ -57,7 +57,7 @@
     (validate-options options run)
     (let [server (server options)]
       (mount server handler options)
-      (update-in options [:contexts server] conj (select-keys options [:path :vhosts])))))
+      (update-in options [:contexts server] conj (mounts options)))))
 
 (set-valid-options! run (conj (opts->set Web$CreateOption Web$RegisterOption) :contexts))
 
@@ -76,7 +76,7 @@
                kwargs-or-map->map
                keywordize-keys
                (validate-options run "stop"))
-        contexts (:contexts opts {(server opts) [(select-keys opts [:path :vhosts])]})
+        contexts (:contexts opts {(server opts) [(mounts opts)]})
         stopped (some boolean (doall (for [[s os] contexts, o os]
                                        (.unregister s (extract-options o Web$RegisterOption)))))]
     (doseq [server (keys contexts)]

@@ -14,7 +14,7 @@
 
 (ns ^:no-doc ^:internal immutant.web.internal
     (:require [immutant.web.undertow :as undertow]
-              [immutant.internal.options  :refer [extract-options opts->set opts->defaults-map]]
+              [immutant.internal.options  :refer [extract-options opts->set opts->defaults-map opts->map keywordize]]
               [immutant.internal.util     :as u]
               [immutant.web.middleware    :refer [wrap-dev-middleware]]
               [clojure.java.browse        :refer [browse-url]])
@@ -43,6 +43,14 @@
           handler
           (undertow/create-http-handler handler))
         opts))))
+
+(defn ^:internal mounts [opts]
+  (-> (opts->map Web$RegisterOption)
+    clojure.set/map-invert
+    (select-keys [Web$RegisterOption/VHOSTS Web$RegisterOption/PATH])
+    vals
+    (->> (map keywordize)
+      (select-keys opts))))
 
 (defn ^:internal run-dmc* [run handler & options]
   (let [result (apply run (wrap-dev-middleware handler) options)
