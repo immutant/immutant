@@ -16,39 +16,12 @@
   (:require [immutant.codecs :as core])
   (:import org.projectodd.wunderboss.messaging.Message))
 
-;; Encode
-
-(defmulti encode (fn [_ encoding] encoding))
-
-(defmethod encode :default [message encoding]
-  [(core/encode message encoding)
-   (core/encoding->content-type encoding)])
-
-(defmethod encode :fressian [message _]
-  (let [data (core/encode message :fressian)
-        bytes (byte-array (.remaining data))]
-    (.get data bytes)
-    [bytes
-     (core/encoding->content-type :fressian)]))
-
-;; Decode
-
-(defmulti decode (fn [^Message message]
-                   (core/content-type->encoding (.contentType message))))
-
-(defmethod decode :default [^Message message]
-  (core/decode (.body message String)
-    (core/content-type->encoding (.contentType message))))
-
-(defmethod decode :fressian [^Message message]
-  (core/decode (.body message (Class/forName "[B")) :fressian))
-
 (defn decode-with-metadata
   "Decodes the given message. If the decoded message is a clojure
    collection, the properties of the message will be affixed as
    metadata"
   [^Message msg]
-  (let [result (decode msg)]
+  (let [result (.body msg)]
     (if (instance? clojure.lang.IObj result)
       (with-meta result (into {} (.properties msg)))
       result)))

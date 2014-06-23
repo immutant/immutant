@@ -44,6 +44,9 @@
 (deftest clojure-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
 
+(deftest none-complex-hash
+  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :none))
+
 (deftest edn-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
 
@@ -72,28 +75,13 @@
   (test-codec "ham biscuit" :none))
 
 (deftest decode-nil
-  (are [x] (nil? x)
-       (decode (encode nil))
-       (decode (encode nil :clojure) :clojure)
-       (decode (encode nil :edn) :edn)
-       (decode (encode nil :json) :json)
-       (decode (encode nil :none) :none)))
-
-(deftest decode-list
-  (is (= '(1 2 3) (decode (encode '(1 2 3))))))
-
-(deftest default-content-type->encoding
-  (is (= :none (content-type->encoding "application/data")))
-  (is (thrown? IllegalArgumentException
-        (content-type->encoding "invalid"))))
-
-(deftest default-encoding->content-type
-  (is (=  "application/edn" (encoding->content-type :edn)))
-  (is (=  "application/edn" (encoding->content-type "edn")))
-  (is (thrown? IllegalArgumentException
-        (encoding->content-type :invalid))))
+  (doseq [codec (.codecs codecs)]
+    (is (nil? (.decode codec (.encode codec nil))))))
 
 (defrecord ARecord [x])
 
 (deftest records-via-clojure-encoding
   (test-codec (->ARecord :x) :clojure))
+
+(deftest records-via-none-encoding
+  (test-codec (->ARecord :x) :none))

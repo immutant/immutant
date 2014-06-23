@@ -14,9 +14,7 @@
 
 (ns ^:no-doc immutant.messaging.internal
     (:require [immutant.internal.options :as o]
-              [immutant.internal.util    :as u]
-              [immutant.messaging.codecs :as codecs]
-              [immutant.codecs           :as core-codecs])
+              [immutant.internal.util    :as u])
     (:import java.lang.AutoCloseable
              org.projectodd.wunderboss.WunderBoss
              [org.projectodd.wunderboss.messaging Connection
@@ -49,22 +47,13 @@
     (get [_ timeout unit]
       (result-fn (.get future timeout unit)))))
 
-(defn message-handler [f]
+(defn message-handler [f decode?]
   (let [bound-f (bound-fn [m] (f m))]
     (reify MessageHandler
       (onMessage [_ message _]
-        (bound-f message)))))
-
-(defn response-handler [f options]
-  (message-handler
-    (fn [message]
-      (first
-        (codecs/encode
-          (f
-            (if (:decode? options true)
-              (codecs/decode message)
-              message))
-          (core-codecs/content-type->encoding (.contentType message)))))))
+        (bound-f (if decode?
+                   (.body message)
+                   message))))))
 
 (defn coerce-session-mode [mode]
   (case mode

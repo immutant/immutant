@@ -13,131 +13,121 @@
 ;; limitations under the License.
 
 (ns ^:no-doc immutant.codecs
-  "Common codecs used when [de]serializing data structures."
-  (:require [clojure.tools.reader.edn :as edn]
-            [clojure.tools.reader     :as r]
-            [immutant.internal.util   :as u]))
+    "Common codecs used when [de]serializing data structures."
+    (:require [clojure.tools.reader.edn :as edn]
+              [clojure.tools.reader     :as r]
+              [immutant.internal.util   :as u])
+    (:import [org.projectodd.wunderboss.codecs BytesCodec Codecs None StringCodec]))
 
 (defmacro data-readers []
   (if (resolve 'clojure.core/*data-readers*)
     '(merge *data-readers* r/*data-readers*)
     'r/*data-readers*))
 
-(def ^:private base-encoding->content-types
-  {:clojure  "application/clojure"
-   :edn      "application/edn"
-   :fressian "application/fressian"
-   :json     "application/json"
-   :none     "application/data"})
+(def edn-codec
+  (proxy [StringCodec] ["edn" "application/edn"]
+    (decode [data]
+      (try
+        (and data (edn/read-string {:readers (data-readers)} data))
+        (catch Throwable e
+          (throw (RuntimeException.
+                   (str "Invalid edn-encoded data (type=" (class data) "): " data)
+                   e)))))
 
-(def ^:private base-content-type->encodings
-  (zipmap
-    (vals base-encoding->content-types)
-    (keys base-encoding->content-types)))
+    (encode [data]
+      (pr-str data))))
 
-(defmulti encoding->content-type
-  "Converts an encoding to a content-type."
-  keyword)
+(def json-codec
+  (proxy [StringCodec] ["json" "application/json"]
+    (decode [data]
+      (if-let [parse-string (u/try-resolve 'cheshire.core/parse-string)]
+        (try
+          (and data (parse-string data true))
+          (catch Throwable e
+            (throw (RuntimeException.
+                     (str "Invalid json-encoded data (type=" (class data) "): " data)
+                     e))))
+        (throw (IllegalArgumentException. "Can't decode json. Add cheshire to your dependencies."))))
 
-(defmulti content-type->encoding
-  "Converts a content-type to an encoding."
-  identity)
+    (encode [data]
+      (if-let [generate-string (u/try-resolve 'cheshire.core/generate-string)]
+        (generate-string data)
+        (throw (IllegalArgumentException. "Can't encode json. Add cheshire to your dependencies."))))))
 
-(defmethod encoding->content-type :default [encoding]
-  (if-let [content-type (base-encoding->content-types (keyword encoding))]
-    content-type
-    (throw (IllegalArgumentException.
-             (str "Can't determine content-type for encoding: " encoding)))))
+(def fressian-codec
+  (proxy [BytesCodec] ["fressian" "application/fressian"]
+    (decode [data]
+      (if-let [read (u/try-resolve 'clojure.data.fressian/read)]
+        (try
+          (and data (read data))
+          (catch Throwable e
+            (throw (RuntimeException.
+                     (str "Invalid fressian-encoded data (type=" (class data) "): " data)
+                     e))))
+        (throw (IllegalArgumentException.
+                 "Can't decode fressian. Add org.clojure/data.fressian to your dependencies."))))
 
-(defmethod content-type->encoding :default [content-type]
-  (if-let [encoding (base-content-type->encodings content-type)]
-    encoding
-    (throw (IllegalArgumentException.
-             (str "Can't determine encoding for content-type: " content-type)))))
+    (encode [data]
+      (if-let [write (u/try-resolve 'clojure.data.fressian/write)]
+        (let [data (write data :footer? true)
+              bytes (byte-array (.remaining data))]
+          (.get data bytes)
+          bytes)
+        (throw (IllegalArgumentException.
+                 "Can't encode fressian. Add org.clojure/data.fressian to your dependencies."))))))
 
-(defmulti encode
-  "Encode the data using the given content-type."
-  (fn [_ & [content-type]] (or content-type :edn)))
+(def clojure-codec
+  (proxy [StringCodec] ["clojure" "application/clojure"]
 
-(defmulti decode
-  "Decode the data using the given content-type."
-  (fn [_ & [content-type]] (or content-type :edn)))
+    (decode [data]
+      (try
+        (and data
+          (binding [r/*data-readers* (data-readers)]
+            (r/read-string data)))
+        (catch Throwable e
+          (throw (RuntimeException.
+                   (str "Invalid clojure-encoded data (type=" (class data) "): " data)
+                   e)))))
 
-(defmethod encode :clojure [data _]
-  "Stringify a clojure data structure"
-  (binding [*print-dup* true]
-    (pr-str data)))
+    (encode [data]
+      (binding [*print-dup* true]
+        (pr-str data)))))
 
-(defmethod decode :clojure [data _]
-  "Turn a string into a clojure data structure"
-  (try
-    (and data
-      (binding [r/*data-readers* (data-readers)]
-        (r/read-string data)))
-    (catch Throwable e
-      (throw (RuntimeException.
-               (str "Invalid clojure-encoded data (type=" (class data) "): " data)
-               e)))))
+(def codecs
+  (-> (Codecs.)
+    (.add None/INSTANCE)
+    (.add clojure-codec)
+    (.add edn-codec)
+    (.add fressian-codec)
+    (.add json-codec)))
 
-(defmethod encode :edn [data & _]
-  "Stringify an edn data structure"
-  (pr-str data))
+(defn add-codec! [codec]
+  (.add codecs codec))
 
-(defmethod decode :edn [data & _]
-  "Turn an edn string into a clojure data structure"
-  (try
-    (and data (edn/read-string {:readers (data-readers)} data))
-    (catch Throwable e
-      (throw (RuntimeException.
-               (str "Invalid edn-encoded data (type=" (class data) "): " data)
-               e)))))
+(defn lookup-codec [encoding]
+  (if-let [codec (.forName codecs (name encoding))]
+    codec
+    (if-let [codec (.forContentType codecs (name encoding))]
+      codec
+      (throw (IllegalArgumentException.
+               (str "Can't find codec for: " encoding))))))
 
-(defmethod encode :json [data _]
-  "Stringify a json data structure"
-  (if-let [generate-string (u/try-resolve 'cheshire.core/generate-string)]
-    (generate-string data)
-    (throw (IllegalArgumentException. "Can't encode json. Add cheshire to your dependencies."))))
+(defn encode
+  "Encodes `data` using the codec for `encoding`.
 
-(defmethod decode :json [data _]
-  "Turn a json string into a clojure data structure"
-  (if-let [parse-string (u/try-resolve 'cheshire.core/parse-string)]
-    (try
-      (and data (parse-string data true))
-      (catch Throwable e
-        (throw (RuntimeException.
-                 (str "Invalid json-encoded data (type=" (class data) "): " data)
-                 e))))
-    (throw (IllegalArgumentException. "Can't decode json. Add cheshire to your dependencies."))))
+   `encoding` can be the name of the encoding or its
+   content-type. `encoding` defaults to :edn."
+  ([data]
+     (encode data :edn))
+  ([data encoding]
+     (.encode (lookup-codec encoding) data)))
 
-(defmethod encode :fressian [data _]
-  "Encode as fressian into a ByteBuffer."
-  (if-let [write (u/try-resolve 'clojure.data.fressian/write)]
-    (write data :footer? true)
-    (throw (IllegalArgumentException.
-             "Can't encode fressian. Add org.clojure/data.fressian to your dependencies."))))
+(defn decode
+  "Decodes `data` using the codec for `encoding`.
 
-(defmethod decode :fressian [data _]
-  "Turn fressian bytes back in to clojure data"
-  (if-let [read (u/try-resolve 'clojure.data.fressian/read)]
-    (try
-      (and data (read data))
-      (catch Throwable e
-        (throw (RuntimeException.
-                 (str "Invalid fressian-encoded data (type=" (class data) "): " data)
-                 e))))
-    (throw (IllegalArgumentException.
-             "Can't decode fressian. Add org.clojure/data.fressian to your dependencies."))))
-
-(defmethod encode :none [data _]
-  "Treat the payload as raw. No encoding is done."
-  data)
-
-(defmethod decode :none [data _]
-  "Treats the payload as raw. No decoding is done."
-  data)
-
-(defmethod encode :default [_ encoding]
-  (throw (RuntimeException. (str "Unknown message encoding: " encoding))))
-
-(defmethod decode :default [_ encoding]
-  (throw (RuntimeException. (str "Unknown message encoding: " encoding))))
+   `encoding` can be the name of the encoding or its
+   content-type. `encoding` defaults to :none."
+  ([data]
+     (decode data :none))
+  ([data encoding]
+     (.decode (lookup-codec encoding) data)))

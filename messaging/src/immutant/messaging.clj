@@ -17,12 +17,13 @@
    data structure to dynamically-created queues and topics."
   (:require [immutant.internal.options :as o]
             [immutant.internal.util    :as u]
-            [immutant.messaging.codecs :as codecs]
+            [immutant.codecs           :as codecs]
             [immutant.messaging.internal :refer :all])
   (:import [org.projectodd.wunderboss.messaging Connection Destination
             Connection$CreateSessionOption
             Destination$SendOption Destination$ListenOption
             Destination$ReceiveOption
+            Message
             Messaging Messaging$CreateConnectionOption
             Messaging$CreateOption Messaging$CreateQueueOption
             Messaging$CreateTopicOption
@@ -169,12 +170,10 @@
                   (merge-connection destination)
                   (o/validate-options publish)
                   (update-in [:properties] #(or % (meta message))))
-        [msg ^String content-type] (codecs/encode message (:encoding options :edn))
         coerced-options (o/extract-options options Destination$SendOption)
         ^Destination dest (:destination destination)]
-    (if (instance? String msg)
-      (.send dest ^String msg content-type coerced-options)
-      (.send dest ^"bytes" msg content-type coerced-options))))
+    (.send dest message (codecs/lookup-codec (:encoding options :edn))
+      coerced-options)))
 
 (o/set-valid-options! publish
   (conj (o/opts->set Destination$SendOption)
@@ -207,10 +206,11 @@
                   (merge-connection destination)
                   (o/validate-options receive))
         ^Message message (.receive ^Destination (:destination destination)
+                           codecs/codecs
                            (o/extract-options options Destination$ReceiveOption))]
     (if message
       (if (:decode? options true)
-        (codecs/decode message)
+        (.body message)
         message)
       (:timeout-val options))))
 
@@ -243,10 +243,8 @@
                   (merge-connection destination)
                   (o/validate-options listen))]
     (.listen ^Destination (:destination destination)
-      (message-handler
-        #(f (if (:decode? options true)
-              (codecs/decode %)
-              %)))
+      (message-handler f (:decode? options true))
+      codecs/codecs
       (o/extract-options options Destination$ListenOption))))
 
 (o/set-valid-options! listen
@@ -266,13 +264,12 @@
                   (merge-connection queue)
                   (o/validate-options publish)
                   (update-in [:properties] (fn [p] (or p (meta message)))))
-        [msg ^String content-type] (codecs/encode message (:encoding options :edn))
         coerced-options (o/extract-options options Destination$SendOption)
         ^Queue q (:destination queue)
-        future (if (instance? String msg)
-                 (.request q ^String msg content-type coerced-options)
-                 (.request q ^"bytes" msg content-type coerced-options))]
-    (delegating-future future codecs/decode)))
+        future (.request q message
+                 (codecs/lookup-codec (:encoding options :edn))
+                 coerced-options)]
+    (delegating-future future (memfn body))))
 
 (defn respond
   "Listen for messages on `queue` sent by the {{request}} function and
@@ -287,7 +284,8 @@
                   (merge-connection queue)
                   (o/validate-options respond))]
     (.respond ^Queue (:destination queue)
-      (response-handler f options)
+      (message-handler f (:decode? options true))
+      codecs/codecs
       (o/extract-options options Destination$ListenOption))))
 
 (o/set-valid-options! respond (conj (o/valid-options-for listen)
@@ -324,10 +322,8 @@
                   (merge-connection topic)
                   (o/validate-options listen subscribe))]
     (.subscribe ^Topic (:destination topic) (name subscription-name)
-      (message-handler
-        #(f (if (:decode? options true)
-              (codecs/decode %)
-              %)))
+      (message-handler f (:decode? options true))
+      codecs/codecs
       (o/extract-options options Topic$UnsubscribeOption))))
 
 (o/set-valid-options! subscribe

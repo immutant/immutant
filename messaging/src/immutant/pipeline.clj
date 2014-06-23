@@ -68,7 +68,6 @@
    ```"
   (:require [immutant.logging          :as log]
             [immutant.messaging        :as msg]
-            [immutant.messaging.codecs :as codecs]
             [immutant.internal.options :as o]
             ;;[immutant.xa.transaction :as tx]
             [immutant.internal.util    :as u]
@@ -148,7 +147,7 @@
 (defn- wrap-decode [f]
   #(f
      (if (-> *steps* (get *current-step*) meta (:decode? true))
-       (codecs/decode %)
+       (.body %)
        %)))
 
 (defn- wrap-result-passing
@@ -281,7 +280,7 @@
   [pl ttl]
   (step
     (fn [m]
-      (msg/publish pl (if m (codecs/decode m))
+      (msg/publish pl (if m (.body m))
         :encoding :clojure
         :ttl ttl
         :properties {"result" true, correlation-property (get-correlation-property m)}))

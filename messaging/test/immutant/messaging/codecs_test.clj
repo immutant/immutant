@@ -26,58 +26,7 @@
        (contentType [_]
          content-type)
        (properties [_] properties)
-       (body [_ _] body))))
-
-(defn test-codec [message encoding]
-  (let [encoded (encode message encoding)]
-    (is (= message
-          (decode (apply make-message encoded))))))
-
-(deftest json-string
-  (test-codec "a random text message" :json))
-
-(deftest edn-string
-  (test-codec "a simple text message" :edn))
-
-(deftest edn-date
-  (test-codec (java.util.Date.) :edn))
-
-(deftest edn-date-inside-hash
-  (test-codec {:date (java.util.Date.)} :edn))
-
-(deftest edn-date-inside-vector
-  (test-codec [(java.util.Date.)] :edn))
-
-(deftest json-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
-
-(deftest edn-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
-
-(deftest fressian-string
-  (test-codec "a simple text message" :fressian))
-
-(deftest fressian-date
-  (test-codec (java.util.Date.) :fressian))
-
-(deftest fressian-date-inside-hash
-  (test-codec {:date (java.util.Date.)} :fressian))
-
-(deftest fressian-date-inside-vector
-  (test-codec [(java.util.Date.)] :fressian))
-
-(deftest fressian-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :fressian))
-
-(deftest complex-json-encoding
-  (let [message {:a "b" :c [1 2 3 {:foo 42}]}
-        encoded (apply make-message (encode message :json))]
-    (is (= message (decode encoded)))
-    (is (.contains (.body encoded String) "\"a\":\"b\""))
-    (is (.contains (.body encoded String) "\"c\":[1,2,3,{\"foo\":42}]"))))
-
-(deftest text
-  (test-codec "ham biscuit" :none))
+       (body [_] body))))
 
 (deftest decode-with-metadata-should-work
   (= {:foo :bar}
