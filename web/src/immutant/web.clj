@@ -31,11 +31,12 @@
 
    options can be a map or kwargs, with these valid keys [default]:
 
-     * :host  The interface bind address [localhost]
-     * :port  The port listening for requests [8080]
-     * :path  Maps the handler to a prefix of the url path [/]
+     * :host   The interface bind address [localhost]
+     * :port   The port listening for requests [8080]
+     * :path   Maps the handler to a prefix of the url path [/]
+     * :vhosts Virtual host name[s] (a String or a List of Strings) [nil]
 
-   Run calls can be threaded together, e.g.
+   Run calls may be threaded together, too:
 
    ```
      (-> (run hello)
