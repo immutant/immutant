@@ -32,6 +32,10 @@
 (def url "http://localhost:8080/")
 (def url2 "http://localhost:8081/")
 
+(defn get-error [url]
+  (let [result (is (thrown? ExceptionInfo (get-body url)))]
+    (-> result ex-data :object :status)))
+
 (deftest mount-pedestal-service
   (run pedestal/servlet)
   (is (= "Hello World!" (get-body url))))
@@ -65,8 +69,7 @@
   (is (= "howdy" (get-body (str url "howdy"))))
   (stop)
   (is (= "howdy" (get-body (str url "howdy"))))
-  (let [result (is (thrown? ExceptionInfo (get-body url)))]
-    (is (= 404 (-> result ex-data :object :status)))))
+  (is (= 404 (get-error url))))
 
 (deftest stop-with-context-stops-that-context
   (run hello)
@@ -183,3 +186,20 @@
     (is (:body @request))
     (is (map? (:headers @request)))
     (is (< 3 (count (:headers @request))))))
+
+(deftest virtual-hosts
+  (let [all (-> (run hello :vhosts ["integ-app1.torquebox.org" "integ-app2.torquebox.org"])
+              (assoc :vhosts "integ-app3.torquebox.org")
+              (->> (run (handler "howdy"))))]
+    (is (= "hello" (get-body "http://integ-app1.torquebox.org:8080/")))
+    (is (= "hello" (get-body "http://integ-app2.torquebox.org:8080/")))
+    (is (= "howdy" (get-body "http://integ-app3.torquebox.org:8080/")))
+    (is (= 404 (get-error url)))
+    (is (true? (stop :vhosts "integ-app1.torquebox.org")))
+    (is (= 404 (get-error "http://integ-app1.torquebox.org:8080/")))
+    (is (= "hello" (get-body "http://integ-app2.torquebox.org:8080/")))
+    (is (= "howdy" (get-body "http://integ-app3.torquebox.org:8080/")))
+    (is (true? (stop all)))
+    (is (thrown? ConnectException (get-body "http://integ-app2.torquebox.org:8080/")))
+    (is (thrown? ConnectException (get-body "http://integ-app3.torquebox.org:8080/")))
+    (is (nil? (stop all)))))
