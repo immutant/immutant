@@ -162,7 +162,7 @@
                              (format "Timed out after %d ms when dereferencing the result of step %s"
                                timeout current-step)))
           (msg/publish pl m
-            :encoding :clojure
+            :encoding :none
             :properties {"step" next-step
                          correlation-property (get-correlation-property raw-message)}))))
     f))
@@ -233,7 +233,7 @@
           (throw (IllegalArgumentException.
                    (format "'%s' is not one of the available steps: %s" step (vec step-names)))))
         (msg/publish pl m
-          :encoding :clojure
+          :encoding :none
           :properties {"step" step, correlation-property id})
         (create-delay pl id keep-result?)))
     assoc
@@ -281,7 +281,7 @@
   (step
     (fn [m]
       (msg/publish pl (if m (.body m))
-        :encoding :clojure
+        :encoding :none
         :ttl ttl
         :properties {"result" true, correlation-property (get-correlation-property m)}))
     :decode? false))
