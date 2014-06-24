@@ -23,6 +23,9 @@
                                                   {:url "dav:https://repository-projectodd.forge.cloudbees.com/incremental"
                                                    :sign-releases false}]]
                            :plugins [[lein-webdav "0.1.0"]]}
+             :dev {:dependencies [[pjstadig/humane-test-output "0.6.0"]]
+                   :injections [(require 'pjstadig.humane-test-output)
+                                (pjstadig.humane-test-output/activate!)]}
              :integs {}}
 
   :aliases {"docs-from-index" ["build-helper" "docs" "generate" "caching" "core" "messaging" "scheduling" "web" "wildfly"]
