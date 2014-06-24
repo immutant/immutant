@@ -12,10 +12,9 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.messaging.codecs-test
-  (:require [immutant.messaging.codecs :refer :all]
-            [immutant.codecs           :as core]
-            [clojure.test              :refer :all])
+(ns immutant.messaging.internal-test
+  (:require [immutant.messaging.internal :refer :all]
+            [clojure.test                :refer :all])
   (:import org.projectodd.wunderboss.messaging.Message))
 
 (defn make-message
@@ -25,11 +24,15 @@
      (reify Message
        (contentType [_]
          content-type)
-       (properties [_] properties)
+       (properties [_] (assoc properties
+                         "JMSXDeliveryCount" 1
+                         "contentType" "foo"
+                         "synchronous" true
+                         "sync_request_id" 1))
        (body [_] body))))
 
 (deftest decode-with-metadata-should-work
-  (= {:foo :bar}
-    (meta (decode-with-metadata (make-message "{}" "application/edn" {:foo :bar}))))
-  (= nil
-    (meta (decode-with-metadata (make-message "0" "application/edn" {:foo :bar})))))
+  (is (= {"foo" "bar"}
+        (meta (decode-with-metadata (make-message {} "application/edn" {"foo" "bar"})))))
+  (is (= nil
+        (meta (decode-with-metadata (make-message "0" "application/edn" {"foo" "bar"}))))))

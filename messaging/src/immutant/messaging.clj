@@ -210,7 +210,7 @@
                            (o/extract-options options Destination$ReceiveOption))]
     (if message
       (if (:decode? options true)
-        (.body message)
+        (decode-with-metadata message)
         message)
       (:timeout-val options))))
 
@@ -263,13 +263,13 @@
                   (merge-connection :session)
                   (merge-connection queue)
                   (o/validate-options publish)
-                  (update-in [:properties] (fn [p] (or p (meta message)))))
+                  (update-in [:properties] #(or % (meta message))))
         coerced-options (o/extract-options options Destination$SendOption)
         ^Queue q (:destination queue)
         future (.request q message
                  (codecs/lookup-codec (:encoding options :edn))
                  coerced-options)]
-    (delegating-future future (memfn body))))
+    (delegating-future future decode-with-metadata)))
 
 (defn respond
   "Listen for messages on `queue` sent by the {{request}} function and

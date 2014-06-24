@@ -66,12 +66,13 @@
    ;; optional - it will automatically be stopped on undeploy
    (pl/stop foo-pipeline)
    ```"
-  (:require [immutant.logging          :as log]
-            [immutant.messaging        :as msg]
-            [immutant.internal.options :as o]
-            ;;[immutant.xa.transaction :as tx]
-            [immutant.internal.util    :as u]
-            [immutant.util             :as pu])
+  (:require [immutant.logging            :as log]
+            [immutant.messaging          :as msg]
+            [immutant.messaging.internal :as mi]
+            [immutant.internal.options   :as o]
+            ;;[immutant.xa.transaction   :as tx]
+            [immutant.internal.util      :as u]
+            [immutant.util               :as pu])
   (:import java.util.UUID
            java.util.concurrent.TimeoutException))
 
@@ -147,7 +148,7 @@
 (defn- wrap-decode [f]
   #(f
      (if (-> *steps* (get *current-step*) meta (:decode? true))
-       (.body %)
+       (mi/decode-with-metadata %)
        %)))
 
 (defn- wrap-result-passing
@@ -280,7 +281,7 @@
   [pl ttl]
   (step
     (fn [m]
-      (msg/publish pl (if m (.body m))
+      (msg/publish pl (when m (mi/decode-with-metadata m))
         :encoding :none
         :ttl ttl
         :properties {"result" true, correlation-property (get-correlation-property m)}))

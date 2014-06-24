@@ -24,6 +24,9 @@
       (finally
         (immutant.util/reset)))))
 
+(defn random-queue []
+  (queue (str (java.util.UUID/randomUUID)) :durable false))
+
 (deftest queue-topic-should-work
   (is (queue "foo"))
   (is (topic "bar")))
@@ -78,12 +81,31 @@
 (deftest publish-should-validate-opts
   (is (thrown? IllegalArgumentException (publish (queue "foo") 1 :bad :option))))
 
+(deftest publish-should-preserve-metadata-as-properties
+  (let [q (random-queue)]
+    (publish q (with-meta {:x :y} {:ham "biscuit"}))
+    (let [r (receive q :decode? false)]
+      (is (= "biscuit" (get (.properties r) "ham"))))))
+
+(deftest receive-should-restore-properties-to-metadata
+  (let [q (random-queue)]
+    (publish q (with-meta {:x :y} {:ham "biscuit"}))
+    (let [r (receive q)]
+      (is (= {"ham" "biscuit"} (meta r))))))
+
 (deftest listen-should-work
-  (let [p (promise)]
-    (let [q (queue "listen-queue")]
-      (with-open [listener (listen q #(deliver p %))]
-        (publish q :hi)
-        (is (= :hi (deref p 2000 :fail)))))))
+  (let [p (promise)
+        q (random-queue)]
+    (with-open [listener (listen q #(deliver p %))]
+      (publish q :hi)
+      (is (= :hi (deref p 2000 :fail))))))
+
+(deftest listen-should-restore-properties-to-metadata
+  (let [p (promise)
+        q (random-queue)]
+    (with-open [listener (listen q #(deliver p (meta %)))]
+      (publish q (with-meta {:x :y} {:ham "biscuit"}))
+      (is (= {"ham" "biscuit"} (deref p 2000 :fail))))))
 
 (deftest durable-subscriber
   (let [called (atom (promise))
@@ -118,6 +140,12 @@
   (let [q (queue "req-resp")]
     (with-open [listener (respond q keyword)]
       (is (= :hi (deref (request q "hi") 10000 :fail))))))
+
+(deftest request-should-restore-properties-to-metadata
+  (let [q (random-queue)]
+    (with-open [listener (respond q identity)]
+      (let [result (deref (request q (with-meta {:x :y} {:ham "biscuit"})) 2000 :fail)]
+        (is (= {"ham" "biscuit"} (meta result)))))))
 
 (deftest respond-future-should-handle-a-timeout
   (let [q (queue "req-resp")]

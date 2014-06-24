@@ -17,7 +17,9 @@
               [immutant.internal.util    :as u])
     (:import java.lang.AutoCloseable
              org.projectodd.wunderboss.WunderBoss
-             [org.projectodd.wunderboss.messaging Connection
+             [org.projectodd.wunderboss.messaging
+              ConcreteReply Connection
+              Message
               Messaging Messaging$CreateOption
               Messaging$CreateConnectionOption
               MessageHandler ReplyableMessage
@@ -47,13 +49,28 @@
     (get [_ timeout unit]
       (result-fn (.get future timeout unit)))))
 
+(defn decode-with-metadata
+  "Decodes the given message. If the decoded message is a clojure
+   collection, the properties of the message will be affixed as
+   metadata"
+  [^Message msg]
+  (let [result (.body msg)]
+    (if (instance? clojure.lang.IObj result)
+      (with-meta result (dissoc (into {} (.properties msg))
+                          "JMSXDeliveryCount"
+                          "contentType"
+                          "synchronous"
+                          "sync_request_id"))
+      result)))
+
 (defn message-handler [f decode?]
   (let [bound-f (bound-fn [m] (f m))]
     (reify MessageHandler
       (onMessage [_ message _]
-        (bound-f (if decode?
-                   (.body message)
-                   message))))))
+        (let [reply (bound-f (if decode?
+                               (decode-with-metadata message)
+                               message))]
+          (ConcreteReply. reply (meta reply)))))))
 
 (defn coerce-session-mode [mode]
   (case mode

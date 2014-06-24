@@ -15,13 +15,3 @@
 (ns ^:no-doc immutant.messaging.codecs
   (:require [immutant.codecs :as core])
   (:import org.projectodd.wunderboss.messaging.Message))
-
-(defn decode-with-metadata
-  "Decodes the given message. If the decoded message is a clojure
-   collection, the properties of the message will be affixed as
-   metadata"
-  [^Message msg]
-  (let [result (.body msg)]
-    (if (instance? clojure.lang.IObj result)
-      (with-meta result (into {} (.properties msg)))
-      result)))
