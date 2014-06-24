@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.pipeline
+(ns immutant.messaging.pipeline
   "Provides functions for creating and managing pipelines. A pipeline
    is a composition of functions (\"steps\"), where each function is
    passed the result of the previous function, dereferenced if needed.

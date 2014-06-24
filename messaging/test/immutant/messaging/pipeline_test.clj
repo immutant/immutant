@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.messaging.pipeline-test
-  (:require [immutant.pipeline :refer :all]
+  (:require [immutant.messaging.pipeline :refer :all]
             [clojure.test :refer :all])
   (:import org.projectodd.wunderboss.WunderBoss
            org.projectodd.wunderboss.messaging.Queue))
@@ -22,7 +22,7 @@
   (fn [f]
     (f)
     (WunderBoss/shutdownAndReset)
-    (reset! @#'immutant.pipeline/pipelines {})))
+    (reset! @#'immutant.messaging.pipeline/pipelines {})))
 
 (defn dollarizer [s]
   (.replace s "S" "$"))
@@ -49,28 +49,28 @@
   (deftest should-pass-a-queue-name-based-on-the-given-name
     (let [q-name (atom nil)]
       (with-redefs [immutant.messaging/queue (fn [& args] (reset! q-name (first args)))
-                    immutant.pipeline/pipeline-listen (constantly nil)]
+                    immutant.messaging.pipeline/pipeline-listen (constantly nil)]
         (pipeline "my-pl")
         (is (= ".pipeline-my-pl" @q-name)))))
 
   (deftest should-pass-a-queue-name-based-on-the-given-name-even-if-it-is-a-keyword
     (let [q-name (atom nil)]
       (with-redefs [immutant.messaging/queue (fn [& args] (reset! q-name (first args)))
-                    immutant.pipeline/pipeline-listen (constantly nil)]
+                    immutant.messaging.pipeline/pipeline-listen (constantly nil)]
         (pipeline :pl)
         (is (= ".pipeline-pl" @q-name)))))
 
   (deftest should-pass-durable-through-to-queue
     (let [q-args (atom nil)]
       (with-redefs [immutant.messaging/queue (fn [& args] (reset! q-args args))
-                    immutant.pipeline/pipeline-listen (constantly nil)]
+                    immutant.messaging.pipeline/pipeline-listen (constantly nil)]
         (pipeline "my-pl-with-options" :durable :red)
         (is (= [".pipeline-my-pl-with-options" :durable :red] @q-args)))))
 
   (deftest should-take-a-map-of-args-as-well
     (let [q-args (atom nil)]
       (with-redefs [immutant.messaging/queue (fn [& args] (reset! q-args args))
-                    immutant.pipeline/pipeline-listen (constantly nil)]
+                    immutant.messaging.pipeline/pipeline-listen (constantly nil)]
         (pipeline "my-pl-with-map-options" {:durable :yellow})
         (is (= [".pipeline-my-pl-with-map-options" :durable :yellow] @q-args))))))
 
@@ -82,7 +82,7 @@
       (is (= ".pipeline-name" (.name q)))))
 
   (deftest should-have-the-listeners-as-metadata
-    (with-redefs [immutant.pipeline/pipeline-listen (constantly :l)]
+    (with-redefs [immutant.messaging.pipeline/pipeline-listen (constantly :l)]
       (is (= [:l :l :l] (-> "ham" (pipeline #() #()) meta :listeners)))))
 
   (deftest should-be-a-fn

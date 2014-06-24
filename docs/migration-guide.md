@@ -83,9 +83,9 @@ Will likely be brought over.
 
 Brought over, but with a drastically different API.
 
-## immutant.pipeline -> ?
+## immutant.pipeline -> immutant.messaging.pipeline
 
-Will likely be brought over.
+The API is unchanged, other than renaming the namespace.
 
 ## immutant.registry REMOVED
 
