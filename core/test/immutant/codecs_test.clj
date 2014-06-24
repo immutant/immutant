@@ -23,9 +23,6 @@
 (deftest json-string
   (test-codec "a random text message" :json))
 
-(deftest clojure-string
-  (test-codec "a simple text message" :clojure))
-
 (deftest edn-string
   (test-codec "a simple text message" :edn))
 
@@ -40,9 +37,6 @@
 
 (deftest json-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
-
-(deftest clojure-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :clojure))
 
 (deftest none-complex-hash
   (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :none))
@@ -79,9 +73,6 @@
     (is (nil? (.decode codec (.encode codec nil))))))
 
 (defrecord ARecord [x])
-
-(deftest records-via-clojure-encoding
-  (test-codec (->ARecord :x) :clojure))
 
 (deftest records-via-none-encoding
   (test-codec (->ARecord :x) :none))

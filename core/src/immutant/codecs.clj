@@ -76,27 +76,9 @@
         (throw (IllegalArgumentException.
                  "Can't encode fressian. Add org.clojure/data.fressian to your dependencies."))))))
 
-(def clojure-codec
-  (proxy [StringCodec] ["clojure" "application/clojure"]
-
-    (decode [data]
-      (try
-        (and data
-          (binding [r/*data-readers* (data-readers)]
-            (r/read-string data)))
-        (catch Throwable e
-          (throw (RuntimeException.
-                   (str "Invalid clojure-encoded data (type=" (class data) "): " data)
-                   e)))))
-
-    (encode [data]
-      (binding [*print-dup* true]
-        (pr-str data)))))
-
 (def codecs
   (-> (Codecs.)
     (.add None/INSTANCE)
-    (.add clojure-codec)
     (.add edn-codec)
     (.add fressian-codec)
     (.add json-codec)))

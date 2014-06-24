@@ -23,7 +23,7 @@ The ns exists, but is currently empty.
 ## immutant.codecs
 
 :text codec was removed. only supplied codecs in 2.x:
-:none, :clojure, :edn, :json, and :fressian
+:none, :edn, :json, and :fressian
 
 ## immutant.daemons -> ?
 
