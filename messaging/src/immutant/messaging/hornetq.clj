@@ -13,6 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.messaging.hornetq
+  "HornetQ-specific messaging utilities."
   (:require [immutant.internal.options   :as o]
             [immutant.internal.util      :as u]
             [immutant.util               :as pu]
@@ -44,7 +45,7 @@
    destination  control-type  controller
    -------------------------------------------------------------------------
    Queue        :jms          org.hornetq.api.jms.management.JMSQueueControl
-   Queue        :core         org.hornetq.core.management.impl.QueueControl
+   Queue        :core         org.hornetq.api.core.management.QueueControl
    Topic        <ignored>     org.hornetq.api.jms.management.TopicControl
 
    Refer to the javadocs for those control classes for details on the
@@ -133,7 +134,7 @@
      here. See
      http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/message-expiry.html#message-expiry.configuring
 
-   * :expiry-delay [-1] - If > -1, this value (in ms) is used as the
+   * :expiry-delay [-1] - If > -1, this value (in millis) is used as the
      default :ttl for messages that don't have a :ttl > 0 set.
 
    * :last-value-queue [false] - If true, only the most recent message
@@ -148,7 +149,7 @@
      http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/undelivered-messages.html#undelivered-messages.configuring
 
    * :max-redelivery-delay [:redelivery-delay] - Specifies the maximum
-     redelivery delay (in ms) when a :redelivery-multiplier is used.
+     redelivery delay (in millis) when a :redelivery-multiplier is used.
 
    * :max-size-bytes [20971520 (20MB)] - The maximum size (in bytes) of retained messages
      on an address before :address-full-message-policy is applied. See
@@ -162,7 +163,7 @@
      when paging. See
      http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/paging.html
 
-   * :redelivery-delay [0] - Specifies the delay (in ms) between
+   * :redelivery-delay [0] - Specifies the delay (in millis) between
      redelivery attempts. See
      http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/undelivered-messages.html#undelivered-messages.delay
 
@@ -171,7 +172,7 @@
      :redelivery-delay * (:redelivery-multiplier ^ attempt-count). This won't have
      any effect if you don't also set :redelivery-delay and :max-redelivery-delay.
 
-   * :redistribution-delay [1000] - Specifies the delay (in ms) to wait before
+   * :redistribution-delay [1000] - Specifies the delay (in millis) to wait before
      redistributing messages from a node in a cluster to other nodes when the
      queue no longer has consumers on the current node. See
      http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/clusters.html
