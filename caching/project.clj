@@ -13,4 +13,12 @@
 ;; limitations under the License.
 
 (defproject org.immutant/caching "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.6"]])
+  :plugins [[lein-modules "0.3.6"]]
+
+  :dependencies [[org.immutant/core _]
+                 [org.projectodd.wunderboss/wunderboss-caching _]]
+
+  :profiles {:dev
+             {:dependencies [[cheshire "5.3.1"]
+                             [org.clojure/data.fressian "0.2.0"]
+                             [org.clojure/core.cache "0.6.3"]]}})

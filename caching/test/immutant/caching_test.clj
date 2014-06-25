@@ -13,5 +13,226 @@
 ;; limitations under the License.
 
 (ns immutant.caching-test
+  (:refer-clojure :exclude (swap!))
   (:require [clojure.test :refer :all]
-            [immutant.caching :refer :all]))
+            [clojure.java.io :as io]
+            [immutant.caching :refer :all]
+            [clojure.core.cache :refer [lookup miss seed]]
+            immutant.caching.core-cache))
+
+(defn new-cache [& options]
+  (stop "test")
+  (apply cache "test" options))
+
+(deftest test-lookup-by-list
+  (is (= :foo (lookup (miss (new-cache) '(bar) :foo) '(bar)))))
+
+(deftest test-local-infinispan-cache
+  (testing "counts"
+    (is (= 0 (count (new-cache))))
+    (is (= 1 (count (seed (new-cache) {:a 1})))))
+  (testing "lookup using keywords"
+    (let [c (seed (new-cache) {:a 1 :b 2})]
+      (are [expect actual] (= expect actual)
+           1   (:a c)
+           2   (:b c)
+           42  (:X c 42)
+           nil (:X c))))
+  (testing "lookups using .lookup"
+    (let [c (seed (new-cache) {:a 1 :b 2})]
+      (are [expect actual] (= expect actual)
+           1   (lookup c :a)
+           2   (lookup c :b)
+           42  (lookup c :c 42)
+           nil (lookup c :c))))
+  (testing "gets and cascading gets"
+    (let [c (seed (-> (new-cache) (with-codec :edn)) {:a 1, :b 2, :c {:d 3, :e 4}, :f nil, :g false, nil {:h 5}})]
+      (are [actual expect] (= expect actual)
+           (get c :a) 1
+           (get c :e) nil
+           (get c :e 0) 0
+           (get c :b 0) 2
+           (get c :f 0) nil
+           (get-in c [:c :e]) 4
+           (get-in c '(:c :e)) 4
+           (get-in c [:c :x]) nil
+           (get-in c [:f]) nil
+           (get-in c [:g]) false
+           (get-in c [:h]) nil
+           (get-in c []) c
+           (get-in c nil) c
+           (get-in c [:c :e] 0) 4
+           (get-in c '(:c :e) 0) 4
+           (get-in c [:c :x] 0) 0
+           (get-in c [:b] 0) 2
+           (get-in c [:f] 0) nil
+           (get-in c [:g] 0) false
+           (get-in c [:h] 0) 0
+           (get-in c [:x :y] {:y 1}) {:y 1}
+           (get-in c [] 0) c
+           (get-in c nil 0) c)))
+  (testing "that finding works for cache"
+    (let [c (seed (-> (new-cache) (with-codec :edn)) {:a 1 :b 2})]
+      (are [expect actual] (= expect actual)
+           (find c :a) [:a 1]
+           (find c :b) [:b 2]
+           (find c :c) nil
+           (find c nil) nil)))
+  (testing "that contains? works for cache"
+    (let [c (seed (-> (new-cache) (with-codec :edn)) {:a 1 :b 2})]
+      (are [expect actual] (= expect actual)
+           (contains? c :a) true
+           (contains? c :b) true
+           (contains? c :c) false
+           (contains? c nil) false))))
+
+(deftest test-put
+  (let [c (new-cache)
+        v {:foo [1 2 3] "p" "q"}]
+    (is (nil? (.put c :a v)))
+    (is (= v (get c :a)))
+    (is (= v (.put c :a "next")))))
+
+(deftest test-put-nil
+  (let [c (-> (new-cache) (with-codec :edn))]
+    (is (= :right (:a c :right)))
+    (is (nil? (.put c :a nil)))
+    (is (nil? (:a c :wrong)))
+    (is (nil? (.put c nil :right)))
+    (is (= :right (get c nil :wrong)))))
+
+(deftest test-put-ttl
+  (let [c (new-cache :ttl 200)]
+    (.put c :a 1)
+    (is (= 1 (get c :a)))
+    (Thread/sleep 250)
+    (is (nil? (get c :a)))))
+
+(deftest test-put-idle
+  (let [c (new-cache :idle 200)]
+    (.put c :a 1)
+    (Thread/sleep 100)
+    (is (= 1 (get c :a)))
+    (Thread/sleep 100)
+    (is (= 1 (get c :a)))
+    (Thread/sleep 250)
+    (is (nil? (get c :a)))))
+
+(deftest test-put-if-absent-ttl
+  (let [c (new-cache :ttl 300)]
+    (is (nil? (:a c)))
+    (is (nil? (.putIfAbsent c :a 1)))
+    (is (= 1 (:a c)))
+    (is (= 1 (.putIfAbsent c :a 2)))
+    (is (= 1 (:a c)))
+    (Thread/sleep 350)
+    (is (nil? (:a c)))))
+
+(deftest test-put-all-ttl
+  (let [c (new-cache :ttl 300)]
+    (is (= 0 (count c)))
+    (.putAll c {:a 1 :b 2})
+    (is (= 1 (:a c)))
+    (is (= 2 (:b c)))
+    (Thread/sleep 400)
+    (is (nil? (:a c)))
+    (is (nil? (:b c)))))
+
+(deftest test-replace-key
+  (let [c (seed (new-cache) {:a 1})]
+    (is (nil? (.replace c :b 2)))
+    (is (nil? (:b c)))
+    (is (= 1 (.replace c :a 2)))
+    (is (= 2 (:a c)))))
+
+(deftest test-replace-value
+  (let [c (seed (new-cache) {:a 1})]
+    (is (false? (.replace c :a 2 3)))
+    (is (= 1 (:a c)))
+    (is (true? (.replace c :a 1 2)))
+    (is (= 2 (:a c)))))
+
+(deftest test-remove
+  (let [c (seed (new-cache) {:a 1 :b 2})]
+    (is (false? (.remove c :a 2)))
+    (is (= 2 (count c)))
+    (is (true? (.remove c :a 1)))
+    (is (= 1 (count c)))
+    (is (nil? (.remove c :missing)))
+    (is (= 2 (.remove c :b)))
+    (is (empty? c))))
+
+(deftest test-delete-all
+  (let [c (seed (new-cache) {:a 1 :b 2})]
+    (is (= 2 (count c)))
+    (is (= 0 (count (.clear c))))
+    (is (= 0 (count c)))))
+
+(deftest test-swapping
+  (let [c (seed (new-cache) {:a 1, :b nil})]
+    (is (= 2 (swap! c :a inc)))
+    (is (= 1 (swap! c :b (fnil inc 0))))
+    (is (= 1 (swap! c :c (fnil inc 0))))
+    (is (= (into {} (seq c)) {:a 2, :b 1, :c 1}))))
+
+(deftest test-persist-file-store
+  (try
+    (let [mike (cache "mike" :persist true)]
+      (is (or (.exists (io/file "Infinispan-FileCacheStore/mike"))
+            (.exists (io/file "Infinispan-SingleFileStore/mike.dat"))))
+      (.stop mike))
+    (finally
+      (io/delete-file "Infinispan-SingleFileStore/mike.dat" :silently)
+      (io/delete-file "Infinispan-SingleFileStore" :silently)
+      (io/delete-file "Infinispan-FileCacheStore/mike" :silently)
+      (io/delete-file "Infinispan-FileCacheStore" :silently))))
+
+(deftest test-persist-file-store-with-parents
+  (let [dir (io/file "target/gin/tonic")]
+    (try
+      (let [chas (cache "chas" :persist (str dir))]
+        (is (.exists dir))
+        (.stop chas))
+      (finally
+        (io/delete-file (io/file dir "chas") :silently)
+        (io/delete-file (io/file dir "chas.dat") :silently)
+        (io/delete-file dir)
+        (io/delete-file (.getParent dir))))))
+
+(deftest test-create-restarts
+  (let [c (cache "terrence")]
+    (.put c :a 1)
+    (is (= 1 (:a c)))
+    (stop "terrence")
+    (is (empty? (cache "terrence")))
+    (is (thrown? IllegalStateException (empty? c)))))
+
+(deftest test-create-reconfigures
+  (is (= -1 (.. (new-cache)
+              getCacheConfiguration eviction maxEntries)))
+  (is (= 42 (.. (new-cache :max-entries 42)
+              getCacheConfiguration eviction maxEntries))))
+
+(deftest test-eviction
+  (let [c (new-cache :max-entries 2)]
+    (.put c :a 1)
+    (.put c :b 2)
+    (.put c :c 3)
+    (is (nil? (:a c)))
+    (is (= 2 (count c)))))
+
+(deftest test-seqable
+  (let [seed {:a 1, :b {:c 42}}
+        c (seed (new-cache) seed)]
+    (is (= seed (into {} (seq c))))))
+
+;; (deftest default-to-local "should not raise exception"
+;;   (new-cache :mode "repl_sync"))
+
+;; (deftest test-persistent-seeding
+;;   (let [c (create "cachey" :persist "src/test/resources/cache-store")
+;;         cn (create "cachey-none" :encoding :none, :persist "src/test/resources/cache-store")]
+;;     (is (= (:key c) 42))
+;;     (is (= (:key cn) 42))))
+
+

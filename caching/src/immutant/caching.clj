@@ -13,4 +13,64 @@
 ;; limitations under the License.
 
 (ns immutant.caching
-  "Not yet implemented.")
+  "Optionally persistent ConcurrentMap implementations"
+  (:refer-clojure :exclude (swap!))
+  (:require [immutant.internal.options :refer :all]
+            [immutant.codecs           :refer [lookup-codec]]
+            [clojure.walk              :refer [keywordize-keys]])
+  (:import org.projectodd.wunderboss.WunderBoss
+           [org.projectodd.wunderboss.caching Caching Caching$CreateOption]))
+
+(defn- component [] (WunderBoss/findOrCreateComponent Caching))
+
+(defn cache
+  "Find a cache by name or create one with the passed options"
+  (^org.infinispan.Cache [name]
+    (cache name {}))
+  (^org.infinispan.Cache [name k v & kvs]
+    (cache name (apply hash-map k v kvs)))
+  (^org.infinispan.Cache [name opts]
+    (let [options (-> opts
+                    keywordize-keys
+                    (validate-options cache)
+                    (extract-options Caching$CreateOption))]
+      (.findOrCreate (component) name options))))
+
+(set-valid-options! cache (opts->set Caching$CreateOption))
+
+(defn with-codec
+  "Use the codec when storing/retrieving elements in the cache"
+  [cache codec]
+  (.encodedWith (component)
+    (lookup-codec codec)
+    cache))
+
+(defn swap!
+  "Atomically swaps the value associated to the key in the cache with
+  the result of applying f, passing the current value as the first
+  param along with any args, returning the new cached value. Function
+  f should have no side effects, as it may be called multiple times.
+  If the key is missing, the result of applying f to nil will be
+  inserted atomically."
+  [^org.infinispan.Cache cache key f & args]
+  (loop [val (get cache key)]
+    (let [new (apply f val args)]
+      (if (or val (contains? cache key))
+        (if (.replace cache key val new)
+          new
+          (recur (get cache key)))
+        (if (nil? (.putIfAbsent cache key new))
+          new
+          (recur (get cache key)))))))
+
+(defn exists?
+  "Return true if the named cache exists"
+  [name]
+  (boolean (.find (component) name)))
+
+(defn stop
+  "Removes a cache"
+  [cache-or-name]
+  (if (instance? org.infinispan.Cache cache-or-name)
+    (.stop (component) (.getName cache-or-name))
+    (.stop (component) (name cache-or-name))))

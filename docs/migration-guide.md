@@ -14,7 +14,24 @@ were/are for internal use only.
 
 ## immutant.cache -> immutant.caching
 
-The ns exists, but is currently empty.
+The Mutable interface is gone. To put something in an immutant cache,
+you must now use java interop (all Map, ConcurrentMap, and
+org.infinispan.Cache methods are available) or immutant.caching/swap!
+
+Both lookup and create have been collapsed into cache, which behaves
+like lookup-or-create. To force the creation of an existing cache, you
+must stop the running one. Otherwise, cache will just return it.
+
+core.cache and core.memoize are no longer transitive dependencies of
+immutant.caching. To extend an immutant cache to core's CacheProtocol,
+add org.clojure/core.cache to your project's deps and require
+immutant.caching.core-cache.
+
+The memo function has been moved to immutant.caching.core-memoize
+which you should only require after adding org.clojure/core.memoize to
+your project's deps.
+
+Some option keys and values have changed.
 
 ### immutant.cache.config -> ?
 ### immutant.cache.core -> ?
