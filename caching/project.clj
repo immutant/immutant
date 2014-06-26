@@ -21,4 +21,4 @@
   :profiles {:dev
              {:dependencies [[cheshire "5.3.1"]
                              [org.clojure/data.fressian "0.2.0"]
-                             [org.clojure/core.cache "0.6.3"]]}})
+                             [org.clojure/core.memoize "0.5.6"]]}})
