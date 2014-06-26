@@ -37,5 +37,6 @@
     (.remove this key)
     this)
   (seed [this base]
+    (.clear this)
     (when base (.putAll this base))
     this))
