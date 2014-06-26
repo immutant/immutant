@@ -31,7 +31,23 @@ The memo function has been moved to immutant.caching.core-memoize
 which you should only require after adding org.clojure/core.memoize to
 your project's deps.
 
-Some option keys and values have changed.
+Some option keys and values have changed:
+  - :sync has been collapsed into :mode to match
+    org.infinispan.configuration.cache/CacheMode, so the possible
+    values of :mode are now:
+    - :local
+    - :repl-sync
+    - :repl-async
+    - :invalidation-sync
+    - :invalidation-async
+    - :dist-sync
+    - :dist-async
+  - :encoding is gone, replaced with the with-codec fn
+  - :seed is gone
+  - :config is now :configuration
+  - :idle and :ttl are only supported at cache creation (with
+    scheduling-like period specs instead of :units), so use
+    Cache.put with TimeUnit arg for entry-level ttl/idle
 
 ### immutant.cache.config -> ?
 ### immutant.cache.core -> ?

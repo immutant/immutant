@@ -226,13 +226,15 @@
         c (seed (new-cache) seed)]
     (is (= seed (into {} (seq c))))))
 
-;; (deftest default-to-local "should not raise exception"
-;;   (new-cache :mode "repl_sync"))
+(deftest default-to-local "should not raise exception"
+  (is (= "LOCAL" (-> (new-cache :mode :repl-sync)
+                   .getCacheConfiguration .clustering .cacheMode
+                   str))))
 
-;; (deftest test-persistent-seeding
-;;   (let [c (create "cachey" :persist "src/test/resources/cache-store")
-;;         cn (create "cachey-none" :encoding :none, :persist "src/test/resources/cache-store")]
-;;     (is (= (:key c) 42))
-;;     (is (= (:key cn) 42))))
+(deftest test-persistent-seeding
+  (let [c (with-codec (cache "cachey" :persist "dev-resources/cache-store") :edn)
+        cn (cache "cachey-none" :persist "dev-resources/cache-store")]
+    (is (= (:key c) 42))
+    (is (= (:key cn) 42))))
 
 

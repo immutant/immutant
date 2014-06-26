@@ -16,10 +16,12 @@
   "Optionally persistent ConcurrentMap implementations"
   (:refer-clojure :exclude (swap!))
   (:require [immutant.internal.options :refer :all]
+            [immutant.internal.util    :refer [kwargs-or-map->map]]
             [immutant.codecs           :refer [lookup-codec]]
+            [immutant.caching.options  :refer [wash]]
             [clojure.walk              :refer [keywordize-keys]])
-  (:import org.projectodd.wunderboss.WunderBoss
-           [org.projectodd.wunderboss.caching Caching Caching$CreateOption]))
+  (:import [org.projectodd.wunderboss WunderBoss Options]
+           [org.projectodd.wunderboss.caching Caching Caching$CreateOption Config]))
 
 (defn- component [] (WunderBoss/findOrCreateComponent Caching))
 
@@ -33,6 +35,7 @@
     (let [options (-> opts
                     keywordize-keys
                     (validate-options cache)
+                    wash
                     (extract-options Caching$CreateOption))]
       (.findOrCreate (component) name options))))
 
@@ -74,3 +77,14 @@
   (if (instance? org.infinispan.Cache cache-or-name)
     (.stop (component) (.getName cache-or-name))
     (.stop (component) (name cache-or-name))))
+
+(defn builder
+  "Returns a fluent infinispan configuration builder"
+  [& options]
+  (Config/builder (-> options
+                    kwargs-or-map->map
+                    keywordize-keys
+                    (validate-options cache builder)
+                    wash
+                    (extract-options Caching$CreateOption)
+                    (Options.))))
