@@ -12,9 +12,9 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.scheduling.coercions-test
+(ns immutant.coercions-test
   (:require [clojure.test :refer :all]
-            [immutant.scheduling.coercions :refer :all])
+            [immutant.coercions :refer :all])
   (:import [java.util Date Calendar]))
 
 (def since-epoch 1368779460000)
@@ -30,7 +30,7 @@
            nil            nil
            now            now))
     (testing "string formats"
-      (with-redefs-fn {#'immutant.scheduling.coercions/calendar #(.clone eight-thirty-one)}
+      (with-redefs-fn {#'immutant.coercions/calendar #(.clone eight-thirty-one)}
         #(are [x expected] (= (as-period expected) (- (.getTime (as-time x)) since-epoch))
               "1630"  [7 :hours, 59 :minutes]
               "16:30" [7 :hours, 59 :minutes]

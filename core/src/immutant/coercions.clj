@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.scheduling.coercions
+(ns immutant.coercions
   "Defines {{AsPeriod}} and {{AsTime}} protocols for schedule specifications"
   (:import (java.util Calendar Date)))
 

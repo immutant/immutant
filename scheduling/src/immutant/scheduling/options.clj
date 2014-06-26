@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.scheduling.options
-    (:require [immutant.scheduling.coercions :refer [as-time as-period]]))
+    (:require [immutant.coercions :refer [as-time as-period]]))
 
 (defn option [k f]
   (fn [opts]

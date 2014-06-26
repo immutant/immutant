@@ -16,13 +16,13 @@
   "Adapts the [clj-time](https://github.com/clj-time/clj-time)
   library, which must be included among your app's dependencies to
   load this namespace"
-  (:require [immutant.scheduling.coercions]
+  (:require [immutant.coercions]
             [immutant.scheduling    :as i]
             [immutant.internal.util :as u])
   (:import (org.joda.time DateTime)))
 
 (extend-type DateTime
-  immutant.scheduling.coercions/AsTime
+  immutant.coercions/AsTime
   (as-time [x] (.toDate x)))
 
 (defn schedule-seq
