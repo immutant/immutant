@@ -79,7 +79,7 @@ public class INFMounter implements DeploymentUnitProcessor {
 
             if (infDir != null && infDir.exists()) {
                 log.trace("mounting " + infDir);
-                this.closeables.add(VFS.mountReal(infDir.getPhysicalFile(), root.getChild(name)));
+                this.infMounts.add(VFS.mountReal(infDir.getPhysicalFile(), root.getChild(name)));
             }
 
         } else {
@@ -90,9 +90,9 @@ public class INFMounter implements DeploymentUnitProcessor {
 
     @Override
     public void undeploy(DeploymentUnit context) {
-        for (Closeable each : this.closeables) {
+        for (Closeable each : this.infMounts) {
             try {
-                log.info("TC: closing " + each);
+                log.trace("closing " + each);
                 each.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -101,7 +101,7 @@ public class INFMounter implements DeploymentUnitProcessor {
 
     }
 
-    private final List<Closeable> closeables = new ArrayList<Closeable>();
+    private final List<Closeable> infMounts = new ArrayList<Closeable>();
 
     private static final Logger log = Logger.getLogger(INFMounter.class);
 }
