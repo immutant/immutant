@@ -37,23 +37,23 @@
    [default] value. A negative value for any numeric option means
    \"unlimited\".
 
-   Durability: entries can persist to disk via the `:persist` option.
-   If set to `true`, cache entries will persist in the current
-   directory. Override this by setting `:persist` to a string naming
-   the desired directory.
+   Durability: entries can persist to disk via the :persist option. If
+   set to `true`, cache entries will persist in the current directory.
+   Override this by setting :persist to a string naming the desired
+   directory.
 
-     `:persist` If non-nil, data persists across server restarts in
-                a file store; a string value names the directory [nil]
+   * :persist - if non-nil, data persists across server restarts in a
+                file store; a string value names the directory [nil]
 
-   Eviction: turned off by default, `:max-entries` may be set to
+   Eviction: turned off by default, :max-entries may be set to
    mitigate the risk of memory exhaustion. When :persist is enabled,
    evicted entries are written to disk, so that the entries in the
    file store are a superset of those in RAM, transparently reloaded
    upon request.
 
-     `:max-entries` The maximum number of entries allowed in the cache [-1]
-     `:eviction`    How entries are evicted when `:max-entries` is exceeded [:none]
-                    one of `:none`, `:lru`, `:lirs`, or `:unordered` 
+   * :max-entries - the maximum number of entries allowed in the cache [-1]
+   * :eviction - how entries are evicted when :max-entries is exceeded [:none]
+                 one of :none, :lru, :lirs, or :unordered
 
    Expiration: both time-to-live and max idle limits are supported.
    Values may be a number of milliseconds, a period keyword, or
@@ -61,34 +61,33 @@
    singular and plural versions of :second, :minute, :hour, :day, and
    :week are valid period keywords.
 
-     `:ttl`  The max time the entry will live before expiry [-1]
-     `:idle` The time after which an entry will expire if not accessed [-1]
+   * :ttl - the max time the entry will live before expiry [-1]
+   * :idle - the time after which an entry will expire if not accessed [-1]
 
-   Replication: the replication mode defaults to `:dist-sync` when
-   clustered. When not clustered, the value of `:mode` is ignored, and
-   the cache will be `:local`. Asynchronous replication may yield a
+   Replication: the replication mode defaults to :dist-sync when
+   clustered. When not clustered, the value of :mode is ignored, and
+   the cache will be :local. Asynchronous replication may yield a
    slight performance increase at the risk of potential cache
    inconsistency.
 
-     `:mode` Replication mode [:dist-sync or :local]
-             one of :local, :repl-sync, :repl-async,
-             :invalidation-sync, :invalidation-async,
-             :dist-sync, :dist-async
+   * :mode - replication mode [:dist-sync or :local] one of :local,
+             :repl-sync, :repl-async, :invalidation-sync,
+             :invalidation-async, :dist-sync, :dist-async
 
    Transactions: caches can participate in transactions when a
    TransactionManager is available.
 
-     `:transactional` Whether the cache is transactional [false]
-     `:locking`       Transactional locking schemes [:optimistic]
-                      one of :optimisitic or :pessimistic
+   * :transactional - whether the cache is transactional [false]
+   * :locking - transactional locking schemes [:optimistic]
+                one of :optimisitic or :pessimistic
 
    Advanced configuration: the options listed above are the most
    commonly configured, but Infinispan has many more buttons,
    switches, dials, knobs and levers. Call the {{builder}} function to
    create your own Configuration instance and pass it in via the
-   `:configuration` option.
+   :configuration option.
 
-     `:configuration` an org.infinispan.configuration.cache.Configuration instance"
+   * :configuration - an org.infinispan.configuration.cache.Configuration instance"
   ([name]
     (cache name {}))
   ([name k v & kvs]
@@ -104,11 +103,11 @@
 (set-valid-options! cache (opts->set Caching$CreateOption))
 
 (defn with-codec
-  "Returns a cache that stores/retrieves entries in the passed cache
-  using the passed codec. The default is `:none` but the following are
-  supported: `:edn`, `:json`, and `:fressian`. To use the latter two,
-  the `cheshire` and `org.clojure/data.fressian` libraries,
-  respectively, must be available on the classpath."
+  "Takes a cache and a keyword denoting a codec, and returns a new
+  cache that encodes/decodes entries in the original using that codec.
+  The following codecs are supported: `:none`, `:edn`, `:json`, and
+  `:fressian`. The latter two require additional dependencies:
+  `cheshire` and `org.clojure/data.fressian`, respectively."
   [cache codec]
   (.encodedWith (component)
     (lookup-codec codec)
@@ -138,7 +137,7 @@
   (boolean (.find (component) name)))
 
 (defn stop
-  "Removes a cache, allowing it to be reconfigured by the cache
+  "Removes a cache, allowing it to be reconfigured by the {{cache}}
   function."
   [cache-or-name]
   (if (instance? org.infinispan.Cache cache-or-name)
@@ -146,10 +145,20 @@
     (.stop (component) (name cache-or-name))))
 
 (defn builder
-  "For advanced use, call this function to obtain a fluent Infinispan
-  configuration builder. Set the desired options, and invoke its build
-  method, the result from which can be passed in the :configuration
-  option of the cache function."
+  "For advanced use, call this function to obtain a \"fluent
+  Infinispan configuration builder\". Set the desired options, and
+  invoke its build method, the result from which can be passed in the
+  :configuration option of the {{cache}} function. For example:
+
+  ```
+  (let [config (.. (builder :ttl [30 :minutes])
+                  clustering l1 (enabled true) build)]
+    (cache \"L1\" :configuration config))
+  ```
+
+  Note that builder takes the same options as {{cache}} so you can
+  concisely initialize it with Clojure, and use Java interop to set
+  the more esoteric options"
   [& options]
   (Config/builder (-> options
                     kwargs-or-map->map
