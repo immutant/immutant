@@ -21,20 +21,7 @@ package org.immutant.core.as;
 
 import org.immutant.core.Immutant;
 import org.immutant.core.ImmutantMBean;
-import org.immutant.core.processors.AppDependenciesProcessor;
-import org.immutant.core.processors.AppNameRegisteringProcessor;
-import org.immutant.core.processors.AppRootRegisteringProcessor;
-import org.immutant.core.processors.ApplicationInitializerInstaller;
-import org.immutant.core.processors.ArchiveRecognizer;
-import org.immutant.core.processors.ClojureRuntimeInstaller;
-import org.immutant.core.processors.CloserInstaller;
-import org.immutant.core.processors.DeploymentDescriptorParsingProcessor;
-import org.immutant.core.processors.FullAppConfigLoadingProcessor;
-import org.immutant.core.processors.ImmutantArchiveStructureProcessor;
-import org.immutant.core.processors.ImmutantDescriptorRootMountProcessor;
-import org.immutant.core.processors.ResourceRootSearchingLoggingDeploymentUnitProcessor;
-import org.immutant.core.processors.TmpResourceMounterInstaller;
-import org.immutant.core.processors.TmpResourceMounterRegisteringInstaller;
+import org.immutant.core.processors.*;
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -97,6 +84,7 @@ class CoreSubsystemAdd extends AbstractBoottimeAddStepHandler {
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 50, new FullAppConfigLoadingProcessor() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 90, new TmpResourceMounterInstaller() );
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 100, new AppDependenciesProcessor() );
+        processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.STRUCTURE, Phase.STRUCTURE_MOUNT + 101, new INFMounter() );
         
         processorTarget.addDeploymentProcessor( CoreExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, 1, new CoreDependenciesProcessor() );
         

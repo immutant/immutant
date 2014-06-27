@@ -25,6 +25,8 @@ import org.immutant.core.ClojureMetaData;
 import org.immutant.core.Immutant;
 import org.immutant.core.TmpResourceMounter;
 import org.immutant.core.as.CoreServices;
+import org.jboss.as.server.deployment.AttachmentKey;
+import org.jboss.as.server.deployment.AttachmentList;
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -42,6 +44,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class AppDependenciesProcessor implements DeploymentUnitProcessor {
+
+    public static final AttachmentKey<AttachmentList<String>> APP_RESOURCE_PATHS = AttachmentKey.createList(String.class);
 
     @SuppressWarnings("unchecked")
     @Override
@@ -65,6 +69,7 @@ public class AppDependenciesProcessor implements DeploymentUnitProcessor {
             for(String each : ApplicationBootstrapUtils.resourceDirs( root, metaData.getLeinProfiles(), metaData.resolvePluginDependencies() )) {
                 final ResourceRoot childResource = ResourceLoaderUtil.createResourceRoot(each, true);
                 unit.addToAttachmentList( Attachments.RESOURCE_ROOTS, childResource );
+                unit.addToAttachmentList(APP_RESOURCE_PATHS, each);
             }
             
             List<File> dependencyJars = ApplicationBootstrapUtils.getDependencies( root, 
