@@ -87,7 +87,7 @@
    create your own Configuration instance and pass it in via the
    :configuration option.
 
-   * :configuration - an org.infinispan.configuration.cache.Configuration instance"
+   * :configuration - a [Configuration](https://docs.jboss.org/infinispan/6.0/apidocs/org/infinispan/configuration/cache/Configuration.html) instance"
   ([name]
     (cache name {}))
   ([name k v & kvs]
@@ -145,10 +145,11 @@
     (.stop (component) (name cache-or-name))))
 
 (defn builder
-  "For advanced use, call this function to obtain a \"fluent
-  Infinispan configuration builder\". Set the desired options, and
-  invoke its build method, the result from which can be passed in the
-  :configuration option of the {{cache}} function. For example:
+  "For advanced use, call this function to obtain a \"fluent\"
+  [ConfigurationBuilder](https://docs.jboss.org/infinispan/6.0/apidocs/org/infinispan/configuration/cache/ConfigurationBuilder.html).
+  Set the desired options, and invoke its build method, the result
+  from which can be passed via the :configuration option of the
+  {{cache}} function. For example:
 
   ```
   (let [config (.. (builder :ttl [30 :minutes])
