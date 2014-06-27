@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.caching.core-memoize
-  "Extends org.infinispan.Cache to clojure.core.cache/CacheProtocol"
+  "Use an Infinispan cache as a clojure.core.memoize/PluggableMemoization"
   (:require [immutant.caching          :refer [cache]]
             [immutant.internal.options :refer [validate-options]]
             [clojure.core.memoize      :refer [build-memoizer]]
@@ -57,7 +57,7 @@
   "Memoize a function by associating its arguments with return values
    stored in a possibly-clustered Infinispan-backed cache. Other than
    the function to be memoized, arguments are the same as for
-   immutant.caching/cache"
+   {{immutant.caching/cache}}"
   [f name & {:as options}]
   (let [cache (cache name (validate-options options cache memo))]
     (build-memoizer
