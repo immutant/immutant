@@ -17,6 +17,7 @@
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [immutant.caching :refer :all]
+            [immutant.codecs :refer [encode decode]]
             [clojure.core.cache :refer [lookup miss seed]]
             immutant.caching.core-cache))
 
@@ -237,4 +238,19 @@
     (is (= (:key c) 42))
     (is (= (:key cn) 42))))
 
-
+(deftest various-codecs
+  (let [none (new-cache)
+        edn (with-codec none :edn)
+        json (with-codec none :json)
+        fressian (with-codec none :fressian)]
+    (.put none :a 1)
+    (.put edn :b 2)
+    (.put json :c 3)
+    (.put fressian :d 4)
+    (is (= 1 (:a none)))
+    (is (= 2 (:b edn)))
+    (is (= 3 (:c json)))
+    (is (= 4 (:d fressian)))
+    (is (= 2 (decode (get none (encode :b :edn)) :edn)))
+    (is (= 3 (decode (get none (encode :c :json)) :json)))
+    (is (= 4 (decode (get none (encode :d :fressian)) :fressian)))))
