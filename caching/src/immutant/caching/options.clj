@@ -12,26 +12,23 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.caching.options
+(ns ^:no-doc immutant.caching.options
   "Spruces up some of the option values"
   (require [immutant.coercions :refer [as-period]]))
 
 (defn period-converter [key]
-  (fn [m] (if (key m)
+  (fn [m] (if (get m key)
            (update-in m [key] as-period)
            m)))
 
-(def idle (period-converter :idle))
-(def ttl  (period-converter :ttl))
+(defn keyword-converter [key]
+  (fn [m] (if (get m key)
+           (update-in m [key] #(.replace (name %) \- \_))
+           m)))
 
-(defn mode
-  "TODO: Figure out when we're clustered"
-  [m]
-  (if-let [mode (:mode m)]
-    (if (= mode :local)
-      (assoc m :mode "LOCAL")
-      (do (println "WARN: Only :local permitted when not clustered")
-          (assoc m :mode "LOCAL")))
-    m))
-
-(def wash (comp mode idle ttl))
+(def wash (comp
+            (period-converter :idle)
+            (period-converter :ttl)
+            (keyword-converter :mode)
+            (keyword-converter :eviction)
+            (keyword-converter :locking)))

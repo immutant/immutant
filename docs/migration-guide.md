@@ -22,6 +22,9 @@ Both lookup and create have been collapsed into cache, which behaves
 like lookup-or-create. To force the creation of an existing cache, you
 must stop the running one. Otherwise, cache will just return it.
 
+Caches are no longer transactional by default, and if set to be so,
+require a locking mode to be selected (optimistic by default).
+
 core.cache and core.memoize are no longer transitive dependencies of
 immutant.caching. To extend an immutant cache to core's CacheProtocol,
 add org.clojure/core.cache to your project's deps and require
@@ -42,6 +45,7 @@ Some option keys and values have changed:
     - :invalidation-async
     - :dist-sync
     - :dist-async
+  - :tx is now :transactional
   - :encoding is gone, replaced with the with-codec fn
   - :seed is gone
   - :config is now :configuration

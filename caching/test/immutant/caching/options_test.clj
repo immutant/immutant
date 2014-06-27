@@ -25,5 +25,7 @@
     (is (= (:idle clean) (* 19 7 24 60 60 1000)))
     (is (= (:foo  clean) 42))))
 
-(deftest force-local-mode-when-not-clustered "TODO"
-  (is (= "LOCAL" (-> {:mode :repl-sync} wash :mode))))
+(deftest keywords->strings
+  (is (= "repl_sync" (-> {:mode :repl-sync} wash :mode)))
+  (is (= "pessimistic" (-> {:locking :pessimistic} wash :locking)))
+  (is (= "lru" (-> {:eviction :lru} wash :eviction))))
