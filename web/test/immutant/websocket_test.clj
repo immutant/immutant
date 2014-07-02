@@ -15,7 +15,9 @@
 (ns immutant.websocket-test
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
+            [immutant.web.javax :refer (create-servlet)]
             [immutant.websocket :refer :all]
+            [testing.web  :refer [hello]]
             [gniazdo.core :as ws]
             [clojure.string :refer [upper-case]]))
 
@@ -46,7 +48,7 @@
 
 (deftest jsr-356-websocket
   (let [expected [:open "hello" 1000]]
-    (is (= expected (test-websocket create-servlet)))))
+    (is (= expected (test-websocket (partial attach-endpoint (create-servlet hello)))))))
 
 (deftest remote-sending-to-client
   (let [result (promise)

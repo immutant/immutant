@@ -57,24 +57,42 @@
     (onError [session error]
       (when on-error (on-error session error)))))
 
-(defn create-endpoint-servlet
-  "Create a servlet for a JSR-356 endpoint"
-  [endpoint {:keys [fallback path] :or {path "/"}}]
-  (proxy [HttpServlet] []
-    (init [servlet-config]
-      (proxy-super init servlet-config)
-      (let [context (.getServletContext servlet-config)
-            container (.getAttribute context "javax.websocket.server.ServerContainer")
-            config (.. ServerEndpointConfig$Builder
-                     (create (class endpoint) path)
-                     (configurator (proxy [ServerEndpointConfig$Configurator] []
-                                     (getEndpointInstance [c] endpoint)))
-                     build)]
-        (.addEndpoint container config)))
-    (service [request response]
-      (if-let [fallback (and fallback (ring/make-service-method fallback))]
-        (fallback this request response)
-        (proxy-super service request response)))))
+(defn configure-endpoint
+  [endpoint servlet-config {:keys [path handshake] :or {path "/"}}]
+  (let [context (.getServletContext servlet-config)
+        container (.getAttribute context "javax.websocket.server.ServerContainer")
+        config (.. ServerEndpointConfig$Builder
+                 (create (class endpoint) path)
+                 (configurator (proxy [ServerEndpointConfig$Configurator] []
+                                 (getEndpointInstance [c] endpoint)
+                                 (modifyHandshake [config request response]
+                                   (if handshake
+                                     (handshake config request response)
+                                     (-> config
+                                       .getUserProperties
+                                       (.put "HandshakeRequest" request))))))
+                 build)]
+    (.addEndpoint container config)))
+
+(defn attach-endpoint
+  "Attach a JSR-356 endpoint to a servlet"
+  [servlet endpoint args]
+  (if-let [config (.getServletConfig servlet)]
+    (do
+      (configure-endpoint endpoint config args)
+      servlet)
+    (proxy [javax.servlet.Servlet] []
+      (init [servlet-config]
+        (.init servlet servlet-config)
+        (configure-endpoint endpoint servlet-config args))
+      (service [request response]
+        (.service servlet request response))
+      (destroy []
+        (.destroy servlet))
+      (getServletConfig []
+        (.getServletConfig servlet))
+      (getServletInfo []
+        (.getServletInfo servlet)))))
 
 (defn session
   "Returns the servlet session from the ring request"

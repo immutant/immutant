@@ -63,14 +63,23 @@
            (if on-error (on-error channel error))))
        (if fallback (create-http-handler fallback)))))
 
-(defn create-servlet
-  "The same callbacks accepted by {{create-handler}} are supported, where
-  the `channel` passed to the callbacks is an instance of
-  javax.websocket.Session.
+(defn attach-endpoint
+  "The same callbacks accepted by {{create-handler}} are supported,
+  except for :fallback which is obviated by the required servlet
+  parameter. The {{Channel}} passed to the callbacks will be an
+  instance of `javax.websocket.Session`.
 
   In addition, a :path may be specified. It will be resolved relative
-  to the path on which the returned servlet is mounted."
-  ([key value & key-values]
-     (create-servlet (apply hash-map key value key-values)))
-  ([{:keys [path on-message on-open on-close on-error fallback] :as args}]
-     (javax/create-endpoint-servlet (javax/create-endpoint args) args)))
+  to the path on which the returned servlet is mounted.
+
+  Finally, if a :handshake callback is passed, it will be used as the
+  `modifyHandshake` method on a `ServerEndpointConfig$Configurator`
+  instance. Because this is often used as a means to obtain the
+  handshake's request headers or associated servlet's session, we
+  store the `HandshakeRequest` parameter passed to `modifyHandshake`
+  in the map returned by `Session.getUserProperties` by default, i.e.
+  when :handshake is *not* passed"
+  ([servlet key value & key-values]
+     (attach-endpoint servlet (apply hash-map key value key-values)))
+  ([servlet {:keys [path on-message on-open on-close on-error handshake] :as args}]
+     (javax/attach-endpoint servlet (javax/create-endpoint args) args)))
