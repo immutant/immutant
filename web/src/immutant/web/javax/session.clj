@@ -13,35 +13,25 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.javax.session
-    (:require [ring.middleware.session :refer (wrap-session)]
-              [ring.middleware.session.store :refer (SessionStore)]
-              [immutant.web.javax :refer (session)]))
+    (:require [ring.middleware.session.store :refer (SessionStore)])
+    (:import javax.servlet.http.HttpSession))
 
 (def ring-session-key "ring-session-data")
 
-(def ^{:private true :dynamic true} current-request)
-(defn ^{:private true} set-current-request
+(def ^:private ^:dynamic ^HttpSession http-session)
+(defn bind-http-session
   [handler]
   (fn [request]
-    (binding [current-request request]
+    (binding [http-session (-> request :servlet-request .getSession)]
       (handler request))))
 
 (deftype ServletStore []
   SessionStore
   (read-session [_ _]
-    (or (.getAttribute (session current-request) ring-session-key) {}))
+    (or (.getAttribute http-session ring-session-key) {}))
   (write-session [_ _ data]
-    (let [s (session current-request)]
-      (.setAttribute s ring-session-key data)
-      (.getId s)))
+    (.setAttribute http-session ring-session-key data)
+    (.getId http-session))
   (delete-session [_ _]
-    (let [s (session current-request)]
-      (.removeAttribute s ring-session-key)
-      (.invalidate s))))
-
-(defn wrap-session
-  "Store the ring session data in the servlet's HttpSession"
-  [handler]
-  (-> handler
-    (wrap-session {:store (->ServletStore)})
-    set-current-request))
+    (.removeAttribute http-session ring-session-key)
+    (.invalidate http-session)))

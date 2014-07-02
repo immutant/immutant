@@ -16,6 +16,8 @@
   (:require [clj-http.client :as http]
             [ring.util.response :refer [response]]))
 
+(def cookies (clj-http.cookies/cookie-store))
+
 (defn handler [body]
   (fn [request] (response body)))
 
@@ -23,4 +25,4 @@
 
 (defn get-body
   [url & [req]]
-  (:body (http/get url req)))
+  (:body (http/get url (merge {:cookie-store cookies} req))))

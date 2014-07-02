@@ -13,16 +13,31 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.javax
-  (:require [ring.util.servlet :as ring])
+  (:require [ring.util.servlet :as ring]
+            [ring.middleware.session :refer (wrap-session)]
+            [immutant.web.javax.session :refer (bind-http-session ->ServletStore)])
   (:import [org.projectodd.wunderboss.websocket Util]
            [javax.servlet.http HttpServlet HttpServletRequest]
            [javax.websocket Endpoint MessageHandler$Whole]
            [javax.websocket.server ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
+(defn wrap-session-servlet-store
+  "Store the ring session data in the servlet's HttpSession; any
+  options other than :store are passed on to ring's wrap-session"
+  ([handler]
+     (wrap-session-servlet-store handler {}))
+  ([handler opts]
+     (-> handler
+       (wrap-session (merge opts {:store (->ServletStore)}))
+       bind-http-session)))
+
 (defn create-servlet
-  "Encapsulate a ring handler within a servlet's service method"
+  "Encapsulate a ring handler within a servlet's service method,
+  storing :session data in the associated HttpSession"
   [handler]
-  (ring/servlet handler))
+  (-> handler
+    wrap-session-servlet-store
+    ring/servlet))
 
 (defn create-endpoint
   "Create a JSR-356 endpoint from a few functions"
