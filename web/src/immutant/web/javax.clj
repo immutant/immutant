@@ -42,10 +42,12 @@
 (defn create-servlet
   "Encapsulate a ring handler within a servlet's service method,
   storing :session data in the associated HttpSession"
-  [handler]
-  (-> handler
-    wrap-session-servlet-store
-    ring/servlet))
+  ([]
+     (create-servlet (fn [_] {:status 200, :body "OK"})))
+  ([handler]
+     (-> handler
+       wrap-session-servlet-store
+       ring/servlet)))
 
 (defn create-endpoint
   "Create a JSR-356 endpoint from one or more callback functions.
@@ -57,22 +59,24 @@
     * :on-message `(fn [channel message])`
     * :on-open    `(fn [channel])`
     * :on-close   `(fn [channel {:keys [code reason]}])`
-    * :on-error   `(fn [channel throwable])`"  
-  [{:keys [on-message on-open on-close on-error]}]
-  (proxy [Endpoint] []
-    (onOpen [session config]
-      (when on-open (on-open session))
-      (when on-message
-        (let [handler (reify MessageHandler$Whole
-                        (onMessage [_ message] (on-message session message)))]
-          (.addMessageHandler session (Util/createTextHandler handler))
-          (.addMessageHandler session (Util/createBinaryHandler handler)))))
-    (onClose [session reason]
-      (when on-close (on-close session
-                       {:code (.. reason getCloseCode getCode)
-                        :reason (.getReasonPhrase reason)})))
-    (onError [session error]
-      (when on-error (on-error session error)))))
+    * :on-error   `(fn [channel throwable])`"
+  ([key value & key-values]
+     (create-endpoint (apply hash-map key value key-values)))
+  ([{:keys [on-message on-open on-close on-error]}]
+     (proxy [Endpoint] []
+       (onOpen [session config]
+         (when on-open (on-open session))
+         (when on-message
+           (let [handler (reify MessageHandler$Whole
+                           (onMessage [_ message] (on-message session message)))]
+             (.addMessageHandler session (Util/createTextHandler handler))
+             (.addMessageHandler session (Util/createBinaryHandler handler)))))
+       (onClose [session reason]
+         (when on-close (on-close session
+                          {:code (.. reason getCloseCode getCode)
+                           :reason (.getReasonPhrase reason)})))
+       (onError [session error]
+         (when on-error (on-error session error))))))
 
 (defn add-endpoint
   "Adds an endpoint to a container obtained from the servlet-context,

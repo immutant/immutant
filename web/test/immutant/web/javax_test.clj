@@ -69,3 +69,18 @@
                          :open (fn [_] (deref latch 1000 :fail)))])
     (is (= "42" (get-body url)))
     (stop)))
+
+(deftest handshake-headers
+  (let [result (promise)
+        endpoint (create-endpoint
+                   :on-message (fn [ch _]
+                                 (deliver result (-> ch
+                                                   .getUserProperties
+                                                   (get "HandshakeRequest")
+                                                   .getHeaders))))]
+    (run (attach-endpoint (create-servlet) endpoint))
+    (with-open [client (http/create-client)
+                socket (http/websocket client "ws://localhost:8080")]
+      (http/send socket :text "")
+      (is (= "http://localhost:8080" (-> (deref result 1000 {}) (get "Origin") first))))
+    (stop)))

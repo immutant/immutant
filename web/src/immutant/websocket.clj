@@ -13,9 +13,8 @@
 ;; limitations under the License.
 
 (ns immutant.websocket
-  "Provides the creation of asynchronous Websocket services deployed
-  as either an Undertow HttpHandler ({{create-handler}}) or a JSR 356
-  Endpoint ({{create-servlet}})"
+  "Provides the creation of asynchronous Websocket services and a
+  protocol through which to invoke them"
   (:require [immutant.logging :as log]
             [immutant.web.undertow :refer [create-http-handler]])
   (:import [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint]))
@@ -40,7 +39,9 @@
     * :on-open    `(fn [channel])`
     * :on-close   `(fn [channel {:keys [code reason]}])`
     * :on-error   `(fn [channel throwable])`
-    * :fallback   `(fn [request] (response ...))`"
+    * :fallback   `(fn [request] (response ...))`
+
+  The result can be passed to {{immutant.web/run}}"
   ([key value & key-values]
      (create-handler (apply hash-map key value key-values)))
   ([{:keys [on-message on-open on-close on-error fallback]}]
