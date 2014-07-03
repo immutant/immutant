@@ -15,7 +15,7 @@
 (ns immutant.websocket-test
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
-            [immutant.web.javax :refer (create-servlet)]
+            [immutant.web.javax :refer (create-servlet attach-endpoint create-endpoint)]
             [immutant.websocket :refer :all]
             [http.async.client :as http]
             [testing.web  :refer [hello]]
@@ -49,7 +49,7 @@
 
 (deftest jsr-356-websocket
   (let [expected [:open "hello" 1000]]
-    (is (= expected (test-websocket (partial attach-endpoint (create-servlet hello)))))))
+    (is (= expected (test-websocket (comp (partial attach-endpoint (create-servlet hello)) create-endpoint))))))
 
 (deftest remote-sending-to-client-using-gniazdo
   (let [result (promise)

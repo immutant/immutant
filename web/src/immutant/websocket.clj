@@ -17,8 +17,7 @@
   as either an Undertow HttpHandler ({{create-handler}}) or a JSR 356
   Endpoint ({{create-servlet}})"
   (:require [immutant.logging :as log]
-            [immutant.web.undertow :refer [create-http-handler]]
-            [immutant.web.javax :as javax])
+            [immutant.web.undertow :refer [create-http-handler]])
   (:import [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint]))
 
 (defprotocol Channel
@@ -28,20 +27,14 @@
   (send! [ch message] "Send a message asynchronously"))
 
 (extend-protocol Channel
-
   io.undertow.websockets.core.WebSocketChannel
   (send! [ch message] (UndertowWebsocket/send ch message nil))
   (open? [ch] (.isOpen ch))
-  (close [ch] (.sendClose ch))
-
-  javax.websocket.Session
-  (send! [ch message] (.sendObject (.getAsyncRemote ch) message))
-  (open? [ch] (.isOpen ch))
-  (close [ch] (.close ch)))
+  (close [ch] (.sendClose ch)))
 
 (defn create-handler
   "The following callbacks are supported, where `channel` is an instance
-  of io.undertow.websockets.core.WebSocketChannel:
+  of `io.undertow.websockets.core.WebSocketChannel`, extended to {{Channel}}:
 
     * :on-message `(fn [channel message])`
     * :on-open    `(fn [channel])`
@@ -62,24 +55,3 @@
          (onError [_ channel error]
            (if on-error (on-error channel error))))
        (if fallback (create-http-handler fallback)))))
-
-(defn attach-endpoint
-  "The same callbacks accepted by {{create-handler}} are supported,
-  except for :fallback which is obviated by the required servlet
-  parameter. The {{Channel}} passed to the callbacks will be an
-  instance of `javax.websocket.Session`.
-
-  In addition, a :path may be specified. It will be resolved relative
-  to the path on which the returned servlet is mounted.
-
-  Finally, if a :handshake callback is passed, it will be used as the
-  `modifyHandshake` method on a `ServerEndpointConfig$Configurator`
-  instance. Because this is often used as a means to obtain the
-  handshake's request headers or associated servlet's session, we
-  store the `HandshakeRequest` parameter passed to `modifyHandshake`
-  in the map returned by `Session.getUserProperties` by default, i.e.
-  when :handshake is *not* passed"
-  ([servlet key value & key-values]
-     (attach-endpoint servlet (apply hash-map key value key-values)))
-  ([servlet {:keys [path on-message on-open on-close on-error handshake] :as args}]
-     (javax/attach-endpoint servlet (javax/create-endpoint args) args)))

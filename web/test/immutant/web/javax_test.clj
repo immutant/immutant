@@ -39,7 +39,7 @@
   (let [ring (atom {})
         http (atom {})
         handler (fn [req]
-                  (reset! http (session req))
+                  (reset! http (http-session req))
                   (let [res (counter req)]
                     (reset! ring (:session res))
                     res))]
