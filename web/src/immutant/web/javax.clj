@@ -76,23 +76,25 @@
 
 (defn attach-endpoint
   "Attach a JSR-356 endpoint to a servlet"
-  [servlet endpoint args]
-  (if-let [config (.getServletConfig servlet)]
-    (do
-      (configure-endpoint endpoint config args)
-      servlet)
-    (proxy [javax.servlet.Servlet] []
-      (init [servlet-config]
-        (.init servlet servlet-config)
-        (configure-endpoint endpoint servlet-config args))
-      (service [request response]
-        (.service servlet request response))
-      (destroy []
-        (.destroy servlet))
-      (getServletConfig []
-        (.getServletConfig servlet))
-      (getServletInfo []
-        (.getServletInfo servlet)))))
+  ([servlet endpoint]
+     (attach-endpoint servlet endpoint {}))
+  ([servlet endpoint args]
+     (if-let [config (.getServletConfig servlet)]
+       (do
+         (configure-endpoint endpoint config args)
+         servlet)
+       (proxy [javax.servlet.Servlet] []
+         (init [servlet-config]
+           (.init servlet servlet-config)
+           (configure-endpoint endpoint servlet-config args))
+         (service [request response]
+           (.service servlet request response))
+         (destroy []
+           (.destroy servlet))
+         (getServletConfig []
+           (.getServletConfig servlet))
+         (getServletInfo []
+           (.getServletInfo servlet))))))
 
 (defn session
   "Returns the servlet session from the ring request"

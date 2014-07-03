@@ -13,10 +13,10 @@
 ;; limitations under the License.
 
 (ns testing.web
-  (:require [clj-http.client :as http]
+  (:require [http.async.client :as http]
             [ring.util.response :refer [response]]))
 
-(def cookies (clj-http.cookies/cookie-store))
+(def cookies (atom nil))
 
 (defn handler [body]
   (fn [request] (response body)))
@@ -24,5 +24,19 @@
 (def hello (handler "hello"))
 
 (defn get-body
-  [url & [req]]
-  (:body (http/get url (merge {:cookie-store cookies} req))))
+  "Return the response body as a string if status=200, otherwise
+  return the numeric status code. Any response returning a :set-cookie
+  will cause subsequent requests to send them"
+  [url & [headers]]
+  (with-open [client (http/create-client)]
+    (let [response (http/GET client url :headers headers :cookies @cookies)]
+      (http/await response)
+      (when-let [error (http/error response)]
+        (throw error))
+      (when (contains? (http/headers response) :set-cookie)
+        (reset! cookies (http/cookies response)))
+      (let [status (:code (http/status response))]
+        (if (= 200 status)
+          (http/string response)
+          status)))))
+

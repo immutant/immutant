@@ -32,10 +32,6 @@
 (def url "http://localhost:8080/")
 (def url2 "http://localhost:8081/")
 
-(defn get-error [url]
-  (let [result (is (thrown? ExceptionInfo (get-body url)))]
-    (-> result ex-data :object :status)))
-
 (deftest mount-pedestal-service
   (run pedestal/servlet)
   (is (= "Hello World!" (get-body url))))
@@ -69,7 +65,7 @@
   (is (= "howdy" (get-body (str url "howdy"))))
   (stop)
   (is (= "howdy" (get-body (str url "howdy"))))
-  (is (= 404 (get-error url))))
+  (is (= 404 (get-body url))))
 
 (deftest stop-with-context-stops-that-context
   (run hello)
@@ -194,9 +190,9 @@
     (is (= "hello" (get-body "http://integ-app1.torquebox.org:8080/")))
     (is (= "hello" (get-body "http://integ-app2.torquebox.org:8080/")))
     (is (= "howdy" (get-body "http://integ-app3.torquebox.org:8080/")))
-    (is (= 404 (get-error url)))
+    (is (= 404 (get-body url)))
     (is (true? (stop :virtual-host "integ-app1.torquebox.org")))
-    (is (= 404 (get-error "http://integ-app1.torquebox.org:8080/")))
+    (is (= 404 (get-body "http://integ-app1.torquebox.org:8080/")))
     (is (= "hello" (get-body "http://integ-app2.torquebox.org:8080/")))
     (is (= "howdy" (get-body "http://integ-app3.torquebox.org:8080/")))
     (is (true? (stop all)))

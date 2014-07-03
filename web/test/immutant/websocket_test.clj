@@ -17,6 +17,7 @@
             [immutant.web :refer :all]
             [immutant.web.javax :refer (create-servlet)]
             [immutant.websocket :refer :all]
+            [http.async.client :as http]
             [testing.web  :refer [hello]]
             [gniazdo.core :as ws]
             [clojure.string :refer [upper-case]]))
@@ -50,7 +51,7 @@
   (let [expected [:open "hello" 1000]]
     (is (= expected (test-websocket (partial attach-endpoint (create-servlet hello)))))))
 
-(deftest remote-sending-to-client
+(deftest remote-sending-to-client-using-gniazdo
   (let [result (promise)
         server (run (create-handler {:on-message (fn [c m] (send! c (upper-case m)))}))
         socket (ws/connect "ws://localhost:8080" :on-receive #(deliver result %))]
@@ -59,4 +60,16 @@
       (is (= "HELLO" (deref result 2000 "goodbye")))
       (finally
         (ws/close socket)
+        (stop server)))))
+
+(deftest remote-sending-to-client-using-httpasyncclient
+  (let [result (promise)
+        server (run (create-handler {:on-message (fn [c m] (send! c (upper-case m)))}))]
+    (try
+      (with-open [client (http/create-client)
+                  socket (http/websocket client "ws://localhost:8080"
+                           :text (fn [_ m] (deliver result m)))]
+        (http/send socket :text "hello")
+        (is (= "HELLO" (deref result 2000 "goodbye"))))
+      (finally
         (stop server)))))

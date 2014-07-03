@@ -17,6 +17,7 @@
             [testing.web :refer [get-body]]
             [immutant.web :refer :all]
             [immutant.web.javax :refer :all]
+            [http.async.client :as http]
             [ring.util.response :refer [response]]))
 
 (use-fixtures :each
@@ -46,4 +47,25 @@
     (is (= "0" (get-body url)))
     (is (= 1 (:count @ring) (-> @http (.getAttribute "ring-session-data") :count)))
     (is (= "1" (get-body url)))
-    (is (= 2 (:count @ring) (-> @http (.getAttribute "ring-session-data") :count)))))
+    (is (= 2 (:count @ring) (-> @http (.getAttribute "ring-session-data") :count)))
+    (stop)))
+
+(deftest share-session-with-websocket
+  (let [latch (promise)
+        servlet (create-servlet counter)]
+    (run (attach-endpoint servlet
+           (create-endpoint {:on-open (fn [ch]
+                                        (-> ch
+                                          .getUserProperties
+                                          (get "HandshakeRequest")
+                                          .getHttpSession
+                                          (.setAttribute "ring-session-data" {:count 42}))
+                                        (deliver latch :success))})))
+    (is (= "0" (get-body url)))
+    (is (= "1" (get-body url)))
+    (with-open [client (http/create-client)
+                socket (http/websocket client "ws://localhost:8080"
+                         :cookies @testing.web/cookies
+                         :open (fn [_] (deref latch 1000 :fail)))])
+    (is (= "42" (get-body url)))
+    (stop)))
