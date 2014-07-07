@@ -268,6 +268,7 @@
         ^Queue q (:destination queue)
         future (.request q message
                  (codecs/lookup-codec (:encoding options :edn))
+                 codecs/codecs
                  coerced-options)]
     (delegating-future future decode-with-metadata)))
 

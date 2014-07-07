@@ -60,6 +60,8 @@
                           "JMSXDeliveryCount"
                           "contentType"
                           "synchronous"
+                          "synchronous_response"
+                          "sync_request_node_id"
                           "sync_request_id"))
       result)))
 
