@@ -42,6 +42,17 @@
     </dependency>
 
     <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.nrepl</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
       <groupId>org.immutant</groupId>
       <artifactId>immutant-dependency-exclusions</artifactId>
       <scope>compile</scope>

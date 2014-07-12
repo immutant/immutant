@@ -28,6 +28,7 @@
         <resource-root path="${project.artifactId}.jar"/>
         <resource-root path="clojure.jar"/>
         <resource-root path="tools.macro.jar"/>
+        <resource-root path="tools.nrepl.jar"/>
         <resource-root path="leiningen-core.jar"/>
         <resource-root path="immutant-dependency-exclusions.jar"/>
         <resource-root path="dynapath.jar"/>
@@ -72,4 +73,3 @@
         <module name="org.immutant.common"/>
     </dependencies>
 </module>
-
