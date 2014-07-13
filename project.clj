@@ -39,6 +39,7 @@
                                           :snapshots false}]
                                         ["projectodd-snapshot"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/snapshot"
+
                                           :snapshots true}]
                                         ["projectodd-incremental"
                                          {:url "https://repository-projectodd.forge.cloudbees.com/incremental"
@@ -67,7 +68,7 @@
                         tools.reader               "0.8.4"
                         ring                       "1.2.2"
 
-                        org.projectodd.wunderboss  "1.x.incremental.89"
+                        org.projectodd.wunderboss  "1.x.incremental.90"
                         ;;org.projectodd.wunderboss  "0.1.0-SNAPSHOT"
 
                         org.immutant               :version}})
