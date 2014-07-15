@@ -19,7 +19,8 @@
             [immutant.caching :refer :all]
             [immutant.codecs :refer [encode decode]]
             [clojure.core.cache :refer [lookup miss seed]]
-            immutant.caching.core-cache))
+            immutant.caching.core-cache)
+  (:import org.infinispan.configuration.cache.CacheMode))
 
 (defn new-cache [& options]
   (stop "test")
@@ -254,3 +255,14 @@
     (is (= 2 (decode (get none (encode :b :edn)) :edn)))
     (is (= 3 (decode (get none (encode :c :json)) :json)))
     (is (= 4 (decode (get none (encode :d :fressian)) :fressian)))))
+
+(deftest builder-configs
+  (is (= CacheMode/LOCAL (.. (builder)
+                           build
+                           clustering
+                           cacheMode)))
+  (is (= CacheMode/REPL_SYNC (.. (builder :mode :repl-sync)
+                               build
+                               clustering
+                               cacheMode))))
+
