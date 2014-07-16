@@ -66,8 +66,7 @@
    ;; optional - it will automatically be stopped on undeploy
    (pl/stop foo-pipeline)
    ```"
-  (:require [immutant.logging            :as log]
-            [immutant.messaging          :as msg]
+  (:require [immutant.messaging          :as msg]
             [immutant.messaging.internal :as mi]
             [immutant.internal.options   :as o]
             ;;[immutant.xa.transaction   :as tx]

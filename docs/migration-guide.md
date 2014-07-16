@@ -53,9 +53,9 @@ Some option keys and values have changed:
     scheduling-like period specs instead of :units), so use
     Cache.put with TimeUnit arg for entry-level ttl/idle
 
-### immutant.cache.config -> ?
-### immutant.cache.core -> ?
-### immutant.cache.wrapper -> ?
+### immutant.cache.config REMOVED
+### immutant.cache.core REMOVED
+### immutant.cache.wrapper REMOVED
 
 ## immutant.codecs
 
@@ -91,9 +91,7 @@ restore `internal-scheduler`?)
 
 ### immutant.jobs.internal -> immutant.scheduling.internal
 
-## immutant.logging
-
-Do we still need this?
+## immutant.logging REMOVED
 
 ## immutant.messaging
 
@@ -112,9 +110,9 @@ Brought over with few changes.
 
 Merged with `immutant.messaging.internal`.
 
-### immutant.messaging.hornetq -> ?
+### immutant.messaging.hornetq
 
-Will likely be brought over.
+Brought over with a few changes.
 
 ### immutant.messaging.internal
 
