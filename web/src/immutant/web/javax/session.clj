@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.javax.session
-    (:require [immutant.web.util :refer [->LazyMap]]))
+    (:require [immutant.web.util :refer [->LazyMap]])
+    (:import [javax.servlet.http HttpServletRequest]))
 
 (def ring-session-key "ring-session-data")
 
@@ -22,13 +23,11 @@
   (fn [request]
     (if (contains? request :session)
       (handler request)
-      (let [data (delay (-> request
-                          :servlet-request
-                          .getSession
-                          (.getAttribute ring-session-key)))
+      (let [^HttpServletRequest hsr (:servlet-request request)
+            data (delay (-> hsr .getSession (.getAttribute ring-session-key)))
             response (handler (->LazyMap (assoc request :session data)))]
         (if-let [data (:session response)]
-          (.setAttribute (-> request :servlet-request .getSession) ring-session-key data)
-          (when-let [session (-> request :servlet-request (.getSession false))]
+          (.setAttribute (.getSession hsr) ring-session-key data)
+          (when-let [session (.getSession hsr false)]
             (.invalidate session)))
         response))))

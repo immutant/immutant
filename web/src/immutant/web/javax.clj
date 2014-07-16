@@ -18,9 +18,10 @@
             [immutant.web.javax.session :refer (wrap-servlet-session)]
             [immutant.websocket])
   (:import [org.projectodd.wunderboss.websocket Util]
-           [javax.servlet.http HttpServlet HttpServletRequest]
+           [javax.servlet Servlet ServletConfig ServletContext]
+           [javax.servlet.http HttpServlet HttpServletRequest HttpSession]
            [javax.websocket Endpoint MessageHandler$Whole]
-           [javax.websocket.server ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
+           [javax.websocket.server ServerContainer ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
 (extend-type javax.websocket.Session
   immutant.websocket/Channel
@@ -38,7 +39,7 @@
        wrap-servlet-session
        ring/servlet)))
 
-(defn create-endpoint
+(defn ^Endpoint create-endpoint
   "Create a JSR-356 endpoint from one or more callback functions.
 
   The following callbacks are supported, where `channel` is an
@@ -70,10 +71,10 @@
 (defn add-endpoint
   "Adds an endpoint to a container obtained from the servlet-context,
   typically called from {{attach-endpoint}}"
-  ([endpoint servlet-context]
+  ([^Endpoint endpoint ^ServletContext servlet-context]
      (add-endpoint endpoint servlet-context {}))
-  ([endpoint servlet-context {:keys [path handshake] :or {path "/"}}]
-     (let [container (.getAttribute servlet-context "javax.websocket.server.ServerContainer")
+  ([^Endpoint endpoint ^ServletContext servlet-context {:keys [path handshake] :or {path "/"}}]
+     (let [^ServerContainer container (.getAttribute servlet-context "javax.websocket.server.ServerContainer")
            config (.. ServerEndpointConfig$Builder
                     (create (class endpoint) path)
                     (configurator (proxy [ServerEndpointConfig$Configurator] []
@@ -103,15 +104,15 @@
   `HandshakeRequest` parameter passed to `modifyHandshake` in the map
   returned by `Session.getUserProperties` by default, i.e. when
   :handshake is *not* passed"
-  ([servlet endpoint]
+  ([^Servlet servlet ^Endpoint endpoint]
      (attach-endpoint servlet endpoint {}))
-  ([servlet endpoint {:keys [path handshake] :as options}]
+  ([^Servlet servlet ^Endpoint endpoint {:keys [path handshake] :as options}]
      (if-let [config (.getServletConfig servlet)]
        (do
          (add-endpoint endpoint (.getServletContext config) options)
          servlet)
        (proxy [javax.servlet.Servlet] []
-         (init [config]
+         (init [^ServletConfig config]
            (.init servlet config)
            (add-endpoint endpoint (.getServletContext config) options))
          (service [request response]
@@ -123,19 +124,19 @@
          (getServletInfo []
            (.getServletInfo servlet))))))
 
-(defn http-session
+(defn ^HttpSession http-session
   "Returns the servlet's HttpSession from the ring request"
   [request]
   (if-let [^HttpServletRequest hsr (:servlet-request request)]
     (.getSession hsr)))
 
-(defn context-path
+(defn ^String context-path
   "Returns the servlet context path from the ring request"
   [request]
   (if-let [^HttpServletRequest hsr (:servlet-request request)]
     (str (.getContextPath hsr) (.getServletPath hsr))))
 
-(defn path-info
+(defn ^String path-info
   "Returns the servlet path info from the ring request"
   [request]
   (if-let [^HttpServletRequest hsr (:servlet-request request)]
