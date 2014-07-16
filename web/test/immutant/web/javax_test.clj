@@ -18,6 +18,7 @@
             [immutant.web :refer :all]
             [immutant.web.javax :refer :all]
             [http.async.client :as http]
+            [ring.middleware.session :refer (wrap-session)]
             [ring.util.response :refer [response]]))
 
 (use-fixtures :each
@@ -48,6 +49,41 @@
     (is (= 1 (:count @ring) (-> @http (.getAttribute "ring-session-data") :count)))
     (is (= "1" (get-body url)))
     (is (= 2 (:count @ring) (-> @http (.getAttribute "ring-session-data") :count)))
+    (stop)))
+
+(deftest session-invalidation
+  (let [http (atom {})
+        handler (fn [req]
+                  (reset! http (http-session req))
+                  (if-not (-> req :session :foo)
+                    (-> (response "yay")
+                      (assoc :session {:foo "yay"}))
+                    (response "boo")))]
+    (run (create-servlet handler))
+    (is (= "yay" (get-body url)))
+    (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
+    (is (= "boo" (get-body url)))
+    (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data") :foo)))
+    (is (= "yay" (get-body url)))
+    (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
+    (stop)))
+
+(deftest avoid-session-collision
+  "Ring's session should take priority"
+  (let [http (atom {})
+        handler (fn [req]
+                  (reset! http (http-session req))
+                  (if-not (-> req :session :foo)
+                    (-> (response "yay")
+                      (assoc :session {:foo "yay"}))
+                    (response "boo")))]
+    (run (create-servlet (wrap-session handler)))
+    (is (= "yay" (get-body url)))
+    (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data"))))
+    (is (= "boo" (get-body url)))
+    (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data"))))
+    (is (= "yay" (get-body url)))
+    (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data"))))
     (stop)))
 
 (deftest share-session-with-websocket

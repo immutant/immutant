@@ -13,25 +13,22 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.javax.session
-    (:require [ring.middleware.session.store :refer (SessionStore)])
-    (:import javax.servlet.http.HttpSession))
+    (:require [immutant.web.util :refer [->LazyMap]]))
 
 (def ring-session-key "ring-session-data")
 
-(def ^:private ^:dynamic ^HttpSession http-session)
-(defn bind-http-session
+(defn wrap-servlet-session
   [handler]
   (fn [request]
-    (binding [http-session (-> request :servlet-request .getSession)]
-      (handler request))))
-
-(deftype ServletStore []
-  SessionStore
-  (read-session [_ _]
-    (or (.getAttribute http-session ring-session-key) {}))
-  (write-session [_ _ data]
-    (.setAttribute http-session ring-session-key data)
-    (.getId http-session))
-  (delete-session [_ _]
-    (.removeAttribute http-session ring-session-key)
-    (.invalidate http-session)))
+    (if (contains? request :session)
+      (handler request)
+      (let [data (delay (-> request
+                          :servlet-request
+                          .getSession
+                          (.getAttribute ring-session-key)))
+            response (handler (->LazyMap (assoc request :session data)))]
+        (if-let [data (:session response)]
+          (.setAttribute (-> request :servlet-request .getSession) ring-session-key data)
+          (when-let [session (-> request :servlet-request (.getSession false))]
+            (.invalidate session)))
+        response))))

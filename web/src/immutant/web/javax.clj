@@ -15,8 +15,7 @@
 (ns immutant.web.javax
   "A means of creating Servlets and JSR-356 Endpoints from Ring handlers and callback functions"
   (:require [ring.util.servlet :as ring]
-            [ring.middleware.session :refer (wrap-session)]
-            [immutant.web.javax.session :refer (bind-http-session ->ServletStore)]
+            [immutant.web.javax.session :refer (wrap-servlet-session)]
             [immutant.websocket])
   (:import [org.projectodd.wunderboss.websocket Util]
            [javax.servlet.http HttpServlet HttpServletRequest]
@@ -29,16 +28,6 @@
   (open? [ch] (.isOpen ch))
   (close [ch] (.close ch)))
 
-(defn wrap-session-servlet-store
-  "Store the ring session data in the servlet's HttpSession; any
-  options other than :store are passed on to ring's wrap-session"
-  ([handler]
-     (wrap-session-servlet-store handler {}))
-  ([handler opts]
-     (-> handler
-       (wrap-session (merge opts {:store (->ServletStore)}))
-       bind-http-session)))
-
 (defn create-servlet
   "Encapsulate a ring handler within a servlet's service method,
   storing :session data in the associated HttpSession"
@@ -46,7 +35,7 @@
      (create-servlet (fn [_] {:status 200, :body "OK"})))
   ([handler]
      (-> handler
-       wrap-session-servlet-store
+       wrap-servlet-session
        ring/servlet)))
 
 (defn create-endpoint
