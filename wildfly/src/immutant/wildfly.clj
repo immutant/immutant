@@ -15,7 +15,6 @@
 (ns immutant.wildfly
   "Utility functions only useful within a WildFly container."
   (:require [immutant.internal.util :as u]
-            [immutant.wildfly.repl  :as repl]
             [wunderboss.util        :as wu]
             [clojure.java.io        :as io])
   (:import java.net.URL))
@@ -78,7 +77,8 @@
   (extend-module-classloader-to-cjc)
   (extend-module-classloader-to-dynapath)
   ((u/require-resolve init-fn))
-  (if-let [nrepl (:nrepl opts)] (repl/start nrepl)))
+  (when-let [nrepl (:nrepl opts)]
+    ((u/require-resolve 'immutant.wildfly.repl/start) nrepl)))
 
 (defn get-from-service-registry [k]
   (if-let [registry (wu/service-registry)]
