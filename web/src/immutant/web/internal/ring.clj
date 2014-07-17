@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns ^{:no-doc true} immutant.web.core
+(ns ^{:no-doc true} immutant.web.internal.ring
     (:require [potemkin :refer [def-map-type]]
               [clojure.string :as str]
               [clojure.java.io :as io])

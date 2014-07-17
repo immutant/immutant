@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.javax.session
-    (:require [immutant.web.core :refer [->LazyMap]])
+    (:require [immutant.web.internal.ring :refer [->LazyMap]])
     (:import [javax.servlet.http HttpServletRequest]))
 
 (def ring-session-key "ring-session-data")

@@ -12,20 +12,20 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns ^{:no-doc true} immutant.web.undertow
-    (:require [immutant.web.core :as core])
+(ns ^{:no-doc true} immutant.web.internal.undertow
+    (:require [immutant.web.internal.ring :as i])
     (:import [io.undertow.server HttpHandler HttpServerExchange]
              [io.undertow.util HeaderMap Headers HttpString]))
 
 (extend-type HeaderMap
-  core/Headers
+  i/Headers
   (get-names [headers] (map str (.getHeaderNames headers)))
   (get-values [headers ^String key] (.get headers key))
   (set-header [headers ^String k ^String v] (.put headers (HttpString. k) v))
   (add-header [headers ^String k ^String v] (.add headers (HttpString. k) v)))
 
 (extend-type HttpServerExchange
-  core/RingRequest
+  i/RingRequest
   (server-port [exchange]        (-> exchange .getDestinationAddress .getPort))
   (server-name [exchange]        (.getHostName exchange))
   (remote-addr [exchange]        (-> exchange .getSourceAddress .getAddress .getHostAddress))
@@ -35,22 +35,22 @@
   (request-method [exchange]     (-> exchange .getRequestMethod .toString .toLowerCase keyword))
   (content-type [exchange]       (-> exchange .getRequestHeaders (.getFirst Headers/CONTENT_TYPE)))
   (content-length [exchange]     (.getRequestContentLength exchange))
-  (character-encoding [exchange] (if-let [type (core/content-type exchange)]
+  (character-encoding [exchange] (if-let [type (i/content-type exchange)]
                                    (Headers/extractTokenFromHeader type "charset")))
-  (headers [exchange]            (-> exchange .getRequestHeaders core/headers->map))
+  (headers [exchange]            (-> exchange .getRequestHeaders i/headers->map))
   (body [exchange]               (.getInputStream exchange))
   (ssl-client-cert [_]))
 
 (defn- write-response [^HttpServerExchange exchange {:keys [status headers body]}]
   (when status
     (.setResponseCode exchange status))
-  (core/write-headers (.getResponseHeaders exchange) headers)
-  (core/write-body body (.getOutputStream exchange)))
+  (i/write-headers (.getResponseHeaders exchange) headers)
+  (i/write-body body (.getOutputStream exchange)))
 
 (defn handle-request [f ^HttpServerExchange exchange]
   (.startBlocking exchange)
   (try
-    (if-let [response (f (core/ring-request-map exchange))]
+    (if-let [response (f (i/ring-request-map exchange))]
       (write-response exchange response)
       (throw (NullPointerException. "Ring handler returned nil")))
     (finally

@@ -15,7 +15,7 @@
 (ns immutant.websocket
   "Provides the creation of asynchronous Websocket services and a
   protocol through which to invoke them"
-  (:require [immutant.web.undertow :refer [create-http-handler]])
+  (:require [immutant.web.internal.undertow :refer [create-http-handler]])
   (:import [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint]))
 
 (defprotocol Channel

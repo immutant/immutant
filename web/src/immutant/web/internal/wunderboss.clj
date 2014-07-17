@@ -12,8 +12,8 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns ^:no-doc ^:internal immutant.web.internal
-    (:require [immutant.web.undertow :as undertow]
+(ns ^:no-doc ^:internal immutant.web.internal.wunderboss
+    (:require [immutant.web.internal.undertow :as undertow]
               [immutant.internal.options  :refer [extract-options opts->set opts->defaults-map opts->map keywordize]]
               [immutant.internal.util     :as u]
               [immutant.web.middleware    :refer [wrap-dev-middleware]]

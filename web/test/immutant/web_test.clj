@@ -16,7 +16,7 @@
   (:require [clojure.test          :refer :all]
             [clojure.set           :refer :all]
             [immutant.web          :refer :all]
-            [immutant.web.internal :refer :all]
+            [immutant.web.internal.wunderboss :refer :all]
             [testing.web           :refer [get-body hello handler]]
             [testing.hello.service :as pedestal])
   (:import clojure.lang.ExceptionInfo

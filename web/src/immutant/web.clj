@@ -17,7 +17,7 @@
   (:require [immutant.internal.options :refer [opts->set set-valid-options!
                                                validate-options extract-options]]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
-            [immutant.web.internal     :refer :all]
+            [immutant.web.internal.wunderboss :refer :all]
             [clojure.walk              :refer [keywordize-keys]])
   (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 

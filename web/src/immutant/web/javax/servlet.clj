@@ -13,11 +13,11 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.javax.servlet
-    (:require [immutant.web.core :as core])
+    (:require [immutant.web.internal.ring :as i])
     (:import [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse]))
 
 (extend-type HttpServletRequest
-  core/RingRequest
+  i/RingRequest
   (server-port [request]        (.getServerPort request))
   (server-name [request]        (.getServerName request))
   (remote-addr [request]        (.getRemoteAddr request))
@@ -28,11 +28,11 @@
   (content-type [request]       (.getContentType request))
   (content-length [request]     (.getContentLength request))
   (character-encoding [request] (.getCharacterEncoding request))
-  (headers [request]            (core/headers->map request))
+  (headers [request]            (i/headers->map request))
   (body [request]               (.getInputStream request))
   (ssl-client-cert [request]    (first (.getAttribute request "javax.servlet.request.X509Certificate"))))
 
-(extend-protocol core/Headers
+(extend-protocol i/Headers
   HttpServletRequest
   (get-names [request]      (enumeration-seq (.getHeaderNames request)))
   (get-values [request key] (enumeration-seq (.getHeaders request key)))
@@ -45,15 +45,15 @@
   [^HttpServletResponse response, {:keys [status headers body]}]
   (when status
     (.setStatus response status))
-  (core/write-headers response headers)
-  (core/write-body body (.getOutputStream response)))
+  (i/write-headers response headers)
+  (i/write-body body (.getOutputStream response)))
 
 (defn proxy-handler
   [handler]
   (proxy [HttpServlet] []
     (service [^HttpServletRequest request ^HttpServletResponse response]
       (let [ring-map (-> request
-                       core/ring-request-map
+                       i/ring-request-map
                        (merge {:servlet          this
                                :servlet-request  request
                                :servlet-response response
