@@ -13,8 +13,8 @@
 ;; limitations under the License.
 
 (ns testing.hello.service
-  (:require [io.pedestal.service.http :as http]
-            [io.pedestal.service.http.route.definition :refer [defroutes]]
+  (:require [io.pedestal.http :as http]
+            [io.pedestal.http.route.definition :refer [defroutes]]
             [ring.util.response :as ring-resp]))
 
 (defn home-page [request] (ring-resp/response "Hello World!"))
