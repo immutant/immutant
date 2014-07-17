@@ -68,7 +68,7 @@
                         tools.reader               "0.8.4"
                         ring                       "1.3.0"
 
-                        org.projectodd.wunderboss  "1.x.incremental.94"
+                        org.projectodd.wunderboss  "1.x.incremental.95"
                         ;; org.projectodd.wunderboss  "0.1.0-SNAPSHOT"
 
                         org.immutant               :version}})
