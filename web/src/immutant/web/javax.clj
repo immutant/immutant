@@ -14,7 +14,7 @@
 
 (ns immutant.web.javax
   "A means of creating Servlets and JSR-356 Endpoints from Ring handlers and callback functions"
-  (:require [ring.util.servlet :as ring]
+  (:require [immutant.web.javax.servlet :refer (proxy-handler)]
             [immutant.web.javax.session :refer (wrap-servlet-session)]
             [immutant.websocket])
   (:import [org.projectodd.wunderboss.websocket Util]
@@ -37,7 +37,7 @@
   ([handler]
      (-> handler
        wrap-servlet-session
-       ring/servlet)))
+       proxy-handler)))
 
 (defn ^Endpoint create-endpoint
   "Create a JSR-356 endpoint from one or more callback functions.

@@ -14,7 +14,7 @@
 
 (ns immutant.web.javax-test
   (:require [clojure.test :refer :all]
-            [testing.web :refer [get-body]]
+            [testing.web :refer [get-body hello]]
             [immutant.web :refer :all]
             [immutant.web.javax :refer :all]
             [http.async.client :as http]
@@ -120,3 +120,24 @@
       (http/send socket :text "")
       (is (= "http://localhost:8080" (-> (deref result 1000 {}) (get "Origin") first))))
     (stop)))
+
+(deftest request-map-entries
+  (let [request (atom {})
+        handler (comp hello #(swap! request into %))
+        server (run (create-servlet handler))]
+    (get-body (str url "?query=help") {:content-type "text/html; charset=utf-8"})
+    (are [x expected] (= expected (x @request))
+         :content-type        "text/html; charset=utf-8"
+         :character-encoding  "utf-8"
+         :remote-addr         "127.0.0.1"
+         :server-port         8080
+         :content-length      -1
+         :uri                 "/"
+         :server-name         "localhost"
+         :query-string        "query=help"
+         :scheme              :http
+         :request-method      :get)
+    (is (= 5 (count (select-keys @request [:servlet :servlet-request :servlet-response :servlet-context :session]))))
+    (is (:body @request))
+    (is (map? (:headers @request)))
+    (is (< 3 (count (:headers @request))))))

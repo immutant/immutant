@@ -16,7 +16,6 @@
   :plugins [[lein-modules "0.3.6"]]
 
   :dependencies [[org.immutant/core _]
-                 [ring/ring-servlet _]
                  [potemkin "0.3.4"]
                  [org.projectodd.wunderboss/wunderboss-web _]]
 

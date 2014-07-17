@@ -13,95 +13,44 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.undertow
-    (:require [clojure.string :as str]
-              [clojure.java.io :as io]
-              [immutant.web.util :refer [->LazyMap]])
+    (:require [immutant.web.core :as core])
     (:import [io.undertow.server HttpHandler HttpServerExchange]
-             [io.undertow.util HeaderMap Headers HttpString]
-             [java.io File InputStream OutputStream]
-             java.nio.channels.FileChannel
-             clojure.lang.ISeq))
+             [io.undertow.util HeaderMap Headers HttpString]))
 
-(defn- headers->map [^HeaderMap headers]
-  (reduce
-    (fn [accum ^HttpString header-name]
-      (assoc accum
-        (-> header-name .toString .toLowerCase)
-        (if (> 1 (.count headers header-name))
-          (->> header-name
-            (.get headers)
-            (str/join ","))
-          (.getFirst headers header-name))))
-    {}
-    (.getHeaderNames headers)))
+(extend-type HeaderMap
+  core/Headers
+  (get-names [headers] (map str (.getHeaderNames headers)))
+  (get-values [headers ^String key] (.get headers key))
+  (set-header [headers ^String k ^String v] (.put headers (HttpString. k) v))
+  (add-header [headers ^String k ^String v] (.add headers (HttpString. k) v)))
 
-(defn- ring-request [^HttpServerExchange exchange]
-  (let [headers (.getRequestHeaders exchange)
-        content-type (delay (.getFirst ^HeaderMap headers Headers/CONTENT_TYPE))]
-    ;; TODO: context, path-info ?
-    (->LazyMap {:server-port (delay (-> exchange .getDestinationAddress .getPort))
-                :server-name (delay (.getHostName exchange))
-                :remote-addr (delay (-> exchange .getSourceAddress .getAddress .getHostAddress))
-                :uri (delay (.getRequestURI exchange))
-                :query-string (delay (.getQueryString exchange))
-                :scheme (delay (-> exchange .getRequestScheme keyword))
-                :request-method (delay (-> exchange .getRequestMethod .toString .toLowerCase keyword))
-                :content-type content-type
-                :content-length (delay (.getRequestContentLength exchange))
-                :character-encoding (delay (if @content-type
-                                             (Headers/extractTokenFromHeader @content-type "charset")))
-                ;; TODO: :ssl-client-cert
-                :headers (delay (headers->map headers))
-                :body (delay (.getInputStream exchange))})))
-
-(defn- merge-headers [^HeaderMap to-headers from-headers]
-  (doseq [[^String k v] from-headers]
-    (let [^HttpString k (HttpString. k)]
-      (if (coll? v)
-        (.addAll to-headers k v)
-        (.add to-headers k ^String v)))))
-
-(defprotocol BodyWriter
-  (write-body [body exchange]))
-
-(extend-protocol BodyWriter
-
-  Object
-  (write-body [body _]
-    (throw (IllegalStateException. (str "Can't coerce body of type " (class body)))))
-
-  nil
-  (write-body [_ _]
-    (throw (IllegalStateException. "Can't coerce nil body")))
-
-  String
-  (write-body [body ^OutputStream os]
-    (.write os (.getBytes body)))
-
-  ISeq
-  (write-body [body ^OutputStream os]
-    (doseq [fragment body]
-      (write-body fragment os)))
-
-  File
-  (write-body [body ^OutputStream os]
-    (io/copy body os))
-
-  InputStream
-  (write-body [body ^OutputStream os]
-    (with-open [body body]
-      (io/copy body os))))
+(extend-type HttpServerExchange
+  core/RingRequest
+  (server-port [exchange]        (-> exchange .getDestinationAddress .getPort))
+  (server-name [exchange]        (.getHostName exchange))
+  (remote-addr [exchange]        (-> exchange .getSourceAddress .getAddress .getHostAddress))
+  (uri [exchange]                (.getRequestURI exchange))
+  (query-string [exchange]       (.getQueryString exchange))
+  (scheme [exchange]             (-> exchange .getRequestScheme keyword))
+  (request-method [exchange]     (-> exchange .getRequestMethod .toString .toLowerCase keyword))
+  (content-type [exchange]       (-> exchange .getRequestHeaders (.getFirst Headers/CONTENT_TYPE)))
+  (content-length [exchange]     (.getRequestContentLength exchange))
+  (character-encoding [exchange] (if-let [type (core/content-type exchange)]
+                                   (Headers/extractTokenFromHeader type "charset")))
+  (headers [exchange]            (-> exchange .getRequestHeaders core/headers->map))
+  (body [exchange]               (.getInputStream exchange))
+  (ssl-client-cert [_]))
 
 (defn- write-response [^HttpServerExchange exchange {:keys [status headers body]}]
   (when status
     (.setResponseCode exchange status))
-  (merge-headers (.getResponseHeaders exchange) headers)
-  (write-body body (.getOutputStream exchange)))
+  (core/write-headers (.getResponseHeaders exchange) headers)
+  (core/write-body body (.getOutputStream exchange)))
 
 (defn handle-request [f ^HttpServerExchange exchange]
   (.startBlocking exchange)
   (try
-    (if-let [response (f (ring-request exchange))]
+    (if-let [response (f (core/ring-request-map exchange))]
       (write-response exchange response)
       (throw (NullPointerException. "Ring handler returned nil")))
     (finally
