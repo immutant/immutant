@@ -13,7 +13,6 @@
 ;; limitations under the License.
 
 (ns immutant.caching-test
-  (:refer-clojure :exclude (swap!))
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [immutant.caching :refer :all]
@@ -170,11 +169,11 @@
     (is (= 0 (count (.clear c))))
     (is (= 0 (count c)))))
 
-(deftest test-swapping
+(deftest test-cas
   (let [c (seed (new-cache) {:a 1, :b nil})]
-    (is (= 2 (swap! c :a inc)))
-    (is (= 1 (swap! c :b (fnil inc 0))))
-    (is (= 1 (swap! c :c (fnil inc 0))))
+    (is (= 2 (compare-and-swap! c :a inc)))
+    (is (= 1 (compare-and-swap! c :b (fnil inc 0))))
+    (is (= 1 (compare-and-swap! c :c (fnil inc 0))))
     (is (= (into {} (seq c)) {:a 2, :b 1, :c 1}))))
 
 (deftest test-persist-file-store

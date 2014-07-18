@@ -14,7 +14,6 @@
 
 (ns immutant.caching
   "Create, manage and manipulate Infinispan caches in a data grid"
-  (:refer-clojure :exclude (swap!))
   (:require [immutant.internal.options :refer :all]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
             [immutant.codecs           :refer [lookup-codec]]
@@ -113,7 +112,7 @@
     (lookup-codec codec)
     cache))
 
-(defn swap!
+(defn compare-and-swap!
   "Atomically swaps the value associated to the key in the cache with
   the result of applying f, passing the current value as the first
   param along with any args, returning the new cached value. Function
