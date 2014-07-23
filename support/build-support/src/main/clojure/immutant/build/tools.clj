@@ -1,15 +1,15 @@
 ;; Copyright 2008-2014 Red Hat, Inc, and individual contributors.
-;; 
+;;
 ;; This is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU Lesser General Public License as
 ;; published by the Free Software Foundation; either version 2.1 of
 ;; the License, or (at your option) any later version.
-;; 
+;;
 ;; This software is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 ;; Lesser General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU Lesser General Public
 ;; License along with this software; if not, write to the Free
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -157,7 +157,7 @@
         artifact-path (str m2-repo "/org/projectodd/polyglot-" name "/" version "/polyglot-" name "-" version "-module.zip")
         artifact-dir (io/file (System/getProperty "java.io.tmpdir") (str "immutant-" name "-" version))
         dest-dir (io/file (jboss-dir) (str "modules/org/projectodd/polyglot/" name "/main"))]
-    (try 
+    (try
       (.mkdir artifact-dir)
       (unzip artifact-path artifact-dir)
       (FileUtils/deleteQuietly dest-dir)
@@ -382,7 +382,7 @@
                 :broadcast-group                (replace-socket-with-jgroups loc)
                 :discovery-group                (replace-socket-with-jgroups loc)
                 loc))))))
-  
+
 (defn transform-config [file]
   (let [in-file (io/file (jboss-dir) file)
         out-file in-file]
@@ -478,7 +478,7 @@
 (defn prep-for-slimming []
   (apply swap! extensions-to-remove conj fat-modules)
   (apply swap! subsystems-to-remove conj fat-modules)
-  
+
   (swap! tags-to-remove conj
          (partial looking-at? :pooled-connection-factory)
          #(and (looking-at? :socket-binding %)
@@ -510,18 +510,19 @@
 (defn slim-modules []
   (let [all-modules (extract-all-module-deps (jboss-dir))
         required-modules (-> (extract-extensions-from-standalone-xml)
-                             (conj 
-                              ;; add a few modules that aren't mentioned in any config,
-                              ;; but are required at runtime
-                              "org.jboss.as.host-controller"
-                              "org.jboss.as.standalone"
-                              "org.jboss.as.domain-http-error-context"
-                              "com.h2database.h2"
-                              "org.jboss.as.cli"
-                              "org.fusesource.jansi"
-                              "org.jboss.aesh"
-                              "javaee.api"
-                              "javax.servlet.jstl.api")
+                             (conj
+                               ;; add a few modules that aren't mentioned in any config,
+                               ;; but are required at runtime
+                               "org.jboss.as.domain-add-user"
+                               "org.jboss.as.host-controller"
+                               "org.jboss.as.standalone"
+                               "org.jboss.as.domain-http-error-context"
+                               "com.h2database.h2"
+                               "org.jboss.as.cli"
+                               "org.fusesource.jansi"
+                               "org.jboss.aesh"
+                               "javaee.api"
+                               "javax.servlet.jstl.api")
                              (find-full-required-module-set all-modules))]
     (doseq [m (filter identity (set/difference (set (keys all-modules)) required-modules))]
       (with-message (str "Deleting module " m)
@@ -530,7 +531,7 @@
 (defn slim-fs []
   (doseq [path ["appclient"
                 "bin/appclient.bat" "bin/appclient.conf.bat"
-                "bin/appclient.conf" "bin/appclient.sh" "bin/client"
+                "bin/appclient.conf" "bin/appclient.sh"
                 "bin/jconsole.bat" "bin/jconsole.sh" "bin/jdr.bat" "bin/jdr.sh"
                 "bin/wsconsume.bat" "bin/wsconsome.sh" "bin/wsprovide.bat" "bin/wsprovide.sh"
                 "bundles" "docs/examples" "docs/schema" "welcome-content"]]
