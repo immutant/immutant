@@ -20,7 +20,7 @@
            [javax.servlet Servlet ServletConfig ServletContext]
            [javax.servlet.http HttpServlet HttpServletRequest HttpSession]
            [javax.websocket Endpoint MessageHandler$Whole]
-           [javax.websocket.server ServerContainer ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
+           [javax.websocket.server ServerContainer HandshakeRequest ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
 (extend-type javax.websocket.Session
   immutant.web.websocket/Channel
@@ -122,6 +122,29 @@
            (.getServletConfig servlet))
          (getServletInfo []
            (.getServletInfo servlet))))))
+
+(defn ^HandshakeRequest handshake-request
+  "Returns the original HandshakeRequest for a websocket session"
+  [^javax.websocket.Session channel]
+  (some-> channel
+    .getUserProperties
+    (get "HandshakeRequest")))
+
+(defn ring-session
+  "Returns the Ring session data from the HttpSession associated with
+  the websocket session"
+  [^javax.websocket.Session channel]
+  (some-> (handshake-request channel)
+    .getHttpSession
+    immutant.web.internal.servlet/ring-session))
+
+(defn reset-ring-session!
+  "Resets the Ring session data in the HttpSession associated with the
+  websocket session"
+  [^javax.websocket.Session channel, data]
+  (-> (handshake-request channel)
+    .getHttpSession
+    (immutant.web.internal.servlet/set-ring-session! data)))
 
 (defn ^HttpSession http-session
   "Returns the servlet's HttpSession from the ring request"

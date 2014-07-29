@@ -14,9 +14,13 @@
 
 (ns ^{:no-doc true} immutant.web.internal.servlet
     (:require [immutant.web.internal.ring :as i])
-    (:import [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse]))
+    (:import [javax.servlet.http HttpSession HttpServlet HttpServletRequest HttpServletResponse]))
 
 (def ring-session-key "ring-session-data")
+(defn ring-session [^HttpSession session]
+  (.getAttribute session ring-session-key))
+(defn set-ring-session! [^HttpSession session, data]
+  (.setAttribute session ring-session-key data))
 
 (defn wrap-servlet-session
   "Ring middleware to insert :session key into request if not present,
@@ -27,11 +31,11 @@
     (if (contains? request :session)
       (handler request)
       (let [^HttpServletRequest hsr (:servlet-request request)
-            data (delay (-> hsr .getSession (.getAttribute ring-session-key)))
+            data (delay (-> hsr .getSession ring-session))
             response (handler (i/->LazyMap (assoc request :session data)))]
         (if (contains? response :session)
           (if-let [data (:session response)]
-            (.setAttribute (.getSession hsr) ring-session-key data)
+            (set-ring-session! (.getSession hsr) data)
             (when-let [session (.getSession hsr false)]
               (.invalidate session))))
         response))))

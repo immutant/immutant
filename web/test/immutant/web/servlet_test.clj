@@ -93,18 +93,15 @@
         servlet (create-servlet counter)]
     (run (attach-endpoint servlet
            (create-endpoint {:on-open (fn [ch]
-                                        (-> ch
-                                          .getUserProperties
-                                          (get "HandshakeRequest")
-                                          .getHttpSession
-                                          (.setAttribute "ring-session-data" {:count 42}))
-                                        (deliver latch :success))})))
+                                        (let [session (ring-session ch)]
+                                          (reset-ring-session! ch {:count 42})
+                                          (deliver latch session)))})))
     (is (= "0" (get-body url)))
     (is (= "1" (get-body url)))
     (with-open [client (http/create-client)
                 socket (http/websocket client "ws://localhost:8080"
-                         :cookies @testing.web/cookies
-                         :open (fn [_] (deref latch 1000 :fail)))])
+                         :cookies @testing.web/cookies)]
+      (is (= {:count 2} (deref latch 1000 :fail))))
     (is (= "42" (get-body url)))
     (stop)))
 
@@ -113,8 +110,7 @@
         endpoint (create-endpoint
                    :on-message (fn [ch _]
                                  (deliver result (-> ch
-                                                   .getUserProperties
-                                                   (get "HandshakeRequest")
+                                                   handshake-request
                                                    .getHeaders))))]
     (run (attach-endpoint (create-servlet) endpoint))
     (with-open [client (http/create-client)
