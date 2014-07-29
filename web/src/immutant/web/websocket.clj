@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.websocket
+(ns immutant.web.websocket
   "Provides the creation of asynchronous Websocket services and a
   protocol through which to invoke them"
   (:require [immutant.web.internal.undertow :refer [create-http-handler]])

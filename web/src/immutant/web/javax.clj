@@ -16,7 +16,7 @@
   "A means of creating Servlets and JSR-356 Endpoints from Ring handlers and callback functions"
   (:require [immutant.web.javax.servlet :refer (proxy-handler)]
             [immutant.web.javax.session :refer (wrap-servlet-session)]
-            [immutant.websocket])
+            [immutant.web.websocket])
   (:import [org.projectodd.wunderboss.websocket Util]
            [javax.servlet Servlet ServletConfig ServletContext]
            [javax.servlet.http HttpServlet HttpServletRequest HttpSession]
@@ -24,7 +24,7 @@
            [javax.websocket.server ServerContainer ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
 (extend-type javax.websocket.Session
-  immutant.websocket/Channel
+  immutant.web.websocket/Channel
   (send! [ch message] (.sendObject (.getAsyncRemote ch) message))
   (open? [ch] (.isOpen ch))
   (close [ch] (.close ch)))

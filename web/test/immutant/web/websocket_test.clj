@@ -12,11 +12,11 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.websocket-test
+(ns immutant.web.websocket-test
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
             [immutant.web.javax :refer (create-servlet attach-endpoint create-endpoint)]
-            [immutant.websocket :refer :all]
+            [immutant.web.websocket :refer :all]
             [http.async.client :as http]
             [testing.web  :refer [hello]]
             [gniazdo.core :as ws]
