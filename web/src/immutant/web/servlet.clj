@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.web.javax
+(ns immutant.web.servlet
   "A means of creating Servlets and JSR-356 Endpoints from Ring handlers and callback functions"
   (:require [immutant.web.javax.servlet :refer (proxy-handler)]
             [immutant.web.javax.session :refer (wrap-servlet-session)]

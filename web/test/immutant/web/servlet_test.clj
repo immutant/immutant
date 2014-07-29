@@ -12,11 +12,11 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.web.javax-test
+(ns immutant.web.servlet-test
   (:require [clojure.test :refer :all]
             [testing.web :refer [get-body hello]]
             [immutant.web :refer :all]
-            [immutant.web.javax :refer :all]
+            [immutant.web.servlet :refer :all]
             [http.async.client :as http]
             [ring.middleware.session :refer (wrap-session)]
             [ring.util.response :refer [response]]))

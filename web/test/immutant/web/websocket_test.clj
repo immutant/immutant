@@ -15,7 +15,7 @@
 (ns immutant.web.websocket-test
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
-            [immutant.web.javax :refer (create-servlet attach-endpoint create-endpoint)]
+            [immutant.web.servlet :refer (create-servlet attach-endpoint create-endpoint)]
             [immutant.web.websocket :refer :all]
             [http.async.client :as http]
             [testing.web  :refer [hello]]
