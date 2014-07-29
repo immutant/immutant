@@ -14,8 +14,7 @@
 
 (ns immutant.web.servlet
   "A means of creating Servlets and JSR-356 Endpoints from Ring handlers and callback functions"
-  (:require [immutant.web.javax.servlet :refer (proxy-handler)]
-            [immutant.web.javax.session :refer (wrap-servlet-session)]
+  (:require [immutant.web.internal.servlet :refer (proxy-handler wrap-servlet-session)]
             [immutant.web.websocket])
   (:import [org.projectodd.wunderboss.websocket Util]
            [javax.servlet Servlet ServletConfig ServletContext]

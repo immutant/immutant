@@ -12,9 +12,28 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns ^{:no-doc true} immutant.web.javax.servlet
+(ns ^{:no-doc true} immutant.web.internal.servlet
     (:require [immutant.web.internal.ring :as i])
     (:import [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse]))
+
+(def ring-session-key "ring-session-data")
+
+(defn wrap-servlet-session
+  "Ring middleware to insert :session key into request if not present,
+  its value stored in the possibly-replicated HttpSession from the
+  associated servlet"
+  [handler]
+  (fn [request]
+    (if (contains? request :session)
+      (handler request)
+      (let [^HttpServletRequest hsr (:servlet-request request)
+            data (delay (-> hsr .getSession (.getAttribute ring-session-key)))
+            response (handler (i/->LazyMap (assoc request :session data)))]
+        (if-let [data (:session response)]
+          (.setAttribute (.getSession hsr) ring-session-key data)
+          (when-let [session (.getSession hsr false)]
+            (.invalidate session)))
+        response))))
 
 (extend-type HttpServletRequest
   i/RingRequest
