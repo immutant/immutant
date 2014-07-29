@@ -29,7 +29,7 @@
   (open? [ch] (.isOpen ch))
   (close [ch] (.close ch)))
 
-(defn create-servlet
+(defn ^Servlet create-servlet
   "Encapsulate a ring handler within a servlet's service method,
   storing :session data in the associated HttpSession"
   ([]
@@ -88,7 +88,7 @@
                     build)]
        (.addEndpoint container config))))
 
-(defn attach-endpoint
+(defn ^Servlet attach-endpoint
   "Attach a JSR-356 endpoint to a servlet. If the servlet is already
   running, the endpoint will be deployed immediately. Otherwise, it'll
   be deployed when the servlet is initialized. Either the servlet or a
