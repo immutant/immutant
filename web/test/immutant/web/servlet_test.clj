@@ -58,7 +58,8 @@
                   (if-not (-> req :session :foo)
                     (-> (response "yay")
                       (assoc :session {:foo "yay"}))
-                    (response "boo")))]
+                    (-> (response "boo")
+                      (assoc :session nil))))]
     (run (create-servlet handler))
     (is (= "yay" (get-body url)))
     (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
@@ -76,14 +77,15 @@
                   (if-not (-> req :session :foo)
                     (-> (response "yay")
                       (assoc :session {:foo "yay"}))
-                    (response "boo")))]
+                    (-> (response "boo")
+                      (assoc :session nil))))]
     (run (create-servlet (wrap-session handler)))
     (is (= "yay" (get-body url)))
-    (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data"))))
+    (is (nil? (-> @http (.getAttribute "ring-session-data"))))
     (is (= "boo" (get-body url)))
-    (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data"))))
+    (is (nil? (-> @http (.getAttribute "ring-session-data"))))
     (is (= "yay" (get-body url)))
-    (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data"))))
+    (is (nil? (-> @http (.getAttribute "ring-session-data"))))
     (stop)))
 
 (deftest share-session-with-websocket

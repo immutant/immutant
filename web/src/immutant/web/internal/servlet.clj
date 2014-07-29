@@ -29,10 +29,11 @@
       (let [^HttpServletRequest hsr (:servlet-request request)
             data (delay (-> hsr .getSession (.getAttribute ring-session-key)))
             response (handler (i/->LazyMap (assoc request :session data)))]
-        (if-let [data (:session response)]
-          (.setAttribute (.getSession hsr) ring-session-key data)
-          (when-let [session (.getSession hsr false)]
-            (.invalidate session)))
+        (if (contains? response :session)
+          (if-let [data (:session response)]
+            (.setAttribute (.getSession hsr) ring-session-key data)
+            (when-let [session (.getSession hsr false)]
+              (.invalidate session))))
         response))))
 
 (extend-type HttpServletRequest
