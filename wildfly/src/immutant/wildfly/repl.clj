@@ -13,17 +13,24 @@
 ;; limitations under the License.
 
 (ns ^:no-doc immutant.wildfly.repl
-  (:require [clojure.tools.nrepl.server :as nrepl]
-            [immutant.util :as u]
-            [immutant.internal.util :as iu]
-            [wunderboss.util :as wu]))
+    (:require [clojure.tools.nrepl.server :as nrepl]
+              [clojure.java.io            :as io]
+              [immutant.util              :as u]
+              [immutant.internal.util     :as iu]
+              [wunderboss.util            :as wu]))
+
+(defn ^:private possible-nrepl-files [file]
+  (if (and file (.isAbsolute (io/file file)))
+    [file]
+    (when (u/app-root)
+      (map u/app-relative
+        (if file
+          [file]
+          [".nrepl-port" "target/repl-port"])))))
 
 (defn ^:private spit-nrepl-files
   [port file]
-  (doseq [f (map u/app-relative
-                 (if file
-                   [file]
-                   [".nrepl-port" "target/repl-port"]))]
+  (doseq [f (possible-nrepl-files file)]
     (.mkdirs (.getParentFile f))
     (spit f port)
     (.deleteOnExit f)))
@@ -40,7 +47,7 @@
 
 (defn start
   "Fire up a repl bound to host/port"
-  [{:keys [host port] :or {host "localhost", port 0}}]
+  [{:keys [host port port-file] :or {host "localhost", port 0}}]
   (let [{:keys [nrepl-middleware nrepl-handler]}
         (-> (wu/options) (get "repl-options" "{}") read-string)]
     (when (and nrepl-middleware nrepl-handler)
@@ -57,5 +64,4 @@
       (u/at-exit (partial stop server))
       (let [[host bound-port] (nrepl-host-port server)]
         (println "nREPL bound to" (format "%s:%s" host bound-port))
-        (spit-nrepl-files bound-port nil ;(:nrepl-port-file config)
-          )))))
+        (spit-nrepl-files bound-port port-file)))))
