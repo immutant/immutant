@@ -34,7 +34,7 @@
      * :host          The interface bind address [localhost]
      * :port          The port listening for requests [8080]
      * :path          Maps the handler to a prefix of the url path [/]
-     * :virtual-hosts Virtual host name[s] (a String or a List of Strings) [nil]
+     * :virtual-host  Virtual host name[s] (a String or a List of Strings) [nil]
 
    Run calls may be threaded together, too:
 
