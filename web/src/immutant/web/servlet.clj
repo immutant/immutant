@@ -13,7 +13,9 @@
 ;; limitations under the License.
 
 (ns immutant.web.servlet
-  "A means of creating Servlets and JSR-356 Endpoints from Ring handlers and callback functions"
+  "A means of creating Servlets and
+  [JSR-356](http://www.oracle.com/technetwork/articles/java/jsr356-1937161.html)
+  Endpoints from Ring handlers and callback functions"
   (:require [immutant.web.internal.servlet :refer (proxy-handler wrap-servlet-session)]
             [immutant.web.websocket])
   (:import [org.projectodd.wunderboss.websocket Util]

@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.wildfly
-  "Utility functions only useful within a WildFly container."
+  "Utility functions only useful within a [WildFly](http://wildfly.org/) container."
   (:require [immutant.internal.util :as u]
             [wunderboss.util        :as wu]
             [clojure.java.io        :as io])

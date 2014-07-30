@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.messaging.hornetq
-  "HornetQ-specific messaging utilities."
+  "Utilities specific to [HornetQ](http://hornetq.jboss.org/)"
   (:require [immutant.internal.options   :as o]
             [immutant.internal.util      :as u]
             [immutant.util               :as pu]

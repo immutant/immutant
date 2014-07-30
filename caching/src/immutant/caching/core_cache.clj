@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (ns immutant.caching.core-cache
-  "Require this to extend org.infinispan.Cache to clojure.core.cache/CacheProtocol"
+  "Require this to extend `org.infinispan.Cache` to the
+  [core.cache](https://github.com/clojure/core.cache) `CacheProtocol`"
   (:require [clojure.core.cache :as core])
   (:import org.infinispan.Cache))
 

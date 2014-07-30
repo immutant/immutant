@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (ns immutant.caching
-  "Create, manage and manipulate Infinispan caches in a data grid"
+  "Create, manage and manipulate [Infinispan](http://infinispan.org)
+  caches in a data grid"
   (:require [immutant.internal.options :refer :all]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
             [immutant.codecs           :refer [lookup-codec]]

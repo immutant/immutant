@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (ns immutant.caching.core-memoize
-  "Use an Infinispan cache as a clojure.core.memoize/PluggableMemoization"
+  "Use an Infinispan cache as a `PluggableMemoization` from
+  [core.memoize](https://github.com/clojure/core.memoize)"
   (:require [immutant.caching          :refer [cache]]
             [immutant.internal.options :refer [validate-options]]
             [clojure.core.memoize      :refer [build-memoizer]]
