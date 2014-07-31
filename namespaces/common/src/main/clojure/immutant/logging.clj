@@ -33,11 +33,6 @@
   (delay
     (try
       (require 'clojure.tools.logging)
-      (try
-        (import 'org.apache.log4j.Logger)
-        (eval '(alter-var-root #'clojure.tools.logging/*logger-factory*
-                 (constantly (clojure.tools.logging.impl/log4j-factory))))
-        (catch ClassNotFoundException _))
       true
       (catch java.io.FileNotFoundException _))))
 
