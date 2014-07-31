@@ -12,12 +12,18 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns ^{:no-doc true} immutant.web.middleware
-    (:require [immutant.internal.util :refer [try-resolve]]))
+(ns immutant.web.middleware
+  "Contains a convenience function for wrapping development middleware"
+  (:require [immutant.internal.util :refer [try-resolve]]))
 
 (defn wrap-dev-middleware
-  "Assumes ring/ring-devel is available on the classpath"
+  "Wraps stacktrace and reload middleware with the correct :dirs
+  option set, but will toss an exception if either the passed handler
+  isn't a normal Clojure function or ring/ring-devel isn't available
+  on the classpath"
   [handler]
+  (if-not (or (fn? handler) (and (var? handler) (fn? (deref handler))))
+    (throw (RuntimeException. "Middleware only applies to regular Clojure functions")))
   (let [wrap-reload           (try-resolve 'ring.middleware.reload/wrap-reload)
         wrap-stacktrace       (try-resolve 'ring.middleware.stacktrace/wrap-stacktrace)
         classpath-directories (try-resolve 'clojure.java.classpath/classpath-directories)]
@@ -25,6 +31,4 @@
       (-> handler
         (wrap-reload {:dirs (map str (classpath-directories))})
         wrap-stacktrace)
-      (do
-        (println "WARN: ring/ring-devel not found; reloading middleware not added")
-        handler))))
+      (throw (RuntimeException. "Middleware requires ring/ring-devel; check your dependencies")))))
