@@ -132,27 +132,33 @@
     .getUserProperties
     (get "HandshakeRequest")))
 
+(defprotocol ServletSession
+  "Obtain an instance of `javax.servlet.HttpSession`, typically from a
+  Ring request or a websocket channel, i.e. `javax.websocket.Session`"
+  (^HttpSession http-session [v]))
+
+(extend-protocol ServletSession
+  java.util.Map
+  (http-session [request]
+    (if-let [^HttpServletRequest hsr (:servlet-request request)]
+      (.getSession hsr)))
+  javax.websocket.Session
+  (http-session [channel]
+    (.getHttpSession (handshake-request channel))))
+
 (defn ring-session
   "Returns the Ring session data from the HttpSession associated with
   the websocket session"
   [^javax.websocket.Session channel]
-  (some-> (handshake-request channel)
-    .getHttpSession
+  (some-> (http-session channel)
     immutant.web.internal.servlet/ring-session))
 
 (defn reset-ring-session!
   "Resets the Ring session data in the HttpSession associated with the
   websocket session"
   [^javax.websocket.Session channel, data]
-  (-> (handshake-request channel)
-    .getHttpSession
+  (-> (http-session channel)
     (immutant.web.internal.servlet/set-ring-session! data)))
-
-(defn ^HttpSession http-session
-  "Returns the servlet's HttpSession from the ring request"
-  [request]
-  (if-let [^HttpServletRequest hsr (:servlet-request request)]
-    (.getSession hsr)))
 
 (defn ^String context-path
   "Returns the servlet context path from the ring request"
