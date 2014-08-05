@@ -19,7 +19,7 @@
     (:import [java.io File InputStream OutputStream]
              clojure.lang.ISeq))
 
-(def-map-type LazyMap [m]   
+(def-map-type LazyMap [m]
   (get [_ k default-value]
     (if (contains? m k)
       (let [v (get m k)]
@@ -49,22 +49,24 @@
   (ssl-client-cert [x])
   (body [x]))
 
-(defn ring-request-map
-  [request]
-  (->LazyMap
-    {:server-port        (delay (server-port request))
-     :server-name        (delay (server-name request))
-     :remote-addr        (delay (remote-addr request))
-     :uri                (delay (uri request))
-     :query-string       (delay (query-string request))
-     :scheme             (delay (scheme request))
-     :request-method     (delay (request-method request))
-     :headers            (delay (headers request))
-     :content-type       (delay (content-type request))
-     :content-length     (delay (content-length request))
-     :character-encoding (delay (character-encoding request))
-     :ssl-client-cert    (delay (ssl-client-cert request))
-     :body               (delay (body request))}))
+(defmacro ring-request-map
+  ([request & extra-entries]
+     `(->LazyMap
+        (hash-map
+          :server-port        (delay (server-port ~request))
+          :server-name        (delay (server-name ~request))
+          :remote-addr        (delay (remote-addr ~request))
+          :uri                (delay (uri ~request))
+          :query-string       (delay (query-string ~request))
+          :scheme             (delay (scheme ~request))
+          :request-method     (delay (request-method ~request))
+          :headers            (delay (headers ~request))
+          :content-type       (delay (content-type ~request))
+          :content-length     (delay (content-length ~request))
+          :character-encoding (delay (character-encoding ~request))
+          :ssl-client-cert    (delay (ssl-client-cert ~request))
+          :body               (delay (body ~request))
+          ~@extra-entries))))
 
 (defprotocol Headers
   (get-names [x])
@@ -123,4 +125,3 @@
   (write-body [body ^OutputStream os]
     (with-open [body body]
       (io/copy body os))))
-

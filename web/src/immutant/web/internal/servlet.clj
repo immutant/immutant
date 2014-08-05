@@ -28,12 +28,12 @@
   associated servlet"
   [handler]
   (fn [request]
-    (if (contains? request :session)
+    (if (:session request)
       (handler request)
       (let [^HttpServletRequest hsr (:servlet-request request)
             data (delay (-> hsr .getSession ring-session))
-            response (handler (i/->LazyMap (assoc request :session data)))]
-        (if (contains? response :session)
+            response (handler (assoc request :session data))]
+        (when (contains? response :session)
           (if-let [data (:session response)]
             (set-ring-session! (.getSession hsr) data)
             (when-let [session (.getSession hsr false)]
@@ -77,11 +77,11 @@
   (proxy [HttpServlet] []
     (service [^HttpServletRequest request ^HttpServletResponse response]
       (let [ring-map (-> request
-                       i/ring-request-map
-                       (merge {:servlet          this
-                               :servlet-request  request
-                               :servlet-response response
-                               :servlet-context  (.getServletContext ^HttpServlet this)}))]
+                       (i/ring-request-map
+                         :servlet          this
+                         :servlet-request  request
+                         :servlet-response response
+                         :servlet-context  (delay (.getServletContext ^HttpServlet this))))]
       (if-let [result (handler ring-map)]
         (write-response response result)
         (throw (NullPointerException. "Ring handler returned nil")))))))
