@@ -16,7 +16,8 @@
   "Provides the creation of asynchronous Websocket services and a
   protocol through which to invoke them"
   (:require [immutant.web.internal.undertow :refer [create-http-handler]])
-  (:import [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint]))
+  (:import [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint]
+           [io.undertow.server HttpHandler]))
 
 (defprotocol Channel
   "Websocket channel interface"
@@ -30,20 +31,27 @@
   (open? [ch] (.isOpen ch))
   (close [ch] (.sendClose ch)))
 
-(defn create-handler
-  "The following callbacks are supported, where `channel` is an instance
-  of `io.undertow.websockets.core.WebSocketChannel`, extended to {{Channel}}:
+(defn ^HttpHandler wrap-websocket
+  "Middleware to attach websocket callbacks to a Ring handler. It's
+  more accurate to call it \"endware\" since its return type is not a
+  function, but an `io.undertow.server.HttpHandler` that's expected to
+  be passed to {{immutant.web/run}}, so all other middleware should
+  precede this call in the chain.
+
+  The following callbacks are supported, where `channel` is an
+  instance of `io.undertow.websockets.core.WebSocketChannel`, extended
+  to {{Channel}}:
 
     * :on-message `(fn [channel message])`
     * :on-open    `(fn [channel])`
     * :on-close   `(fn [channel {:keys [code reason]}])`
     * :on-error   `(fn [channel throwable])`
-    * :fallback   `(fn [request] (response ...))`
 
-  The result can be passed to {{immutant.web/run}}"
-  ([key value & key-values]
-     (create-handler (apply hash-map key value key-values)))
-  ([{:keys [on-message on-open on-close on-error fallback]}]
+  If handler is nil, 404 responses will be returned for any requests
+  without `ws` schemes"
+  ([handler key value & key-values]
+     (wrap-websocket handler (apply hash-map key value key-values)))
+  ([handler {:keys [on-message on-open on-close on-error]}]
      (UndertowWebsocket/create
        (reify Endpoint
          (onMessage [_ channel message]
@@ -54,4 +62,4 @@
            (if on-close (on-close channel {:code (.getReason cm) :reason (.getString cm)})))
          (onError [_ channel error]
            (if on-error (on-error channel error))))
-       (if fallback (create-http-handler fallback)))))
+       (if handler (create-http-handler handler)))))

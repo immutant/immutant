@@ -43,17 +43,17 @@
       (finally
         (stop {:path path})))))
 
-(deftest undertow-websocket
-  (let [expected [:open "hello" 1000]]
-    (is (= expected (test-websocket create-handler)))))
-
 (deftest jsr-356-websocket
   (let [expected [:open "hello" 1000]]
     (is (= expected (test-websocket (comp (partial attach-endpoint (create-servlet hello)) create-endpoint))))))
 
+(deftest middleware-websocket
+  (let [expected [:open "hello" 1000]]
+    (is (= expected (test-websocket (partial wrap-websocket hello))))))
+
 (deftest remote-sending-to-client-using-gniazdo
   (let [result (promise)
-        server (run (create-handler {:on-message (fn [c m] (send! c (upper-case m)))}))
+        server (run (wrap-websocket nil {:on-message (fn [c m] (send! c (upper-case m)))}))
         socket (ws/connect "ws://localhost:8080" :on-receive #(deliver result %))]
     (try
       (ws/send-msg socket "hello")
@@ -64,7 +64,7 @@
 
 (deftest remote-sending-to-client-using-httpasyncclient
   (let [result (promise)
-        server (run (create-handler {:on-message (fn [c m] (send! c (upper-case m)))}))]
+        server (run (wrap-websocket nil {:on-message (fn [c m] (send! c (upper-case m)))}))]
     (try
       (with-open [client (http/create-client)
                   socket (http/websocket client "ws://localhost:8080"
