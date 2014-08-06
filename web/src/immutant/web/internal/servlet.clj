@@ -78,10 +78,10 @@
     (service [^HttpServletRequest request ^HttpServletResponse response]
       (let [ring-map (-> request
                        (i/ring-request-map
-                         :servlet          this
-                         :servlet-request  request
-                         :servlet-response response
-                         :servlet-context  (delay (.getServletContext ^HttpServlet this))))]
+                         [:servlet          this]
+                         [:servlet-request  request]
+                         [:servlet-response response]
+                         [:servlet-context  (delay (.getServletContext ^HttpServlet this))]))]
       (if-let [result (handler ring-map)]
         (write-response response result)
         (throw (NullPointerException. "Ring handler returned nil")))))))

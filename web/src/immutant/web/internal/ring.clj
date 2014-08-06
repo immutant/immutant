@@ -17,20 +17,28 @@
               [clojure.string :as str]
               [clojure.java.io :as io])
     (:import [java.io File InputStream OutputStream]
-             clojure.lang.ISeq))
+             [clojure.lang ISeq PersistentHashMap]))
 
-(def-map-type LazyMap [m]
+(def-map-type LazyMap [^java.util.Map m]
   (get [_ k default-value]
-    (if (contains? m k)
-      (let [v (get m k)]
+    (if (.containsKey m k)
+      (let [v (.get m k)]
         (if (delay? v)
           @v
           v))
       default-value))
   (assoc [_ k v]
-    (LazyMap. (assoc m k v)))
+    (LazyMap.
+      (assoc
+          (if (instance? PersistentHashMap m)
+            m
+            (PersistentHashMap/create m)) k v)))
   (dissoc [_ k]
-    (LazyMap. (dissoc m k)))
+    (LazyMap.
+      (dissoc
+        (if (instance? PersistentHashMap m)
+          m
+          (PersistentHashMap/create m)) k)))
   (keys [_]
     (keys m)))
 
@@ -49,24 +57,26 @@
   (ssl-client-cert [x])
   (body [x]))
 
-(defmacro ring-request-map
+(defn ring-request-map
   ([request & extra-entries]
-     `(->LazyMap
-        (hash-map
-          :server-port        (delay (server-port ~request))
-          :server-name        (delay (server-name ~request))
-          :remote-addr        (delay (remote-addr ~request))
-          :uri                (delay (uri ~request))
-          :query-string       (delay (query-string ~request))
-          :scheme             (delay (scheme ~request))
-          :request-method     (delay (request-method ~request))
-          :headers            (delay (headers ~request))
-          :content-type       (delay (content-type ~request))
-          :content-length     (delay (content-length ~request))
-          :character-encoding (delay (character-encoding ~request))
-          :ssl-client-cert    (delay (ssl-client-cert ~request))
-          :body               (delay (body ~request))
-          ~@extra-entries))))
+     (->LazyMap
+       (let [m (doto (java.util.HashMap. 17)
+                 (.put :server-port        (delay (server-port request)))
+                 (.put :server-name        (delay (server-name request)))
+                 (.put :remote-addr        (delay (remote-addr request)))
+                 (.put :uri                (delay (uri request)))
+                 (.put :query-string       (delay (query-string request)))
+                 (.put :scheme             (delay (scheme request)))
+                 (.put :request-method     (delay (request-method request)))
+                 (.put :headers            (delay (headers request)))
+                 (.put :content-type       (delay (content-type request)))
+                 (.put :content-length     (delay (content-length request)))
+                 (.put :character-encoding (delay (character-encoding request)))
+                 (.put :ssl-client-cert    (delay (ssl-client-cert request)))
+                 (.put :body               (delay (body request))))]
+         (doseq [[k v] extra-entries]
+           (.put m k v))
+         m))))
 
 (defprotocol Headers
   (get-names [x])
