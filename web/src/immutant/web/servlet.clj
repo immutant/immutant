@@ -21,7 +21,7 @@
   (:import [org.projectodd.wunderboss.websocket Util]
            [javax.servlet Servlet ServletConfig ServletContext]
            [javax.servlet.http HttpServlet HttpServletRequest HttpSession]
-           [javax.websocket Endpoint MessageHandler$Whole]
+           [javax.websocket Session Endpoint EndpointConfig MessageHandler$Whole]
            [javax.websocket.server ServerContainer HandshakeRequest ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
 (extend-type javax.websocket.Session
@@ -29,6 +29,16 @@
   (send! [ch message] (.sendObject (.getAsyncRemote ch) message))
   (open? [ch] (.isOpen ch))
   (close [ch] (.close ch)))
+
+(extend-type HandshakeRequest
+  immutant.web.websocket/Handshake
+  (headers [hs] (.getHeaders hs))
+  (parameters [hs] (.getParameterMap hs))
+  (uri [hs] (.getRequestURI hs))
+  (query-string [hs] (.getQueryString hs))
+  (session [hs] (.getHttpSession hs))
+  (user-principal [hs] (.getUserPrincipal hs))
+  (user-in-role? [hs role] (.isUserInRole hs role)))
 
 (defn ^Servlet create-servlet
   "Encapsulate a ring handler within a servlet's service method,
@@ -48,15 +58,18 @@
   {{immutant.websocket/Channel}} protocol:
 
     * :on-message `(fn [channel message])`
-    * :on-open    `(fn [channel])`
+    * :on-open    `(fn [channel handshake])`
     * :on-close   `(fn [channel {:keys [code reason]}])`
     * :on-error   `(fn [channel throwable])`"
   ([key value & key-values]
      (create-endpoint (apply hash-map key value key-values)))
   ([{:keys [on-message on-open on-close on-error]}]
      (proxy [Endpoint] []
-       (onOpen [session config]
-         (when on-open (on-open session))
+       (onOpen [^Session session ^EndpointConfig config]
+         (when on-open (on-open session
+                         ^HandshakeRequest (-> config
+                                             .getUserProperties
+                                             (get "HandshakeRequest"))))
          (when on-message
            (let [handler (reify MessageHandler$Whole
                            (onMessage [_ message] (on-message session message)))]

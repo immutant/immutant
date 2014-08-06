@@ -25,11 +25,30 @@
   (close [ch] "Gracefully close the channel")
   (send! [ch message] "Send a message asynchronously"))
 
+(defprotocol Handshake
+  (headers [hs] "Return request headers")
+  (parameters [hs] "Return map of params from request")
+  (uri [hs] "Return full request URI")
+  (query-string [hs] "Return query portion of URI")
+  (session [hs] "Return the user's session, if any")
+  (user-principal [hs] "Return authorized `java.security.Principal`")
+  (user-in-role? [hs role] "Is user in role identified by String?"))
+
 (extend-protocol Channel
   io.undertow.websockets.core.WebSocketChannel
   (send! [ch message] (UndertowWebsocket/send ch message nil))
   (open? [ch] (.isOpen ch))
   (close [ch] (.sendClose ch)))
+
+(extend-protocol Handshake
+  io.undertow.websockets.spi.WebSocketHttpExchange
+  (headers [ex] (.getRequestHeaders ex))
+  (parameters [ex] (.getRequestParameters ex))
+  (uri [ex] (.getRequestURI ex))
+  (query-string [ex] (.getQueryString ex))
+  (session [ex] (.getSession ex))
+  (user-principal [ex] (.getUserPrincipal ex))
+  (user-in-role? [ex role] (.isUserInRole ex role)))
 
 (defn ^HttpHandler wrap-websocket
   "Middleware to attach websocket callbacks to a Ring handler. It's
@@ -43,12 +62,12 @@
   to {{Channel}}:
 
     * :on-message `(fn [channel message])`
-    * :on-open    `(fn [channel])`
+    * :on-open    `(fn [channel handshake])`
     * :on-close   `(fn [channel {:keys [code reason]}])`
     * :on-error   `(fn [channel throwable])`
 
   If handler is nil, 404 responses will be returned for any requests
-  without `ws` schemes"
+  without `ws://` URI schemes"
   ([handler key value & key-values]
      (wrap-websocket handler (apply hash-map key value key-values)))
   ([handler {:keys [on-message on-open on-close on-error]}]
@@ -57,7 +76,7 @@
          (onMessage [_ channel message]
            (if on-message (on-message channel message)))
          (onOpen [_ channel exchange]
-           (if on-open (on-open channel)))
+           (if on-open (on-open channel exchange)))
          (onClose [_ channel cm]
            (if on-close (on-close channel {:code (.getReason cm) :reason (.getString cm)})))
          (onError [_ channel error]

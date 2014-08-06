@@ -17,6 +17,7 @@
             [testing.web :refer [get-body hello]]
             [immutant.web :refer :all]
             [immutant.web.servlet :refer :all]
+            [immutant.web.websocket :refer :all]
             [http.async.client :as http]
             [ring.middleware.session :refer (wrap-session)]
             [ring.util.response :refer [response]]))
@@ -89,34 +90,36 @@
     (stop)))
 
 (deftest share-session-with-websocket
-  (let [latch (promise)
+  (let [result (promise)
         servlet (create-servlet counter)]
     (run (attach-endpoint servlet
-           (create-endpoint {:on-open (fn [ch]
-                                        (let [session (ring-session ch)]
-                                          (reset-ring-session! ch {:count 42})
-                                          (deliver latch session)))})))
+           (create-endpoint {:on-open (fn [ch hs]
+                                        (deliver result [(ring-session ch) (session hs)])
+                                        (reset-ring-session! ch {:count 42}))})))
     (is (= "0" (get-body url)))
     (is (= "1" (get-body url)))
     (with-open [client (http/create-client)
                 socket (http/websocket client "ws://localhost:8080"
                          :cookies @testing.web/cookies)]
-      (is (= {:count 2} (deref latch 1000 :fail))))
+      (let [[ring-session http-session] (deref result 1000 [])]
+        (is (= {:count 2} ring-session))
+        (is (not (nil? http-session)))))
     (is (= "42" (get-body url)))
     (stop)))
 
 (deftest handshake-headers
   (let [result (promise)
-        endpoint (create-endpoint
-                   :on-message (fn [ch _]
-                                 (deliver result (-> ch
-                                                   handshake-request
-                                                   .getHeaders))))]
+        endpoint (create-endpoint :on-open (fn [ch hs] (deliver result hs)))]
     (run (attach-endpoint (create-servlet) endpoint))
     (with-open [client (http/create-client)
-                socket (http/websocket client "ws://localhost:8080")]
-      (http/send socket :text "")
-      (is (= "http://localhost:8080" (-> (deref result 1000 {}) (get "Origin") first))))
+                socket (http/websocket client "ws://localhost:8080?x=y&j=k")]
+      (let [handshake (deref result 1000 nil)]
+        (is (not (nil? handshake)))
+        (is (= "Upgrade"   (-> handshake headers (get "Connection") first)))
+        (is (= "k"         (-> handshake parameters (get "j") first)))
+        (is (= "x=y&j=k"   (-> handshake query-string)))
+        (is (= "/?x=y&j=k" (-> handshake uri str)))
+        (is (false?        (-> handshake (user-in-role? "admin"))))))
     (stop)))
 
 (deftest request-map-entries

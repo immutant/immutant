@@ -28,7 +28,7 @@
         events (atom [])
         result (promise)
         handler (create-handler
-                  {:on-open    (fn [_]
+                  {:on-open    (fn [& _]
                                  (swap! events conj :open))
                    :on-close   (fn [_ {c :code}]
                                  (deliver result (swap! events conj c)))
@@ -73,3 +73,18 @@
         (is (= "HELLO" (deref result 2000 "goodbye"))))
       (finally
         (stop server)))))
+
+(deftest handshake-headers
+  (let [result (promise)
+        endpoint (wrap-websocket nil :on-open (fn [ch hs] (deliver result hs)))]
+    (run endpoint)
+    (with-open [client (http/create-client)
+                socket (http/websocket client "ws://localhost:8080/?x=y&j=k")]
+      (let [handshake (deref result 1000 nil)]
+        (is (not (nil? handshake)))
+        (is (= "Upgrade"   (-> handshake headers (get "Connection") first)))
+        (is (= "k"         (-> handshake parameters (get "j") first)))
+        (is (= "x=y&j=k"   (-> handshake query-string)))
+        ;; TODO: bug in undertow! (is (= "/?x=y&j=k" (-> handshake uri str)))
+        (is (false?        (-> handshake (user-in-role? "admin"))))))
+    (stop)))
