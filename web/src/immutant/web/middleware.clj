@@ -14,7 +14,10 @@
 
 (ns immutant.web.middleware
   "Contains a convenience function for wrapping development middleware"
-  (:require [immutant.internal.util :refer [try-resolve]]))
+  (:require [immutant.internal.util :refer [try-resolve]]
+            [immutant.util :refer [in-container?]]
+            [immutant.web.internal.servlet :refer [wrap-servlet-session]]
+            [immutant.web.internal.undertow :refer [wrap-undertow-session]]))
 
 (defn wrap-dev-middleware
   "Wraps stacktrace and reload middleware with the correct :dirs
@@ -32,3 +35,12 @@
         (wrap-reload {:dirs (map str (classpath-directories))})
         wrap-stacktrace)
       (throw (RuntimeException. "Middleware requires ring/ring-devel; check your dependencies")))))
+
+(defn wrap-session
+  "Uses the session from either Undertow or the servlet's
+  possibly-replicated HttpSession if running within an app server
+  cluster such as WildFly or EAP"
+  [handler]
+  (if (in-container?)
+    (wrap-servlet-session handler)
+    (wrap-undertow-session handler)))

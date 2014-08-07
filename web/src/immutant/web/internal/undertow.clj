@@ -15,7 +15,36 @@
 (ns ^{:no-doc true} immutant.web.internal.undertow
     (:require [immutant.web.internal.ring :as i])
     (:import [io.undertow.server HttpHandler HttpServerExchange]
-             [io.undertow.util HeaderMap Headers HttpString]))
+             [io.undertow.util HeaderMap Headers HttpString Sessions]
+             [io.undertow.websockets.spi WebSocketHttpExchange]))
+
+(defn wrap-undertow-session
+  "Ring middleware to insert a :session entry into the request, its
+  value stored in the `io.undertow.server.session.Session` from the
+  associated handler"
+  [handler]
+  (fn [request]
+    (let [^HttpServerExchange hse (:server-exchange request)
+          data (delay (-> hse Sessions/getOrCreateSession i/ring-session))
+          ;; we assume the request map automatically derefs delays
+          response (handler (assoc request :session data))]
+      (when (contains? response :session)
+        (if-let [data (:session response)]
+          (i/set-ring-session! (Sessions/getOrCreateSession hse) data)
+          (when-let [session (Sessions/getSession hse)]
+            (.invalidate session hse))))
+      response)))
+
+(defn ring-session
+  "Temporarily use reflection until getSession returns something
+  useful; see UNDERTOW-294"
+  [^WebSocketHttpExchange handshake]
+  (-> io.undertow.websockets.spi.AsyncWebSocketHttpServerExchange
+    (.getDeclaredField "exchange")
+    (doto (.setAccessible true))
+    (.get handshake)
+    Sessions/getSession
+    i/ring-session))
 
 (extend-type HeaderMap
   i/Headers
@@ -50,7 +79,7 @@
 (defn handle-request [f ^HttpServerExchange exchange]
   (.startBlocking exchange)
   (try
-    (if-let [response (f (i/ring-request-map exchange))]
+    (if-let [response (f (i/ring-request-map exchange [:server-exchange exchange]))]
       (write-response exchange response)
       (throw (NullPointerException. "Ring handler returned nil")))
     (finally

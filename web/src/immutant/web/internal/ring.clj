@@ -19,6 +19,12 @@
     (:import [java.io File InputStream OutputStream]
              [clojure.lang ISeq PersistentHashMap]))
 
+(def ring-session-key "ring-session-data")
+(defn ring-session [session]
+  (if session (.getAttribute session ring-session-key)))
+(defn set-ring-session! [session, data]
+  (.setAttribute session ring-session-key data))
+
 (def-map-type LazyMap [^java.util.Map m]
   (get [_ k default-value]
     (if (.containsKey m k)
@@ -60,7 +66,7 @@
 (defn ring-request-map
   ([request & extra-entries]
      (->LazyMap
-       (let [m (doto (java.util.HashMap. 17)
+       (let [m (doto (java.util.HashMap. 24)
                  (.put :server-port        (delay (server-port request)))
                  (.put :server-name        (delay (server-name request)))
                  (.put :remote-addr        (delay (remote-addr request)))

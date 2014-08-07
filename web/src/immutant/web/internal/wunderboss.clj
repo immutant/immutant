@@ -13,18 +13,24 @@
 ;; limitations under the License.
 
 (ns ^:no-doc ^:internal immutant.web.internal.wunderboss
-    (:require [immutant.web.internal.undertow :as undertow]
+    (:require [immutant.web.internal.undertow :refer [create-http-handler]]
+              [immutant.web.internal.servlet  :refer [create-servlet]]
               [immutant.internal.options  :refer [extract-options opts->set opts->defaults-map opts->map keywordize]]
               [immutant.internal.util     :as u]
+              [immutant.util              :refer [in-container?]]
               [immutant.web.middleware    :refer [wrap-dev-middleware]]
               [clojure.java.browse        :refer [browse-url]])
     (:import org.projectodd.wunderboss.WunderBoss
              io.undertow.server.HttpHandler
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]
-             javax.servlet.Servlet))
+             javax.servlet.Servlet
+             [io.undertow.server.session InMemorySessionManager SessionCookieConfig SessionAttachmentHandler]))
 
 (def ^:internal register-defaults (opts->defaults-map Web$RegisterOption))
 (def ^:internal create-defaults (opts->defaults-map Web$CreateOption))
+
+(def ^:internal session-manager
+  (InMemorySessionManager. "thismayneedabettername", -1))
 
 (def ^:internal server-name
   (partial u/hash-based-component-name create-defaults))
@@ -35,13 +41,19 @@
     (extract-options opts Web$CreateOption)))
 
 (defn ^:internal mount [server handler opts]
-  (let [opts (extract-options opts Web$RegisterOption)]
+  (let [opts (extract-options opts Web$RegisterOption)
+        hdlr (if (fn? handler)
+               (if (in-container?)
+                 (create-servlet handler)
+                 (create-http-handler handler))
+               handler)]
     (if (instance? Servlet handler)
-      (.registerServlet server handler opts)
+      (.registerServlet server hdlr opts)
       (.registerHandler server
-        (if (instance? HttpHandler handler)
-          handler
-          (undertow/create-http-handler handler))
+        (SessionAttachmentHandler.
+          hdlr
+          session-manager
+          (SessionCookieConfig.))
         opts))))
 
 (defn ^:internal mounts [opts]

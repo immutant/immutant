@@ -15,12 +15,16 @@
 (ns immutant.web.websocket-test
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
-            [immutant.web.servlet :refer (create-servlet attach-endpoint create-endpoint)]
             [immutant.web.websocket :refer :all]
+            [immutant.web.middleware :refer [wrap-session]]
+            [ring.util.response :refer [response]]
             [http.async.client :as http]
-            [testing.web  :refer [hello]]
+            [testing.web :refer [hello get-body]]
             [gniazdo.core :as ws]
-            [clojure.string :refer [upper-case]]))
+            [clojure.string :refer [upper-case]])
+  (:import [io.undertow.util Sessions]))
+
+(def url "http://localhost:8080/")
 
 (defn test-websocket
   [create-handler]
@@ -43,9 +47,9 @@
       (finally
         (stop {:path path})))))
 
-(deftest jsr-356-websocket
-  (let [expected [:open "hello" 1000]]
-    (is (= expected (test-websocket (comp (partial attach-endpoint (create-servlet hello)) create-endpoint))))))
+;; (deftest jsr-356-websocket
+;;   (let [expected [:open "hello" 1000]]
+;;     (is (= expected (test-websocket (comp (partial attach-endpoint (create-servlet hello)) create-endpoint))))))
 
 (deftest middleware-websocket
   (let [expected [:open "hello" 1000]]
@@ -88,3 +92,48 @@
         ;; TODO: bug in undertow! (is (= "/?x=y&j=k" (-> handshake uri str)))
         (is (false?        (-> handshake (user-in-role? "admin"))))))
     (stop)))
+
+(deftest share-session-with-websocket
+  (let [result (promise)
+        shared (atom nil)
+        handler (fn [{s :session}]
+                  (if-let [id (:id s)]
+                    (-> (swap! shared update-in [id] inc)
+                      (get id) str response)
+                    (let [id (rand)]
+                      (-> (reset! shared {id 0})
+                        (get id) str response
+                        (assoc :session {:id id})))))]
+    (run (wrap-websocket (wrap-session handler)
+           :on-open (fn [ch hs]
+                      (let [s (session hs)]
+                        (reset! shared {(:id s) 41})
+                        (deliver result s)))))
+    (is (= "0" (get-body url)))
+    (is (= "1" (get-body url)))
+    (with-open [client (http/create-client)
+                socket (http/websocket client "ws://localhost:8080"
+                         :cookies @testing.web/cookies)]
+      (let [ring-session (deref result 1000 nil)]
+        (is (:id ring-session))))
+    (is (= "42" (get-body url)))
+    (stop)))
+
+;; (deftest session-invalidation
+;;   (let [http (atom {})
+;;         http-session (fn [r] (-> r :server-exchange Sessions/getSession))
+;;         handler (fn [req]
+;;                   (reset! http (http-session req))
+;;                   (if-not (-> req :session :foo)
+;;                     (-> (response "yay")
+;;                       (assoc :session {:foo "yay"}))
+;;                     (-> (response "boo")
+;;                       (assoc :session nil))))]
+;;     (run (wrap-session handler))
+;;     (is (= "yay" (get-body url)))
+;;     (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
+;;     (is (= "boo" (get-body url)))
+;;     (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data") :foo)))
+;;     (is (= "yay" (get-body url)))
+;;     (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
+;;     (stop)))

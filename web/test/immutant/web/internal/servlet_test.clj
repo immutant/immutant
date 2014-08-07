@@ -12,14 +12,13 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.web.servlet-test
+(ns immutant.web.internal.servlet-test
   (:require [clojure.test :refer :all]
             [testing.web :refer [get-body hello]]
             [immutant.web :refer :all]
-            [immutant.web.servlet :refer :all]
+            [immutant.web.internal.servlet :refer :all]
             [immutant.web.websocket :refer :all]
             [http.async.client :as http]
-            [ring.middleware.session :refer (wrap-session)]
             [ring.util.response :refer [response]]))
 
 (use-fixtures :each
@@ -31,11 +30,13 @@
 
 (def url "http://localhost:8080/")
 
+(def http-session (comp (memfn getSession) :servlet-request))
+
 (defn counter [{session :session}]
   (let [count (:count session 0)
         session (assoc session :count (inc count))]
     (-> (response (str count))
-        (assoc :session session))))
+      (assoc :session session))))
 
 (deftest http-session-store
   (let [ring (atom {})
@@ -45,7 +46,7 @@
                   (let [res (counter req)]
                     (reset! ring (:session res))
                     res))]
-    (run (create-servlet handler))
+    (run (create-servlet (wrap-servlet-session handler)))
     (is (= "0" (get-body url)))
     (is (= 1 (:count @ring) (-> @http (.getAttribute "ring-session-data") :count)))
     (is (= "1" (get-body url)))
@@ -61,7 +62,7 @@
                       (assoc :session {:foo "yay"}))
                     (-> (response "boo")
                       (assoc :session nil))))]
-    (run (create-servlet handler))
+    (run (create-servlet (wrap-servlet-session handler)))
     (is (= "yay" (get-body url)))
     (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
     (is (= "boo" (get-body url)))
@@ -70,47 +71,35 @@
     (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
     (stop)))
 
-(deftest avoid-session-collision
-  "Ring's session should take priority"
-  (let [http (atom {})
-        handler (fn [req]
-                  (reset! http (http-session req))
-                  (if-not (-> req :session :foo)
-                    (-> (response "yay")
-                      (assoc :session {:foo "yay"}))
-                    (-> (response "boo")
-                      (assoc :session nil))))]
-    (run (create-servlet (wrap-session handler)))
-    (is (= "yay" (get-body url)))
-    (is (nil? (-> @http (.getAttribute "ring-session-data"))))
-    (is (= "boo" (get-body url)))
-    (is (nil? (-> @http (.getAttribute "ring-session-data"))))
-    (is (= "yay" (get-body url)))
-    (is (nil? (-> @http (.getAttribute "ring-session-data"))))
-    (stop)))
-
 (deftest share-session-with-websocket
   (let [result (promise)
-        servlet (create-servlet counter)]
-    (run (attach-endpoint servlet
-           (create-endpoint {:on-open (fn [ch hs]
-                                        (deliver result [(ring-session ch) (session hs)])
-                                        (reset-ring-session! ch {:count 42}))})))
+        shared (atom nil)
+        handler (fn [{s :session}]
+                  (if-let [id (:id s)]
+                    (-> (swap! shared update-in [id] inc)
+                      (get id) str response)
+                    (let [id (rand)]
+                      (-> (reset! shared {id 0})
+                        (get id) str response
+                        (assoc :session {:id id})))))]
+    (run (create-servlet (wrap-servlet-session handler)
+           (create-endpoint {:on-open (fn [ch hs] (let [s (session hs)]
+                                                   (reset! shared {(:id s) 41})
+                                                   (deliver result s)))})))
     (is (= "0" (get-body url)))
     (is (= "1" (get-body url)))
     (with-open [client (http/create-client)
                 socket (http/websocket client "ws://localhost:8080"
                          :cookies @testing.web/cookies)]
-      (let [[ring-session http-session] (deref result 1000 [])]
-        (is (= {:count 2} ring-session))
-        (is (not (nil? http-session)))))
+      (let [ring-session (deref result 1000 nil)]
+        (is (:id ring-session))))
     (is (= "42" (get-body url)))
     (stop)))
 
 (deftest handshake-headers
   (let [result (promise)
         endpoint (create-endpoint :on-open (fn [ch hs] (deliver result hs)))]
-    (run (attach-endpoint (create-servlet) endpoint))
+    (run (create-servlet nil endpoint))
     (with-open [client (http/create-client)
                 socket (http/websocket client "ws://localhost:8080?x=y&j=k")]
       (let [handshake (deref result 1000 nil)]
@@ -125,7 +114,7 @@
 (deftest request-map-entries
   (let [request (atom {})
         handler (comp hello #(swap! request into %))
-        server (run (create-servlet handler))]
+        server (run (create-servlet (wrap-servlet-session handler)))]
     (get-body (str url "?query=help") {:content-type "text/html; charset=utf-8"})
     (are [x expected] (= expected (x @request))
          :content-type        "text/html; charset=utf-8"
@@ -141,4 +130,5 @@
     (is (= 5 (count (select-keys @request [:servlet :servlet-request :servlet-response :servlet-context :session]))))
     (is (:body @request))
     (is (map? (:headers @request)))
-    (is (< 3 (count (:headers @request))))))
+    (is (< 3 (count (:headers @request))))
+    (stop)))
