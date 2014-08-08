@@ -30,7 +30,8 @@
 (def ^:internal create-defaults (opts->defaults-map Web$CreateOption))
 
 (def ^:internal session-manager
-  (InMemorySessionManager. "thismayneedabettername", -1))
+  (doto (InMemorySessionManager. "thismayneedabettername", -1)
+    (.setDefaultSessionTimeout -1)))
 
 (def ^:internal server-name
   (partial u/hash-based-component-name create-defaults))
