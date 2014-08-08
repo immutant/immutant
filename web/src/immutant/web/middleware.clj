@@ -19,7 +19,7 @@
             [immutant.web.internal.servlet :refer [wrap-servlet-session]]
             [immutant.web.internal.undertow :refer [wrap-undertow-session]]))
 
-(defn wrap-dev-middleware
+(defn wrap-development
   "Wraps stacktrace and reload middleware with the correct :dirs
   option set, but will toss an exception if either the passed handler
   isn't a normal Clojure function or ring/ring-devel isn't available

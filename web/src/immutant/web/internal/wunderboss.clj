@@ -18,7 +18,7 @@
               [immutant.internal.options  :refer [extract-options opts->set opts->defaults-map opts->map keywordize]]
               [immutant.internal.util     :as u]
               [immutant.util              :refer [in-container?]]
-              [immutant.web.middleware    :refer [wrap-dev-middleware]]
+              [immutant.web.middleware    :refer [wrap-development]]
               [clojure.java.browse        :refer [browse-url]])
     (:import org.projectodd.wunderboss.WunderBoss
              io.undertow.server.HttpHandler
@@ -47,7 +47,7 @@
                  (create-servlet handler)
                  (create-http-handler handler))
                handler)]
-    (if (instance? Servlet handler)
+    (if (instance? Servlet hdlr)
       (.registerServlet server hdlr opts)
       (.registerHandler server
         (SessionAttachmentHandler.
@@ -65,7 +65,7 @@
       (select-keys opts))))
 
 (defn ^:internal run-dmc* [run handler & options]
-  (let [result (apply run (wrap-dev-middleware handler) options)
+  (let [result (apply run (wrap-development handler) options)
         options (u/kwargs-or-map->map options)]
     (browse-url (format "http://%s:%s%s"
                   (:host options (:host create-defaults))
