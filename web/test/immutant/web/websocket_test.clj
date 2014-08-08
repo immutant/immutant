@@ -95,27 +95,20 @@
 
 (deftest share-session-with-websocket
   (let [result (promise)
-        shared (atom nil)
-        handler (fn [{s :session}]
-                  (if-let [id (:id s)]
-                    (response (get @shared id))
-                    (let [id (rand)]
-                      (reset! shared {id "identified"})
-                      (-> (response "authorized")
-                        (assoc :session {:id id})))))]
+        handler (fn [{{:keys [id] :or {id (str (rand))}} :session}]
+                  (-> id response (assoc :session {:id id})))]
     (run (wrap-websocket (wrap-session handler)
-           :on-open (fn [ch hs]
-                      (let [s (session hs)]
-                        (reset! shared {(:id s) "hacked"})
-                        (deliver result s)))))
-    (is (= "authorized" (get-body url :cookies nil)))
-    (is (= "identified" (get-body url)))
-    (with-open [client (http/create-client)
-                socket (http/websocket client "ws://localhost:8080"
-                         :cookies @testing.web/cookies)]
-      (let [ring-session (deref result 1000 nil)]
-        (is (:id ring-session))))
-    (is (= "hacked" (get-body url)))
+           :on-open (fn [ch hs] (deliver result (:id (session hs))))))
+    ;; establish the id in the session with the first request
+    (let [id (get-body url :cookies nil)]
+      ;; make sure we get it again if we pass the returned cookie
+      (is (= id (get-body url)))
+      ;; now open a websocket connection with the same cookie
+      (with-open [client (http/create-client)
+                  socket (http/websocket client "ws://localhost:8080"
+                           :cookies @testing.web/cookies)]
+        ;; and verify the websocket sees the same id
+        (is (= id (deref result 1000 :failure)))))
     (stop)))
 
 (deftest session-invalidation
