@@ -98,30 +98,29 @@
         shared (atom nil)
         handler (fn [{s :session}]
                   (if-let [id (:id s)]
-                    (-> (swap! shared update-in [id] inc)
-                      (get id) str response)
+                    (response (get @shared id))
                     (let [id (rand)]
-                      (-> (reset! shared {id 0})
-                        (get id) str response
+                      (reset! shared {id "identified"})
+                      (-> (response "authorized")
                         (assoc :session {:id id})))))]
     (run (wrap-websocket (wrap-session handler)
            :on-open (fn [ch hs]
                       (let [s (session hs)]
-                        (reset! shared {(:id s) 41})
+                        (reset! shared {(:id s) "hacked"})
                         (deliver result s)))))
-    (is (= "0" (get-body url)))
-    (is (= "1" (get-body url)))
+    (is (= "authorized" (get-body url)))
+    (is (= "identified" (get-body url)))
     (with-open [client (http/create-client)
                 socket (http/websocket client "ws://localhost:8080"
                          :cookies @testing.web/cookies)]
       (let [ring-session (deref result 1000 nil)]
         (is (:id ring-session))))
-    (is (= "42" (get-body url)))
+    (is (= "hacked" (get-body url)))
     (stop)))
 
 ;; (deftest session-invalidation
 ;;   (let [http (atom {})
-;;         http-session (fn [r] (-> r :server-exchange Sessions/getSession))
+;;         http-session (fn [r] (-> r :server-exchange Sessions/getOrCreateSession))
 ;;         handler (fn [req]
 ;;                   (reset! http (http-session req))
 ;;                   (if-not (-> req :session :foo)
