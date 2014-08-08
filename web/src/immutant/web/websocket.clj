@@ -13,8 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.web.websocket
-  "Provides the creation of asynchronous Websocket services and a
-  protocol through which to invoke them"
+  "Provides for the creation of asynchronous WebSocket services"
   (:require [immutant.web.internal.undertow :refer [create-http-handler] :as u]
             [immutant.web.internal.servlet  :refer [create-servlet create-endpoint]]
             [immutant.web.internal.ring :as i]
@@ -31,6 +30,7 @@
   (send! [ch message] "Send a message asynchronously"))
 
 (defprotocol Handshake
+  "Reflects the state of the initial websocket upgrade request"
   (headers [hs] "Return request headers")
   (parameters [hs] "Return map of params from request")
   (uri [hs] "Return full request URI")
@@ -70,14 +70,16 @@
   (user-in-role? [hs role] (.isUserInRole hs role)))
 
 (defn wrap-websocket
-  "Middleware to attach websocket callbacks to a Ring handler. It's
-  more accurate to call it \"endware\" since its return type is not a
+  "Middleware to attach websocket callbacks to a Ring handler.
+  Technically, it's \"endware\" since its return type is not a
   function, but an object expected to be passed to
   {{immutant.web/run}}, so all other middleware should precede this
   call in the chain.
 
   The following callbacks are supported, where `channel` is an object
-  extended to {{Channel}} and `handshake` is extended to {{Handshake}}:
+  extended to {{Channel}}, `handshake` is extended to {{Handshake}},
+  `throwable` is a Java exception, and `message` may be either a
+  `String` or a `byte[]`:
 
     * :on-message `(fn [channel message])`
     * :on-open    `(fn [channel handshake])`

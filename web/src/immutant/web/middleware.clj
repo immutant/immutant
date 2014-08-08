@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.web.middleware
-  "Contains a convenience function for wrapping development middleware"
+  "Ring middleware useful with immutant.web"
   (:require [immutant.internal.util :refer [try-resolve]]
             [immutant.util :refer [in-container?]]
             [immutant.web.internal.servlet :refer [wrap-servlet-session]]
@@ -37,9 +37,9 @@
       (throw (RuntimeException. "Middleware requires ring/ring-devel; check your dependencies")))))
 
 (defn wrap-session
-  "Uses the session from either Undertow or the servlet's
-  possibly-replicated HttpSession if running within an app server
-  cluster such as WildFly or EAP"
+  "Uses the session from either Undertow or, when deployed to an app
+  server cluster such as WildFly or EAP, the servlet's
+  possibly-replicated HttpSession"
   [handler]
   (if (in-container?)
     (wrap-servlet-session handler)
