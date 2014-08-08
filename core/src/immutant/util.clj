@@ -80,35 +80,26 @@
                  symbol)]
     ((eval `#(~setter %1 %2)) bean value)))
 
-(defn singleton
-  "Sets up a highly-available singleton.
+(defn singleton-daemon
+  "Sets up a highly-available singleton daemon.
 
-   In a WildFly cluster, singletons with the same `singleton-name` can
-   be created on each node, but only one of those singletons will run at
-   a time. If the currently running singleton dies (or the node it is on
-   loses connection with the cluster), the singleton will automatically
+   When a singleton daemon is started, a new thread is spawned, and
+   `start-fn` is invoked. When the application is shut down, `stop-fn` is
+   called.
+
+   In a WildFly cluster, daemons with the same `daemon-name` can
+   be created on each node, but only one of those daemons will run at
+   a time. If the currently running daemon dies (or the node it is on
+   loses connection with the cluster), the daemon will automatically
    start on one of the other nodes where it has been created.
-
-   When a singleton is started, a new thread is spawned, and `start-fn`
-   is invoked. When the application is shut down, `stop-fn` is called.
 
    If used outside of WildFly, or in a WildFly instance not in a cluster,
    it behaves as if the cluster size is 1, and starts immediatey."
-  ([singleton-name start-fn]
-     (singleton singleton-name start-fn nil))
-  ([singleton-name start-fn stop-fn]
-     (doto
-         (WunderBoss/findOrCreateComponent SingletonContext
-           (name singleton-name)
-           (o/extract-options {:daemon true, :daemon-stop-callback stop-fn}
-             SingletonContext$CreateOption))
-       (.setRunnable start-fn)
-       .start)))
-
-(defmacro as-singleton
-  "Run the given body as a singleton.
-
-   A convenience macro that wraps `body` in a function and passes it to
-   {{singleton}} as `start-fn`."
-  [singleton-name & body]
-  `(singleton ~singleton-name (fn [] ~@body)))
+  [daemon-name start-fn stop-fn]
+  (doto
+      (WunderBoss/findOrCreateComponent SingletonContext
+        (name daemon-name)
+        (o/extract-options {:daemon true, :daemon-stop-callback stop-fn}
+          SingletonContext$CreateOption))
+    (.setRunnable start-fn)
+    .start))

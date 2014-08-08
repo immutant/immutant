@@ -21,7 +21,7 @@
   (let [started-p (promise)
         thread-a (atom nil)
         stopped-p (promise)]
-    (singleton :foo
+    (singleton-daemon :foo
       (fn []
         (reset! thread-a (.getName (Thread/currentThread)))
         (deliver started-p :started))
@@ -32,10 +32,3 @@
     (WunderBoss/shutdownAndReset)
     ;; confirm stop fn is called
     (is (= :stopped (deref stopped-p 1000 :failure)))))
-
-(deftest as-singleton-should-work-outside-of-the-container
-  (let [started-p (promise)]
-    (as-singleton :foo
-      (deliver started-p :started))
-    (is (= :started (deref started-p 1000 :failure)))
-    (WunderBoss/shutdownAndReset)))
