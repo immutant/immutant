@@ -167,7 +167,7 @@
   (let [request (atom {})
         handler (comp hello #(swap! request into %))
         server (run handler)]
-    (get-body (str url "?query=help") {:content-type "text/html; charset=utf-8"})
+    (get-body (str url "?query=help") :headers {:content-type "text/html; charset=utf-8"})
     (are [x expected] (= expected (x @request))
          :content-type        "text/html; charset=utf-8"
          :character-encoding  "utf-8"

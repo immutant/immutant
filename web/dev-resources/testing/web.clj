@@ -27,14 +27,14 @@
   "Return the response body as a string if status=200, otherwise
   return the numeric status code. Any response returning a :set-cookie
   will cause subsequent requests to send them"
-  [url & [headers]]
+  [url & {:keys [headers cookies] :or {cookies @testing.web/cookies}}]
   (with-open [client (http/create-client)]
-    (let [response (http/GET client url :headers headers :cookies @cookies)]
+    (let [response (http/GET client url :headers headers :cookies cookies)]
       (http/await response)
       (when-let [error (http/error response)]
         (throw error))
       (when (contains? (http/headers response) :set-cookie)
-        (reset! cookies (http/cookies response)))
+        (reset! testing.web/cookies (http/cookies response)))
       (let [status (:code (http/status response))]
         (if (= 200 status)
           (http/string response)

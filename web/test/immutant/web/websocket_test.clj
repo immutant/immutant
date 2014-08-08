@@ -108,7 +108,7 @@
                       (let [s (session hs)]
                         (reset! shared {(:id s) "hacked"})
                         (deliver result s)))))
-    (is (= "authorized" (get-body url)))
+    (is (= "authorized" (get-body url :cookies nil)))
     (is (= "identified" (get-body url)))
     (with-open [client (http/create-client)
                 socket (http/websocket client "ws://localhost:8080"
@@ -118,21 +118,21 @@
     (is (= "hacked" (get-body url)))
     (stop)))
 
-;; (deftest session-invalidation
-;;   (let [http (atom {})
-;;         http-session (fn [r] (-> r :server-exchange Sessions/getOrCreateSession))
-;;         handler (fn [req]
-;;                   (reset! http (http-session req))
-;;                   (if-not (-> req :session :foo)
-;;                     (-> (response "yay")
-;;                       (assoc :session {:foo "yay"}))
-;;                     (-> (response "boo")
-;;                       (assoc :session nil))))]
-;;     (run (wrap-session handler))
-;;     (is (= "yay" (get-body url)))
-;;     (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
-;;     (is (= "boo" (get-body url)))
-;;     (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data") :foo)))
-;;     (is (= "yay" (get-body url)))
-;;     (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
-;;     (stop)))
+(deftest session-invalidation
+  (let [http (atom {})
+        http-session (fn [r] (-> r :server-exchange Sessions/getOrCreateSession))
+        handler (fn [req]
+                  (reset! http (http-session req))
+                  (if-not (-> req :session :foo)
+                    (-> (response "yay")
+                      (assoc :session {:foo "yay"}))
+                    (-> (response "boo")
+                      (assoc :session nil))))]
+    (run (wrap-session handler))
+    (is (= "yay" (get-body url :cookies nil)))
+    (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
+    (is (= "boo" (get-body url)))
+    (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data") :foo)))
+    (is (= "yay" (get-body url)))
+    (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
+    (stop)))
