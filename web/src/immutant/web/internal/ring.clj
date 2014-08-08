@@ -19,11 +19,16 @@
     (:import [java.io File InputStream OutputStream]
              [clojure.lang ISeq PersistentHashMap]))
 
+(defprotocol SessionAttributes
+  (attribute [session key])
+  (set-attribute! [session key value]))
+
 (def ring-session-key "ring-session-data")
+
 (defn ring-session [session]
-  (if session (.getAttribute session ring-session-key)))
+  (if session (attribute session ring-session-key)))
 (defn set-ring-session! [session, data]
-  (.setAttribute session ring-session-key data))
+  (set-attribute! session ring-session-key data))
 
 (def-map-type LazyMap [^java.util.Map m]
   (get [_ k default-value]

@@ -15,7 +15,7 @@
 (ns ^{:no-doc true} immutant.web.internal.servlet
     (:require [immutant.web.internal.ring :as i])
     (:import [org.projectodd.wunderboss.websocket Util]
-             [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse]
+             [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
              [javax.servlet Servlet ServletConfig ServletContext]
              [javax.websocket Session Endpoint EndpointConfig MessageHandler$Whole]
              [javax.websocket.server ServerContainer HandshakeRequest ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
@@ -36,6 +36,14 @@
           (when-let [session (.getSession hsr false)]
             (.invalidate session))))
       response)))
+
+(extend-type HttpSession
+  i/SessionAttributes
+  (attribute [session key]
+    (.getAttribute session key))
+  (set-attribute! [session key value]
+    (.setAttribute session key value)))
+
 
 (extend-type HttpServletRequest
   i/RingRequest

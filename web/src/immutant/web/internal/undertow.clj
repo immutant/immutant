@@ -15,6 +15,7 @@
 (ns ^{:no-doc true} immutant.web.internal.undertow
     (:require [immutant.web.internal.ring :as i])
     (:import [io.undertow.server HttpHandler HttpServerExchange]
+             io.undertow.server.session.Session
              [io.undertow.util HeaderMap Headers HttpString Sessions]
              [io.undertow.websockets.spi WebSocketHttpExchange]))
 
@@ -45,6 +46,13 @@
     (.get handshake)
     Sessions/getSession
     i/ring-session))
+
+(extend-type Session
+  i/SessionAttributes
+  (attribute [session key]
+    (.getAttribute session key))
+  (set-attribute! [session key value]
+    (.setAttribute session key value)))
 
 (extend-type HeaderMap
   i/Headers
@@ -91,4 +99,3 @@
       (if (.isInIoThread exchange)
         (.dispatch exchange this)
         (handle-request handler exchange)))))
-
