@@ -87,7 +87,10 @@
 (defn handle-request [f ^HttpServerExchange exchange]
   (.startBlocking exchange)
   (try
-    (if-let [response (f (i/ring-request-map exchange [:server-exchange exchange]))]
+    (if-let [response (f (i/ring-request-map exchange
+                           [:server-exchange exchange]
+                           [:path-info (.getRelativePath exchange)]
+                           [:context (.getResolvedPath exchange)]))]
       (write-response exchange response)
       (throw (NullPointerException. "Ring handler returned nil")))
     (finally

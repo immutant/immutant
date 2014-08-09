@@ -18,7 +18,8 @@
             [immutant.web          :refer :all]
             [immutant.web.internal.wunderboss :refer :all]
             [testing.web           :refer [get-body hello handler]]
-            [testing.hello.service :as pedestal])
+            [testing.hello.service :as pedestal]
+            [ring.middleware.resource :refer [wrap-resource]])
   (:import clojure.lang.ExceptionInfo
            java.net.ConnectException))
 
@@ -199,3 +200,10 @@
     (is (thrown? ConnectException (get-body "http://integ-app2.torquebox.org:8080/")))
     (is (thrown? ConnectException (get-body "http://integ-app3.torquebox.org:8080/")))
     (is (nil? (stop all)))))
+
+(deftest relative-resource-paths
+  (run (-> hello (wrap-resource "public")))
+  (is (= "foo" (get-body (str url "foo.html"))))
+  (stop)
+  (run (-> hello (wrap-resource "public")) :path "/foo")
+  (is (= "foo" (get-body (str url "foo/foo.html")))))
