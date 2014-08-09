@@ -76,6 +76,9 @@
                                    (Headers/extractTokenFromHeader type "charset")))
   (headers [exchange]            (-> exchange .getRequestHeaders i/headers->map))
   (body [exchange]               (.getInputStream exchange))
+  (context [exchange]            (.getResolvedPath exchange))
+  (path-info [exchange]          (let [v (.getRelativePath exchange)]
+                                   (if (empty? v) "/" v)))
   (ssl-client-cert [_]))
 
 (defn- write-response [^HttpServerExchange exchange {:keys [status headers body]}]
@@ -84,18 +87,10 @@
   (i/write-headers (.getResponseHeaders exchange) headers)
   (i/write-body body (.getOutputStream exchange)))
 
-(defn- path-info
-  [^HttpServerExchange exchange]
-  (let [v (.getRelativePath exchange)]
-    (if (empty? v) "/" v)))
-
 (defn handle-request [f ^HttpServerExchange exchange]
   (.startBlocking exchange)
   (try
-    (if-let [response (f (i/ring-request-map exchange
-                           [:server-exchange exchange]
-                           [:path-info (path-info exchange)]
-                           [:context (.getResolvedPath exchange)]))]
+    (if-let [response (f (i/ring-request-map exchange [:server-exchange exchange]))]
       (write-response exchange response)
       (throw (NullPointerException. "Ring handler returned nil")))
     (finally

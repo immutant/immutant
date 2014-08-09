@@ -66,7 +66,9 @@
   (content-length [x])
   (character-encoding [x])
   (ssl-client-cert [x])
-  (body [x]))
+  (body [x])
+  (context [x])
+  (path-info [x]))
 
 (defn ring-request-map
   ([request & extra-entries]
@@ -84,7 +86,9 @@
                  (.put :content-length     (delay (content-length request)))
                  (.put :character-encoding (delay (character-encoding request)))
                  (.put :ssl-client-cert    (delay (ssl-client-cert request)))
-                 (.put :body               (delay (body request))))]
+                 (.put :body               (delay (body request)))
+                 (.put :context            (delay (context request)))
+                 (.put :path-info          (delay (path-info request))))]
          (doseq [[k v] extra-entries]
            (.put m k v))
          m))))
