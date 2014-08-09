@@ -84,12 +84,17 @@
   (i/write-headers (.getResponseHeaders exchange) headers)
   (i/write-body body (.getOutputStream exchange)))
 
+(defn- path-info
+  [^HttpServerExchange exchange]
+  (let [v (.getRelativePath exchange)]
+    (if (empty? v) "/" v)))
+
 (defn handle-request [f ^HttpServerExchange exchange]
   (.startBlocking exchange)
   (try
     (if-let [response (f (i/ring-request-map exchange
                            [:server-exchange exchange]
-                           [:path-info (.getRelativePath exchange)]
+                           [:path-info (path-info exchange)]
                            [:context (.getResolvedPath exchange)]))]
       (write-response exchange response)
       (throw (NullPointerException. "Ring handler returned nil")))

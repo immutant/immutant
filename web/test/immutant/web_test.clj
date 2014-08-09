@@ -206,4 +206,5 @@
   (is (= "foo" (get-body (str url "foo.html"))))
   (stop)
   (run (-> hello (wrap-resource "public")) :path "/foo")
-  (is (= "foo" (get-body (str url "foo/foo.html")))))
+  (is (= "foo" (get-body (str url "foo/foo.html"))))
+  (is (= "hello" (get-body (str url "foo")))))
