@@ -59,7 +59,7 @@
   (character-encoding [request] (.getCharacterEncoding request))
   (headers [request]            (i/headers->map request))
   (body [request]               (.getInputStream request))
-  (context [request]            (.getContextPath request))
+  (context [request]            (str (.getContextPath request) (.getServletPath request)))
   (path-info [request]          (.getPathInfo request))
   (ssl-client-cert [request]    (first (.getAttribute request "javax.servlet.request.X509Certificate"))))
 
