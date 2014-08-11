@@ -151,4 +151,8 @@
              (throw (NullPointerException. "Ring handler returned nil")))))
        (init [^ServletConfig config]
          (proxy-super init config)
-         (if endpoint (add-endpoint endpoint (.getServletContext config)))))))
+         (if endpoint
+           (let [context (.getServletContext config)
+                 mapping (-> context (.getServletRegistration (.getServletName this)) .getMappings first)
+                 path (apply str (take (- (count mapping) 2) mapping))]
+             (add-endpoint endpoint context {:path (if (empty? path) "/" path)})))))))
