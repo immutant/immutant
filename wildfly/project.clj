@@ -17,6 +17,4 @@
 
   :dependencies [[org.immutant/core _]
                  [org.clojure/tools.nrepl "_"]
-                 [org.projectodd.wunderboss/wunderboss-wildfly _]]
-
-  :pedantic? false)
+                 [org.projectodd.wunderboss/wunderboss-wildfly _]])
