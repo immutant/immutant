@@ -38,7 +38,7 @@
 
 (defn ^:internal server [opts]
   (WunderBoss/findOrCreateComponent Web
-    (server-name (select-keys opts (opts->set Web$CreateOption)))
+    (server-name (select-keys opts (disj (opts->set Web$CreateOption) :configuration)))
     (extract-options opts Web$CreateOption)))
 
 (defn ^:internal mount [server handler opts]

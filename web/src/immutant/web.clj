@@ -48,7 +48,13 @@
 
    The above actually creates two web server instances, one listening
    for hello and howdy requests on port 8080, and another listening
-   for ola requests on 8081."
+   for ola requests on 8081.
+
+   The underlying web server for Immutant is Undertow, which supports
+   more advanced options than the above. These can be configured by
+   passing an Undertow$Builder instance via the :configuration option,
+   and that instance is easily constructed from a Clojure map using
+   the {{immutant.web.undertow/options}} function."
   [handler & options]
   (let [options (->> options
                   kwargs-or-map->map
