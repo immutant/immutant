@@ -20,13 +20,14 @@
               [wunderboss.util            :as wu]))
 
 (defn ^:private possible-nrepl-files [file]
-  (if (and file (.isAbsolute (io/file file)))
-    [file]
-    (when (u/app-root)
-      (map u/app-relative
-        (if file
-          [file]
-          [".nrepl-port" "target/repl-port"])))))
+  (let [file (io/file file)]
+    (if (and file (.isAbsolute file))
+      [file]
+      (when (u/app-root)
+        (map u/app-relative
+          (if file
+            [file]
+            [".nrepl-port" "target/repl-port"]))))))
 
 (defn ^:private spit-nrepl-files
   [port file]
