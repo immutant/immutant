@@ -76,7 +76,10 @@
   [init-fn opts]
   (extend-module-classloader-to-cjc)
   (extend-module-classloader-to-dynapath)
-  ((u/require-resolve init-fn))
+  (if init-fn
+    ((u/require-resolve init-fn))
+    (binding [*out* *err*]
+      (println "No init function provided; no initialization performed.")))
   (when-let [nrepl (:nrepl opts)]
     ((u/require-resolve 'immutant.wildfly.repl/start) nrepl)))
 
