@@ -44,8 +44,8 @@
   (testing "simple numbers"
     (are [x expected] (= expected (as-period x))
          42   42
-         -42  nil
-         0    nil))
+         -42  -42
+         0    0))
   (testing "period aliases"
     (are [x expected] (= expected (as-period x))
          :second   1000

@@ -41,7 +41,7 @@
 (extend-type java.lang.Long
   AsPeriod
   (as-period [x]
-    (when (< 0 x) x)))
+    x))
 
 (extend-type clojure.lang.Keyword
   AsPeriod
