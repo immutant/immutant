@@ -27,11 +27,12 @@
 
 (defn cache
   "Returns an
-   [org.infinispan.Cache](https://docs.jboss.org/infinispan/6.0/apidocs/org/infinispan/Cache.html).
-   A name is the only required argument. If a cache by that name
-   already exists, it will be returned, and any options passed to this
-   function will be ignored. To force reconfiguration, call {{stop}}
-   before calling {{cache}}.
+   [org.infinispan.Cache](https://docs.jboss.org/infinispan/6.0/apidocs/org/infinispan/Cache.html),
+   an extension of `java.util.concurrent.ConcurrentMap`. A name is the
+   only required argument. If a cache by that name already exists, it
+   will be returned, and any options passed to this function will be
+   ignored. To force reconfiguration, call {{stop}} before calling
+   {{cache}}.
 
    The following groups of options are supported, each listed with its
    [default] value. A negative value for any numeric option means
