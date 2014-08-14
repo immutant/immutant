@@ -47,17 +47,17 @@
 
    Eviction: turned off by default, :max-entries may be set to
    mitigate the risk of memory exhaustion. When :persist is enabled,
-   evicted entries are written to disk, so that the entries in the
-   file store are a superset of those in RAM, transparently reloaded
-   upon request.
+   evicted entries are written to disk, so that the entries in memory
+   are a subset of those in the file store, transparently reloaded
+   upon request. The eviction policy may be one of :none, :lru, :lirs,
+   or :unordered
 
-   * :max-entries - the maximum number of entries allowed in the cache [-1]
+   * :max-entries - the max number of entries allowed in the cache [-1]
    * :eviction - how entries are evicted when :max-entries is exceeded [:none]
-                 one of :none, :lru, :lirs, or :unordered
 
    Expiration: both time-to-live and max idle limits are supported.
    Values may be a number of milliseconds, a period keyword, or
-   multiplier/keyword pairs, e.g. `(every 1 :hour 20 :minutes)`. Both
+   multiplier/keyword pairs, e.g. `[1 :hour 20 :minutes]`. Both
    singular and plural versions of :second, :minute, :hour, :day, and
    :week are valid period keywords.
 
@@ -75,11 +75,11 @@
              :invalidation-async, :dist-sync, :dist-async
 
    Transactions: caches can participate in transactions when a
-   TransactionManager is available.
+   TransactionManager is available. The locking scheme may be either
+   :optimisitic or :pessimistic
 
    * :transactional - whether the cache is transactional [false]
-   * :locking - transactional locking schemes [:optimistic]
-                one of :optimisitic or :pessimistic
+   * :locking - transactional locking scheme [:optimistic]
 
    Advanced configuration: the options listed above are the most
    commonly configured, but Infinispan has many more buttons,
@@ -104,14 +104,42 @@
 
 (defn with-codec
   "Takes a cache and a keyword denoting a codec, and returns a new
-  cache that encodes/decodes entries in the original using that codec.
-  The following codecs are supported: `:none`, `:edn`, `:json`, and
-  `:fressian`. The latter two require additional dependencies:
+  cache that applies that codec as entries are accessed in the passed
+  cache. This is typically necessary only when non-clojure clients are
+  sharing the cache. It's required if you wish to store nil keys or
+  values. The following codecs are supported: :edn, :json, and
+  :fressian. The latter two require additional dependencies:
   `cheshire` and `org.clojure/data.fressian`, respectively."
   [cache codec]
-  (.encodedWith (component)
-    (lookup-codec codec)
-    cache))
+  (.withCodec (component)
+    cache
+    (lookup-codec codec)))
+
+(defn with-expiration
+  "Returns a cache that will delegate any writes to the passed cache
+  according to these options:
+
+   * :ttl - the max time the entry will live before expiry [-1]
+   * :idle - the time after which an entry will expire if not accessed [-1]
+
+  Options may be passed as either keyword arguments or in a map.
+
+  Negative values imply \"unlimited\". Values may be a number of
+  milliseconds, a period keyword, or multiplier/keyword pairs, e.g.
+  `[1 :hour 20 :minutes]`. Both singular and plural versions of
+  :second, :minute, :hour, :day, and :week are valid period keywords.
+
+  Expiration for existing entries in the passed cache will not be
+  affected."
+  [cache & options]
+  (let [options (-> options
+                  kwargs-or-map->map
+                  keywordize-keys
+                  wash)]
+    (.withExpiration (component)
+      cache
+      (:ttl options -1)
+      (:idle options -1))))
 
 (defn compare-and-swap!
   "Atomically swaps the value associated to the key in the cache with

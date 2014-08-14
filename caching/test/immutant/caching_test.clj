@@ -265,3 +265,18 @@
                                clustering
                                cacheMode))))
 
+(deftest test-with-expiration
+  (let [c (new-cache :ttl [42 :days] :idle [2 :weeks])]
+    (let [c (with-expiration c :ttl 100)]
+      (.put c :a 1)
+      (is (= 1 (get c :a)))
+      (Thread/sleep 150)
+      (is (nil? (get c :a))))
+    (let [c (with-expiration c {:idle 100})]
+      (.put c :a 1)
+      (Thread/sleep 50)
+      (is (= 1 (get c :a)))
+      (Thread/sleep 50)
+      (is (= 1 (get c :a)))
+      (Thread/sleep 150)
+      (is (nil? (get c :a))))))
