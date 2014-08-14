@@ -15,4 +15,5 @@
 (defproject org.immutant/messaging-integ "2.0.0-SNAPSHOT"
   :plugins [[lein-modules "0.3.6"]]
   :dependencies [[org.immutant/messaging _]]
-  :profiles {:integs {}})
+
+  :aliases ^:replace {"all" ["with-profile" "integs,integ-options" "do" "clean," "test," "immutant" "test"]})

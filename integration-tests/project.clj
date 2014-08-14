@@ -15,11 +15,13 @@
 (defproject org.immutant/integs "2.0.0-SNAPSHOT"
   :plugins [[lein-modules "0.3.6"]]
   :packaging "pom"
+  :dependencies [[org.clojure/clojure _]]
+
+  :aliases {"all" ^:replace ["do" "clean," "install"]}
 
   :modules {:parent nil
             :packaging "pom"
-            :inherited {:aliases
-                        {"all" ^:replace ["do" "clean," "test"]}}}
+            :inherited {:plugins [[lein-immutant "2.0.0-SNAPSHOT"]]}}
 
   :profiles {:integs
              {:modules {:parent ".."}}})

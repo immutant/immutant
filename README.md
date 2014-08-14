@@ -24,10 +24,15 @@ one of the child modules, you can just run lein as you normally would,
 but you should run the above at least once so that interdependent
 modules are installed in your local repo.
 
+To run the integration tests as part of a full build, build with:
+
+    lein with-profile +integs modules all
+
+For information on setting up WildFly for the integration tests, or on
+running them individually, see
+[the README in integration-tests/](integration-tests/README.md).
 
 ## License
 
 Immutant is licensed under the Apache License, v2. See
 [LICENSE](LICENSE) for details.
-
-

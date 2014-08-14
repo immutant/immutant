@@ -46,7 +46,8 @@
                                           :snapshots false}]
                                         ["jboss"
                                          "http://repository.jboss.org/nexus/content/groups/public/"]]
-                         :dependencies [[org.projectodd.wunderboss/wunderboss-clojure _]]
+                         :dependencies [[org.projectodd.wunderboss/wunderboss-clojure _]
+                                        [org.clojure/clojure _]]
                          :aliases {"-i" ["with-profile" "+integs"]
                                    "doc-index" ["build-helper" "docs" "generate-index"]
                                    "all" ^:displace ["do" "clean," "test," "install"]}
