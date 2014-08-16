@@ -14,7 +14,7 @@
 
 (defproject org.immutant/immutant-parent "2.0.0-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.3.6"]]
+  :plugins [[lein-modules "0.3.7"]]
   :packaging "pom"
 
   :profiles {:provided {:dependencies [[org.clojure/clojure _]]}
@@ -48,8 +48,8 @@
                                          "http://repository.jboss.org/nexus/content/groups/public/"]]
                          :dependencies [[org.projectodd.wunderboss/wunderboss-clojure _]
                                         [org.clojure/clojure _]]
-                         :aliases {"-i" ["with-profile" "+integs"]
-                                   "doc-index" ["build-helper" "docs" "generate-index"]
+                         :aliases {"-i" ^:replace ["with-profile" "+integs"]
+                                   "doc-index" ^:replace ["build-helper" "docs" "generate-index"]
                                    "all" ^:displace ["do" "clean," "test," "install"]}
 
                          :mailing-list {:name "Immutant users list"
