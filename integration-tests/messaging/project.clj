@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (defproject org.immutant/messaging-integ "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.6"]]
+  :plugins [[lein-modules "0.3.7"]]
   :dependencies [[org.immutant/messaging _]]
-
-  :aliases ^:replace {"all" ["with-profile" "integs,integ-options" "do" "clean," "test," "immutant" "test"]})
+  :profiles {:default [:base :system :user :provided :dev :integs]
+             :integs {:just-here "to remove a dumb warning"}})

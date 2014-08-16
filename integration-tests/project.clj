@@ -13,15 +13,15 @@
 ;; limitations under the License.
 
 (defproject org.immutant/integs "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.6"]]
+  :plugins [[lein-modules "0.3.7"]]
   :packaging "pom"
   :dependencies [[org.clojure/clojure _]]
 
-  :aliases {"all" ^:replace ["do" "clean," "install"]}
-
   :modules {:parent nil
-            :packaging "pom"
-            :inherited {:plugins [[lein-immutant "2.0.0-SNAPSHOT"]]}}
+            :inherited {:plugins [[lein-immutant "2.0.0-SNAPSHOT"]]
+                        :aliases {"all"  ^:replace ["do" "clean," "test"]
+                                  "test" ^:displace ["do" "test," "immutant" "test"]}}}
 
-  :profiles {:integs
-             {:modules {:parent ".."}}})
+  :aliases {"test" "do"}
+  :profiles {:default [:base :system :user :provided :dev :integs]
+             :integs {:modules {:parent ".."}}})
