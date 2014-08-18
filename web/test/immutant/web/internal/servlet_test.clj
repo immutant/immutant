@@ -21,12 +21,7 @@
             [http.async.client :as http]
             [ring.util.response :refer [response]]))
 
-(use-fixtures :each
-  (fn [f]
-    (try
-      (f)
-      (finally
-        (immutant.util/reset)))))
+(use-fixtures :each immutant.util/reset-fixture)
 
 (def url "http://localhost:8080/")
 

@@ -18,13 +18,7 @@
             [immutant.scheduling.internal :refer :all]
             [immutant.util                :as u]))
 
-(use-fixtures :each
-  (fn [f]
-    (try
-      (f)
-      (finally
-        ;(u/reset)
-        ))))
+(use-fixtures :each u/reset-fixture)
 
 (deftest scheduling-should-work
   (let [p (promise)]
@@ -79,7 +73,6 @@
       (reset! should-run? false)))
 
 (deftest stop-should-stop-the-scheduler-when-no-jobs-remain
-  (u/reset)
   (let [job1 (schedule #())
         job2 (schedule #())
         scheduler (.scheduler (scheduler {}))]
@@ -90,7 +83,6 @@
     (is (.isShutdown scheduler))))
 
 (deftest stop-should-stop-all-threaded-jobs
-  (u/reset)
   (let [everything (-> (schedule #())
                      (dissoc :id)
                      (->> (schedule #()))

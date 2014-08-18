@@ -16,6 +16,7 @@
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [immutant.caching :refer :all]
+            [immutant.util :refer [in-container?]]
             [immutant.codecs :refer [encode decode]]
             [clojure.core.cache :refer [lookup miss seed]]
             immutant.caching.core-cache)
@@ -227,17 +228,6 @@
         c (seed (new-cache) seed)]
     (is (= seed (into {} (seq c))))))
 
-(deftest default-to-local "should not raise exception"
-  (is (= "LOCAL" (-> (new-cache :mode :repl-sync)
-                   .getCacheConfiguration .clustering .cacheMode
-                   str))))
-
-(deftest test-persistent-seeding
-  (let [c (with-codec (cache "cachey" :persist "dev-resources/cache-store") :edn)
-        cn (cache "cachey-none" :persist "dev-resources/cache-store")]
-    (is (= (:key c) 42))
-    (is (= (:key cn) 42))))
-
 (deftest various-codecs
   (let [none (new-cache)
         edn (with-codec none :edn)
@@ -280,3 +270,16 @@
       (is (= 1 (get c :a)))
       (Thread/sleep 150)
       (is (nil? (get c :a))))))
+
+(when (not (in-container?))
+  (deftest default-to-local "should not raise exception"
+    (is (= "LOCAL" (-> (new-cache :mode :repl-sync)
+                     .getCacheConfiguration .clustering .cacheMode
+                     str))))
+
+  (deftest test-persistent-seeding
+    (let [c (with-codec (cache "cachey" :persist "dev-resources/cache-store") :edn)
+          cn (cache "cachey-none" :persist "dev-resources/cache-store")]
+      (is (= (:key c) 42))
+      (is (= (:key cn) 42)))))
+

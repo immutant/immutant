@@ -13,15 +13,34 @@
 ;; limitations under the License.
 
 (defproject org.immutant/integs "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.8"]]
+  :plugins [[lein-modules "0.3.8"]
+            [lein-immutant "2.0.0-SNAPSHOT"]]
   :packaging "pom"
-  :dependencies [[org.clojure/clojure _]]
+  :aliases {"all" ^:replace ["do" "clean," "test"]}
+  :profiles {:integ-base {:aliases {"test" ^:displace ["immutant" "test"]}}
+             :integ-messaging {:dependencies [[org.immutant/messaging _]]
+                               :test-paths ["../messaging/test"]}
+             :integ-scheduling {:dependencies [[org.immutant/scheduling _]
+                                               [clj-time _]]
+                                :test-paths ["../scheduling/test"]}
+             :integ-caching {:dependencies [[org.immutant/caching _]
+                                            [cheshire _]
+                                            [org.clojure/data.fressian _]
+                                            [org.clojure/core.memoize _]]
+                             :test-paths ["../caching/test"]}
+             :integ-web {:dependencies [[org.immutant/web _]
+                                        [io.pedestal/pedestal.service _]
+                                        [org.clojars.jcrossley3/http.async.client _]
+                                        [stylefruits/gniazdo _]
+                                        [ring/ring-devel _]]
+                         :resource-paths ["../web/dev-resources"]
+                         :test-paths ["../web/test"]}
 
-  :modules {:parent nil
-            :inherited {:plugins [[lein-immutant "2.0.0-SNAPSHOT"]]
-                        :aliases {"all"  ^:replace ["do" "clean," "test"]
-                                  "test" ^:displace ["immutant" "test"]}}}
+             :web [:integ-base :integ-web]
+             :scheduling [:integ-base :integ-scheduling]
+             :messaging [:integ-base :integ-messaging]
+             :caching [:integ-base :integ-caching]
 
-  :aliases {"test" "do"}
-  :profiles {:default [:base :system :user :provided :dev :integs]
-             :integs {:modules {:parent ".."}}})
+             ;; :integs [:web :messaging :scheduling :caching]
+             ;; Temporary until :web and :scheduling are fixed
+             :integs [:messaging :caching]})

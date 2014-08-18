@@ -23,12 +23,7 @@
   (:import clojure.lang.ExceptionInfo
            java.net.ConnectException))
 
-(use-fixtures :each
-  (fn [f]
-    (try
-      (f)
-      (finally
-        (immutant.util/reset)))))
+(use-fixtures :each immutant.util/reset-fixture)
 
 (def url "http://localhost:8080/")
 (def url2 "http://localhost:8081/")
