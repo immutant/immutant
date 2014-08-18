@@ -15,14 +15,15 @@
 (ns immutant.scheduling-test
   (:require [clojure.test                 :refer :all]
             [immutant.scheduling          :refer :all]
-            [immutant.scheduling.internal :refer :all]))
+            [immutant.scheduling.internal :refer :all]
+            [immutant.util                :as u]))
 
 (use-fixtures :each
   (fn [f]
     (try
       (f)
       (finally
-        ;(immutant.util/reset)
+        ;(u/reset)
         ))))
 
 (deftest scheduling-should-work
@@ -78,7 +79,7 @@
       (reset! should-run? false)))
 
 (deftest stop-should-stop-the-scheduler-when-no-jobs-remain
-  (immutant.util/reset)
+  (u/reset)
   (let [job1 (schedule #())
         job2 (schedule #())
         scheduler (.scheduler (scheduler {}))]
@@ -89,7 +90,7 @@
     (is (.isShutdown scheduler))))
 
 (deftest stop-should-stop-all-threaded-jobs
-  (immutant.util/reset)
+  (u/reset)
   (let [everything (-> (schedule #())
                      (dissoc :id)
                      (->> (schedule #()))

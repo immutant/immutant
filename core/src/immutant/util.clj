@@ -14,11 +14,12 @@
 
 (ns immutant.util
   "Various utility functions."
-  (:require [clojure.string         :as str]
-            [clojure.java.io        :as io]
-            [clojure.java.classpath :as cp]
+  (:require [clojure.string            :as str]
+            [clojure.java.io           :as io]
+            [clojure.java.classpath    :as cp]
             [immutant.internal.options :as o]
-            [wunderboss.util        :as wu])
+            [immutant.internal.util    :refer [try-resolve]]
+            [wunderboss.util           :as wu])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.singleton
             SingletonContext
@@ -26,7 +27,7 @@
 
 (defn reset
   "Resets the underlying WunderBoss layer.
-   This stops and clears all services. Intended to be used from a repl."
+   This stops and clears all services. Intended to be used from a repl or from tests."
   []
   (WunderBoss/shutdownAndReset))
 
@@ -34,6 +35,20 @@
   "Returns true if running inside a WildFly/EAP container."
   []
   (wu/in-container?))
+
+(defn reset-fixture
+  "Invokes `f`, then calls {{reset}} if not {{in-container?}}.
+
+   Useful as a test fixture where you want to reset underlying state
+   after a test run, but also run the same tests in-container (via fntest
+   or other), where resetting state will disconnect the repl. In the
+   in-container case, you rely on undeploy to reset the state."
+  [f]
+  (try
+    (f)
+    (finally
+      (when-not (in-container?)
+        (reset)))))
 
 (defn app-root
   "Returns a file pointing to the root dir of the application."
@@ -44,6 +59,30 @@
   "Returns the name of the current application."
   []
   (get (WunderBoss/options) "deployment-name" ""))
+
+(defn ^:internal ^:no-doc in-container-port
+  "Returns the (possibly offset) port from the socket-binding in standalone.xml"
+  [socket-binding-name]
+  (when (in-container?)
+    (when-let [sb ((try-resolve 'immutant.wildfly/get-from-service-registry)
+                   (str "jboss.binding." (name socket-binding-name)))]
+      (.getAbsolutePort sb))))
+
+(defn http-port
+  "Returns the HTTP port for the embedded web server.
+
+   Returns the correct port when in-container, and the default (8080),
+   outside."
+  []
+  (or (in-container-port :http) 8080))
+
+(defn messaging-remoting-port
+  "Returns the port that HornetQ is listening on for remote connections.
+
+   Returns the correct port when in-container, and the default (5445),
+   outside."
+  []
+  (or (in-container-port :http) 5445))
 
 (defn app-relative
   "Returns an absolute file relative to {{app-root}}."

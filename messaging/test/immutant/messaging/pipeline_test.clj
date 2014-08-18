@@ -14,14 +14,14 @@
 
 (ns immutant.messaging.pipeline-test
   (:require [immutant.messaging.pipeline :refer :all]
-            [clojure.test :refer :all])
+            [clojure.test :refer :all]
+            [immutant.util :as u])
   (:import org.projectodd.wunderboss.WunderBoss
            org.projectodd.wunderboss.messaging.Queue))
 
 (use-fixtures :once
   (fn [f]
-    (f)
-    (WunderBoss/shutdownAndReset)
+    (u/reset-fixture f)
     (reset! @#'immutant.messaging.pipeline/pipelines {})))
 
 (defn dollarizer [s]

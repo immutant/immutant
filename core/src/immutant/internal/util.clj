@@ -14,7 +14,6 @@
 
 (ns ^:no-doc ^:internal immutant.internal.util
   "Various internal utility functions."
-  (:require [immutant.util :as u])
   (:import clojure.lang.IDeref
            java.util.UUID))
 
