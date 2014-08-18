@@ -84,13 +84,13 @@
     ((u/require-resolve 'immutant.wildfly.repl/start) nrepl)))
 
 (defn get-from-service-registry [k]
-  (if-let [registry (wu/service-registry)]
-    (if-let [servicename-class (u/try-import 'org.jboss.msc.service.ServiceName)]
-      (.getService registry
-        (if-let [service (if (instance? servicename-class k)
-                           k
-                           (. servicename-class parse k))]
-          (.getValue service))))))
+  (when-let [registry (wu/service-registry)]
+    (when-let [servicename-class (u/try-import 'org.jboss.msc.service.ServiceName)]
+      (when-let [service (.getService registry
+                           (if (instance? servicename-class k)
+                             k
+                             (eval `(ServiceName/parse ~k))))]
+        (.getValue service)))))
 
 (defn port
   "Returns the (possibly offset) port from the socket-binding in standalone.xml"
