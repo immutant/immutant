@@ -18,4 +18,4 @@
   :dependencies [[org.immutant/core _]
                  [org.projectodd.wunderboss/wunderboss-scheduling _]]
 
-  :profiles {:dev {:dependencies [[clj-time "0.7.0"]]}})
+  :profiles {:dev {:dependencies [[clj-time _]]}})

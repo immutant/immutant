@@ -20,7 +20,7 @@
                  [org.projectodd.wunderboss/wunderboss-web _]]
 
   :profiles {:dev
-             {:dependencies [[io.pedestal/pedestal.service "0.3.0"]
-                             [org.clojars.jcrossley3/http.async.client "0.5.2"]
-                             [stylefruits/gniazdo "0.1.0"]
+             {:dependencies [[io.pedestal/pedestal.service _]
+                             [org.clojars.jcrossley3/http.async.client _]
+                             [stylefruits/gniazdo _]
                              [ring/ring-devel _]]}})

@@ -50,7 +50,7 @@
                                         [org.clojure/clojure _]]
                          :aliases {"-i" ^:replace ["with-profile" "+integs"]
                                    "doc-index" ^:replace ["build-helper" "docs" "generate-index"]
-                                   "all" ^:displace ["do" "clean," "test," "install"]}
+                                   "all" ^:displace ["do" "clean," "check," "test," "install"]}
 
                          :mailing-list {:name "Immutant users list"
                                         :unsubscribe "immutant-users-unsubscribe@immutant.org"
@@ -68,6 +68,13 @@
                         tools.nrepl                "0.2.3"
                         tools.reader               "0.8.4"
                         ring                       "1.3.0"
+                        clj-time                   "0.7.0"
+                        cheshire                   "5.3.1"
+                        data.fressian              "0.2.0"
+                        core.memoize               "0.5.6"
+                        io.pedestal                "0.3.0"
+                        http.async.client          "0.5.2"
+                        stylefruits/gniazdo        "0.1.0"
 
                         org.projectodd.wunderboss  "1.x.incremental.102"
                         ;; org.projectodd.wunderboss  "0.1.0-SNAPSHOT"

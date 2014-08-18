@@ -19,6 +19,6 @@
                  [org.projectodd.wunderboss/wunderboss-caching _]]
 
   :profiles {:dev
-             {:dependencies [[cheshire "5.3.1"]
-                             [org.clojure/data.fressian "0.2.0"]
-                             [org.clojure/core.memoize "0.5.6"]]}})
+             {:dependencies [[cheshire _]
+                             [org.clojure/data.fressian _]
+                             [org.clojure/core.memoize _]]}})
