@@ -20,7 +20,7 @@
   :modules {:parent nil
             :inherited {:plugins [[lein-immutant "2.0.0-SNAPSHOT"]]
                         :aliases {"all"  ^:replace ["do" "clean," "test"]
-                                  "test" ^:displace ["do" "test," "immutant" "test"]}}}
+                                  "test" ^:displace ["immutant" "test"]}}}
 
   :aliases {"test" "do"}
   :profiles {:default [:base :system :user :provided :dev :integs]
