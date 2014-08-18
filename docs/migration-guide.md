@@ -15,8 +15,10 @@ were/are for internal use only.
 ## immutant.cache -> immutant.caching
 
 The Mutable interface is gone. To put something in an immutant cache,
-you must now use java interop (all Map, ConcurrentMap, and
-org.infinispan.Cache methods are available) or immutant.caching/swap!
+you can use either immutant.caching/compare-and-swap! or java interop
+(org.infinispan.Cache extends ConcurrentMap and therefore Map). To
+insert entries with various ttl/idle values, use the new
+with-expiration function.
 
 Both lookup and create have been collapsed into cache, which behaves
 like lookup-or-create. To force the creation of an existing cache, you
@@ -49,9 +51,6 @@ Some option keys and values have changed:
   - :encoding is gone, replaced with the with-codec fn
   - :seed is gone
   - :config is now :configuration
-  - :idle and :ttl are only supported at cache creation (with
-    scheduling-like period specs instead of :units), so use
-    Cache.put with TimeUnit arg for entry-level ttl/idle
 
 ### immutant.cache.config REMOVED
 ### immutant.cache.core REMOVED
@@ -64,7 +63,8 @@ Some option keys and values have changed:
 
 ## immutant.daemons -> ?
 
-Will likely be ported, but has little value outside of the container.
+Decided it didn't warrant its own namespace, and moved it to
+immutant.util/singleton-daemon
 
 ## immutant.dev REMOVED
 
@@ -148,9 +148,8 @@ Split across three namespaces:
 
 ## immutant.web
 
-* `start` is now `run` or `mount`, the latter with a different signature
-* `stop` is now `unmount`
-* `start-servlet` is now `mount-servlet`, but with a different signature
+* `start` is now `run`
+* `start-servlet` is also now `run`
 * `current-servlet-request` currently has no analogue
 
 ### immutant.web.session -> ?
