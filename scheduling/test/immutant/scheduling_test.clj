@@ -18,7 +18,12 @@
             [immutant.scheduling.internal :refer :all]
             [immutant.util                :as u]))
 
-(use-fixtures :each u/reset-fixture)
+(use-fixtures :each
+  u/reset-fixture
+  #(let [s (scheduler {})]
+     (doseq [x (.scheduledJobs s)]
+       (stop {:id x}))
+     (%)))
 
 (deftest scheduling-should-work
   (let [p (promise)]

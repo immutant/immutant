@@ -38,5 +38,5 @@
              :caching [:integ-base :integ-caching]
 
              ;; :integs [:web :messaging :scheduling :caching]
-             ;; Temporary until :web and :scheduling are fixed
-             :integs [:messaging :caching]})
+             ;; Temporary until :web is fixed
+             :integs [:messaging :caching :scheduling]})
