@@ -36,6 +36,12 @@
   []
   (wu/in-container?))
 
+(defn in-cluster?
+  "Returns true if running inside a WildFly/EAP container that's part of a cluster"
+  []
+  (if-let [f (try-resolve 'immutant.wildfly/in-cluster?)]
+    (f)))
+
 (defn reset-fixture
   "Invokes `f`, then calls {{reset}} if not {{in-container?}}.
 

@@ -20,6 +20,9 @@
   (:import java.net.URL))
 
 (def module-class-loader-class (memoize #(u/try-import 'org.jboss.modules.ModuleClassLoader)))
+(def in-cluster (delay (-> (u/try-import 'org.projectodd.wunderboss.wildfly.ClusterUtils)
+                         (.getMethod "inCluster" nil)
+                         (.invoke nil nil))))
 
 (defn- get-resource-loaders
   [cl]
@@ -121,3 +124,8 @@
   [& [host]]
   (let [host (or host "localhost")]
     (str "http://" host ":" (http-port) (context-path))))
+
+(defn in-cluster?
+  "Returns true if running inside a cluster"
+  []
+  @in-cluster)
