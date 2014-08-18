@@ -15,21 +15,17 @@
 (defproject org.immutant/integs "2.0.0-SNAPSHOT"
   :plugins [[lein-modules "0.3.8"]
             [lein-immutant "2.0.0-SNAPSHOT"]]
-  :packaging "pom"
+  :dependencies [[org.immutant/immutant _]]
   :aliases {"all" ^:replace ["do" "clean," "test"]}
   :profiles {:integ-base {:aliases {"test" ^:displace ["immutant" "test"]}}
-             :integ-messaging {:dependencies [[org.immutant/messaging _]]
-                               :test-paths ["../messaging/test"]}
-             :integ-scheduling {:dependencies [[org.immutant/scheduling _]
-                                               [clj-time _]]
+             :integ-messaging {:test-paths ["../messaging/test"]}
+             :integ-scheduling {:dependencies [[clj-time _]]
                                 :test-paths ["../scheduling/test"]}
-             :integ-caching {:dependencies [[org.immutant/caching _]
-                                            [cheshire _]
+             :integ-caching {:dependencies [[cheshire _]
                                             [org.clojure/data.fressian _]
                                             [org.clojure/core.memoize _]]
                              :test-paths ["../caching/test"]}
-             :integ-web {:dependencies [[org.immutant/web _]
-                                        [io.pedestal/pedestal.service _]
+             :integ-web {:dependencies [[io.pedestal/pedestal.service _]
                                         [org.clojars.jcrossley3/http.async.client _]
                                         [stylefruits/gniazdo _]
                                         [ring/ring-devel _]]
