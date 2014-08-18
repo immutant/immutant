@@ -16,4 +16,5 @@
   :plugins [[lein-modules "0.3.7"]]
   :dependencies [[org.immutant/messaging _]]
   :profiles {:default [:base :system :user :provided :dev :integs]
-             :integs {:just-here "to remove a dumb warning"}})
+             :integs {:just-here "to remove a dumb warning"}}
+  :test-paths ["../../messaging/test"]))
