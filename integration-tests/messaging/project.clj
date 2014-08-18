@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (defproject org.immutant/messaging-integ "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.7"]]
+  :plugins [[lein-modules "0.3.8"]]
   :dependencies [[org.immutant/messaging _]]
   :profiles {:default [:base :system :user :provided :dev :integs]
              :integs {:just-here "to remove a dumb warning"}}
