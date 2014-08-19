@@ -177,26 +177,28 @@
     (is (= :success (receive q :timeout 100 :timeout-val :success)))))
 
 (deftest remote-connection-should-work
-  (if (u/in-container?)
-    (println "NOTE: remote connection test disabled in-container, as it will fail. TODO: fix it")
-    (let [no-connection-q (queue "remote" :durable false)]
-      (with-open [c (connection :host "localhost" :port (u/messaging-remoting-port))]
-        (let [q (queue "remote" :connection c)]
-          (publish q :hi)
-          (= :hi (receive q :timeout 100 :timeout-val :failure))
-          (with-open [s (session :connection c)]
-            (publish q :hi :session s)
-            (= :hi (receive q :session s :timeout 100 :timeout-val :failure)))
-          (with-open [s (session :connection c)]
-            (publish no-connection-q :hi :session s)
-            (= :hi (receive no-connection-q :session s :timeout 100 :timeout-val :failure))))))))
+  (let [extra-connect-opts
+        (when (u/in-container?)
+          [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])
+        no-connection-q (queue "remote" :durable false)]
+    (with-open [c (apply connection :host "localhost" :port (u/messaging-remoting-port)
+                    extra-connect-opts)]
+      (let [q (queue "remote" :connection c)]
+        (publish q :hi)
+        (= :hi (receive q :timeout 100 :timeout-val :failure))
+        (with-open [s (session :connection c)]
+          (publish q :hi :session s)
+          (= :hi (receive q :session s :timeout 100 :timeout-val :failure)))
+        (with-open [s (session :connection c)]
+          (publish no-connection-q :hi :session s)
+          (= :hi (receive no-connection-q :session s :timeout 100 :timeout-val :failure)))))))
 
 (deftest publish-from-a-listener-should-work
   (let [q (queue "pub-listener" :durable false)
-        p (promise)]
-    (let [l (listen q #(deliver p %))]
-      (try
-        (publish q :ham)
-        (is (= :ham (deref p 1000 :failure)))
-        (finally
-          (.close l))))))
+        p (promise)
+        l (listen q #(deliver p %))]
+    (try
+      (publish q :ham)
+      (is (= :ham (deref p 1000 :failure)))
+      (finally
+        (.close l)))))

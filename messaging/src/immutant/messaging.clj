@@ -95,6 +95,11 @@
 
    * :host - the host of a remote broker [nil]
    * :port - the port of a remote broker [nil, 5445 if :host provided]
+   * :username - a username for the remote broker [nil]
+   * :password - the corresponding password for :username [nil]
+   * :remote-type - when connecting to a HornetQ instance running
+                    inside WildFly, this needs to be set to
+                    :hornetq-wildfly [:hornetq-standalone]
    * :reconnect-attempts - total number of reconnect attempts to make
                            before giving up (-1 for unlimited) [0]
    * :reconnect-retry-interval - the period in milliseconds between subsequent
@@ -106,7 +111,8 @@
   [& options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (o/validate-options connection))]
+                  (o/validate-options connection)
+                  (update-in [:remote-type] o/->underscored-string))]
     (.createConnection (broker nil)
       (o/extract-options options Messaging$CreateConnectionOption))))
 

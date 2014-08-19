@@ -59,6 +59,13 @@
 (defn keywordize [v]
   (keyword (.replace v \_ \-)))
 
+(defn ->underscored-string [v]
+  (when v
+    (-> v
+      name
+      (.replace \- \_)
+      (.replace "?" ""))))
+
 (defn ^java.util.Map opts->map
   "Converts an Option class into a map of name -> Option instance."
   [class]
@@ -94,8 +101,6 @@
       stringify-keys
       (map (fn [[k v]]
              (when-let [key (optsm k
-                              (optsm (-> k
-                                       (.replace \- \_)
-                                       (.replace "?" ""))))]
+                              (optsm (->underscored-string k)))]
                [key v])))
       (into {}))))

@@ -76,7 +76,7 @@
                         http.async.client          "0.5.2"
                         stylefruits/gniazdo        "0.1.0"
 
-                        org.projectodd.wunderboss  "1.x.incremental.103"
-                        ;; org.projectodd.wunderboss  "0.1.0-SNAPSHOT"
+                        org.projectodd.wunderboss  "1.x.incremental.105"
+                        ;;org.projectodd.wunderboss  "0.1.0-SNAPSHOT"
 
                         org.immutant               :version}})
