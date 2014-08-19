@@ -15,7 +15,8 @@
 (defproject org.immutant/integs "2.0.0-SNAPSHOT"
   :plugins [[lein-modules "0.3.8"]
             [lein-immutant "2.0.0-SNAPSHOT"]]
-  :dependencies [[org.immutant/immutant _]]
+  :dependencies [[org.immutant/immutant _]
+                 [org.immutant/wildfly _]]
   :aliases {"all" ^:replace ["do" "clean," "test"]}
   :profiles {:integ-base {:aliases {"test" ^:displace ["immutant" "test"]}}
              :integ-messaging {:test-paths ["../messaging/test"]}
