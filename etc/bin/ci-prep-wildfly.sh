@@ -23,5 +23,5 @@ if [ $(grep -c NIO ${conf}) -eq 0 ]; then
   echo "Enabling NIO journal"
   sed -i.bak "s/<hornetq-server>/<hornetq-server><journal-type>NIO<\/journal-type>/" ${conf}
   echo "Adding application user testuser:testuser"
-  ${jboss_home}/bin/add-user.sh -a -u 'testuser' -p 'testuser' -g 'guest'
+  ${jboss_home}/bin/add-user.sh --silent -a -u 'testuser' -p 'testuser' -g 'guest'
 fi
