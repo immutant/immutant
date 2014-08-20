@@ -75,6 +75,7 @@
                         io.pedestal                "0.3.0"
                         http.async.client          "0.5.2"
                         stylefruits/gniazdo        "0.1.0"
+                        compojure                  "1.1.8"
 
                         org.projectodd.wunderboss  "1.x.incremental.105"
                         ;;org.projectodd.wunderboss  "0.1.0-SNAPSHOT"
