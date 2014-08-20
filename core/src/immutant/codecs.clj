@@ -110,6 +110,6 @@
    `encoding` can be the name of the encoding or its
    content-type. `encoding` defaults to :none."
   ([data]
-     (decode data :none))
+     (decode data :edn))
   ([data encoding]
      (.decode (lookup-codec encoding) data)))
