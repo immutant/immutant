@@ -63,7 +63,7 @@
   javax.websocket.server.HandshakeRequest
   (headers [hs] (.getHeaders hs))
   (parameters [hs] (.getParameterMap hs))
-  (uri [hs] (.getRequestURI hs))
+  (uri [hs] (str (.getRequestURI hs)))
   (query-string [hs] (.getQueryString hs))
   (session [hs] (-> hs .getHttpSession i/ring-session))
   (user-principal [hs] (.getUserPrincipal hs))
