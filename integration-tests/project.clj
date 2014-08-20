@@ -29,15 +29,15 @@
              :integ-web {:dependencies [[io.pedestal/pedestal.service _]
                                         [org.clojars.jcrossley3/http.async.client _]
                                         [stylefruits/gniazdo _]
-                                        [ring/ring-devel _]]
+                                        [ring/ring-devel _]
+                                        [compojure _]]
                          :resource-paths ["../web/dev-resources"]
-                         :test-paths ["../web/test"]}
+                         :test-paths ["../web/test-integration"]
+                         :main integs.web}
 
              :web [:integ-base :integ-web]
              :scheduling [:integ-base :integ-scheduling]
              :messaging [:integ-base :integ-messaging]
              :caching [:integ-base :integ-caching]
 
-             ;; :integs [:web :messaging :scheduling :caching]
-             ;; Temporary until :web is fixed
-             :integs [:messaging :caching :scheduling]})
+             :integs [:web :messaging :caching :scheduling]})
