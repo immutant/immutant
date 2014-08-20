@@ -16,7 +16,8 @@
   "Schedule jobs for execution"
   (:require [immutant.scheduling.internal :refer :all]
             [immutant.internal.options    :refer :all]
-            [immutant.internal.util       :as u]
+            [immutant.internal.util       :as iu]
+            [immutant.util                :as u]
             [immutant.scheduling.options  :refer [resolve-options defoption]]
             [clojure.walk                 :refer [keywordize-keys]])
   (:import org.projectodd.wunderboss.WunderBoss
@@ -93,12 +94,16 @@
   future `schedule` calls with those same scheduler options."
   [f & spec]
   (let [opts (->> spec
-               u/kwargs-or-map->map
+               iu/kwargs-or-map->map
                keywordize-keys
                resolve-options
                (merge create-defaults schedule-defaults))
-        id (:id opts (u/uuid))
+        id (:id opts (iu/uuid))
         scheduler (scheduler (validate-options opts schedule))]
+    (when (and (u/in-cluster?)
+            (:singleton opts)
+            (not (:id opts)))
+      (iu/warn "Singleton job scheduled in a cluster without an :id - job won't really be a singleton. See docs for immutant.scheduling/schedule."))
     (.schedule scheduler (name id) f
       (extract-options opts Scheduling$ScheduleOption))
     (-> opts
