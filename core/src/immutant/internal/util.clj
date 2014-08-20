@@ -137,3 +137,27 @@
 (defn uuid []
   "Generates a random uuid string."
   (str (java.util.UUID/randomUUID)))
+
+(def logp (delay (try-resolve 'clojure.tools.logging/logp)))
+
+(defmacro log
+  [level out & message]
+  (if-let [l @logp]
+    `(~l ~level ~@message)
+    `(binding [*out* ~out]
+       (println ~(str (.toUpperCase (name level)) \:) ~@message))))
+
+(defmacro warn
+  "Tries to warn via tools.logging if available, else prints to stderr."
+  [& msg]
+  `(log :warn *err* ~@msg))
+
+(defmacro error
+  "Tries to error via tools.logging if available, else prints to stderr."
+  [& msg]
+  `(log :error *err* ~@msg))
+
+(defmacro info
+  "Tries to info via tools.logging if available, else prints to stdout."
+  [& msg]
+  `(log :info *out* ~@msg))

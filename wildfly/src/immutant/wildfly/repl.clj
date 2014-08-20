@@ -43,7 +43,7 @@
 (defn stop
   "Stop the REPL"
   [server]
-  (println "Shutting down nREPL at" (apply format "%s:%s" (nrepl-host-port server)))
+  (iu/info "Shutting down nREPL at" (apply format "%s:%s" (nrepl-host-port server)))
   (.close server))
 
 (defn start
@@ -64,5 +64,5 @@
           server (nrepl/start-server :port port :bind host :handler handler)]
       (u/at-exit (partial stop server))
       (let [[host bound-port] (nrepl-host-port server)]
-        (println "nREPL bound to" (format "%s:%s" host bound-port))
+        (iu/info "nREPL bound to" (format "%s:%s" host bound-port))
         (spit-nrepl-files bound-port port-file)))))
