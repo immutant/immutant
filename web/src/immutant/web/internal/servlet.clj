@@ -24,18 +24,19 @@
   "Ring middleware to insert a :session entry into the request, its
   value stored in the possibly-replicated HttpSession from the
   associated servlet"
-  [handler]
-  (fn [request]
-    (let [^HttpServletRequest hsr (:servlet-request request)
-          data (delay (-> hsr .getSession i/ring-session))
-          ;; we assume the request map automatically derefs delays
-          response (handler (assoc request :session data))]
-      (when (contains? response :session)
-        (if-let [data (:session response)]
-          (i/set-ring-session! (.getSession hsr) data)
-          (when-let [session (.getSession hsr false)]
-            (.invalidate session))))
-      response)))
+  [handler timeout]
+  (let [expirer (i/session-expirer timeout)]
+    (fn [request]
+      (let [^HttpServletRequest hsr (:servlet-request request)
+            data (delay (-> hsr .getSession expirer i/ring-session))
+            ;; we assume the request map automatically derefs delays
+            response (handler (assoc request :session data))]
+        (when (contains? response :session)
+          (if-let [data (:session response)]
+            (i/set-ring-session! (.getSession hsr) data)
+            (when-let [session (.getSession hsr false)]
+              (.invalidate session))))
+        response))))
 
 (extend-type HttpSession
   i/SessionAttributes

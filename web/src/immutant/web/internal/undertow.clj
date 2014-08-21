@@ -23,18 +23,19 @@
   "Ring middleware to insert a :session entry into the request, its
   value stored in the `io.undertow.server.session.Session` from the
   associated handler"
-  [handler]
-  (fn [request]
-    (let [^HttpServerExchange hse (:server-exchange request)
-          data (delay (-> hse Sessions/getOrCreateSession i/ring-session))
-          ;; we assume the request map automatically derefs delays
-          response (handler (assoc request :session data))]
-      (when (contains? response :session)
-        (if-let [data (:session response)]
-          (i/set-ring-session! (Sessions/getOrCreateSession hse) data)
-          (when-let [session (Sessions/getSession hse)]
-            (.invalidate session hse))))
-      response)))
+  [handler timeout]
+  (let [expirer (i/session-expirer timeout)]
+    (fn [request]
+      (let [^HttpServerExchange hse (:server-exchange request)
+            data (delay (-> hse Sessions/getOrCreateSession expirer i/ring-session))
+            ;; we assume the request map automatically derefs delays
+            response (handler (assoc request :session data))]
+        (when (contains? response :session)
+          (if-let [data (:session response)]
+            (i/set-ring-session! (Sessions/getOrCreateSession hse) data)
+            (when-let [session (Sessions/getSession hse)]
+              (.invalidate session hse))))
+        response))))
 
 (defn ring-session
   "Temporarily use reflection until getSession returns something

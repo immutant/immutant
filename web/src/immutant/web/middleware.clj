@@ -39,8 +39,19 @@
 (defn wrap-session
   "Uses the session from either Undertow or, when deployed to an app
   server cluster such as WildFly or EAP, the servlet's
-  possibly-replicated HttpSession"
-  [handler]
-  (if (in-container?)
-    (wrap-servlet-session handler)
-    (wrap-undertow-session handler)))
+  possibly-replicated HttpSession. By default, sessions will timeout
+  after 30 minutes of inactivity.
+
+  Supported options:
+
+     * :timeout The number of seconds of inactivity before session
+       expires [1800]
+
+  A :timeout value less than or equal to zero indicates the session
+  should never expire"
+  ([handler]
+     (wrap-session handler {}))
+  ([handler {:keys [timeout] :or {timeout (* 30 60)}}]
+     (if (in-container?)
+       (wrap-servlet-session handler timeout)
+       (wrap-undertow-session handler timeout))))

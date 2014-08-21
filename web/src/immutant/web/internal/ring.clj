@@ -30,6 +30,14 @@
 (defn set-ring-session! [session, data]
   (set-attribute! session ring-session-key data))
 
+(defn session-expirer
+  [timeout]
+  (let [d (delay timeout)]
+    (fn [session]
+      (when-not (realized? d)
+        (.setMaxInactiveInterval session @d))
+      session)))
+
 (def-map-type LazyMap [^java.util.Map m]
   (get [_ k default-value]
     (if (.containsKey m k)
