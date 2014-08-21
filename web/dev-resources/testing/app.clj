@@ -20,14 +20,19 @@
             [compojure.core :refer (GET defroutes)]
             [ring.util.response :refer (redirect response)]))
 
-(defn on-open-send-handshake [channel handshake]
+(def handshakes (atom {}))
+
+(defn on-open-set-handshake [channel handshake]
   (let [data {:headers (ws/headers handshake)
               :parameters (ws/parameters handshake)
               :uri (ws/uri handshake)
               :query (ws/query-string handshake)
               :session (ws/session handshake)
               :user-principal (ws/user-principal handshake)}]
-    (ws/send! channel (encode data))))
+    (swap! handshakes assoc channel data)))
+
+(defn on-message-send-handshake [channel message]
+  (ws/send! channel (encode (get @handshakes channel))))
 
 (defn counter [{session :session}]
   (let [count (:count session 0)
@@ -48,4 +53,6 @@
 (defn run []
   (web/run (-> #'routes
              wrap-session
-             (ws/wrap-websocket :on-open #'on-open-send-handshake))))
+             (ws/wrap-websocket
+               :on-open #'on-open-set-handshake
+               :on-message #'on-message-send-handshake))))
