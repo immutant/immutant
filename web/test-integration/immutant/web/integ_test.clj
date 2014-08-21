@@ -59,7 +59,7 @@
                 socket (http/websocket client (url "ws")
                          :text (fn [_ s] (deliver result (decode s)))
                          :cookies @testing.web/cookies)]
-      (let [handshake (deref result 1000 {})]
+      (let [handshake (deref result 5000 {})]
         (is (= {:count 2} (:session handshake))))))
   (is (= "2" (get-body (url)))))
 
@@ -68,7 +68,7 @@
     (with-open [client (http/create-client)
                 socket (http/websocket client (str (url "ws") "?x=y&j=k")
                          :text (fn [_ s] (deliver result (decode s))))]
-      (let [handshake (deref result 1000 nil)]
+      (let [handshake (deref result 5000 nil)]
         (is (not (nil? handshake)))
         (is (= "Upgrade"   (-> handshake :headers (get "Connection") first)))
         (is (= "k"         (-> handshake :parameters (get "j") first)))
