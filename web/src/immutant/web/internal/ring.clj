@@ -32,11 +32,10 @@
 
 (defn session-expirer
   [timeout]
-  (let [d (delay timeout)]
-    (fn [session]
-      (when-not (realized? d)
-        (.setMaxInactiveInterval session @d))
-      session)))
+  (fn [session]
+    (when (not= timeout (.getMaxInactiveInterval session))
+      (.setMaxInactiveInterval session timeout))
+    session))
 
 (def-map-type LazyMap [^java.util.Map m]
   (get [_ k default-value]
