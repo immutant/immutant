@@ -13,9 +13,11 @@
 ;; limitations under the License.
 
 (ns ^:no-doc ^:internal immutant.internal.util
-  "Various internal utility functions."
-  (:import clojure.lang.IDeref
-           java.util.UUID))
+    "Various internal utility functions."
+    (:require [clojure.string :as str])
+    (:import clojure.lang.IDeref
+             java.util.UUID
+             org.projectodd.wunderboss.WunderBoss))
 
 (defn hash-based-component-name [defaults opts]
   (->> opts
@@ -138,26 +140,26 @@
   "Generates a random uuid string."
   (str (java.util.UUID/randomUUID)))
 
-(def logp (delay (try-resolve 'clojure.tools.logging/logp)))
-
-(defmacro log
-  [level out & message]
-  (if-let [l @logp]
-    `(~l ~level ~@message)
-    `(binding [*out* ~out]
-       (println ~(str (.toUpperCase (name level)) \:) ~@message))))
+(defn logger
+  [ns]
+  (WunderBoss/logger (str ns)))
 
 (defmacro warn
-  "Tries to warn via tools.logging if available, else prints to stderr."
+  "Logs as warn."
   [& msg]
-  `(log :warn *err* ~@msg))
+  `(.warn (logger ~*ns*) ~(str/join " " msg)))
 
 (defmacro error
-  "Tries to error via tools.logging if available, else prints to stderr."
+  "Logs as error."
   [& msg]
-  `(log :error *err* ~@msg))
+  `(.error (logger ~*ns*) ~(str/join " " msg)))
 
 (defmacro info
-  "Tries to info via tools.logging if available, else prints to stdout."
+  "Logs as info."
   [& msg]
-  `(log :info *out* ~@msg))
+  `(.info (logger ~*ns*) ~(str/join " " msg)))
+
+(defmacro debug
+  "Logs as debug."
+  [& msg]
+  `(.debug (logger ~*ns*) ~(str/join " " msg)))

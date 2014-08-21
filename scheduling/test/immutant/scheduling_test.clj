@@ -35,18 +35,6 @@
     (schedule #(deliver p :success) :limit 1 :every 1)
     (is (= :success (deref p 10000 :failure)))))
 
-(deftest schedule-in-a-cluster-should-warn-with-no-id
-  (let [args (atom nil)]
-    (with-redefs [immutant.util/in-cluster? (constantly true)]
-      (let [sw (java.io.StringWriter.)]
-        (binding [*err* sw]
-          (schedule #()))
-        (is (re-find #"without an :id" (str sw))))
-      (let [sw (java.io.StringWriter.)]
-        (binding [*err* sw]
-          (schedule #() :id :foo))
-        (is (empty? (str sw)))))))
-
 (deftest should-return-opts-with-the-defaults
   (let [result (schedule #() (in 1))]
     (is (= (-> (merge create-defaults schedule-defaults) keys (conj :id :ids) set)

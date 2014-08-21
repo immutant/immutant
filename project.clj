@@ -77,7 +77,7 @@
                         stylefruits/gniazdo        "0.1.0"
                         compojure                  "1.1.8"
 
-                        org.projectodd.wunderboss  "1.x.incremental.106"
+                        org.projectodd.wunderboss  "1.x.incremental.107"
                         ;; org.projectodd.wunderboss  "0.1.0-SNAPSHOT"
 
                         org.immutant               :version}})
