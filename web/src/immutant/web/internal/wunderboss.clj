@@ -23,15 +23,10 @@
     (:import org.projectodd.wunderboss.WunderBoss
              io.undertow.server.HttpHandler
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]
-             javax.servlet.Servlet
-             [io.undertow.server.session InMemorySessionManager SessionCookieConfig SessionAttachmentHandler]))
+             javax.servlet.Servlet))
 
 (def ^:internal register-defaults (opts->defaults-map Web$RegisterOption))
 (def ^:internal create-defaults (opts->defaults-map Web$CreateOption))
-
-(def ^:internal session-manager
-  (doto (InMemorySessionManager. "thismayneedabettername", -1)
-    (.setDefaultSessionTimeout -1)))
 
 (def ^:internal server-name
   (partial u/hash-based-component-name create-defaults))
@@ -50,12 +45,7 @@
                handler)]
     (if (instance? Servlet hdlr)
       (.registerServlet server hdlr opts)
-      (.registerHandler server
-        (SessionAttachmentHandler.
-          hdlr
-          session-manager
-          (SessionCookieConfig.))
-        opts))))
+      (.registerHandler server hdlr opts))))
 
 (defn ^:internal mounts [opts]
   (-> (opts->map Web$RegisterOption)
