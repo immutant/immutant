@@ -20,7 +20,7 @@
   (:import [org.projectodd.wunderboss.codecs BytesCodec Codec Codecs None StringCodec]
            java.nio.ByteBuffer))
 
-(defmacro data-readers []
+(defmacro ^:internal ^:no-doc data-readers []
   (if (resolve 'clojure.core/*data-readers*)
     '(merge *data-readers* r/*data-readers*)
     'r/*data-readers*))
@@ -47,7 +47,7 @@
      (decode [data#]
        (~decode data#))))
 
-(defonce ^:internal ^Codecs codecs
+(defonce ^:internal ^:no-doc ^Codecs codecs
   (-> (Codecs.)
     (.add None/INSTANCE)))
 
@@ -118,7 +118,7 @@
   []
   (into #{} (map #(-> % .name keyword) (.codecs codecs))))
 
-(defn ^Codec lookup-codec
+(defn ^:internal ^:no-doc ^Codec lookup-codec
   [name-or-content-type]
   (if-let [codec (.forName codecs (name name-or-content-type))]
     codec
