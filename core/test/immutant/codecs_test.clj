@@ -68,9 +68,13 @@
 (deftest none
   (test-codec "ham biscuit" :none))
 
+(deftest codec-set-should-work
+  (is (= #{:none :edn :json :fressian} (codec-set))))
+
 (deftest decode-nil
-  (doseq [codec (.codecs codecs)]
-    (is (nil? (.decode codec (.encode codec nil))))))
+  (doseq [codec-name (codec-set)]
+    (let [codec (lookup-codec codec-name)]
+      (is (nil? (.decode codec (.encode codec nil)))))))
 
 (defrecord ARecord [x])
 
