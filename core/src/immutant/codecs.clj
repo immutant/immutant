@@ -47,7 +47,7 @@
      (decode [data#]
        (~decode data#))))
 
-(defonce ^:private ^Codecs codecs
+(defonce ^:internal ^Codecs codecs
   (-> (Codecs.)
     (.add None/INSTANCE)))
 
