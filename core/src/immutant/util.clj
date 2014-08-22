@@ -14,16 +14,12 @@
 
 (ns immutant.util
   "Various utility functions."
-  (:require [clojure.string            :as str]
-            [clojure.java.io           :as io]
-            [clojure.java.classpath    :as cp]
-            [immutant.internal.options :as o]
-            [immutant.internal.util    :refer [try-resolve]]
-            [wunderboss.util           :as wu])
-  (:import org.projectodd.wunderboss.WunderBoss
-           [org.projectodd.wunderboss.singleton
-            SingletonContext
-            SingletonContext$CreateOption]))
+  (:require [clojure.string         :as str]
+            [clojure.java.io        :as io]
+            [clojure.java.classpath :as cp]
+            [immutant.internal.util :refer [try-resolve]]
+            [wunderboss.util        :as wu])
+  (:import org.projectodd.wunderboss.WunderBoss))
 
 (defn reset
   "Resets the underlying WunderBoss layer.
@@ -124,27 +120,3 @@
                  (apply str ".set")
                  symbol)]
     ((eval `#(~setter %1 %2)) bean value)))
-
-(defn singleton-daemon
-  "Sets up a highly-available singleton daemon.
-
-   When a singleton daemon is started, a new thread is spawned, and
-   `start-fn` is invoked. When the application is shut down, `stop-fn` is
-   called.
-
-   In a WildFly cluster, daemons with the same `daemon-name` can
-   be created on each node, but only one of those daemons will run at
-   a time. If the currently running daemon dies (or the node it is on
-   loses connection with the cluster), the daemon will automatically
-   start on one of the other nodes where it has been created.
-
-   If used outside of WildFly, or in a WildFly instance not in a cluster,
-   it behaves as if the cluster size is 1, and starts immediatey."
-  [daemon-name start-fn stop-fn]
-  (doto
-      (WunderBoss/findOrCreateComponent SingletonContext
-        (name daemon-name)
-        (o/extract-options {:daemon true, :daemon-stop-callback stop-fn}
-          SingletonContext$CreateOption))
-    (.setRunnable start-fn)
-    .start))

@@ -12,8 +12,8 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.util-test
-  (:require [immutant.util :refer :all]
+(ns immutant.daemons-test
+  (:require [immutant.daemons :refer :all]
             [clojure.test  :refer :all])
   (:import org.projectodd.wunderboss.WunderBoss))
 

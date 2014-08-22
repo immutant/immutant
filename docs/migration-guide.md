@@ -61,10 +61,9 @@ Some option keys and values have changed:
 :text codec was removed. only supplied codecs in 2.x:
 :none, :edn, :json, and :fressian
 
-## immutant.daemons -> ?
+## immutant.daemons
 
-Decided it didn't warrant its own namespace, and moved it to
-immutant.util/singleton-daemon
+Brought over, with a slightly simpler interface.
 
 ## immutant.dev REMOVED
 
