@@ -37,7 +37,7 @@
      :string.
    * :encode - A single-arity function that encodes its argument to
      the expected type.
-   * :encode - A single-arity function that decodes its argument from
+   * :decode - A single-arity function that decodes its argument from
      the expected type to clojure data."
   [{:keys [name content-type type encode decode] :or {type :string}}]
   `(proxy [~(if (= :bytes type) 'BytesCodec 'StringCodec)]
