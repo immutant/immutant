@@ -17,7 +17,8 @@
   (:require [clojure.tools.reader.edn :as edn]
             [clojure.tools.reader     :as r]
             [immutant.internal.util   :as u])
-  (:import [org.projectodd.wunderboss.codecs BytesCodec Codecs None StringCodec]))
+  (:import [org.projectodd.wunderboss.codecs BytesCodec Codec Codecs None StringCodec]
+           java.nio.ByteBuffer))
 
 (defmacro data-readers []
   (if (resolve 'clojure.core/*data-readers*)
@@ -46,7 +47,7 @@
      (decode [data#]
        (~decode data#))))
 
-(defonce ^:private codecs
+(defonce ^:private ^Codecs codecs
   (-> (Codecs.)
     (.add None/INSTANCE)))
 
@@ -77,9 +78,9 @@
      :type :bytes
      :encode (fn [data]
                (if-let [write (u/try-resolve 'clojure.data.fressian/write)]
-                 (let [data (write data :footer? true)
-                       bytes (byte-array (.remaining data))]
-                   (.get data bytes)
+                 (let [^ByteBuffer encoded (write data :footer? true)
+                       bytes (byte-array (.remaining encoded))]
+                   (.get encoded bytes)
                    bytes)
                  (throw (IllegalArgumentException.
                           "Can't encode fressian. Add org.clojure/data.fressian to your dependencies."))))
@@ -117,7 +118,7 @@
   []
   (into #{} (map #(-> % .name keyword) (.codecs codecs))))
 
-(defn lookup-codec
+(defn ^Codec lookup-codec
   [name-or-content-type]
   (if-let [codec (.forName codecs (name name-or-content-type))]
     codec
