@@ -43,7 +43,7 @@
 (defn stop
   "Stop the REPL"
   [server]
-  (iu/info "Shutting down nREPL at" (apply format "%s:%s" (nrepl-host-port server)))
+  (iu/info (apply format "Shutting down nREPL at %s:%s" (nrepl-interface-port server)))
   (.close server))
 
 (defn start
