@@ -147,19 +147,19 @@
 (defmacro warn
   "Logs as warn."
   [& msg]
-  `(.warn (logger ~*ns*) ~(str/join " " msg)))
+  `(.warn (logger ~*ns*) (print-str ~@msg)))
 
 (defmacro error
   "Logs as error."
   [& msg]
-  `(.error (logger ~*ns*) ~(str/join " " msg)))
+  `(.error (logger ~*ns*) (print-str ~@msg)))
 
 (defmacro info
   "Logs as info."
   [& msg]
-  `(.info (logger ~*ns*) ~(str/join " " msg)))
+  `(.info (logger ~*ns*) (print-str ~@msg)))
 
 (defmacro debug
   "Logs as debug."
   [& msg]
-  `(.debug (logger ~*ns*) ~(str/join " " msg)))
+  `(.debug (logger ~*ns*) (print-str ~@msg)))
