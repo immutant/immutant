@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/core "1.9.2"
+(defproject org.immutant/core "1.9.3-SNAPSHOT"
   :plugins [[lein-modules "0.3.8"]]
 
   :dependencies [[org.clojure/java.classpath _]
