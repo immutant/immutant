@@ -63,7 +63,9 @@ Some option keys and values have changed:
 
 ## immutant.daemons
 
-Brought over, with a slightly simpler interface.
+Now resides in
+[org.immutant/core](https://clojars.org/org.immutant/core), with a
+slightly simpler interface.
 
 ## immutant.dev REMOVED
 
