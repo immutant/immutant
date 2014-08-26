@@ -81,4 +81,14 @@
                         ;; org.projectodd.wunderboss  "1.x.incremental.108"
                         ;; org.projectodd.wunderboss  "0.2.0-SNAPSHOT"
 
-                        org.immutant               :version}})
+                        org.immutant               :version}}
+
+  :release-tasks  [["vcs" "assert-committed"]
+                   ["modules" "change" "version" "leiningen.release/bump-version" "release"]
+                   ;; ["file-replace" "README.md" "org.immutant \"" "\"]" "version"]
+                   ["vcs" "commit"]
+                   ["vcs" "tag"]
+                   ["modules" "deploy"]
+                   ["modules" "change" "version" "leiningen.release/bump-version"]
+                   ["vcs" "commit"]
+                   ["vcs" "push"]])
