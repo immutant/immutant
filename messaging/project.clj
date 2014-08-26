@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/messaging "1.9.3-SNAPSHOT"
+(defproject org.immutant/messaging "1.9.3-alpha1"
   :plugins [[lein-modules "0.3.8"]]
 
   :dependencies [[org.immutant/core _]
