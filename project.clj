@@ -88,8 +88,8 @@
                         org.immutant               :version}}
 
   :release-tasks  [["vcs" "assert-committed"]
-                   ["modules" "change" "version" "leiningen.release/bump-version" "release"]
-                   ["change" "version" "leiningen.release/bump-version" "release"]
+                   ["modules" "change" "version" "leiningen.release/bump-version" "alpha"]
+                   ["change" "version" "leiningen.release/bump-version" "alpha"]
                    ;; ["file-replace" "README.md" "org.immutant \"" "\"]" "version"]
                    ["vcs" "commit"]
                    ["vcs" "tag"]
