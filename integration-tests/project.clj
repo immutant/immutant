@@ -14,7 +14,7 @@
 
 (defproject org.immutant/integs "2.0.0-SNAPSHOT"
   :plugins [[lein-modules "0.3.8"]
-            [lein-immutant "2.0.0-SNAPSHOT"]]
+            [lein-immutant "2.0.0.alpha1"]]
   :dependencies [[org.immutant/immutant _]
                  [org.immutant/wildfly _]]
   :aliases {"all" ^:replace ["do" "clean," "test"]}
