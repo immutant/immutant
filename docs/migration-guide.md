@@ -12,56 +12,57 @@ This list includes all of the Immutant namespaces, some of which
 were/are for internal use only.
 
 
-## immutant.cache -> immutant.caching
+## immutant.cache -> [immutant.caching](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.caching.html)
 
-The Mutable interface is gone. To put something in an immutant cache,
-you can use either immutant.caching/compare-and-swap! or java interop
-(org.infinispan.Cache extends ConcurrentMap and therefore Map). To
-insert entries with various ttl/idle values, use the new
-with-expiration function.
+The `Mutable` interface is gone. To put something in an immutant
+cache, you can use either the new `immutant.caching/compare-and-swap!`
+or java interop (`org.infinispan.Cache` extends `ConcurrentMap` and
+therefore `Map`). To insert entries with various ttl/idle values, use
+the new `with-expiration` function.
 
-Both lookup and create have been collapsed into cache, which behaves
-like lookup-or-create. To force the creation of an existing cache, you
-must stop the running one. Otherwise, cache will just return it.
+Both `lookup` and `create` have been collapsed into `cache`, which
+behaves like the old `lookup-or-create`. To force the creation of an
+existing cache, you must `stop` the running one. Otherwise, `cache`
+will just return it.
 
 Caches are no longer transactional by default, and if set to be so,
 require a locking mode to be selected (optimistic by default).
 
-core.cache and core.memoize are no longer transitive dependencies of
-immutant.caching. To extend an immutant cache to core's CacheProtocol,
-add org.clojure/core.cache to your project's deps and require
-immutant.caching.core-cache.
+`core.cache` and `core.memoize` are no longer transitive dependencies
+of `immutant.caching`. To extend an immutant cache to core's
+`CacheProtocol`, add `org.clojure/core.cache` to your project's deps
+and require `immutant.caching.core-cache`.
 
-The memo function has been moved to immutant.caching.core-memoize
-which you should only require after adding org.clojure/core.memoize to
-your project's deps.
+The `memo` function has been moved to `immutant.caching.core-memoize`
+which you should only require after adding `org.clojure/core.memoize`
+to your project's deps.
 
 Some option keys and values have changed:
-  - :sync has been collapsed into :mode to match
-    org.infinispan.configuration.cache/CacheMode, so the possible
-    values of :mode are now:
-    - :local
-    - :repl-sync
-    - :repl-async
-    - :invalidation-sync
-    - :invalidation-async
-    - :dist-sync
-    - :dist-async
-  - :tx is now :transactional
-  - :encoding is gone, replaced with the with-codec fn
-  - :seed is gone
-  - :config is now :configuration
+  - `:sync` has been collapsed into `:mode` to match
+    `org.infinispan.configuration.cache/CacheMode`, so the possible
+    values of `:mode` are now:
+    - `:local`
+    - `:repl-sync`
+    - `:repl-async`
+    - `:invalidation-sync`
+    - `:invalidation-async`
+    - `:dist-sync`
+    - `:dist-async`
+  - `:tx` -> `:transactional`
+  - `:encoding` is gone, replaced with the `with-codec` fn
+  - `:seed` is gone
+  - `:config` is now `:configuration`
 
 ### immutant.cache.config REMOVED
 ### immutant.cache.core REMOVED
 ### immutant.cache.wrapper REMOVED
 
-## immutant.codecs
+## [immutant.codecs](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.codecs.html)
 
-:text codec was removed. only supplied codecs in 2.x:
-:none, :edn, :json, and :fressian
+`:text` codec was removed. only supplied codecs in 2.x:
+`:none`, `:edn`, `:json`, and `:fressian`
 
-## immutant.daemons
+## [immutant.daemons](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.daemons.html)
 
 Now resides in
 [org.immutant/core](https://clojars.org/org.immutant/core), with a
@@ -74,7 +75,7 @@ facilities with standard tools outside of the container with 2.x, and
 we're no longer exposing the project map, so this wouldn't be very
 useful inside the container with 2.x.
 
-## immutant.jobs -> immutant.scheduling
+## immutant.jobs -> [immutant.scheduling](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.scheduling.html)
 
 The API is similar. `schedule` now takes a map or kwargs, and there
 are now helpers for each option that help you generate that map. A
@@ -94,7 +95,7 @@ restore `internal-scheduler`?)
 
 ## immutant.logging REMOVED
 
-## immutant.messaging
+## [immutant.messaging](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.messaging.html)
 
 Has a similar API, except around destination creation and passing. Fns
 now take destination objects instead of strings, and the destination
@@ -111,7 +112,7 @@ Brought over with few changes.
 
 Merged with `immutant.messaging.internal`.
 
-### immutant.messaging.hornetq
+### [immutant.messaging.hornetq](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.messaging.hornetq.html)
 
 Brought over with a few changes.
 
@@ -119,7 +120,7 @@ Brought over with a few changes.
 
 Brought over, but with a drastically different API.
 
-## immutant.pipeline -> immutant.messaging.pipeline
+## immutant.pipeline -> [immutant.messaging.pipeline](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.messaging.pipeline.html)
 
 The API is unchanged, other than renaming the namespace.
 
@@ -142,11 +143,11 @@ container.
 
 Split across three namespaces:
 
-* immutant.util - fns appropriate for app use
+* [immutant.util](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.util.html) - fns appropriate for app use
 * immutant.internal.util - fns used by Immutant itself, and not intended for app use
-* immutant.wildfly - in-container specific functions
+* [immutant.wildfly](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.wildfly.html) - in-container specific functions
 
-## immutant.web
+## [immutant.web](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.web.html)
 
 * `start` is now `run`
 * `start-servlet` is also now `run`
@@ -156,7 +157,7 @@ Split across three namespaces:
 ### immutant.web.servlet -> REMOVED
 ### immutant.web.session.internal -> REMOVED
 
-### immutant.web.middleware
+### [immutant.web.middleware](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.web.middleware.html)
 
 Contains only `wrap-development` and `wrap-session`
 
