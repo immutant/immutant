@@ -88,13 +88,12 @@
                         org.immutant               :version}}
 
   :release-tasks  [["vcs" "assert-committed"]
-                   ["change"           "version" "set" "\"2.0.0-alpha1\""]
-                   ["modules" "change" "version" "set" "\"2.0.0-alpha1\""]
+                   ["change"           "version" "set" "\"2.0.0-alpha2\""]
+                   ["modules" "change" "version" "set" "\"2.0.0-alpha2\""]
                    ["vcs" "commit"]
                    ["vcs" "tag"]
                    ["modules" "deploy"]
                    ["change"           "version" "set" "\"2.0.0-SNAPSHOT\""]
                    ["modules" "change" "version" "set" "\"2.0.0-SNAPSHOT\""]
                    ["vcs" "commit"]
-                   ;; ["vcs" "push"]
-                   ])
+                   ["vcs" "push"]])
