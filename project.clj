@@ -88,7 +88,8 @@
                    ;; ["file-replace" "README.md" "org.immutant \"" "\"]" "version"]
                    ["vcs" "commit"]
                    ["vcs" "tag"]
-                   ["modules" "deploy"]
+                   ;; ["modules" "deploy"]
                    ["modules" "change" "version" "leiningen.release/bump-version"]
                    ["vcs" "commit"]
-                   ["vcs" "push"]])
+                   ;; ["vcs" "push"]
+                   ])
