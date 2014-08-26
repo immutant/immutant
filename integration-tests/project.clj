@@ -18,7 +18,9 @@
   :dependencies [[org.immutant/immutant _]
                  [org.immutant/wildfly _]]
   :aliases {"all" ^:replace ["do" "clean," "test"]}
-  :profiles {:integ-base {:aliases {"test" ^:displace ["immutant" "test"]}}
+  :modules {:parent nil}
+  :profiles {:integ-base {:aliases {"test" ^:displace ["immutant" "test"]}
+                          :modules {:parent ".."}}
              :integ-messaging {:test-paths ["../messaging/test"]}
              :integ-scheduling {:dependencies [[clj-time _]]
                                 :test-paths ["../scheduling/test"]}
