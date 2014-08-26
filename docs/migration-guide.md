@@ -63,7 +63,7 @@ Some option keys and values have changed:
 
 ## immutant.daemons
 
-Now resides in [org.immutant/core], with a slightly simpler interface.
+Brought over, with a slightly simpler interface.
 
 ## immutant.dev REMOVED
 
@@ -123,11 +123,10 @@ The API is unchanged, other than renaming the namespace.
 
 ## immutant.registry REMOVED
 
-## immutant.repl
+## immutant.repl -> immutant.wildfly.repl
 
 Still there, but with a different API. It's now only used inside the
-container, and is incomplete ATM - it likely needs to expose
-middleware support.
+container.
 
 ## immutant.resource-util REMOVED
 
@@ -160,4 +159,3 @@ Split across three namespaces:
 Contains only `wrap-development` and `wrap-session`
 
 ## immutant.xa -> TBD
-
