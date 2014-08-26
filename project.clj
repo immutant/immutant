@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/immutant-parent "1.9.0-SNAPSHOT"
+(defproject org.immutant/immutant-parent "1.9.2-SNAPSHOT"
   :description "Parent for all that is Immutant"
   :plugins [[lein-modules "0.3.8"]]
   :packaging "pom"
@@ -89,11 +89,13 @@
 
   :release-tasks  [["vcs" "assert-committed"]
                    ["modules" "change" "version" "leiningen.release/bump-version" "release"]
+                   ["change" "version" "leiningen.release/bump-version" "release"]
                    ;; ["file-replace" "README.md" "org.immutant \"" "\"]" "version"]
                    ["vcs" "commit"]
                    ["vcs" "tag"]
                    ;; ["modules" "deploy"]
                    ["modules" "change" "version" "leiningen.release/bump-version"]
+                   ["change" "version" "leiningen.release/bump-version"]
                    ["vcs" "commit"]
                    ;; ["vcs" "push"]
                    ])
