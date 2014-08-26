@@ -63,7 +63,7 @@ Some option keys and values have changed:
 
 ## immutant.daemons
 
-Brought over, with a slightly simpler interface.
+Now resides in [org.immutant/core], with a slightly simpler interface.
 
 ## immutant.dev REMOVED
 
@@ -151,19 +151,13 @@ Split across three namespaces:
 * `start-servlet` is also now `run`
 * `current-servlet-request` currently has no analogue
 
-### immutant.web.session -> ?
-### immutant.web.servlet -> ?
-### immutant.web.session.internal -> ?
+### immutant.web.session -> obviated by wrap-session
+### immutant.web.servlet -> REMOVED
+### immutant.web.session.internal -> REMOVED
 
 ### immutant.web.middleware
 
-Confirm what middleware is there. Was any of this ever used directly
-by users?
+Contains only `wrap-development` and `wrap-session`
 
-### immutant.web.internal -> ?
+## immutant.xa -> TBD
 
-## immutant.xa -> ?
-
-### immutant.xa.wrappers -> ?
-
-### immutant.xa.transaction -> ?
