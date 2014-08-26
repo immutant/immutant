@@ -90,7 +90,6 @@
   :release-tasks  [["vcs" "assert-committed"]
                    ["change"           "version" "set" "\"2.0.0-alpha1\""]
                    ["modules" "change" "version" "set" "\"2.0.0-alpha1\""]
-                   ["file-replace" "README.md" "org.immutant \"" "\"]" "version"]
                    ["vcs" "commit"]
                    ["vcs" "tag"]
                    ["modules" "deploy"]
