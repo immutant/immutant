@@ -62,7 +62,11 @@
                                    :url "http://www.apache.org/licenses/LICENSE-2.0"
                                    :distribution :repo}
                          :plugins [[org.immutant/build-helper "0.1.6"]]
-                         :hooks [build-helper.plugin.pom/hooks]}
+                         :hooks [build-helper.plugin.pom/hooks]
+
+                         :signing {:gpg-key "BFC757F9"}
+                         :deploy-repositories [["releases" {:url "https://clojars.org/repo/" :creds :gpg}]]}
+
              :versions {clojure                    "1.6.0"
                         java.classpath             "0.2.2"
                         tools.nrepl                "0.2.3"
