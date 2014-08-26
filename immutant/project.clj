@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/immutant "1.9.1-SNAPSHOT"
+(defproject org.immutant/immutant "1.9.1"
   :plugins [[lein-modules "0.3.8"]]
   :packaging "pom"
 
