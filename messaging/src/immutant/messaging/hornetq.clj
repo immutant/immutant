@@ -40,13 +40,11 @@
 
    The returned controller depends on the type of the given
    destination and, for queues, the requested control-type (which
-   defaults to :jms):
+   defaults to :jms) (`destination`, `control-type` - controller type):
 
-   destination  control-type  controller
-   -------------------------------------------------------------------------
-   Queue        :jms          org.hornetq.api.jms.management.JMSQueueControl
-   Queue        :core         org.hornetq.api.core.management.QueueControl
-   Topic        <ignored>     org.hornetq.api.jms.management.TopicControl
+   * queue, :jms - [JMSQueueControl](http://docs.jboss.org/hornetq/2.4.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/JMSQueueControl.html)
+   * queue, :core - [QueueControl](http://docs.jboss.org/hornetq/2.4.0.Final/docs/api/hornetq-client/org/hornetq/api/core/management/QueueControl.html)
+   * topic, `_` - [TopicControl](http://docs.jboss.org/hornetq/2.4.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/TopicControl.html)
 
    Refer to the javadocs for those control classes for details on the
    available operations."
