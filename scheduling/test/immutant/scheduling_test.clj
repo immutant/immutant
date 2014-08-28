@@ -18,6 +18,8 @@
             [immutant.scheduling.internal :refer :all]
             [immutant.util                :as u]))
 
+(u/set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
+
 (use-fixtures :each
   u/reset-fixture
   #(let [s (scheduler {})]

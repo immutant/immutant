@@ -16,11 +16,13 @@
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [immutant.caching :refer :all]
-            [immutant.util :refer [in-container?]]
+            [immutant.util :refer [in-container? set-log-level!]]
             [immutant.codecs :refer [encode decode]]
             [clojure.core.cache :refer [lookup miss seed]]
             immutant.caching.core-cache)
   (:import org.infinispan.configuration.cache.CacheMode))
+
+(set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
 
 (defn new-cache [& options]
   (stop "test")
@@ -282,4 +284,3 @@
           cn (cache "cachey-none" :persist "dev-resources/cache-store")]
       (is (= (:key c) 42))
       (is (= (:key cn) 42)))))
-

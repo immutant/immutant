@@ -18,6 +18,8 @@
             [immutant.util :as u])
   (:import org.projectodd.wunderboss.messaging.Connection))
 
+(u/set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
+
 (use-fixtures :once u/reset-fixture)
 
 (defn random-queue []

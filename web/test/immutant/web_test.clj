@@ -15,6 +15,7 @@
 (ns immutant.web-test
   (:require [clojure.test          :refer :all]
             [clojure.set           :refer :all]
+            [immutant.util         :as u]
             [immutant.web          :refer :all]
             [immutant.web.internal.wunderboss :refer :all]
             [testing.web           :refer [get-body hello handler]]
@@ -23,7 +24,9 @@
   (:import clojure.lang.ExceptionInfo
            java.net.ConnectException))
 
-(use-fixtures :each immutant.util/reset-fixture)
+(u/set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
+
+(use-fixtures :each u/reset-fixture)
 
 (def url "http://localhost:8080/")
 (def url2 "http://localhost:8081/")
