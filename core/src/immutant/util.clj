@@ -120,3 +120,10 @@
                  (apply str ".set")
                  symbol)]
     ((eval `#(~setter %1 %2)) bean value)))
+
+(defn set-log-level!
+  "Sets the global log level for the interal logging system.
+
+   Valid options for `level` are: :OFF, :ERROR, :WARN, :INFO, :DEBUG, :TRACE, :ALL"
+  [level]
+  (WunderBoss/setLogLevel (name level)))
