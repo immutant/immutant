@@ -62,21 +62,15 @@
   []
   (get (WunderBoss/options) "deployment-name" ""))
 
-(defn ^:internal ^:no-doc in-container-port
-  "Returns the (possibly offset) port from the socket-binding in standalone.xml"
-  [socket-binding-name]
-  (when (in-container?)
-    (when-let [sb ((try-resolve 'immutant.wildfly/get-from-service-registry)
-                   (str "jboss.binding." (name socket-binding-name)))]
-      (.getAbsolutePort sb))))
-
 (defn http-port
   "Returns the HTTP port for the embedded web server.
 
    Returns the correct port when in-container, and the default (8080),
    outside."
   []
-  (or (in-container-port :http) 8080))
+  (if-let [wf-port-fn (try-resolve 'immutant.wildfly/http-port)]
+    (wf-port-fn)
+    8080))
 
 (defn messaging-remoting-port
   "Returns the port that HornetQ is listening on for remote connections.
@@ -84,7 +78,9 @@
    Returns the correct port when in-container, and the default (5445),
    outside."
   []
-  (or (in-container-port :http) 5445))
+  (if-let [wf-port-fn (try-resolve 'immutant.wildfly/messaging-remoting-port)]
+    (wf-port-fn)
+    5445))
 
 (defn app-relative
   "Returns an absolute file relative to {{app-root}}."

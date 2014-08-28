@@ -19,6 +19,7 @@
             [immutant.web :refer (stop)]
             [immutant.codecs :refer (decode)]
             [immutant.util :refer (in-container? http-port)]
+            [immutant.internal.util :refer [try-resolve]]
             [http.async.client :as http]))
 
 (when-not (in-container?)
@@ -28,12 +29,12 @@
         (try (f) (finally (stop server)))))))
 
 (defn url
-  [& [scheme]]
-  (format "%s://localhost:%s"
-    (or scheme "http")
-    (if (in-container?)
-      (format "%s/integs/" (http-port))
-      "8080/")))
+  ([]
+     (url "http"))
+  ([protocol]
+     (if (in-container?)
+       ((try-resolve 'immutant.wildfly/app-uri) "localhost" protocol)
+       (format "%s://localhost:8080/" protocol))))
 
 (deftest http-session-store
   (is (= "0" (get-body (url) :cookies nil)))

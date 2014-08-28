@@ -17,7 +17,8 @@
   (:require [immutant.internal.util :as u]
             [wunderboss.util        :as wu]
             [clojure.java.io        :as io])
-  (:import java.net.URL))
+  (:import java.net.URL
+           org.projectodd.wunderboss.WunderBoss))
 
 (def module-class-loader-class (memoize #(u/try-import 'org.jboss.modules.ModuleClassLoader)))
 (def in-cluster (delay (-> (u/try-import 'org.projectodd.wunderboss.wildfly.ClusterUtils)
@@ -97,32 +98,30 @@
 (defn port
   "Returns the (possibly offset) port from the socket-binding in standalone.xml"
   [socket-binding-name]
-  (if-let [sb (get-from-service-registry (str "jboss.binding." (name socket-binding-name)))]
+  (when-let [sb (get-from-service-registry (str "jboss.binding." (name socket-binding-name)))]
     (.getAbsolutePort sb)))
 
-(defn http-port
+(def http-port
   "Returns the HTTP port for the embedded web server"
-  []
-  (port :http))
+  (partial port :http))
 
-(defn hornetq-remoting-port
+(def messaging-remoting-port
   "Returns the port that HornetQ is listening on for remote connections"
-  []
-  (port :messaging))
+  http-port)
 
 (defn context-path
   "Returns the HTTP context path for the deployed app"
   []
-  ;; TODO: figure out where to store/get the web-context
-  (if-let [context "";(immutant.registry/get "web-context")
-           ]
-    (.getName context)))
+  (get (WunderBoss/options) "servlet-context-path"))
 
 (defn app-uri
-  "Returns the base URI for the app, given a host [localhost]"
-  [& [host]]
-  (let [host (or host "localhost")]
-    (str "http://" host ":" (http-port) (context-path))))
+  "Returns the base URI for the app, given a `host` [localhost] and `protocol` [http]"
+  ([]
+     (app-uri "localhost"))
+  ([host]
+     (app-uri host "http"))
+  ([host protocol]
+     (format "%s://%s:%s%s/" protocol host (http-port) (context-path))))
 
 (defn in-cluster?
   "Returns true if running inside a cluster"
