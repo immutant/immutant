@@ -31,14 +31,14 @@
 
    options can be a map or kwargs, with these valid keys [default]:
 
-     * :host          The interface bind address [localhost]
+     * :host          The interface bind address [\"localhost\"]
      * :port          The port listening for requests [8080]
-     * :path          Maps the handler to a prefix of the url path [/]
+     * :path          Maps the handler to a prefix of the url path [\"/\"]
      * :virtual-host  Virtual host name[s] (a String or a List of Strings) [nil]
 
    Note the web server only binds to the loopback interface, by
    default. To expose your handler to the network, set :host to an
-   external IP address, or use `0.0.0.0` to bind it to all interfaces.
+   external IP address, or use \"0.0.0.0\" to bind it to all interfaces.
 
    The :virtual-host option enables name-based virtual hosting which,
    along with the :path option, distinguishes the handlers on a single
