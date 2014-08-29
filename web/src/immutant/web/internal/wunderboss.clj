@@ -17,7 +17,7 @@
               [immutant.web.internal.servlet  :refer [create-servlet]]
               [immutant.internal.options  :refer [extract-options opts->set opts->defaults-map opts->map keywordize]]
               [immutant.internal.util     :as u]
-              [immutant.util              :refer [in-container?]]
+              [immutant.util              :refer [in-container? context-path http-port]]
               [immutant.web.middleware    :refer [wrap-development]]
               [clojure.java.browse        :refer [browse-url]])
     (:import org.projectodd.wunderboss.WunderBoss
@@ -58,8 +58,9 @@
 (defn ^:internal run-dmc* [run handler & options]
   (let [result (apply run (wrap-development handler) options)
         options (u/kwargs-or-map->map options)]
-    (browse-url (format "http://%s:%s%s"
+    (browse-url (format "http://%s:%s%s%s"
                   (:host options (:host create-defaults))
-                  (:port options (:port create-defaults))
+                  (http-port options)
+                  (context-path)
                   (:path options (:path register-defaults))))
     result))

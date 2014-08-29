@@ -65,12 +65,24 @@
 (defn http-port
   "Returns the HTTP port for the embedded web server.
 
-   Returns the correct port when in-container, and the default (8080),
+   Returns the correct port when in-container, and the :port value from
+  options or the default (8080) outside."
+  ([]
+     (http-port nil))
+  ([options]
+     (if-let [wf-port-fn (try-resolve 'immutant.wildfly/http-port)]
+       (wf-port-fn)
+       (:port options 8080))))
+
+(defn context-path
+  "Returns the over-arching context-path for the web server.
+
+   Returns the servlet-context's context path in-container, and \"\"
    outside."
   []
-  (if-let [wf-port-fn (try-resolve 'immutant.wildfly/http-port)]
-    (wf-port-fn)
-    8080))
+  (if-let [path-fn (try-resolve 'immutant.wildfly/context-path)]
+    (path-fn)
+    ""))
 
 (defn messaging-remoting-port
   "Returns the port that HornetQ is listening on for remote connections.
