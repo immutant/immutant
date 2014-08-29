@@ -40,8 +40,10 @@
    * :decode - A single-arity function that decodes its argument from
      the expected type to clojure data."
   [{:keys [name content-type type encode decode] :or {type :string}}]
-  `(proxy [~(if (= :bytes type) 'BytesCodec 'StringCodec)]
-       [~(clojure.core/name name) ~content-type]
+  `(proxy [~(if (= :bytes type)
+              'org.projectodd.wunderboss.codecs.BytesCodec
+              'org.projectodd.wunderboss.codecs.StringCodec)]
+       [(clojure.core/name ~name) ~content-type]
      (encode [data#]
        (~encode data#))
      (decode [data#]
