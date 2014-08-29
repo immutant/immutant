@@ -36,7 +36,17 @@
      * :path          Maps the handler to a prefix of the url path [/]
      * :virtual-host  Virtual host name[s] (a String or a List of Strings) [nil]
 
-   Run calls may be threaded together, too:
+   Note the web server only binds to the loopback interface, by
+   default. To expose your handler to the network, set :host to an
+   external IP address, or use `0.0.0.0` to bind it to all interfaces.
+
+   The :virtual-host option enables name-based virtual hosting which,
+   along with the :path option, distinguishes the handlers on a single
+   server. That is, multiple handlers can run on the same `:host` and
+   `:port` as long as each has a unique combination of `:virtual-host`
+   and `:path`.
+
+   Run calls may be threaded together:
 
    ```
      (-> (run hello)
