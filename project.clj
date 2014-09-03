@@ -81,8 +81,8 @@
                         stylefruits/gniazdo        "0.1.0"
                         compojure                  "1.1.8"
 
-                        org.projectodd.wunderboss  "0.1.0"
-                        ;; org.projectodd.wunderboss  "1.x.incremental.108"
+                        ;; org.projectodd.wunderboss  "0.1.0"
+                        org.projectodd.wunderboss  "1.x.incremental.113"
                         ;; org.projectodd.wunderboss  "0.2.0-SNAPSHOT"
 
                         org.immutant               :version}}
