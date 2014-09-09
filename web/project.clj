@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (defproject org.immutant/web "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.8"]]
+  :plugins [[lein-modules "0.3.9"]]
 
   :dependencies [[org.immutant/core _]
                  [potemkin "0.3.4"]
