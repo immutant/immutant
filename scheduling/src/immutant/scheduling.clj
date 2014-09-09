@@ -18,8 +18,7 @@
             [immutant.internal.options    :refer :all]
             [immutant.internal.util       :as iu]
             [immutant.util                :as u]
-            [immutant.scheduling.options  :refer [resolve-options defoption]]
-            [clojure.walk                 :refer [keywordize-keys]])
+            [immutant.scheduling.options  :refer [resolve-options defoption]])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.scheduling
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
@@ -95,7 +94,6 @@
   [f & spec]
   (let [opts (->> spec
                iu/kwargs-or-map->map
-               keywordize-keys
                resolve-options
                (merge create-defaults schedule-defaults))
         id (:id opts (iu/uuid))
@@ -120,20 +118,18 @@
   map returned from a {{schedule}} call. If there are no jobs remaining on
   the scheduler the scheduler itself is stopped. Returns true if a job
   was actually removed."
-  ([key value & key-values]
-     (stop (apply hash-map key value key-values)))
-  ([options]
-      (let [options (-> options
-                      keywordize-keys
-                      (validate-options schedule "stop"))
-            ids (:ids options {(scheduler options)
-                               [(:id options)]})
-            stopped? (some boolean (doall (for [[s ids] ids, id ids]
-                                            (.unschedule s (name id)))))]
-        (doseq [scheduler (keys ids)]
-          (when (empty? (.scheduledJobs scheduler))
-            (.stop scheduler)))
-        stopped?)))
+  [& options]
+  (let [options (-> options
+                  iu/kwargs-or-map->map
+                  (validate-options schedule "stop"))
+        ids (:ids options {(scheduler options)
+                           [(:id options)]})
+        stopped? (some boolean (doall (for [[s ids] ids, id ids]
+                                        (.unschedule s (name id)))))]
+    (doseq [scheduler (keys ids)]
+      (when (empty? (.scheduledJobs scheduler))
+        (.stop scheduler)))
+    stopped?))
 
 (defoption ^{:arglists '([n] [kw] [n kw & n-kws])} in
   "Specifies the period after which the job will fire, in

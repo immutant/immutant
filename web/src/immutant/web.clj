@@ -17,8 +17,7 @@
   (:require [immutant.internal.options :refer [opts->set set-valid-options!
                                                validate-options extract-options]]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
-            [immutant.web.internal.wunderboss :refer :all]
-            [clojure.walk              :refer [keywordize-keys]])
+            [immutant.web.internal.wunderboss :refer :all])
   (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
 (defn run
@@ -68,7 +67,6 @@
   [handler & options]
   (let [options (->> options
                   kwargs-or-map->map
-                  keywordize-keys
                   (merge create-defaults register-defaults))]
     (validate-options options run)
     (let [server (server options)]
@@ -90,7 +88,6 @@
   [& options]
   (let [opts (-> options
                kwargs-or-map->map
-               keywordize-keys
                (validate-options run "stop"))
         contexts (:contexts opts {(server opts) [(mounts opts)]})
         stopped (some boolean (doall (for [[s os] contexts, o os]

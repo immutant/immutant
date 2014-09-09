@@ -18,8 +18,7 @@
   (:require [immutant.internal.options :refer :all]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
             [immutant.codecs           :refer [lookup-codec]]
-            [immutant.caching.options  :refer [wash]]
-            [clojure.walk              :refer [keywordize-keys]])
+            [immutant.caching.options  :refer [wash]])
   (:import [org.projectodd.wunderboss WunderBoss Options]
            [org.projectodd.wunderboss.caching Caching Caching$CreateOption Config]))
 
@@ -89,17 +88,13 @@
    :configuration option.
 
    * :configuration - a [Configuration](https://docs.jboss.org/infinispan/6.0/apidocs/org/infinispan/configuration/cache/Configuration.html) instance"
-  ([name]
-    (cache name {}))
-  ([name k v & kvs]
-    (cache name (apply hash-map k v kvs)))
-  (^org.infinispan.Cache [name opts]
-    (let [options (-> opts
-                    keywordize-keys
-                    (validate-options cache)
-                    wash
-                    (extract-options Caching$CreateOption))]
-      (.findOrCreate (component) name options))))
+  ^org.infinispan.Cache [name & opts]
+  (let [options (-> opts
+                  kwargs-or-map->map
+                  (validate-options cache)
+                  wash
+                  (extract-options Caching$CreateOption))]
+    (.findOrCreate (component) name options)))
 
 (set-valid-options! cache (opts->set Caching$CreateOption))
 
@@ -135,7 +130,6 @@
   [cache & options]
   (let [options (-> options
                   kwargs-or-map->map
-                  keywordize-keys
                   wash)]
     (.withExpiration (component)
       cache
@@ -192,7 +186,6 @@
   [& options]
   (Config/builder (-> options
                     kwargs-or-map->map
-                    keywordize-keys
                     (validate-options cache builder)
                     wash
                     (extract-options Caching$CreateOption)
