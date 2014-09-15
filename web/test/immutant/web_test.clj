@@ -35,6 +35,10 @@
   (run pedestal/servlet)
   (is (= "Hello World!" (get-body url))))
 
+(deftest nil-body
+  (run (constantly {:status 200 :body nil}))
+  (is (nil? (get-body url))))
+
 (deftest run-takes-kwargs
   (run hello :path "/kwarg")
   (is (= "hello" (get-body (str url "kwarg")))))

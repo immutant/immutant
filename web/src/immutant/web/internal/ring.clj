@@ -131,14 +131,12 @@
   (write-body [body stream]))
 
 (extend-protocol BodyWriter
-
   Object
   (write-body [body _]
     (throw (IllegalStateException. (str "Can't coerce body of type " (class body)))))
 
   nil
-  (write-body [_ _]
-    (throw (IllegalStateException. "Can't coerce nil body")))
+  (write-body [_ _])
 
   String
   (write-body [body ^OutputStream os]
