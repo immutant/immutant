@@ -33,7 +33,7 @@
      (url "http"))
   ([protocol]
      (if (in-container?)
-       ((try-resolve 'immutant.wildfly/app-uri) "localhost" protocol)
+       (str ((try-resolve 'immutant.wildfly/base-uri) "localhost" protocol) "/")
        (format "%s://localhost:8080/" protocol))))
 
 (deftest http-session-store

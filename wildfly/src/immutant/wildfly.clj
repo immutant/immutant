@@ -114,14 +114,14 @@
   []
   (get (WunderBoss/options) "servlet-context-path"))
 
-(defn app-uri
-  "Returns the base URI for the app, given a `host` [localhost] and `protocol` [http]"
+(defn base-uri
+  "Returns the base URI for the deployment, given a `host` [localhost] and `protocol` [http]"
   ([]
-     (app-uri "localhost"))
+     (base-uri "localhost"))
   ([host]
-     (app-uri host "http"))
+     (base-uri host "http"))
   ([host protocol]
-     (format "%s://%s:%s%s/" protocol host (http-port) (context-path))))
+     (format "%s://%s:%s%s" protocol host (http-port) (context-path))))
 
 (defn in-cluster?
   "Returns true if running inside a cluster"
