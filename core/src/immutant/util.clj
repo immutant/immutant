@@ -30,7 +30,7 @@
 (defn in-container?
   "Returns true if running inside a WildFly/EAP container."
   []
-  (wu/in-container?))
+  (WunderBoss/inContainer))
 
 (defn in-cluster?
   "Returns true if running inside a WildFly/EAP container that's part of a cluster"
