@@ -130,7 +130,8 @@
     (if-let [codec (.forContentType codecs (name name-or-content-type))]
       codec
       (throw (IllegalArgumentException.
-               (str "Can't find codec for: " name-or-content-type))))))
+               (format "Can't find codec for: %s. Available codecs: %s"
+                 name-or-content-type (codec-set)))))))
 
 (defn encode
   "Encodes `data` using the codec for `encoding`.
