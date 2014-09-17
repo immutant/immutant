@@ -53,14 +53,14 @@
   (-> (Codecs.)
     (.add None/INSTANCE)))
 
-(defn register-codec!
+(defn register-codec
   "Registers a codec for use.
 
    `codec` should be the result of {{make-codec}}."
   [codec]
   (.add codecs codec))
 
-(register-codec!
+(register-codec
   (make-codec
     {:name :edn
      :content-type "application/edn"
@@ -73,7 +73,7 @@
                             (str "Invalid edn-encoded data (type=" (class data) "): " data)
                             e)))))}))
 
-(register-codec!
+(register-codec
   (make-codec
     {:name :fressian
      :content-type "application/fressian"
@@ -97,7 +97,7 @@
                  (throw (IllegalArgumentException.
                           "Can't decode fressian. Add org.clojure/data.fressian to your dependencies."))))}))
 
-(register-codec!
+(register-codec
   (make-codec
     {:name :json
      :content-type "application/json"
