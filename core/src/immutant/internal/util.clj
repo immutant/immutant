@@ -59,7 +59,14 @@
     (if-let [tail (seq (rest syms))]
       (apply try-resolve-any tail)
       (throw (IllegalArgumentException.
-              "Unable to resolve a valid symbol from the given list.")))))
+               "Unable to resolve a valid symbol from the given list.")))))
+
+(defn try-resolve-throw
+  "Tries to resolve `sym` via {{try-resolve}}, throwing with `message` on failure."
+  [sym message]
+  (if-let [v (try-resolve sym)]
+    v
+    (throw (IllegalStateException. (format "Can't resolve %s, %s" sym message)))))
 
 (defn try-import
   "Tries to import the given symbol, returning the class on success."

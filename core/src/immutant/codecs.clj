@@ -16,7 +16,8 @@
   "Common codecs used when [de]serializing data structures."
   (:require [clojure.tools.reader.edn :as edn]
             [clojure.tools.reader     :as r]
-            [immutant.internal.util   :as u])
+            [immutant.internal.util   :refer [kwargs-or-map->map try-resolve
+                                              try-resolve-throw]])
   (:import [org.projectodd.wunderboss.codecs BytesCodec Codec Codecs None StringCodec]
            java.nio.ByteBuffer))
 
@@ -28,7 +29,8 @@
 (defmacro make-codec
   "Creates a codec instance for the given settings.
 
-   Takes the following settings, most of which are required:
+   `settings` can be a map or kwargs, with these keys, most of which are
+   required:
 
    * :name - The nickname for the codec. Can be a String or Keyword.
    * :content-type - The content type for the codec as a String.
@@ -39,15 +41,17 @@
      the expected type.
    * :decode - A single-arity function that decodes its argument from
      the expected type to clojure data."
-  [{:keys [name content-type type encode decode] :or {type :string}}]
-  `(proxy [~(if (= :bytes type)
-              'org.projectodd.wunderboss.codecs.BytesCodec
-              'org.projectodd.wunderboss.codecs.StringCodec)]
-       [(clojure.core/name ~name) ~content-type]
-     (encode [data#]
-       (~encode data#))
-     (decode [data#]
-       (~decode data#))))
+  [& settings]
+  (let [{:keys [name content-type type encode decode] :or {type :string}}
+        (kwargs-or-map->map settings)]
+    `(proxy [~(if (= :bytes type)
+                'org.projectodd.wunderboss.codecs.BytesCodec
+                'org.projectodd.wunderboss.codecs.StringCodec)]
+         [(clojure.core/name ~name) ~content-type]
+       (encode [data#]
+         (~encode data#))
+       (decode [data#]
+         (~decode data#)))))
 
 (defonce ^:internal ^:no-doc ^Codecs codecs
   (-> (Codecs.)
@@ -62,58 +66,57 @@
 
 (register-codec
   (make-codec
-    {:name :edn
-     :content-type "application/edn"
-     :encode pr-str
-     :decode (fn [data]
-               (try
-                 (and data (edn/read-string {:readers (data-readers)} data))
-                 (catch Throwable e
-                   (throw (RuntimeException.
-                            (str "Invalid edn-encoded data (type=" (class data) "): " data)
-                            e)))))}))
+    :name :edn
+    :content-type "application/edn"
+    :encode pr-str
+    :decode (fn [data]
+                (try
+                  (and data (edn/read-string {:readers (data-readers)} data))
+                  (catch Throwable e
+                    (throw (RuntimeException.
+                             (str "Invalid edn-encoded data (type=" (class data) "): " data)
+                             e)))))))
 
 (register-codec
   (make-codec
-    {:name :fressian
-     :content-type "application/fressian"
-     :type :bytes
-     :encode (fn [data]
-               (if-let [write (u/try-resolve 'clojure.data.fressian/write)]
-                 (let [^ByteBuffer encoded (write data :footer? true)
-                       bytes (byte-array (.remaining encoded))]
-                   (.get encoded bytes)
-                   bytes)
-                 (throw (IllegalArgumentException.
-                          "Can't encode fressian. Add org.clojure/data.fressian to your dependencies."))))
-     :decode (fn [data]
-               (if-let [read (u/try-resolve 'clojure.data.fressian/read)]
-                 (try
-                   (and data (read data))
-                   (catch Throwable e
-                     (throw (RuntimeException.
-                              (str "Invalid fressian-encoded data (type=" (class data) "): " data)
-                              e))))
-                 (throw (IllegalArgumentException.
-                          "Can't decode fressian. Add org.clojure/data.fressian to your dependencies."))))}))
+    :name :fressian
+    :content-type "application/fressian"
+    :type :bytes
+    :encode (fn [data]
+              (let [fressian-write (try-resolve-throw 'clojure.data.fressian/write
+                                     "add org.clojure/data.fressian to your dependencies.")
+                    ^ByteBuffer encoded (fressian-write data :footer? true)
+                    bytes (byte-array (.remaining encoded))]
+                (.get encoded bytes)
+                bytes))
+    :decode (fn [data]
+              (let [fressian-read (try-resolve-throw 'clojure.data.fressian/read
+                                    "add org.clojure/data.fressian to your dependencies.")]
+                (try
+                  (and data (fressian-read data))
+                  (catch Throwable e
+                    (throw (RuntimeException.
+                             (str "Invalid fressian-encoded data (type=" (class data) "): " data)
+                             e))))))))
 
 (register-codec
   (make-codec
-    {:name :json
-     :content-type "application/json"
-     :encode (fn [data]
-               (if-let [generate-string (u/try-resolve 'cheshire.core/generate-string)]
-                 (generate-string data)
-                 (throw (IllegalArgumentException. "Can't encode json. Add cheshire to your dependencies."))))
-     :decode (fn [data]
-               (if-let [parse-string (u/try-resolve 'cheshire.core/parse-string)]
-                 (try
-                   (and data (parse-string data true))
-                   (catch Throwable e
-                     (throw (RuntimeException.
-                              (str "Invalid json-encoded data (type=" (class data) "): " data)
-                              e))))
-                 (throw (IllegalArgumentException. "Can't decode json. Add cheshire to your dependencies."))))}))
+    :name :json
+    :content-type "application/json"
+    :encode (fn [data]
+              (let [cheshire-generate-string
+                    (try-resolve-throw 'cheshire.core/generate-string
+                      "add cheshire to your dependencies.")]
+                (cheshire-generate-string data)))
+    :decode (fn [data]
+              (let [cheshire-parse-string (try-resolve-throw 'cheshire.core/parse-string
+                                            "add cheshire to your dependencies.")]
+                (try
+                  (and data (cheshire-parse-string data true))
+                  (catch Throwable e
+                    (throw (RuntimeException.
+                             (str "Invalid json-encoded data (type=" (class data) "): " data)
+                             e))))))))
 
 (defn codec-set
   "Returns a set of names for available codecs."
