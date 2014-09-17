@@ -26,14 +26,19 @@
     .hashCode
     str))
 
-(defn kwargs-or-map->map
+(defn kwargs-or-map->raw-map
   "If vals contains one value, return it. Otherwise, treat as kwargs and coerce to a map."
   [vals]
-  (keywordize-keys
-    (if (= 1 (count vals))
-      (let [m (first vals)]
-        (if (map? m) m (apply hash-map m)))
-      (apply hash-map vals))))
+  (if (= 1 (count vals))
+    (let [m (first vals)]
+      (if (map? m) m (apply hash-map m)))
+    (apply hash-map vals)))
+
+(def kwargs-or-map->map
+  "If vals contains one value, return it. Otherwise, treat as kwargs and coerce to a map.
+
+   In either case, pass it through keywordize-keys"
+  (comp keywordize-keys kwargs-or-map->raw-map))
 
 (defn require-resolve
   "Requires and resolves the given namespace-qualified symbol."
