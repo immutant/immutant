@@ -31,7 +31,9 @@
 (def url "http://localhost:8080/")
 (def url2 "http://localhost:8081/")
 
-(deftest mount-pedestal-service
+(deftest mount-and-remount-pedestal-service
+  (run pedestal/servlet)
+  (is (= "Hello World!" (get-body url)))
   (run pedestal/servlet)
   (is (= "Hello World!" (get-body url))))
 
