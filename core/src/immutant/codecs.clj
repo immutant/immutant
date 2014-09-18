@@ -13,7 +13,18 @@
 ;; limitations under the License.
 
 (ns immutant.codecs
-  "Common codecs used when [de]serializing data structures."
+  "Common codecs used when [de]serializing data structures.
+
+   The default registered codecs are:
+
+   * :edn - encodes to/decodes from an EDN string
+   * :json - encodes to/decodes from a JSON string. Requires `cheshire` as a
+     dependency.
+   * :none - performs no encoding
+
+   You can enable :fressian encoding by calling
+   {{immutant.codecs.fressian/register-fressian-codec}}, or make custom
+   codecs with {{make-codec}}."
   (:require [clojure.tools.reader.edn :as edn]
             [clojure.tools.reader     :as r]
             [immutant.internal.util   :refer [kwargs-or-map->map try-resolve
@@ -76,28 +87,6 @@
                     (throw (RuntimeException.
                              (str "Invalid edn-encoded data (type=" (class data) "): " data)
                              e)))))))
-
-(register-codec
-  (make-codec
-    :name :fressian
-    :content-type "application/fressian"
-    :type :bytes
-    :encode (fn [data]
-              (let [fressian-write (try-resolve-throw 'clojure.data.fressian/write
-                                     "add org.clojure/data.fressian to your dependencies.")
-                    ^ByteBuffer encoded (fressian-write data :footer? true)
-                    bytes (byte-array (.remaining encoded))]
-                (.get encoded bytes)
-                bytes))
-    :decode (fn [data]
-              (let [fressian-read (try-resolve-throw 'clojure.data.fressian/read
-                                    "add org.clojure/data.fressian to your dependencies.")]
-                (try
-                  (and data (fressian-read data))
-                  (catch Throwable e
-                    (throw (RuntimeException.
-                             (str "Invalid fressian-encoded data (type=" (class data) "): " data)
-                             e))))))))
 
 (register-codec
   (make-codec

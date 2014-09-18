@@ -59,8 +59,9 @@ Some option keys and values have changed:
 
 ## [immutant.codecs](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.codecs.html)
 
-`:text` codec was removed. only supplied codecs in 2.x:
-`:none`, `:edn`, `:json`, and `:fressian`
+`:text` codec was removed. The default supplied codecs in 2.x are:
+`:none`, `:edn`, and `:json`. `:fressian` can be enabled by calling
+`immutant.codecs.fressian/register-fressian-codec`.
 
 ## [immutant.daemons](https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/immutant.daemons.html)
 

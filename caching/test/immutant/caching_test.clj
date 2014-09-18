@@ -18,11 +18,17 @@
             [immutant.caching :refer :all]
             [immutant.util :refer [in-container? set-log-level!]]
             [immutant.codecs :refer [encode decode]]
+            [immutant.codecs.fressian :refer [register-fressian-codec]]
             [clojure.core.cache :refer [lookup miss seed]]
             immutant.caching.core-cache)
   (:import org.infinispan.configuration.cache.CacheMode))
 
 (set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
+
+(use-fixtures :once
+  (fn [f]
+    (register-fressian-codec)
+    (f)))
 
 (defn new-cache [& options]
   (stop "test")
