@@ -17,7 +17,7 @@
   (:require [immutant.internal.options :refer [opts->set set-valid-options!
                                                validate-options extract-options]]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
-            [immutant.web.internal.wunderboss :refer :all])
+            [immutant.web.internal.wunderboss :as internal])
   (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
 (defn run
@@ -67,11 +67,11 @@
   [handler & options]
   (let [options (->> options
                   kwargs-or-map->map
-                  (merge create-defaults register-defaults))]
+                  (merge internal/create-defaults internal/register-defaults))]
     (validate-options options run)
-    (let [server (server options)]
-      (mount server handler options)
-      (update-in options [:contexts server] conj (mounts options)))))
+    (let [server (internal/server options)]
+      (internal/mount server handler options)
+      (update-in options [:contexts server] conj (internal/mounts options)))))
 
 (set-valid-options! run (conj (opts->set Web$CreateOption Web$RegisterOption) :contexts))
 
@@ -89,7 +89,7 @@
   (let [opts (-> options
                kwargs-or-map->map
                (validate-options run "stop"))
-        contexts (:contexts opts {(server opts) [(mounts opts)]})
+        contexts (:contexts opts {(internal/server opts) [(internal/mounts opts)]})
         stopped (some boolean (doall (for [[s os] contexts, o os]
                                        (.unregister s (extract-options o Web$RegisterOption)))))]
     (doseq [server (keys contexts)]
@@ -109,4 +109,31 @@
                       (resolve handler))
                   `(var ~handler)
                   handler)]
-    `(run-dmc* run ~handler ~@options)))
+    `(internal/run-dmc* run ~handler ~@options)))
+
+(defn server
+  "Returns the web server instance associated with a particular set of
+   options, typically the map returned from a {{run}} call. The web
+   server provides `start`, `stop` and `isRunning` methods, allowing
+   you to, for example, temporarily stop serving requests for all the
+   handlers running on a particular server.
+
+   ```
+     (let [srv (server (run hello :auto-start false))]
+       (.isRunning srv)   ;=> false
+       (.start srv)
+       (.isRunning srv)   ;=> true
+       (.stop srv))
+   ```
+
+   The return value is either a single server instance or a list of
+   servers if passed the result from threaded run calls that would
+   cause multiple servers to be created."
+  [& options]
+  (let [options (->> options
+                  kwargs-or-map->map
+                  (merge internal/create-defaults internal/register-defaults))
+        servers (keys (:contexts options {(internal/server options) nil}))]
+    (if (= 1 (count servers))
+      (first servers)
+      servers)))

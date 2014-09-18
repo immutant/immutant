@@ -17,7 +17,7 @@
             [clojure.set           :refer :all]
             [immutant.util         :as u]
             [immutant.web          :refer :all]
-            [immutant.web.internal.wunderboss :refer :all]
+            [immutant.web.internal.wunderboss :refer [create-defaults register-defaults]]
             [testing.web           :refer [get-body hello handler]]
             [testing.hello.service :as pedestal]
             [ring.middleware.resource :refer [wrap-resource]])
@@ -210,3 +210,16 @@
   (run (-> hello (wrap-resource "public")) :path "/foo")
   (is (= "foo" (get-body (str url "foo/foo.html"))))
   (is (= "hello" (get-body (str url "foo")))))
+
+(deftest servers
+  (let [srv (server)]
+    (is (every? (partial identical? srv)
+          [(server :port 8080)
+           (server {:port 8080})
+           (server (run hello))]))
+    (is (.isRunning srv))
+    (.stop srv)
+    (is (not (.isRunning srv)))
+    (.start srv)
+    (is (.isRunning srv))
+    (is (= "hello" (get-body url)))))
