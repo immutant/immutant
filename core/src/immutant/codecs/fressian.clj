@@ -24,13 +24,9 @@
   (:import java.nio.ByteBuffer))
 
 (defn ^:internal ^:no-doc fressian-codec
-  [& options]
-  (let [{:keys [name content-type read-handlers write-handlers]
-         :or {name :fressian content-type "application/fressian"}}
-        (-> options
-          kwargs-or-map->raw-map
-          (validate-options fressian-codec))
-        fressian-write (try-resolve-throw `clojure.data.fressian/write
+  [{:keys [name content-type read-handlers write-handlers]
+    :or {name :fressian content-type "application/fressian"}}]
+  (let [fressian-write (try-resolve-throw `clojure.data.fressian/write
                          "add org.clojure/data.fressian to your dependencies.")
         fressian-read (try-resolve 'clojure.data.fressian/read)]
     (make-codec
@@ -50,9 +46,6 @@
                   (catch Throwable e
                     (throw (decode-error :fressian data e))))))))
 
-(set-valid-options! fressian-codec #{:name :content-type :type
-                                     :read-handlers :write-handlers})
-
 (defn register-fressian-codec
   "Creates and registers a codec that can be used to encode to/decode from Fressian.
 
@@ -65,6 +58,8 @@
    *not* merged with the default handlers - you are responsible for
    that (as shown in the linked example).
 
+   You must add `org.clojure/data.fressian` as a dependency.
+
    options can be a map or kwargs, with these valid keys [default]:
 
    * :name - the name of the encoding [:fressian]
@@ -74,4 +69,11 @@
    * :read-handlers the full set of handlers to use for reading. If not
      provided, the built-in Fressian defaults are used [nil]"
   [& options]
-  (register-codec (apply fressian-codec options)))
+  (-> options
+    kwargs-or-map->raw-map
+    (validate-options register-fressian-codec)
+    fressian-codec
+    register-codec))
+
+(set-valid-options! register-fressian-codec #{:name :content-type :type
+                                              :read-handlers :write-handlers})
