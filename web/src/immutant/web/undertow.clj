@@ -17,18 +17,33 @@
   (:require [immutant.internal.util :refer [kwargs-or-map->map]])
   (:import [io.undertow Undertow]))
 
-(defn builder
-  "Create an Undertow$Builder instance, from which an Undertow server
-  can be built"
-  [{:keys [host port io-threads worker-threads buffer-size buffers-per-region direct-buffers?]
-    :or {host "localhost" port 8080}}]
-  (cond-> (Undertow/builder)
-    true                         (.addHttpListener port host)
-    io-threads                   (.setIoThreads io-threads)
-    worker-threads               (.setWorkerThreads worker-threads)
-    buffer-size                  (.setBufferSize buffer-size)
-    buffers-per-region           (.setBuffersPerRegion buffers-per-region)
-    (not (nil? direct-buffers?)) (.setDirectBuffers direct-buffers?)))
+(defn tune
+  "Return the passed tuning options with an Undertow$Builder instance
+  set accordingly, mapped to :configuration in the return value"
+  [{:keys [configuration io-threads worker-threads buffer-size buffers-per-region direct-buffers?]
+    :as options}]
+  (let [builder (or configuration (Undertow/builder))]
+    (assoc options
+      :configuration
+      (cond-> builder
+        io-threads                   (.setIoThreads io-threads)
+        worker-threads               (.setWorkerThreads worker-threads)
+        buffer-size                  (.setBufferSize buffer-size)
+        buffers-per-region           (.setBuffersPerRegion buffers-per-region)
+        (not (nil? direct-buffers?)) (.setDirectBuffers direct-buffers?)))))
+
+(defn listen
+  "Return the passed listener-related options with an Undertow$Builder
+  instance set accordingly, mapped to :configuration in the return
+  value. At a minimum, :host and :port are required."
+  [{:keys [configuration host port ssl-context key-managers trust-managers]
+    :as options}]
+  (let [builder (or configuration (Undertow/builder))]
+    (cond
+      ssl-context  (.addHttpsListener builder port host ssl-context)
+      key-managers (.addHttpsListener builder port host key-managers trust-managers)
+      port         (.addHttpListener  builder port host))
+    (assoc options :configuration builder)))
 
 (defn options
   "Takes a map of {{immutant.web/run}} options that includes a subset
@@ -37,5 +52,7 @@
   [& opts]
   (let [options (kwargs-or-map->map opts)]
     (-> options
-      (assoc :configuration (builder options))
-      (dissoc :io-threads :worker-threads :buffer-size :buffers-per-region :direct-buffers?))))
+      tune
+      listen
+      (dissoc :io-threads :worker-threads :buffer-size :buffers-per-region :direct-buffers?
+        :ssl-context :key-managers :trust-managers))))
