@@ -67,3 +67,13 @@
 
 (deftest custom-handlers
   (test-codec {:point (Point. 0 1)} :fressian-point))
+
+(deftest fressian-decode-errors-should-throw-ex-info
+  (let [data (byte-array [0xb0])]
+    (try
+      (decode data :fressian)
+      (is false)
+      (catch clojure.lang.ExceptionInfo e
+        (is (= {:data data
+                :type :decode-exception}
+              (ex-data e)))))))

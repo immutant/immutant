@@ -14,7 +14,8 @@
 
 (ns immutant.codecs.fressian
   "Provides support for using Fressian as an Immutant codec."
-  (:require [immutant.codecs           :refer [make-codec register-codec]]
+  (:require [immutant.codecs           :refer [decode-error make-codec
+                                               register-codec]]
             [immutant.internal.util    :refer [kwargs-or-map->raw-map
                                                try-resolve
                                                try-resolve-throw]]
@@ -47,9 +48,7 @@
                   (and data (apply fressian-read data
                               (if read-handlers [:handlers read-handlers])))
                   (catch Throwable e
-                    (throw (ex-info (format "Invalid fressian-encoded data (type=%s)"
-                                      (class data))
-                             {:data data} e))))))))
+                    (throw (decode-error :fressian data e))))))))
 
 (set-valid-options! fressian-codec #{:name :content-type :type
                                      :read-handlers :write-handlers})

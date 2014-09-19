@@ -75,6 +75,13 @@
   [codec]
   (.add codecs codec))
 
+(defn ^:no-doc decode-error
+  [encoding data cause]
+  (ex-info (format "Invalid %s-encoded data (type=%s): %s"
+             encoding (class data) data)
+    {:data data
+     :type :decode-exception} cause))
+
 (register-codec
   (make-codec
     :name :edn
@@ -84,9 +91,7 @@
                 (try
                   (and data (edn/read-string {:readers (data-readers)} data))
                   (catch Throwable e
-                    (throw (RuntimeException.
-                             (str "Invalid edn-encoded data (type=" (class data) "): " data)
-                             e)))))))
+                    (throw (decode-error :edn data e)))))))
 
 (register-codec
   (make-codec
@@ -103,9 +108,7 @@
                 (try
                   (and data (cheshire-parse-string data true))
                   (catch Throwable e
-                    (throw (RuntimeException.
-                             (str "Invalid json-encoded data (type=" (class data) "): " data)
-                             e))))))))
+                    (throw (decode-error :json data e))))))))
 
 (defn codec-set
   "Returns a set of names for available codecs."

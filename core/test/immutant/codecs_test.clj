@@ -65,3 +65,21 @@
 
 (deftest records-via-none-encoding
   (test-codec (->ARecord :x) :none))
+
+(deftest edn-decode-errors-should-throw-ex-info
+  (try
+    (decode "(" :edn)
+    (is false)
+    (catch clojure.lang.ExceptionInfo e
+      (is (= {:data "("
+              :type :decode-exception}
+            (ex-data e))))))
+
+(deftest json-decode-errors-should-throw-ex-info
+  (try
+    (decode "[" :json)
+    (is false)
+    (catch clojure.lang.ExceptionInfo e
+      (is (= {:data "["
+              :type :decode-exception}
+            (ex-data e))))))
