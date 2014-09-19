@@ -23,14 +23,15 @@
   [{:keys [configuration io-threads worker-threads buffer-size buffers-per-region direct-buffers?]
     :as options}]
   (let [builder (or configuration (Undertow/builder))]
-    (assoc options
-      :configuration
-      (cond-> builder
-        io-threads                   (.setIoThreads io-threads)
-        worker-threads               (.setWorkerThreads worker-threads)
-        buffer-size                  (.setBufferSize buffer-size)
-        buffers-per-region           (.setBuffersPerRegion buffers-per-region)
-        (not (nil? direct-buffers?)) (.setDirectBuffers direct-buffers?)))))
+    (-> options
+      (assoc :configuration
+        (cond-> builder
+          io-threads                   (.setIoThreads io-threads)
+          worker-threads               (.setWorkerThreads worker-threads)
+          buffer-size                  (.setBufferSize buffer-size)
+          buffers-per-region           (.setBuffersPerRegion buffers-per-region)
+          (not (nil? direct-buffers?)) (.setDirectBuffers direct-buffers?)))
+      (dissoc :io-threads :worker-threads :buffer-size :buffers-per-region :direct-buffers?))))
 
 (defn listen
   "Return the passed listener-related options with an Undertow$Builder
@@ -39,11 +40,14 @@
   [{:keys [configuration host port ssl-context key-managers trust-managers]
     :as options}]
   (let [builder (or configuration (Undertow/builder))]
-    (cond
-      ssl-context  (.addHttpsListener builder port host ssl-context)
-      key-managers (.addHttpsListener builder port host key-managers trust-managers)
-      port         (.addHttpListener  builder port host))
-    (assoc options :configuration builder)))
+    (-> options
+      (assoc :configuration
+        (cond
+          ssl-context  (.addHttpsListener builder port host ssl-context)
+          key-managers (.addHttpsListener builder port host key-managers trust-managers)
+          port         (.addHttpListener  builder port host)
+          :default     builder))
+      (dissoc :host :port :ssl-context :key-managers :trust-managers))))
 
 (defn options
   "Takes a map of {{immutant.web/run}} options that includes a subset
@@ -53,6 +57,4 @@
   (let [options (kwargs-or-map->map opts)]
     (-> options
       tune
-      listen
-      (dissoc :io-threads :worker-threads :buffer-size :buffers-per-region :direct-buffers?
-        :ssl-context :key-managers :trust-managers))))
+      listen)))

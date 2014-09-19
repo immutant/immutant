@@ -33,7 +33,7 @@
             :buffer-size 3
             :buffers-per-region 4
             :direct-buffers? false)]
-    (is (= #{:host :port :configuration} (set (keys v))))
+    (is (= [:configuration] (keys v)))
     (are [x expected] (= expected (reflect x (:configuration v)))
          "ioThreads"        1
          "workerThreads"    2
