@@ -24,6 +24,7 @@
                              [org.clojars.jcrossley3/http.async.client _]
                              [stylefruits/gniazdo _]
                              [ring/ring-devel _]
-                             [compojure _]]}}
+                             [compojure _]
+                             [clj-http "0.9.1"]]}}
 
   :test-paths ["test" "test-integration"])

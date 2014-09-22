@@ -20,7 +20,9 @@
             [immutant.web.internal.wunderboss :refer [create-defaults register-defaults]]
             [testing.web           :refer [get-body hello handler]]
             [testing.hello.service :as pedestal]
-            [ring.middleware.resource :refer [wrap-resource]])
+            [ring.middleware.resource :refer [wrap-resource]]
+            [clj-http.client :as http]
+            [immutant.web.undertow :as undertow])
   (:import clojure.lang.ExceptionInfo
            java.net.ConnectException))
 
@@ -225,3 +227,12 @@
     (.start srv)
     (is (.isRunning srv))
     (is (= "hello" (get-body url)))))
+
+(deftest https
+  (run hello (undertow/options
+               :ssl-port 8443
+               :keystore "dev-resources/keystore.jks"
+               :key-password "password"))
+  (let [response (http/get "https://localhost:8443" {:insecure? true})]
+    (is (= (:status response) 200))
+    (is (= (:body response) "hello"))))
