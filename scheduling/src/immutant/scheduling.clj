@@ -102,7 +102,7 @@
             (:singleton opts)
             (not (:id opts)))
       (iu/warn "Singleton job scheduled in a cluster without an :id - job won't really be a singleton. See docs for immutant.scheduling/schedule."))
-    (.schedule scheduler (name id) f
+    (.schedule scheduler (name id) (bound-fn [] (f))
       (extract-options opts Scheduling$ScheduleOption))
     (-> opts
       (update-in [:ids scheduler] conj id)
