@@ -15,7 +15,8 @@
 (ns immutant.web.undertow-test
   (:require [clojure.test :refer :all]
             [immutant.web.undertow :refer :all])
-  (:import [io.undertow Undertow$Builder]))
+  (:import [io.undertow Undertow$Builder]
+           [org.xnio Options SslClientAuthMode]))
 
 (defn reflect
   [field-name instance]
@@ -44,3 +45,13 @@
   (let [v (:configuration (options {:io-threads 44 :direct-buffers? true}))]
     (is (= 44 (reflect "ioThreads" v)))
     (is (= true (reflect "directBuffers" v)))))
+
+(deftest client-authentication
+  (are [in out] (= out (let [c (:configuration (options :client-auth in))]
+                         (-> (reflect "socketOptions" c)
+                           .getMap
+                           (.get Options/SSL_CLIENT_AUTH_MODE))))
+       :want      SslClientAuthMode/REQUESTED
+       :requested SslClientAuthMode/REQUESTED
+       :need      SslClientAuthMode/REQUIRED
+       :required  SslClientAuthMode/REQUIRED))

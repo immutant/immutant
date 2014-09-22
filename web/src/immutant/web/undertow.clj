@@ -16,7 +16,8 @@
   "Advanced options specific to the Undertow web server used by Immutant"
   (:require [immutant.internal.util :refer (kwargs-or-map->map)]
             [immutant.web.ssl :refer (keystore->ssl-context)])
-  (:import [io.undertow Undertow]))
+  (:import [io.undertow Undertow]
+           [org.xnio Options SslClientAuthMode]))
 
 (defn tune
   "Return the passed tuning options with an Undertow$Builder instance
@@ -53,6 +54,22 @@
           port (.addHttpListener port host)))
       (dissoc :host :port :ssl-port :ssl-context :key-managers :trust-managers))))
 
+(defn client-auth
+  "Possible values are :want or :need (:requested and :required are
+  also acceptable)"
+  [{:keys [configuration client-auth] :as options}]
+  (if client-auth
+    (let [builder (or configuration (Undertow/builder))]
+      (-> options
+        (assoc :configuration
+          (case client-auth
+            (:want :requested) (.setSocketOption builder
+                                 Options/SSL_CLIENT_AUTH_MODE SslClientAuthMode/REQUESTED)
+            (:need :required)  (.setSocketOption builder
+                                 Options/SSL_CLIENT_AUTH_MODE SslClientAuthMode/REQUIRED)))
+        (dissoc :client-auth)))
+    options))
+
 (defn ssl-context
   "Assoc an SSLContext given a keystore and a trustore, which may be
   either actual KeyStore instances, or paths to them. If truststore is
@@ -70,5 +87,6 @@
   (let [options (kwargs-or-map->map opts)]
     (-> options
       tune
+      client-auth
       ssl-context
       listen)))
