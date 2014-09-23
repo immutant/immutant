@@ -44,7 +44,14 @@
                  (create-http-handler handler))
                handler)]
     (if (instance? Servlet hdlr)
-      (.registerServlet server hdlr opts)
+      (try
+        (.registerServlet server hdlr opts)
+        (catch IllegalStateException e
+          (if (re-find #"^UT010041" (.getMessage e))
+            (throw (IllegalStateException.
+                     "You can't call immutant.web/run outside of -main inside the container."
+                     e))
+            (throw e))))
       (.registerHandler server hdlr opts))))
 
 (defn ^:internal mounts [opts]

@@ -16,7 +16,7 @@
   (:require [clojure.test :refer :all]
             [testing.web :refer (get-body)]
             [testing.app :refer (run)]
-            [immutant.web :refer (stop)]
+            [immutant.web :refer (stop) :as web]
             [immutant.codecs :refer (decode)]
             [immutant.util :refer (in-container? http-port)]
             [immutant.internal.util :refer [try-resolve]]
@@ -99,3 +99,11 @@
     (is (-> request :session :count))
     (is (map? (:headers request)))
     (is (< 3 (count (:headers request))))))
+
+(when (in-container?)
+  (deftest run-in-container-outside-of-init-should-throw
+    (try
+      (web/run identity)
+      (is false)
+      (catch IllegalStateException e
+        (is (re-find #"^You can't call immutant.web/run outside" (.getMessage e)))))))

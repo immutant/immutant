@@ -63,7 +63,10 @@
    more advanced options than the above. These can be configured by
    passing an Undertow$Builder instance via the :configuration option,
    and that instance is easily constructed from a Clojure map using
-   the {{immutant.web.undertow/options}} function."
+   the {{immutant.web.undertow/options}} function.
+
+   When used inside WildFly, any calls to `run` must be within the
+   initialization function for your application (your `-main`)."
   [handler & options]
   (let [options (->> options
                   kwargs-or-map->map
