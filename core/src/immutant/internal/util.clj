@@ -86,52 +86,6 @@
   `(when (try-import ~sym)
      ~@body))
 
-(defn wait-for
-  "Waits for (t) to be true before invoking f, if passed. Evaluates
-   test every 100 ms attempts times before giving up. Attempts
-   defaults to 300. Passing :forever for attempts will loop until the
-   end of time or (t) is true, whichever comes first."
-  ([t]
-     (wait-for t (constantly true)))
-  ([t f]
-     (wait-for t f 300))
-  ([t f attempts]
-     (let [wait #(Thread/sleep 100)]
-       (cond
-        (t)                   (f)
-        (= :forever attempts) (do
-                                (wait)
-                                (recur t f :forever))
-        (< attempts 0)        (throw (IllegalStateException.
-                                      (str "Gave up waiting for " t)))
-        :default              (do
-                                (wait)
-                                (recur t f (dec attempts)))))))
-
-(defn wait-for-start
-  "Waits for (.isStarted x) to be true before returning or invoking f."
-  ([x]
-     (wait-for-start x (constantly x)))
-  ([x f]
-     (wait-for-start x f 300))
-  ([x f attempts]
-     (wait-for #(.isStarted x) f attempts)))
-
-(defn waiting-derefable
-  "Returns an IDeref/IBlockingDeref that completes the deref and returns x when
-   (t) is true."
-  [t x]
-  (reify
-    clojure.lang.IDeref
-    (deref [_]
-      (wait-for t (constantly x) :forever))
-    clojure.lang.IBlockingDeref
-    (deref [_ ms timeout-val]
-      (try
-        (wait-for t (constantly x) (int (/ ms 100)))
-        (catch IllegalStateException _
-          timeout-val)))))
-
 (defn maybe-deref
   "derefs v if it is derefable, otherwise returns v"
   [v & args]

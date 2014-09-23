@@ -19,7 +19,7 @@
            [javax.net.ssl SSLContext KeyManagerFactory TrustManagerFactory]))
 
 (defn- ^KeyStore load-keystore
-  [keystore password]
+  [keystore ^String password]
   (if (string? keystore)
     (with-open [in (io/input-stream keystore)]
       (doto (KeyStore/getInstance (KeyStore/getDefaultType))

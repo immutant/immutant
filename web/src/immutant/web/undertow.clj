@@ -16,7 +16,7 @@
   "Advanced options specific to the Undertow web server used by Immutant"
   (:require [immutant.internal.util :refer (kwargs-or-map->map)]
             [immutant.web.ssl :refer (keystore->ssl-context)])
-  (:import [io.undertow Undertow]
+  (:import [io.undertow Undertow Undertow$Builder]
            [org.xnio Options SslClientAuthMode]))
 
 (defn tune
@@ -24,7 +24,7 @@
   set accordingly, mapped to :configuration in the return value"
   [{:keys [configuration io-threads worker-threads buffer-size buffers-per-region direct-buffers?]
     :as options}]
-  (let [builder (or configuration (Undertow/builder))]
+  (let [^Undertow$Builder builder (or configuration (Undertow/builder))]
     (-> options
       (assoc :configuration
         (cond-> builder
@@ -45,7 +45,7 @@
     :as options}]
   (when (and ssl-port (every? nil? [ssl-context key-managers]))
     (throw (IllegalArgumentException. "Either :ssl-context or :key-managers is required for SSL")))
-  (let [builder (or configuration (Undertow/builder))]
+  (let [^Undertow$Builder builder (or configuration (Undertow/builder))]
     (-> options
       (assoc :configuration
         (cond-> builder
@@ -59,7 +59,7 @@
   also acceptable)"
   [{:keys [configuration client-auth] :as options}]
   (if client-auth
-    (let [builder (or configuration (Undertow/builder))]
+    (let [^Undertow$Builder builder (or configuration (Undertow/builder))]
       (-> options
         (assoc :configuration
           (case client-auth

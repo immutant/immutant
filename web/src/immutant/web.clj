@@ -18,7 +18,7 @@
                                                validate-options extract-options]]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
             [immutant.web.internal.wunderboss :as internal])
-  (:import [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
+  (:import [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
 (defn run
   "Runs `handler` with the given `options`.
@@ -90,9 +90,9 @@
                kwargs-or-map->map
                (validate-options run "stop"))
         contexts (:contexts opts {(internal/server opts) [(internal/mounts opts)]})
-        stopped (some boolean (doall (for [[s os] contexts, o os]
+        stopped (some boolean (doall (for [[^Web s os] contexts, o os]
                                        (.unregister s (extract-options o Web$RegisterOption)))))]
-    (doseq [server (keys contexts)]
+    (doseq [^Web server (keys contexts)]
       (if (empty? (.registeredContexts server))
         (.stop server)))
     stopped))

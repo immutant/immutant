@@ -56,7 +56,7 @@
   (let [vars# (mapv ->var vars)]
     `(set (mapcat valid-options-for ~vars#))))
 
-(defn keywordize [v]
+(defn keywordize [^String v]
   (keyword (.replace v \_ \-)))
 
 (defn ->underscored-string [v]
