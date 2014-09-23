@@ -90,7 +90,10 @@
   scheduler configured with the default options. If you pass scheduler
   options on a subsequent call, you will get a different scheduler
   configured with those options. The same scheduler will be used for any
-  future `schedule` calls with those same scheduler options."
+  future `schedule` calls with those same scheduler options.
+
+  If you need to capture any bindings in effect when the job is
+  scheduled, wrap `f` in a call to `bound-fn`."
   [f & spec]
   (let [opts (->> spec
                iu/kwargs-or-map->map
