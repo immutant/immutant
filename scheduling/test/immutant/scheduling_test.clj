@@ -27,18 +27,9 @@
        (stop {:id x}))
      (%)))
 
-(def ^:dynamic *some-value* :unbound)
-
 (deftest scheduling-should-work
   (let [p (promise)]
     (schedule #(deliver p :success) {})
-    (is (= :success (deref p 10000 :failure)))))
-
-(deftest fn-should-preserve-bindings
-  (let [p (promise)]
-    (binding [*some-value* :success]
-      (schedule
-        #(deliver p *some-value*) {}))
     (is (= :success (deref p 10000 :failure)))))
 
 (deftest scheduling-should-take-kwargs
