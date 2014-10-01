@@ -179,10 +179,10 @@
     (is (= :success (receive q :timeout 100 :timeout-val :success)))))
 
 (deftest remote-connection-should-work
+  (queue "remote" :durable false)
   (let [extra-connect-opts
         (when (u/in-container?)
-          [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])
-        no-connection-q (queue "remote" :durable false)]
+          [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
     (with-open [c (apply connection :host "localhost" :port (u/messaging-remoting-port)
                     extra-connect-opts)]
       (let [q (queue "remote" :connection c)]
@@ -190,10 +190,7 @@
         (= :hi (receive q :timeout 100 :timeout-val :failure))
         (with-open [s (session :connection c)]
           (publish q :hi :session s)
-          (= :hi (receive q :session s :timeout 100 :timeout-val :failure)))
-        (with-open [s (session :connection c)]
-          (publish no-connection-q :hi :session s)
-          (= :hi (receive no-connection-q :session s :timeout 100 :timeout-val :failure)))))))
+          (= :hi (receive q :session s :timeout 100 :timeout-val :failure)))))))
 
 (deftest publish-from-a-listener-should-work
   (let [q (queue "pub-listener" :durable false)
