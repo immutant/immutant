@@ -36,19 +36,19 @@
     (spit f port)
     (.deleteOnExit f)))
 
-(defn ^:private nrepl-interface-port [server]
+(defn ^:private nrepl-host-port [server]
   (let [ss (-> server deref :ss)]
     [(-> ss .getInetAddress .getHostAddress) (.getLocalPort ss)]))
 
 (defn stop
   "Stop the REPL"
   [server]
-  (iu/info (apply format "Shutting down nREPL at %s:%s" (nrepl-interface-port server)))
+  (iu/info (apply format "Shutting down nREPL at %s:%s" (nrepl-host-port server)))
   (.close server))
 
 (defn start
-  "Fire up a repl bound to interface/port"
-  [{:keys [interface port port-file] :or {interface "localhost", port 0}}]
+  "Fire up a repl bound to host/port"
+  [{:keys [host port port-file] :or {host "localhost", port 0}}]
   (let [{:keys [nrepl-middleware nrepl-handler]}
         (-> (wu/options) (get "repl-options" "{}") read-string)]
     (when (and nrepl-middleware nrepl-handler)
@@ -61,8 +61,8 @@
                               (symbol? %) (iu/require-resolve %)
                               (list? %) (eval %)))
                       (apply nrepl/default-handler)))
-          server (nrepl/start-server :port port :bind interface :handler handler)]
+          server (nrepl/start-server :port port :bind host :handler handler)]
       (u/at-exit (partial stop server))
-      (let [[interface bound-port] (nrepl-interface-port server)]
-        (iu/info (format "nREPL bound to %s:%s" interface bound-port))
+      (let [[host bound-port] (nrepl-host-port server)]
+        (iu/info (format "nREPL bound to %s:%s" host bound-port))
         (spit-nrepl-files bound-port port-file)))))
