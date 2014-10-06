@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.web.ssl
-  "A few SSL-related utilities, typically invoked via {{immutant.web.undertow/options}}"
+  "A few SSL-related utilities, typically invoked via [[immutant.web.undertow/options]]"
   (:require [clojure.java.io :as io])
   (:import [java.security KeyStore]
            [javax.net.ssl SSLContext KeyManagerFactory TrustManagerFactory]))

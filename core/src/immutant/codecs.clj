@@ -23,8 +23,8 @@
    * :none - performs no encoding
 
    You can enable :fressian encoding by calling
-   {{immutant.codecs.fressian/register-fressian-codec}}, or make custom
-   codecs with {{make-codec}}."
+   [[immutant.codecs.fressian/register-fressian-codec]], or make custom
+   codecs with [[make-codec]]."
   (:require [clojure.tools.reader.edn :as edn]
             [clojure.tools.reader     :as r]
             [immutant.internal.util   :refer [kwargs-or-map->map try-resolve
@@ -71,7 +71,7 @@
 (defn register-codec
   "Registers a codec for use.
 
-   `codec` should be the result of {{make-codec}}."
+   `codec` should be the result of [[make-codec]]."
   [codec]
   (.add codecs codec))
 

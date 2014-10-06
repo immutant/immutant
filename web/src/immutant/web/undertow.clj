@@ -80,7 +80,7 @@
     (dissoc :keystore :key-password :truststore :trust-password)))
 
 (defn options
-  "Takes a map of {{immutant.web/run}} options that includes a subset
+  "Takes a map of [[immutant.web/run]] options that includes a subset
   of Undertow-specific ones and replaces them with an Undertow$Builder
   instance associated with :configuration"
   [& opts]

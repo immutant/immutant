@@ -36,15 +36,17 @@
   "Returns the destination controller for `destination`.
 
    `destination` should be the result of calling
-   {{immutant.messaging/queue}} or {{immutant.messaging/topic}}.
+   [[immutant.messaging/queue]] or [[immutant.messaging/topic]].
 
    The returned controller depends on the type of the given
    destination and, for queues, the requested control-type (which
-   defaults to :jms) (`destination`, `control-type` - controller type):
+   defaults to :jms):
 
-   * queue, :jms - [JMSQueueControl](http://docs.jboss.org/hornetq/2.4.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/JMSQueueControl.html)
-   * queue, :core - [QueueControl](http://docs.jboss.org/hornetq/2.4.0.Final/docs/api/hornetq-client/org/hornetq/api/core/management/QueueControl.html)
-   * topic, `_` - [TopicControl](http://docs.jboss.org/hornetq/2.4.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/TopicControl.html)
+   | Destination Type | Control Type | Controller Type |
+   |------------------|--------------|-----------------|
+   | queue            | :jms         | [JMSQueueControl](http://docs.jboss.org/hornetq/2.4.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/JMSQueueControl.html) |
+   | queue            | :core        | [QueueControl](http://docs.jboss.org/hornetq/2.4.0.Final/docs/api/hornetq-client/org/hornetq/api/core/management/QueueControl.html) |
+   | topic            | N/A          | [TopicControl](http://docs.jboss.org/hornetq/2.4.0.Final/docs/api/hornetq-jms-client/org/hornetq/api/jms/management/TopicControl.html) |
 
    Refer to the javadocs for those control classes for details on the
    available operations."
@@ -104,8 +106,8 @@
 
    This provides programatic access to options that are normally set
    in the xml configuration. `match` must be either a destination
-   returned from {{immutant.messaging/queue}} or
-   {{immutant.messaging/topic}}, or a fully qualified jms destination
+   returned from [[immutant.messaging/queue]] or
+   [[immutant.messaging/topic]], or a fully qualified jms destination
    name (prefixed with 'jms.queue.' or 'jms.topic.'). It may contain
    HornetQ wildcard matchers (see
    http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/wildcard-syntax.html).

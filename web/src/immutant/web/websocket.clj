@@ -73,11 +73,11 @@
   "Middleware to attach websocket callbacks to a Ring handler.
   Technically, it's \"endware\" since its return type is not a
   function, but an object expected to be passed to
-  {{immutant.web/run}}, so all other middleware should precede this
+  [[immutant.web/run]], so all other middleware should precede this
   call in the chain.
 
   The following callbacks are supported, where `channel` is an object
-  extended to {{Channel}}, `handshake` is extended to {{Handshake}},
+  extended to [[Channel]], `handshake` is extended to [[Handshake]],
   `throwable` is a Java exception, and `message` may be either a
   `String` or a `byte[]`:
 

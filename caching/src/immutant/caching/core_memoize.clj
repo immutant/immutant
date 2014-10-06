@@ -58,7 +58,7 @@
   "Memoize a function by associating its arguments with return values
    stored in a possibly-clustered Infinispan-backed cache. Other than
    the function to be memoized, arguments are the same as for
-   {{immutant.caching/cache}}"
+   [[immutant.caching/cache]]"
   [f name & {:as options}]
   (let [cache (cache name (validate-options options cache memo))]
     (build-memoizer

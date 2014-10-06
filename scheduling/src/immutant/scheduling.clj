@@ -26,17 +26,17 @@
 (defn schedule
   "Schedules a function to run according to a specification composed from any of the following:
 
-  * {{in}} - a period after which f will be called
-  * {{at}} - a time after which f will be called
-  * {{every}} - the period between calls
-  * {{until}} - stops the calls at a specific time
-  * {{limit}} - limits the calls to a specific count
-  * {{cron}} - calls f according to a [Quartz-style](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06) cron spec
+  * [[in]] - a period after which f will be called
+  * [[at]] - a time after which f will be called
+  * [[every]] - the period between calls
+  * [[until]] - stops the calls at a specific time
+  * [[limit]] - limits the calls to a specific count
+  * [[cron]] - calls f according to a [Quartz-style](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06) cron spec
 
   Units for periods are milliseconds, but can also be represented as a
   keyword or a sequence of multiplier/keyword pairs,
   e.g. `[1 :week, 4 :days, 2 :hours, 30 :minutes, 59 :seconds]`.
-  See {{every}} for the list of valid period keywords.
+  See [[every]] for the list of valid period keywords.
 
   Time values can be a `java.util.Date`, a long denoting
   milliseconds-since-epoch, or a String in `HH:mm` format, interpreted
@@ -118,7 +118,7 @@
   "Unschedule a scheduled job.
 
   Options can be passed as either a map or kwargs, but is typically the
-  map returned from a {{schedule}} call. If there are no jobs remaining on
+  map returned from a [[schedule]] call. If there are no jobs remaining on
   the scheduler the scheduler itself is stopped. Returns true if a job
   was actually removed."
   [& options]
@@ -137,43 +137,43 @@
 (defoption ^{:arglists '([n] [kw] [n kw & n-kws])} in
   "Specifies the period after which the job will fire, in
   milliseconds, a period keyword, or multiplier/keyword pairs, e.g.
-  `(in 5 :minutes 30 :seconds)`. See {{every}} for the list of valid
-   period keywords. See {{schedule}}.")
+  `(in 5 :minutes 30 :seconds)`. See [[every]] for the list of valid
+   period keywords. See [[schedule]].")
 
 (defoption ^{:arglists '([date] [ms] [HHmm])} at
   "Takes a time after which the job will fire, so it will run
   immediately if the time is in the past; can be a `java.util.Date`,
   millis-since-epoch, or a String in `HH:mm` format. See
-  {{schedule}}.")
+  [[schedule]].")
 
 (defoption ^{:arglists '([n] [kw] [n kw & n-kws])} every
   "Specifies a period between function calls, in milliseconds, a
   period keyword, or multiplier/keyword pairs, e.g.
   `(every 1 :hour 20 :minutes)`.  Both singular and plural versions of
   :second, :minute, :hour, :day, and :week are valid period keywords.
-  See {{schedule}}.")
+  See [[schedule]].")
 
 (defoption ^{:arglists '([date] [ms] [HHmm])} until
-  "When {{every}} is specified, this limits the invocations by time;
+  "When [[every]] is specified, this limits the invocations by time;
   can be a `java.util.Date`, millis-since-epoch, or a String in
   `HH:mm` format, e.g. `(-> (every :hour) (until \"17:00\"))`. When
-  combined with {{limit}}, whichever triggers first ends the
-  iteration. See {{schedule}}.")
+  combined with [[limit]], whichever triggers first ends the
+  iteration. See [[schedule]].")
 
 (defoption ^{:arglists '([n])} limit
-  "When {{every}} is specified, this limits the invocations by count,
+  "When [[every]] is specified, this limits the invocations by count,
   including the first one, e.g. `(-> (every :hour) (limit 10))`. When
-  combined with {{until}}, whichever triggers first ends the
-  iteration. See {{schedule}}.")
+  combined with [[until]], whichever triggers first ends the
+  iteration. See [[schedule]].")
 
 (defoption ^{:arglists '([str])} cron
   "Takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ? * WED\")`,
    see the [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
-   for the syntax. See {{schedule}}.")
+   for the syntax. See [[schedule]].")
 
 (defoption ^{:arglists '([boolean])} singleton
   "If true (the default), only one instance of a given job name will
-   run in a cluster. See {{schedule}}.")
+   run in a cluster. See [[schedule]].")
 
 (defoption ^{:arglists '([str])} id
-  "Takes a String or keyword to use as the unique id for the job. See {{schedule}}.")
+  "Takes a String or keyword to use as the unique id for the job. See [[schedule]].")

@@ -63,7 +63,7 @@
    more advanced options than the above. These can be configured by
    passing an Undertow$Builder instance via the :configuration option,
    and that instance is easily constructed from a Clojure map using
-   the {{immutant.web.undertow/options}} function.
+   the [[immutant.web.undertow/options]] function.
 
    When used inside WildFly, any calls to `run` must be within the
    initialization function for your application (your `-main`)."
@@ -82,8 +82,8 @@
   "Stops a running handler.
 
   `options` can be passed as a map or kwargs, but is typically the map
-  returned from a {{run}} call. If that return value is not available, you
-  can pass the same options map passed to {{run}} for the handler you want
+  returned from a [[run]] call. If that return value is not available, you
+  can pass the same options map passed to [[run]] for the handler you want
   to stop. If options isn't provided, the handler at the root context
   path (\"/\") of the default server will be stopped. If there are no
   handlers remaining on the server, the server itself is stopped.
@@ -103,9 +103,9 @@
 (defmacro run-dmc
   "Run in Development Mode (the 'C' is silent).
 
-   This macro invokes {{run}} after ensuring the passed handler is
+   This macro invokes [[run]] after ensuring the passed handler is
    var-quoted, with reload and stacktrace middleware applied, and then
-   opens the app in a browser. Supports the same options as {{run}}."
+   opens the app in a browser. Supports the same options as [[run]]."
   [handler & options]
   (let [handler (if (and (symbol? handler)
                       (not (get &env handler))
@@ -116,7 +116,7 @@
 
 (defn server
   "Returns the web server instance associated with a particular set of
-   options, typically the map returned from a {{run}} call. The web
+   options, typically the map returned from a [[run]] call. The web
    server provides `start`, `stop` and `isRunning` methods, allowing
    you to, for example, temporarily stop serving requests for all the
    handlers running on a particular server.

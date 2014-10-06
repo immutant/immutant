@@ -39,7 +39,7 @@
     (f)))
 
 (defn reset-fixture
-  "Invokes `f`, then calls {{reset}} if not {{in-container?}}.
+  "Invokes `f`, then calls [[reset]] if not [[in-container?]].
 
    Useful as a test fixture where you want to reset underlying state
    after a test run, but also run the same tests in-container (via fntest
@@ -95,7 +95,7 @@
     5445))
 
 (defn app-relative
-  "Returns an absolute file relative to {{app-root}}."
+  "Returns an absolute file relative to [[app-root]]."
   [& path]
   (if-let [root (app-root)]
     (apply io/file root path)

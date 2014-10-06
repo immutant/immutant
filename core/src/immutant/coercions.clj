@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.coercions
-  "Defines {{AsPeriod}} and {{AsTime}} protocols for schedule specifications"
+  "Defines [[AsPeriod]] and [[AsTime]] protocols for schedule specifications"
   (:import (java.util Calendar Date)))
 
 ;;; Periods

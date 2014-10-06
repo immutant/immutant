@@ -30,8 +30,8 @@
    an extension of `java.util.concurrent.ConcurrentMap`. A name is the
    only required argument. If a cache by that name already exists, it
    will be returned, and any options passed to this function will be
-   ignored. To force reconfiguration, call {{stop}} before calling
-   {{cache}}.
+   ignored. To force reconfiguration, call [[stop]] before calling
+   [[cache]].
 
    The following groups of options are supported, each listed with its
    [default] value. A negative value for any numeric option means
@@ -70,9 +70,9 @@
    slight performance increase at the risk of potential cache
    inconsistency.
 
-   * :mode - replication mode [:dist-sync or :local] one of :local,
+   * :mode - replication mode, one of :local,
              :repl-sync, :repl-async, :invalidation-sync,
-             :invalidation-async, :dist-sync, :dist-async
+             :invalidation-async, :dist-sync, :dist-async [:dist-sync or :local]
 
    Transactions: caches can participate in transactions when a
    TransactionManager is available. The locking scheme may be either
@@ -83,7 +83,7 @@
 
    Advanced configuration: the options listed above are the most
    commonly configured, but Infinispan has many more buttons,
-   switches, dials, knobs and levers. Call the {{builder}} function to
+   switches, dials, knobs and levers. Call the [[builder]] function to
    create your own Configuration instance and pass it in via the
    :configuration option.
 
@@ -159,7 +159,7 @@
   (boolean (.find (component) name)))
 
 (defn stop
-  "Removes a cache, allowing it to be reconfigured by the {{cache}}
+  "Removes a cache, allowing it to be reconfigured by the [[cache]]
   function."
   [cache-or-name]
   (if (instance? org.infinispan.Cache cache-or-name)
@@ -171,7 +171,7 @@
   [ConfigurationBuilder](https://docs.jboss.org/infinispan/6.0/apidocs/org/infinispan/configuration/cache/ConfigurationBuilder.html).
   Set the desired options, and invoke its build method, the result
   from which can be passed via the :configuration option of the
-  {{cache}} function. For example:
+  [[cache]] function. For example:
 
   ```
   (let [config (.. (builder :ttl [30 :minutes])
@@ -179,7 +179,7 @@
     (cache \"L1\" :configuration config))
   ```
 
-  Note that builder takes the same options as {{cache}} so you can
+  Note that builder takes the same options as [[cache]] so you can
   concisely initialize it with Clojure, and use Java interop to set
   the more esoteric options"
   [& options]

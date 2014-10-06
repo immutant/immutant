@@ -241,7 +241,7 @@
                        base message object is passed [true]
      * :connection   - a connection to use; caller expected to close [nil]
 
-   Returns a listener object that can be stopped by passing it to {{stop}}, or by
+   Returns a listener object that can be stopped by passing it to [[stop]], or by
    calling .close on it."
   [destination f & options]
   (let [options (-> options
@@ -260,9 +260,9 @@
   "Send `message` to `queue` and return a Future that will retrieve the response.
 
    Implements the request-response pattern, and is used in conjunction
-   with {{respond}}.
+   with [[respond]].
 
-   It takes the same options as {{publish}}."
+   It takes the same options as [[publish]]."
   [queue message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -279,10 +279,10 @@
     (delegating-future future decode-with-metadata)))
 
 (defn respond
-  "Listen for messages on `queue` sent by the {{request}} function and
+  "Listen for messages on `queue` sent by the [[request]] function and
    respond with the result of applying `f` to the message.
 
-   Accepts the same options as {{listen}}, along with [default]:
+   Accepts the same options as [[listen]], along with [default]:
 
      * :ttl  - time for the response mesage to live, in millis [60000 (1 minute)]"
   [queue f & options]
@@ -319,10 +319,10 @@
                        javax.jms.Message object is passed [true]
      * :connection   - a connection to use; caller expected to close [nil]
 
-   Returns a listener object that can can be stopped by passing it to {{stop}}, or by
+   Returns a listener object that can can be stopped by passing it to [[stop]], or by
    calling .close on it.
 
-   Subscriptions should be torn down when no longer needed - see {{unsubscribe}}."
+   Subscriptions should be torn down when no longer needed - see [[unsubscribe]]."
   [topic subscription-name f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -342,7 +342,7 @@
    If no connection is provided, a new connection is created for this
    action. If a connection is provided, it must have its :client-id set
    to the same value used when creating the subscription. See
-   {{subscribe}}.
+   [[subscribe]].
 
    The following options are supported [default]:
 

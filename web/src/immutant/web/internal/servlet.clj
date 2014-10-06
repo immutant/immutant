@@ -85,9 +85,9 @@
 
   The following callbacks are supported, where `channel` is an
   instance of `javax.websocket.Session`, extended to the
-  {{immutant.web.websocket/Channel}} protocol, and `handshake` is an
+  [[immutant.web.websocket/Channel]] protocol, and `handshake` is an
   instance of `javax.websocket.server.HandshakeRequest`, extended to
-  {{immutant.web.websocket/Handshake}}:
+  [[immutant.web.websocket/Handshake]]:
 
     * :on-message `(fn [channel message])`
     * :on-open    `(fn [channel handshake])`

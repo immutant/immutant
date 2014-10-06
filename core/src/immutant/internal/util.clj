@@ -67,7 +67,7 @@
                "Unable to resolve a valid symbol from the given list.")))))
 
 (defn try-resolve-throw
-  "Tries to resolve `sym` via {{try-resolve}}, throwing with `message` on failure."
+  "Tries to resolve `sym` via [[try-resolve]], throwing with `message` on failure."
   [sym message]
   (if-let [v (try-resolve sym)]
     v

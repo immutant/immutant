@@ -20,7 +20,7 @@
    step to have multiple processing threads, and to be automatically
    load balanced across a cluster.
 
-   The {{pipeline}} function takes a unique (within the scope of the
+   The [[pipeline]] function takes a unique (within the scope of the
    application) name, one or more single-arity functions, and optional
    kwarg options, returning a function that places its argument onto
    the pipeline when called. The resulting pipeline-fn optionally
@@ -266,7 +266,7 @@
    * :error-handler       an error handler function that can override the
                           pipeline setting [nil]
    * :fanout?             applies the fanout fn to the result of the step.
-                          See {{fanout}} for more details [false]
+                          See [[fanout]] for more details [false]
    * :step-deref-timeout  the amount of time to wait when dereferencing
                           the result of the step if it returns a delay,
                           in ms. Overrides the pipeline setting [10 seconds]"
@@ -358,7 +358,7 @@
 (defn stop
   "Destroys a pipeline.
 
-   `pl` can either be the pipeline fn returned by {{pipeline}}, or the
+   `pl` can either be the pipeline fn returned by [[pipeline]], or the
    name of the pipeline.
 
    Typically not necessary since it will be done for you when your app
