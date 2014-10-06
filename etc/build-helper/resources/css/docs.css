@@ -1,27 +1,6 @@
-.doc code, .doc pre {
-  background-color: #f6f6f6;
-  border-radius: 3px;
-  border: 1px solid #e4e4e4;
-  padding: 2px;
-}
-
 code code, pre code {
   padding: 0 !important;
   border: 0 !important;
-}
-
-.doc pre {
-    padding: 5px;
-    display: inline-block;
-}
-
-div.doc {
-  margin-bottom: 10px;
-}
-
-div.doc p, div.doc li {
-  font-size: 14px;
-  line-height: 1.7em;
 }
 
 div.public {

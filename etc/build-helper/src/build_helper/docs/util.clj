@@ -13,16 +13,14 @@
 ;; limitations under the License.
 
 (ns build-helper.docs.util
-  (:require [clojure.java.io   :as io]
-            [clojure.string :as str]
-            [clojure.walk      :as walk]
-            [codox.utils       :as cu]
+  (:require [clojure.java.io      :as io]
+            [clojure.string       :as str]
+            [clojure.walk         :as walk]
+            [codox.utils          :as cu]
             [codox.reader.clojure :as cr]
-            [codox.writer.html :as html]
-            [hiccup.element    :refer [link-to javascript-tag unordered-list]]
-            [hiccup.core       :refer [h]]
-            [hiccup.page       :as hp]
-            [markdown.core     :as md])
+            [codox.writer.html    :as html]
+            hiccup.page
+            [robert.hooke         :as bob])
   (:import java.io.File))
 
 (defn generate-index [root-path target-path src-paths]
@@ -51,13 +49,31 @@
                       (.startsWith (:doc %) "Factory function"))) entry)
     entry))
 
+(defn fn-link->code [text]
+  (when text
+    (str/replace text #"(\[\[.*?\]\])"
+      (fn [[_ link]]
+        (format "<code>%s</code>" link)))))
+
+(defn set-format-on-vars [entry]
+  (if (map? entry)
+    (assoc entry :doc/format :markdown)
+    entry))
+
+(defn massage-docstring [entry]
+  (if (map? entry)
+    (update-in entry [:doc] fn-link->code)
+    entry))
+
 (defn load-index [options file]
   (println "Processing" (.getAbsolutePath file))
   (walk/postwalk
    (fn [entry]
      (->> entry
        (fix-path-entry options)
-       hide-deftype-and-defrecord-factories))
+       hide-deftype-and-defrecord-factories
+       set-format-on-vars
+       massage-docstring))
    (read-string (slurp file))))
 
 (defn load-indexes
@@ -69,107 +85,29 @@
      (sort-by :name
        (mapcat (partial load-indexes options) (cons dir dirs)))))
 
+(defn keyword->code [text]
+  (when text
+    (str/replace text #"([^a-zA-Z0-9])(:[:0-9a-zA-Z?+_?-]+)"
+      (fn [[_ prefix kw]]
+        (format "%s<code>%s</code>" prefix kw)))))
+
+;; we have to wrap keywords as code *after* markdown processing, else
+;; the graves-within-graves confuses things
+(defn format-doc-with-post-processing [f project ns var]
+  (update-in (f project ns var) [1] keyword->code))
+
+(defn add-custom-css-ref [content]
+  (str/replace content #"</head>" "<link href=\"css/docs.css\" rel=\"stylesheet\" type=\"text/css\"></head>"))
+
+(defn render-with-post-processing [f & args]
+  (-> (apply f args)
+    add-custom-css-ref))
+
 (def codox-options
   {:name "Immutant"
    :src-dir-uri "https://github.com/immutant/immutant/tree/"
    :src-linenum-anchor-prefix "L"
    :description "The public API for Immutant."})
-
-(defn fn->code-link [namespace text state]
-  [(str/replace text #"\{\{(.*?)\}\}"
-     (fn [[_ v]]
-       (let [parts (str/split v #"/")
-             [ns var] (if (> (count parts) 1) parts [(:name namespace) (first parts)])]
-         (format "<code><a href=\"%s.html#var-%s\">%s</a></code>" ns var var))))
-   state])
-
-(defn keyword->code [text state]
-  [(str/replace text #"([^a-zA-Z0-9])(:[:0-9a-zA-Z?+_?-]+)"
-     (fn [[_ prefix kw]]
-       (format "%s<code>%s</code>" prefix kw))) state])
-
-(defn default->em [text state]
-  [(str/replace text #"(\[.*?\])(:?\s*)$"
-     (fn [[_ default postfix]]
-       (format "<em>%s</em>%s" default postfix))) state])
-
-(defn md->html [namespace content]
-  (md/md-to-html-string content
-    :custom-transformers [(partial fn->code-link namespace) keyword->code default->em]))
-
-
-
-;; pulled from codox so we can easily apply markdown to the docstrings
-
-(def default-includes
-  (list
-    [:meta {:charset "UTF-8"}]
-    (hp/include-css "css/default.css")
-    (hp/include-css "css/docs.css")
-    (hp/include-js "js/jquery.min.js")
-    (hp/include-js "js/page_effects.js")))
-
-(defn header [project]
-  [:div#header
-   [:h2 (link-to "http://immutant.org/" "Immutant Home")]
-   [:h1 (link-to "index.html" (h (#'html/project-title project)))]])
-
-(defn- var-docs [namespace var & [source-link]]
-  [:div.public.anchor {:id (h (#'html/var-id var))}
-   [:h3 (h (:name var))]
-   (if-not (= (:type var) :var)
-     [:h4.type (name (:type var))])
-   (if-let [added (:added var)]
-     [:h4.added "added in " added])
-   (if-let [deprecated (:deprecated var)]
-     [:h4.deprecated "deprecated" (if (string? deprecated) (str " in " deprecated))])
-   [:div.usage
-    (for [form (#'html/var-usage var)]
-      [:code (h (pr-str form))])]
-   [:div.doc (md->html namespace (:doc var))]
-   (if-let [members (seq (:members var))]
-     [:div.members
-      [:h4 "members"]
-      [:div.inner (map (partial var-docs namespace) members)]])
-   (if source-link [:div.src-link source-link])])
-
-(defn- namespace-page [project namespace]
-  (hp/html5
-    [:head
-     default-includes
-     [:title (h (:name namespace)) " documentation"]]
-   [:body
-    (header project)
-    (#'html/namespaces-menu project namespace)
-    (#'html/vars-menu namespace)
-    [:div#content.namespace-docs
-     [:h2#top.anchor (h (:name namespace))]
-     [:div.doc (md->html namespace (:doc namespace))]
-     (for [var (#'html/sorted-public-vars namespace)]
-       (var-docs namespace var (#'html/var-source-link project var)))]]))
-
-(defn- index-page [project]
-  (hp/html5
-   [:head
-    default-includes
-    [:title (h (#'html/project-title project)) " API documentation"]]
-   [:body
-    (header project)
-    (#'html/namespaces-menu project)
-    [:div#content.namespace-index
-     [:h2 (h (#'html/project-title project))]
-     [:div.doc (h (:description project))]
-     (for [namespace (sort-by :name (:namespaces project))]
-       [:div.namespace
-        [:h3 (link-to (#'html/ns-filename namespace) (h (:name namespace)))]
-        [:div.doc (md->html namespace (:doc namespace))]
-        [:div.index
-         [:p "Public variables and functions:"]
-         (unordered-list
-           (for [var (#'html/sorted-public-vars namespace)]
-             (link-to (#'html/var-uri namespace var) (h (:name var)))))]])]]))
-
-;; end pullage
 
 (defn cp [rsrc dest]
   (-> rsrc
@@ -178,17 +116,18 @@
     (io/copy (io/file dest rsrc))))
 
 (defn generate-docs [{:keys [version target-path base-dirs] :as options}]
+  (bob/add-hook #'html/format-doc #'format-doc-with-post-processing)
+  (bob/add-hook #'html/index-page #'render-with-post-processing)
+  (bob/add-hook #'html/namespace-page #'render-with-post-processing)
+
   (let [target-dir (.getCanonicalPath (io/file target-path "apidocs"))]
     (println "Generating api docs to" target-dir "...")
-    (with-redefs [html/namespace-page namespace-page
-                  html/index-page index-page
-                  html/var-docs var-docs]
-      (-> codox-options
-        (update-in [:src-dir-uri] str (if (re-find #"SNAPSHOT|incremental" version)
-                                        "thedeuce"
-                                        version))
-        (assoc :version version
-               :namespaces (apply load-indexes options base-dirs)
-               :output-dir target-dir)
-        (html/write-docs)))
+    (-> codox-options
+      (update-in [:src-dir-uri] str (if (re-find #"SNAPSHOT|incremental" version)
+                                      "thedeuce"
+                                      version))
+      (assoc :version version
+             :namespaces (apply load-indexes options base-dirs)
+             :output-dir target-dir)
+      (html/write-docs))
     (cp "css/docs.css" target-dir)))
