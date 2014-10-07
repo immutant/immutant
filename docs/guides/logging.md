@@ -66,13 +66,14 @@ need to exclude Logback and bring in your preferred implementation
 along with the related SLF4J bridge. For example, to use [Log4j], you
 can modify your `:dependencies` like so:
 
-<pre class="syntax clojure">
+```clojure
+
   :dependencies [...
                  [org.immutant/immutant "2.x.incremental.284"
                    :exclusions [ch.qos.logback/logback-classic]]
                  [org.apache.logging.log4j/log4j-core "2.0.2"]
                  [org.apache.logging.log4j/log4j-slf4j-impl "2.0.2"]]
-</pre>
+```
 
 For more information on using other logging implementations with
 SLF4J, see the [SLF4J manual].
@@ -129,9 +130,9 @@ application. Then, add the following to it:
 Second, in order for your custom resources to be included in the war
 file, you'll need to add the following to your `project.clj`:
 
-<pre class="syntax clojure">
+```clojure
   :immutant {:war {:resource-paths ["war-resources"]}}
-</pre>
+```
 
 Once you disable the logging subsystem, you can now provide a custom
 `logback.xml` as we discussed above, with one important difference -

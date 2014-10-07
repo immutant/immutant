@@ -66,20 +66,20 @@ If you haven't already, you should read through the [installation]
 guide and require the `immutant.scheduling` namespace at a REPL to
 follow along:
 
-```
+```clojure
 (require '[immutant.scheduling :refer :all])
 ```
 
 We'll need a job to schedule. Here's one!
 
-```
+```clojure
 (defn job []
   (prn 'fire!))
 ```
 
 Let's schedule it:
 
-```
+```clojure
 (schedule job)
 ```
 
@@ -87,13 +87,13 @@ That was pretty useless. Without a spec, the job will be immediately
 called asynchronously on one of the Quartz scheduler's threads.
 Instead, let's have it run in 5 minutes:
 
-```
+```clojure
 (schedule job (in 5 :minutes))
 ```
 
 And maybe run again every second after that:
 
-```
+```clojure
 (schedule job
   (-> (in 5 :minutes)
     (every :second)))
@@ -101,7 +101,7 @@ And maybe run again every second after that:
 
 But no more than 60 times:
 
-```
+```clojure
 (schedule job
   (-> (in 5 :minutes)
     (every :second)
@@ -111,7 +111,7 @@ But no more than 60 times:
 We could also anticipate getting stupid bored about halfway through,
 and schedule another job to cancel the first one:
 
-```
+```clojure
 (let [it (schedule job
            (-> (in 5 :minutes)
              (every :second)
@@ -121,7 +121,7 @@ and schedule another job to cancel the first one:
 
 Of course, you can bring your own job id's if you like:
 
-```
+```clojure
 (schedule job (-> (id :purge) (every 30 :minutes)))
 (schedule job (-> (id :purge) (every :hour)))  ; reschedule
 (stop (id :purge))
@@ -136,7 +136,7 @@ functions are just assoc'ing keys corresponding to their names. The
 map can be passed either explicitly or via keyword arguments, so all
 of the following are equivalent:
 
-```
+```clojure
 (schedule job (-> (in 5 :minutes) (every :day)))
 (schedule job {:in [5 :minutes], :every :day})
 (schedule job :in [5 :minutes], :every :day)
@@ -149,7 +149,7 @@ the [immutant.scheduling.joda] namespace. This will extend
 `org.joda.time.DateTime` instances to the [AsTime] protocol, enabling
 them to be used as arguments to `at` and `until`, e.g.
 
-```
+```clojure
 (require '[clj-time.core :refer [today-at plus hours]])
 
 (let [t (today-at 9 00)]
@@ -169,13 +169,13 @@ interesting alternative to traditional cron specs. For example,
 consider a job that must run at 10am every weekday. Here's how we'd
 schedule that with a [Quartz-style] cron spec:
 
-```
+```clojure
 (schedule job (cron "0 0 10 ? * MON-FRI"))
 ```
 
 And here's the same schedule using a lazy sequence:
 
-```
+```clojure
 (require '[immutant.scheduling.joda :refer [schedule-seq]]
          '[clj-time.core            :refer [today-at days]]
          '[clj-time.periodic        :refer [periodic-seq]]

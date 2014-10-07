@@ -62,13 +62,13 @@ below, so we'll go ahead and add
 Then, fire up a REPL, and require the `immutant.messaging` namespace
 to follow along:
 
-```
+```clojure
 (require '[immutant.messaging :refer :all])
 ```
 
 First, let's create a queue:
 
-```
+```clojure
 (queue "my-queue")
 ```
 
@@ -76,7 +76,7 @@ That will create the queue in the HornetQ broker for us. We'll need a
 reference to that queue to operate on it. Let's go ahead and store
 that reference in a var:
 
-```
+```clojure
 (def q (queue "my-queue"))
 ```
 
@@ -86,13 +86,13 @@ we're just grabbing a reference to it.
 Now, let's register a listener on our queue. Let's just print every
 message we get:
 
-```
+```clojure
 (def listener (listen q println))
 ```
 
 We can publish to that queue, and see that the listener gets called:
 
-```
+```clojure
 (publish q {:hi :there})
 ```
 
@@ -102,7 +102,7 @@ will be encoded using [edn]. We also support other encodings, namely:
 `:fressian`, `:json`, and `:none`. We can choose a different encoding
 by passing an :encoding option to `publish`:
 
-```
+```clojure
 (publish q {:hi :there} :encoding :json)
 ```
 
@@ -113,7 +113,7 @@ enable them, respectively.
 We passed our options to `publish` as keyword arguments, but they can
 also be passed as a map:
 
-```
+```clojure
 (publish q {:hi :there} {:encoding :json})
 ```
 
@@ -128,7 +128,7 @@ destination from the name alone.
 We can deregister the listener by either passing it to `stop` or
 calling `.close` on it:
 
-```
+```clojure
 (stop listener)
 ;; identical to
 (.close listener)
@@ -138,7 +138,7 @@ Now let's take a look at synchronous messaging. Let's create a new
 queue for this (you'll want to use a dedicated queue for each
 responder) and register a responder that just increments the request:
 
-```
+```clojure
 (def sync-q (queue "sync"))
 
 (def responder (respond sync-q inc))
@@ -147,7 +147,7 @@ responder) and register a responder that just increments the request:
 Then, we make a request, which returns a [Future] that we can
 dereference:
 
-```
+```clojure
 @(request sync-q 1)
 ```
 

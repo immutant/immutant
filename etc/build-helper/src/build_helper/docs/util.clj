@@ -100,7 +100,7 @@
   (update-in (f project ns var) [1] keyword->code))
 
 (defn add-custom-css-ref [content]
-  (str/replace content #"</head>" "<link href=\"css/docs.css\" rel=\"stylesheet\" type=\"text/css\"></head>"))
+  (str/replace content #"</head>" "<link href=\"assets/immutant.css\" rel=\"stylesheet\" type=\"text/css\"></head>"))
 
 (defn render-with-post-processing [f & args]
   (-> (apply f args)
@@ -146,7 +146,10 @@
 (defn wrap-template [guides current target-dir content]
   (-> (make-template target-dir)
     (str/replace "{{CONTENT}}" (add-content-header current content))
-    (str/replace (format "%s-current" (:title current)) "current")))
+    (str/replace (format "%s-current" (:title current)) "current")
+    (str/replace  "</body>"
+      (str "<script src=\"assets/jquery.syntax.min.js\" type=\"text/javascript\"></script>"
+        "<script src=\"assets/immutant.js\" type=\"text/javascript\"></script></body>"))))
 
 (def ^:dynamic *guides*)
 
@@ -201,10 +204,12 @@
    :description "The public API for Immutant."})
 
 (defn cp [rsrc dest]
-  (-> rsrc
-    io/resource
-    io/input-stream
-    (io/copy (io/file dest rsrc))))
+  (let [dest-file (io/file dest rsrc)]
+    (.mkdirs (.getParentFile dest-file))
+    (-> rsrc
+      io/resource
+      io/input-stream
+      (io/copy dest-file))))
 
 (defn generate-docs [{:keys [version target-path base-dirs guides-dir] :as options}]
   (bob/add-hook #'html/format-doc #'format-doc-with-post-processing)
@@ -225,5 +230,15 @@
                :namespaces (apply load-indexes options base-dirs)
                :output-dir target-dir)
         (html/write-docs))
-      (cp "css/docs.css" target-dir)
+      (doseq [f ["assets/immutant.css"
+                 "assets/immutant.js"
+                 "assets/jquery.syntax.brush.lisp.js"
+                 "assets/jquery.syntax.cache.js"
+                 "assets/jquery.syntax.core.css"
+                 "assets/jquery.syntax.core.js"
+                 "assets/jquery.syntax.js"
+                 "assets/jquery.syntax.layout.plain.css"
+                 "assets/jquery.syntax.layout.plain.js"
+                 "assets/jquery.syntax.min.js"]]
+        (cp f target-dir))
       (render-guides options guides target-dir))))

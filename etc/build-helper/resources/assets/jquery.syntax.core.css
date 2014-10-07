@@ -1,0 +1,46 @@
+.syntax {
+  font-family: Menlo, Monaco, Consolas, monospace;
+  line-height: 1.5em; }
+  .syntax .function {
+    color: #3333ff; }
+  .syntax .keyword, .syntax .access {
+    color: #a90d91; }
+  .syntax .type {
+    color: #3239a6;
+    font-weight: bold; }
+  .syntax .comment {
+    color: #66aacc;
+    font-style: italic; }
+  .syntax .constant {
+    color: #1c00ce; }
+  .syntax .string {
+    color: #c41a15; }
+  .syntax .string .escape {
+    color: #ff9999; }
+  .syntax .operator {
+    color: black; }
+  .syntax .href {
+    color: #0e0eff;
+    text-decoration: underline; }
+  .syntax .variable {
+    color: #3e6d74; }
+  .syntax .highlight {
+    background-color: #fdfdba; }
+  .syntax pre {
+    overflow: auto;
+    font-family: inherit; }
+
+.syntax-container {
+  position: relative; }
+  .syntax-container .toolbar {
+    font-size: 80%;
+    text-align: right;
+    padding: 0 0.2em 0.2em; }
+    .syntax-container .toolbar a {
+      margin-left: 1em; }
+  .syntax-container pre.raw {
+    overflow: auto;
+    padding: 0 0.4em 0 !important;
+    margin: 0 !important;
+    background-color: #f0f0f0;
+    border: 1px solid #aaaaaa; }

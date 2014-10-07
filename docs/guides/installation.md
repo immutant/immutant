@@ -12,21 +12,23 @@ for [The Deuce].
 You simply declare the libraries as dependencies in your project, the
 same way you would any other Clojure library. For example:
 
-<pre class="syntax clojure">(defproject some-project "1.2.3"
+```clojure
+(defproject some-project "1.2.3"
   ...
   :dependencies [[org.immutant/web "{{version}}"]
                  [org.immutant/caching "{{version}}"]
                  [org.immutant/messaging "{{version}}"]
                  [org.immutant/scheduling "{{version}}"]])
-</pre>
+```
 
 We're bringing in the artifacts piecemeal above, but we also provide
 an aggregate that brings them all in transitively:
 
-<pre class="syntax clojure">(defproject some-project "1.2.3"
+```clojure
+(defproject some-project "1.2.3"
   ...
   :dependencies [[org.immutant/immutant "{{version}}"]]
-</pre>
+```
 
 The API docs for the latest release are always available at:
 
@@ -41,12 +43,13 @@ Our CI server publishes an [incremental release][builds] for each
 successful build. In order to use an incremental build, you'll need to
 add a repository to your `project.clj`:
 
-<pre class="syntax clojure">(defproject some-project "1.2.3"
+```clojure
+(defproject some-project "1.2.3"
   ...
   :dependencies [[org.immutant/immutant "2.x.incremental.BUILD_NUMBER"]]
   :repositories [["Immutant 2.x incremental builds"
                   "http://downloads.immutant.org/incremental/"]])
-</pre>
+```
 
 You should replace **BUILD_NUMBER** with the actual build number
 for the version you want to use. You can obtain this from our [builds]

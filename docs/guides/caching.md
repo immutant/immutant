@@ -60,7 +60,7 @@ over the simple Java interop Clojure provides anyway.
 Because they implement `java.util.Map`, Clojure's core functions are
 all you need to read data from an Immutant cache.
 
-```
+```clojure
 
   (def bar (immutant.caching/cache "bar"))
   (.putAll bar {:a 1, :b {:c 3, :d 4}})
@@ -94,7 +94,7 @@ the cache to callers. Internally, it uses the [ConcurrentMap] methods,
 `replace` to swap values with existing entries, and `putIfAbsent` when
 the entry doesn't exist.
 
-```
+```clojure
 
   (def foo (cache "foo"))
 
@@ -106,7 +106,7 @@ the entry doesn't exist.
 
 Of course, plain ol' interop works, too:
 
-```
+```clojure
 
   ;; Put an entry in the cache
   (.put foo :a 1)
@@ -133,7 +133,7 @@ Of course, plain ol' interop works, too:
 Cache entries can be explicitly deleted using Java interop, but they
 can also be subject to automatic expiration and eviction.
 
-```
+```clojure
 
   ;; Removing a missing key is harmless
   (.remove baz :missing)                  ;=> nil
@@ -169,7 +169,7 @@ specified, whichever elapses first "wins" and triggers expiration.
 It's possible to vary the `:ttl` and `:idle` times among entries in a
 single cache using the `with-expiration` function:
 
-```
+```clojure
 
   (def baz (cache "baz", :ttl [5 :minutes], :idle [1 :minute]))
   (.putAll baz {:a 1 :b 2 :c 3})
@@ -189,7 +189,7 @@ entries in memory are always a finite subset of those on disk.
 The default eviction policy is [:lirs], which is an optimized version
 of `:lru` (Least Recently Used).
 
-```
+```clojure
 
   (def baz (cache "baz", :max-entries 3))
   (.putAll baz {:a 1 :b 2 :c 3})
@@ -212,7 +212,7 @@ Encoding entries is typically necessary only when non-clojure clients
 are sharing your cache. And if you wish to store nil keys or values, a
 codec is required.
 
-```
+```clojure
 
   (def baz (cache "baz"))
   (def encoded (with-codec baz :edn))
@@ -241,7 +241,7 @@ must declare a dependency on [core.memoize].
 Here's a contrived example showing how memoization incurs the expense
 of calling a slow function only once:
 
-```
+```clojure
   (defn slow-fn [& _]
     (Thread/sleep 5000)
     42)

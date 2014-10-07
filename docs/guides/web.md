@@ -53,7 +53,7 @@ If you haven't already, you should read through the [installation]
 guide and require the `immutant.web` namespace at a REPL to follow
 along:
 
-```
+```clojure
 (require '[immutant.web :refer :all])
 ```
 
@@ -65,7 +65,7 @@ Ring-based library, yours will be associated with the `:handler` key
 of your `:ring` map in your `project.clj` file. Of course, a far less
 fancy handler will suffice:
 
-```
+```clojure
 (defn app [request]
   {:status 200
    :body "Hello world!"})
@@ -73,20 +73,20 @@ fancy handler will suffice:
 
 To make the app available at <http://localhost:8080/>, do this:
 
-```
+```clojure
 (run app)
 ```
 
 Which, if we make the default values explicit, is equivalent to this:
 
-```
+```clojure
 (run app {:host "localhost" :port 8080 :path "/"})
 ```
 
 Or, since `run` takes options as either an explicit map or keyword
 arguments (kwargs), this:
 
-```
+```clojure
 (run app :host "localhost" :port 8080 :path "/")
 ```
 
@@ -96,32 +96,32 @@ handler: `http://{host}:{port}{path}`
 To replace your `app` handler with another, just call run again with
 the same options, and it'll replace the old handler with the new:
 
-```
+```clojure
 (run (fn [_] {:status 200 :body "hi!"}))
 ```
 
 To stop the handler, do this:
 
-```
+```clojure
 (stop)
 ```
 
 Which is equivalent to this:
 
-```
+```clojure
 (stop {:host "localhost" :port 8080 :path "/"})
 ```
 
 Or like `run`, if you prefer kwargs, this:
 
-```
+```clojure
 (stop :host "localhost" :port 8080 :path "/")
 ```
 
 Alternatively, you can save the return value from `run` and pass it to
 stop to stop your handler.
 
-```
+```clojure
 (def server (run app {:port 4242 :path "/hello"}))
 ...
 (stop server)
@@ -137,7 +137,7 @@ bound, which may not be publicly accessible. You can extend access to
 other hosts using the `:virtual-host` option, which takes either a
 single hostname or multiple:
 
-```
+```clojure
 (run app :virtual-host "yourapp.com")
 (run app :virtual-host ["app.io" "app.us"])
 ```
@@ -151,7 +151,7 @@ The `run` function returns a map that includes the options passed to
 it, so you can thread `run` calls together, useful when your
 application runs multiple handlers. For example,
 
-```
+```clojure
 (def everything (-> (run hello)
                   (assoc :path "/howdy")
                   (->> (run howdy))
@@ -166,13 +166,13 @@ and one serving `ola` responses on port 8081.
 You can stop all three apps (and shutdown the two web servers) like
 so:
 
-```
+```clojure
 (stop everything)
 ```
 
 Alternatively, you could stop only the `ola` app like so:
 
-```
+```clojure
 (stop {:path "/" :port 8081})
 ```
 
@@ -187,7 +187,7 @@ also pass any valid implementation of `javax.servlet.Servlet` or
 `io.undertow.server.HttpHandler`. For an example of the former, here's
 a very simple [Pedestal] service running on Immutant:
 
-```
+```clojure
 (ns testing.hello.service
   (:require [io.pedestal.http :as http]
             [io.pedestal.http.route.definition :refer [defroutes]]
@@ -228,7 +228,7 @@ The valid websocket event keywords and their corresponding callback
 signatures are as follows, where channel is an instance of the
 `Channel` protocol, and handshake is an instance of `Handshake`:
 
-```
+```clojure
   :on-message (fn [channel message])
   :on-open    (fn [channel handshake])
   :on-close   (fn [channel {:keys [code reason]}])
@@ -240,7 +240,7 @@ To create your websocket endpoint, pass the result from
 asynchronously returns the upper-cased equivalent of whatever message
 it receives:
 
-```
+```clojure
 (ns whatever
   (:require [immutant.web             :as web]
             [immutant.web.websocket   :as ws]
@@ -284,7 +284,7 @@ handler. Here's a contrived example in which the Ring handler stores a
 random id in the session that is then sent back to the user when he
 opens a WebSocket:
 
-```
+```clojure
 (ns whatever
   (:require [immutant.web             :as web]
             [immutant.web.websocket   :as ws]

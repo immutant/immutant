@@ -15,10 +15,19 @@ div.guide-content .description {
   padding-bottom: 10px;
 }
 
+div.guide-content h2 {
+  font-weight: bold;
+  font-size: 20px;
+}
+
 h2.shrunk {
   font-size: 20px;
 }
 
 #guide-index table {
   margin-top: 10px;
+}
+
+.sidebar li.guide {
+  margin-left: 5px;
 }
