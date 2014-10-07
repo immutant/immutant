@@ -19,9 +19,12 @@
             [codox.utils          :as cu]
             [codox.reader.clojure :as cr]
             [codox.writer.html    :as html]
-            hiccup.page
-            [robert.hooke         :as bob])
-  (:import java.io.File))
+            [robert.hooke         :as bob]
+            [hiccup.core          :as hc]
+            [hiccup.element       :as he]
+            [clostache.parser     :as cp])
+  (:import java.io.File
+           [org.pegdown Extensions PegDownProcessor]))
 
 (defn generate-index [root-path target-path src-paths]
   (let [index (io/file target-path "codox-index.clj")]
@@ -103,6 +106,94 @@
   (-> (apply f args)
     add-custom-css-ref))
 
+(def pegdown
+  (PegDownProcessor.
+   (bit-or Extensions/AUTOLINKS
+           Extensions/QUOTES
+           Extensions/SMARTS
+           Extensions/STRIKETHROUGH
+           Extensions/TABLES
+           Extensions/FENCED_CODE_BLOCKS
+           Extensions/DEFINITIONS
+           Extensions/ABBREVIATIONS)
+   2000))
+
+(defn render-markdown [content]
+  (.markdownToHtml pegdown content))
+
+(defn guides-menu [guides]
+  [:div#guides
+   [:h3 (he/link-to "index.html" [:span.inner "Guides"])]
+   [:ul
+    (for [{:keys [title output-file]} (sort-by :sequence guides)]
+      [:li {:class (str "guide " title "-current")}
+       (he/link-to output-file [:div.inner [:span title]])])]])
+
+(defn make-template
+  [target-dir]
+  (-> (slurp (io/file target-dir "index.html"))
+    (str/replace
+      #"(<div class=\"namespace-index\" id=\"content\">).*?(</body>)"
+      "<div class='namespace-index guide' id='content'><div class='markdown doc'>{{CONTENT}}</div></div></body>")))
+
+(defn add-content-header [{:keys [title description]} content]
+  (hc/html
+    [:div.guide-content
+     [:h1 (str title " Guide")]
+     [:div.description [:span description]]
+     content]))
+
+(defn wrap-template [guides current target-dir content]
+  (-> (make-template target-dir)
+    (str/replace "{{CONTENT}}" (add-content-header current content))
+    (str/replace (format "%s-current" (:title current)) "current")))
+
+(def ^:dynamic *guides*)
+
+(defn add-guides-menu [f & args]
+  (let [menu (apply f args)]
+    (apply vector
+      (first menu)
+      (guides-menu *guides*)
+      (rest menu))))
+
+(defn parse-guide [file]
+  (let [[_ metadata & content] (str/split (slurp file) #"---")
+        filename (.getName file)]
+    (assoc (read-string metadata)
+      :source-file file
+      :content (str/join content)
+      :output-file (str "guide-" (subs filename 0 (- (.length filename) 2)) "html"))))
+
+(defn parse-guides [guide-dir]
+  (for [f (file-seq guide-dir)
+        :when (.endsWith (.getName f) ".md")]
+    (parse-guide f)))
+
+(defn render-guides [options guides target-dir]
+  (doseq [{:keys [source-file content output-file] :as guide} guides]
+    (println "Rendering" (.getName source-file) "to" (str target-dir "/" output-file))
+    (->>
+      (cp/render content options)
+      render-markdown
+      (wrap-template guides guide target-dir)
+      (spit (io/file target-dir output-file)))))
+
+(defn guide-index [guides]
+  (hc/html
+    [:div#guide-index.markdown.doc
+     [:h2.shrunk "Guides"]
+     [:table
+      (for [{:keys [title description output-file]} (sort-by :sequence guides)]
+        [:tr
+         [:td
+          (he/link-to output-file [:span title])]
+         [:td [:span.description description]]])]]
+    [:h2.shrunk "Namespaces"]))
+
+(defn index-with-guide-index [f & args]
+  (str/replace (apply f args)  #"(id=\"content\"><h2>.*?</h2>)" (str "$1" (guide-index *guides*))))
+
 (def codox-options
   {:name "Immutant"
    :src-dir-uri "https://github.com/immutant/immutant/tree/"
@@ -115,19 +206,24 @@
     io/input-stream
     (io/copy (io/file dest rsrc))))
 
-(defn generate-docs [{:keys [version target-path base-dirs] :as options}]
+(defn generate-docs [{:keys [version target-path base-dirs guides-dir] :as options}]
   (bob/add-hook #'html/format-doc #'format-doc-with-post-processing)
   (bob/add-hook #'html/index-page #'render-with-post-processing)
+  (bob/add-hook #'html/index-page #'index-with-guide-index)
   (bob/add-hook #'html/namespace-page #'render-with-post-processing)
+  (bob/add-hook #'html/namespaces-menu #'add-guides-menu)
 
-  (let [target-dir (.getCanonicalPath (io/file target-path "apidocs"))]
-    (println "Generating api docs to" target-dir "...")
-    (-> codox-options
-      (update-in [:src-dir-uri] str (if (re-find #"SNAPSHOT|incremental" version)
-                                      "thedeuce"
-                                      version))
-      (assoc :version version
-             :namespaces (apply load-indexes options base-dirs)
-             :output-dir target-dir)
-      (html/write-docs))
-    (cp "css/docs.css" target-dir)))
+  (let [target-dir (.getCanonicalPath (io/file target-path "apidocs"))
+        guides (parse-guides (io/file guides-dir))]
+    (binding [*guides* guides]
+      (println "Generating api docs to" target-dir "...")
+      (-> codox-options
+        (update-in [:src-dir-uri] str (if (re-find #"SNAPSHOT|incremental" version)
+                                        "thedeuce"
+                                        version))
+        (assoc :version version
+               :namespaces (apply load-indexes options base-dirs)
+               :output-dir target-dir)
+        (html/write-docs))
+      (cp "css/docs.css" target-dir)
+      (render-guides options guides target-dir))))

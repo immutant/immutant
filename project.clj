@@ -28,7 +28,8 @@
                                 (pjstadig.humane-test-output/activate!)]}
              :integs {}}
 
-  :aliases {"docs-from-index" ["build-helper" "docs" "generate" "caching" "core" "messaging" "scheduling" "web" "wildfly"]
+  :aliases {"docs-from-index" ["build-helper" "docs" "generate" "docs/guides"
+                               "caching" "core" "messaging" "scheduling" "web" "wildfly"]
             "docs" ["do" "modules" "doc-index" "," "docs-from-index"]}
   :modules  {:subprocess false
              :inherited {:repositories [["projectodd-upstream"
@@ -61,7 +62,7 @@
                          :license {:name "Apache Software License - v 2.0"
                                    :url "http://www.apache.org/licenses/LICENSE-2.0"
                                    :distribution :repo}
-                         :plugins [[org.immutant/build-helper "0.1.8"]]
+                         :plugins [[org.immutant/build-helper "0.2.0"]]
                          :hooks [build-helper.plugin.pom/hooks]
 
                          :signing {:gpg-key "BFC757F9"}

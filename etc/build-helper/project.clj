@@ -13,13 +13,14 @@
 ;; limitations under the License.
 
 ;; *** NOTE: update the version in docs.clj when you change it here ***
-(defproject org.immutant/build-helper "0.1.8"
+(defproject org.immutant/build-helper "0.2.0"
   :description "A plugin to aid in building Immutant"
   :url "https://github.com/immutant/immutant"
   :license {:name "Apache Software License - v 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"
             :distribution :repo}
   :dependencies [[codox/codox.core "0.8.10"]
-                 [robert/hooke "1.3.0"]]
+                 [robert/hooke "1.3.0"]
+                 [de.ubercode.clostache/clostache "1.4.0"]]
   :eval-in-leiningen true
   :signing {:gpg-key "BFC757F9"})
