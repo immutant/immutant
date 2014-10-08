@@ -90,6 +90,7 @@
    Options that apply to both local and remote connections are [default]:
 
    * :client-id - identifies the client id for use with a durable topic subscriber [nil]
+   * :xa - if true, returns an XA connection for use in a distributed transaction [false]
 
    Options that apply to only remote connections are [default]:
 
@@ -168,14 +169,16 @@
      * :persistent - whether undelivered messages survive restarts [true]
      * :properties - a map to which selectors may be applied, overrides metadata [nil]
      * :connection - a connection to use; caller expected to close [nil]
-     * :session    - a session to use; caller expected to close [nil]"
+     * :session    - a session to use; caller expected to close [nil]
+     * :xa         - boolean denoting whether a new XA connection be used [false]"
   [destination message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-connection :session)
                   (merge-connection destination)
                   (o/validate-options publish)
-                  (update-in [:properties] #(or % (meta message))))
+                  (update-in [:properties] #(or % (meta message)))
+                  (as-> m (if (:xa m) (assoc m :connection Connection/XA) m)))
         coerced-options (o/extract-options options Destination$SendOption)
         ^Destination dest (:destination destination)]
     (.send dest message (codecs/lookup-codec (:encoding options :edn))
@@ -183,7 +186,7 @@
 
 (o/set-valid-options! publish
   (conj (o/opts->set Destination$SendOption)
-    :encoding))
+    :encoding :xa))
 
 (defn receive
   "Receive a message from `destination`.
@@ -204,13 +207,15 @@
      * :decode?      - if true, the decoded message body is returned. Otherwise, the
                        base message object is returned [true]
      * :connection   - a connection to use; caller expected to close [nil]
-     * :session      - a session to use; caller expected to close [nil]"
+     * :session      - a session to use; caller expected to close [nil]
+     * :xa           - boolean denoting whether a new XA connection be used [false]"
   [destination & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-connection :session)
                   (merge-connection destination)
-                  (o/validate-options receive))
+                  (o/validate-options receive)
+                  (as-> m (if (:xa m) (assoc m :connection Connection/XA) m)))
         ^Message message (.receive ^Destination (:destination destination)
                            codecs/codecs
                            (o/extract-options options Destination$ReceiveOption))]
@@ -222,7 +227,7 @@
 
 (o/set-valid-options! receive
   (conj (o/opts->set Destination$ReceiveOption)
-    :decode? :encoding :timeout-val))
+    :decode? :encoding :timeout-val :xa))
 
 (defn listen
   "Registers `f` to receive each message sent to `destination`.
@@ -240,6 +245,7 @@
      * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
                        base message object is passed [true]
      * :connection   - a connection to use; caller expected to close [nil]
+     * :xa           - boolean denoting whether a new XA connection be used [false]
 
    Returns a listener object that can be stopped by passing it to [[stop]], or by
    calling .close on it."
@@ -247,14 +253,15 @@
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-connection destination)
-                  (o/validate-options listen))]
+                  (o/validate-options listen)
+                  (as-> m (if (:xa m) (assoc m :connection Connection/XA) m)))]
     (.listen ^Destination (:destination destination)
       (message-handler f (:decode? options true))
       codecs/codecs
       (o/extract-options options Destination$ListenOption))))
 
 (o/set-valid-options! listen
-  (conj (o/opts->set Destination$ListenOption) :decode?))
+  (conj (o/opts->set Destination$ListenOption) :decode? :xa))
 
 (defn request
   "Send `message` to `queue` and return a Future that will retrieve the response.
