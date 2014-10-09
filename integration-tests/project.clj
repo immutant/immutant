@@ -14,7 +14,7 @@
 
 (defproject org.immutant/integs "2.0.0-SNAPSHOT"
   :plugins [[lein-modules "0.3.9"]
-            [lein-immutant "2.0.0-alpha1"]]
+            [lein-immutant "2.0.0-SNAPSHOT"]]
   :dependencies [[org.immutant/immutant _]
                  [org.immutant/wildfly _]]
   :aliases {"all" ^:replace ["do" "clean," "test"]}
@@ -44,4 +44,4 @@
              :caching [:integ-base :integ-caching]
              :transactions [:integ-base :integ-transactions]
 
-             :integs [:web :messaging :caching :scheduling]})
+             :integs [:web :messaging :caching :scheduling :transactions]})
