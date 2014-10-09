@@ -36,10 +36,12 @@
                          :resource-paths ["../web/dev-resources"]
                          :test-paths ["../web/test-integration"]
                          :main integs.web}
+             :integ-transactions {:test-paths ["../transactions/test"]}
 
              :web [:integ-base :integ-web]
              :scheduling [:integ-base :integ-scheduling]
              :messaging [:integ-base :integ-messaging]
              :caching [:integ-base :integ-caching]
+             :transactions [:integ-base :integ-transactions]
 
              :integs [:web :messaging :caching :scheduling]})

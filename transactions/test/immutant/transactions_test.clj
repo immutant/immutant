@@ -21,12 +21,12 @@
             [immutant.caching   :as csh]))
 
 (set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
+(def queue (msg/queue "/queue/test" :durable false))
+(def cache (csh/cache "tx-test" :transactional true))
 
 (use-fixtures :each
-  reset-fixture
   (fn [f]
-    (def queue (msg/queue "/queue/test" :durable false))
-    (def cache (csh/cache "tx-test" :transactional true))
+    (.clear cache)
     (f)))
 
 (defn attempt-transaction-external [& [f]]

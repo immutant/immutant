@@ -19,4 +19,5 @@
   :dependencies [[org.immutant/caching _]
                  [org.immutant/messaging _]
                  [org.immutant/scheduling _]
-                 [org.immutant/web _]])
+                 [org.immutant/web _]
+                 [org.immutant/transactions _]])
