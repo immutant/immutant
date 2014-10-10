@@ -194,10 +194,10 @@
 
 (deftest publish-from-a-listener-should-work
   (let [q (queue "pub-listener" :durable false)
-        p (promise)
-        l (listen q #(deliver p %))]
+        q2 (queue "pub-response" :durable false)
+        l (listen q #(publish q2 %))]
     (try
       (publish q :ham)
-      (is (= :ham (deref p 1000 :failure)))
+      (is (= :ham (receive q2 :timeout 1000 :timeout-val :failure)))
       (finally
         (.close l)))))
