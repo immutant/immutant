@@ -154,12 +154,51 @@ dereference:
 The responder is just a fancy listener, and can be deregistered the
 same way as a listener.
 
+## Remote connections
+
+To connect to a remote HornetQ instance, you'll need to create a
+connection (via the
+[connection](immutant.messaging.html#var-connection) function), and
+use it when getting a reference to the destination:
+
+```clojure
+(with-open [connection (connection :host "some-host" :port 5445)]
+  (publish
+    (queue "foo" :connection connection)
+    "a message"))
+```
+
+A few things to note about the above example:
+
+* We're using `with-open` because you need to close any connections you make
+* We're passing the connection to `queue`, which causes `queue` to
+  just return a reference to the remote queue, *without* asking
+  HornetQ to create it. You'll need to make sure it already exists.
+* We don't need to pass the connection to `publish`, since it will
+  reuse the connection that was used to create the destination
+  reference.
+
+## Reusing sessions
+
+By default, Immutant creates a new session object for each `publish`,
+`request` or `receive` call. Creating a session isn't free, and incurs
+some performance overhead. If you plan on calling any of those
+functions in a tight loop, you can gain some performance by creating
+the session yourself (via the
+[session](immutant.messaging.html#var-session) function):
+
+```clojure
+(with-open [session (session)]
+  (let [q (queue "foo")]
+    (dotimes [n 10000]
+      (publish q n :session session))))
+```
+
 ## More to come
 
 That was just a brief introduction to the messaging API. There are
 features we've yet to cover (durable topic subscriptions,
-connection/session sharing, transactional sessions, remote
-connections)...
+transactional sessions)...
 
 [HornetQ]: http://hornetq.jboss.org/
 [API]: immutant.messaging.html
