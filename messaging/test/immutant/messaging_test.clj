@@ -193,11 +193,36 @@
           (= :hi (receive q :session s :timeout 100 :timeout-val :failure)))))))
 
 (deftest publish-from-a-listener-should-work
-  (let [q (queue "pub-listener" :durable false)
-        q2 (queue "pub-response" :durable false)
+  (let [q (random-queue)
+        q2 (random-queue)
         l (listen q #(publish q2 %))]
     (try
       (publish q :ham)
       (is (= :ham (receive q2 :timeout 1000 :timeout-val :failure)))
+      (finally
+        (.close l)))))
+
+(deftest publish-from-a-listener-that-throws-should-fail
+  (let [q (random-queue)
+        q2 (random-queue)
+        l (listen q (fn [m]
+                      (publish q2 m)
+                      (throw (Exception. "expected exception"))))]
+    (try
+      (publish q :failure)
+      (is (= :success (receive q2 :timeout 1000 :timeout-val :success)))
+      (finally
+        (.close l)))))
+
+(deftest publish-from-a-non-transacted-listener-that-throws-should-succeed
+  (let [q (random-queue)
+        q2 (random-queue)
+        l (listen q (fn [m]
+                      (publish q2 m)
+                      (throw (Exception. "expected exception")))
+            :transacted false)]
+    (try
+      (publish q :success)
+      (is (= :success (receive q2 :timeout 1000 :timeout-val :failure)))
       (finally
         (.close l)))))
