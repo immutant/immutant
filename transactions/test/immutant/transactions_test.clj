@@ -67,3 +67,10 @@
   (is (= "force rollback" (attempt-transaction-internal #(throw (Exception. "force rollback")))))
   (is (nil? (msg/receive queue :timeout 1000)))
   (is (nil? (:a cache))))
+
+(deftest transactional-receive
+  (msg/publish queue "foo")
+  (required
+    (msg/receive queue :xa true)
+    (.setRollbackOnly manager))
+  (is (= "foo" (msg/receive queue :timeout 1000))))
