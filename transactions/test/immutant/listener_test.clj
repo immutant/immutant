@@ -23,8 +23,9 @@
 (msg/queue "remote" :durable false)
 (def conn (if (in-container?)
             (msg/connection :host "localhost" :port (messaging-remoting-port)
-              :username "testuser" :password "testuser" :remote-type :hornetq-wildfly)
-            (msg/connection :host "localhost")))
+              :username "testuser" :password "testuser" :remote-type :hornetq-wildfly
+              :xa true)
+            (msg/connection :host "localhost" :xa true)))
 (def remote-queue (msg/queue "remote" :connection conn))
 (def trigger (msg/queue "/queue/trigger" :durable false))
 (def cache (csh/cache "tx-test" :transactional true))
@@ -56,8 +57,8 @@
 (deftest transactional-writes-in-listener-should-work
   (with-open [_ (msg/listen trigger listener)]
     (msg/publish trigger {:tx? true})
-    (is (= "kiwi" (msg/receive queue)))
-    (is (= "starfruit" (msg/receive remote-queue)))
+    (is (= "kiwi" (msg/receive queue :timeout 1000)))
+    (is (= "starfruit" (msg/receive remote-queue :timeout 1000)))
     (is (= 1 (:a cache)))))
 
 (deftest transactional-writes-in-listener-should-fail-on-exception
@@ -89,4 +90,3 @@
           (loop [i 10, v []] (if (zero? i) v (recur (dec i) (conj v (msg/receive queue :timeout 1000)))))))
     (is (= (take 10 (repeat "starfruit"))
           (loop [i 10, v []] (if (zero? i) v (recur (dec i) (conj v (msg/receive remote-queue :timeout 1000)))))))))
-

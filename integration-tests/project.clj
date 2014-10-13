@@ -44,4 +44,4 @@
              :caching [:integ-base :integ-caching]
              :transactions [:integ-base :integ-transactions]
 
-             :integs [:web :messaging :caching :scheduling :transactions]})
+             :integs [:web :messaging :caching :scheduling]})

@@ -83,8 +83,8 @@
                         compojure                  "1.1.8"
 
                         ;; org.projectodd.wunderboss  "0.1.0"
-                        org.projectodd.wunderboss  "1.x.incremental.143"
-                        ;; org.projectodd.wunderboss  "0.2.0-SNAPSHOT"
+                        org.projectodd.wunderboss  "1.x.incremental.144"
+                        ;;org.projectodd.wunderboss  "0.2.0-SNAPSHOT"
 
                         org.immutant               :version}}
 
