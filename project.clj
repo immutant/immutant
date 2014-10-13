@@ -62,7 +62,7 @@
                          :license {:name "Apache Software License - v 2.0"
                                    :url "http://www.apache.org/licenses/LICENSE-2.0"
                                    :distribution :repo}
-                         :plugins [[org.immutant/build-helper "0.2.1"]]
+                         :plugins [[org.immutant/build-helper "0.2.4"]]
                          :hooks [build-helper.plugin.pom/hooks]
 
                          :signing {:gpg-key "BFC757F9"}

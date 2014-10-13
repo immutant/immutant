@@ -1,6 +1,7 @@
 ---
 {:title "Migration"
  :sequence 0.1
+ :toc false
  :description "Immutant 1.1 -> 2.0 migration guide"}
 ---
 

@@ -145,7 +145,7 @@
 
 (defn wrap-template [guides current target-dir content]
   (-> (make-template target-dir)
-    (str/replace "{{CONTENT}}" (add-content-header current content))
+    (str/replace "{{CONTENT}}" content)
     (str/replace (format "%s-current" (:title current)) "current")
     (str/replace  "</body>"
       (str "<script src=\"assets/jquery.syntax.min.js\" type=\"text/javascript\"></script>"
@@ -160,13 +160,65 @@
       (guides-menu *guides*)
       (rest menu))))
 
+(defn reduce-toc
+  ([headings]
+     (reduce-toc [] headings))
+  ([reduced headings]
+     (if-let [curr (first headings)]
+       (reduce-toc
+         (let [prior (last reduced)]
+           (if (or (not prior)
+                 (= (:level curr) (:level prior)))
+             (conj reduced curr)
+             (conj (vec (butlast reduced))
+               (update-in prior [:children] #(conj (vec %) curr)))))
+         (rest headings))
+       reduced)))
+
+
+
+(declare toc-children)
+
+(defn toc-li
+  [{:keys [id text children]}]
+  [:li
+   (he/link-to (str \# id) [:span text])
+   (toc-children children)])
+
+(defn toc-children [children]
+  (when (seq children)
+     [:ul
+      (for [child children]
+        (toc-li child))]))
+
+(defn generate-toc [headings]
+  (let [toc (reduce-toc headings)]
+    (hc/html
+      [:div#toc
+       (toc-children toc)])))
+
+(defn add-toc [{:keys [toc]} content]
+  (if toc
+    (let [headings (atom [])
+          adjusted-content (str/replace
+                             content
+                             #"<h([2-3])>(.*?)</h[2-3]>"
+                             (fn [[_ level text]]
+                               (let [id (gensym "h")]
+                                 (swap! headings conj {:level (read-string level) :text text :id id})
+                                 (format "<h%s id=\"%s\">%s</h%s>" level id text level))))]
+      (str (generate-toc @headings) adjusted-content))
+    content))
+
 (defn parse-guide [file]
   (let [[_ metadata & content] (str/split (slurp file) #"---")
         filename (.getName file)]
-    (assoc (read-string metadata)
-      :source-file file
-      :content (str/join content)
-      :output-file (str "guide-" (subs filename 0 (- (.length filename) 2)) "html"))))
+    (merge
+      {:toc true}
+      (assoc (read-string metadata)
+        :source-file file
+        :content (str/join content)
+        :output-file (str "guide-" (subs filename 0 (- (.length filename) 2)) "html")))))
 
 (defn parse-guides [guide-dir]
   (for [f (file-seq guide-dir)
@@ -179,6 +231,8 @@
     (->>
       (cp/render content options)
       render-markdown
+      (add-toc guide)
+      (add-content-header guide)
       (wrap-template guides guide target-dir)
       (spit (io/file target-dir output-file)))))
 
