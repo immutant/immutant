@@ -226,3 +226,19 @@
       (is (= :success (receive q2 :timeout 1000 :timeout-val :failure)))
       (finally
         (.close l)))))
+
+(deftest publish-to-a-remote-queue-from-a-listener-should-work
+  (queue "remote" :durable false)
+  (let [conn (if (u/in-container?)
+               (connection :host "localhost" :port (u/messaging-remoting-port)
+                 :username "testuser" :password "testuser" :remote-type :hornetq-wildfly)
+               (connection :host "localhost"))
+        q (random-queue)
+        remote-q (queue "remote" :connection conn)
+        l (listen q #(publish remote-q %))]
+    (try
+      (publish q :ham)
+      (is (= :ham (receive (queue "remote") :timeout 1000 :timeout-val :failure)))
+      (finally
+        (.close conn)
+        (.close l)))))
