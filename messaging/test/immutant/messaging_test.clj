@@ -192,6 +192,18 @@
           (publish q :hi :session s)
           (= :hi (receive q :session s :timeout 100 :timeout-val :failure)))))))
 
+(deftest remote-receive-should-properly-timeout
+  (queue "remote" :durable false)
+  (let [extra-connect-opts
+        (when (u/in-container?)
+          [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
+    (with-open [c (apply connection :host "localhost" :port (u/messaging-remoting-port)
+                    extra-connect-opts)]
+      (let [start (System/currentTimeMillis)
+            q (queue "remote" :connection c)]
+        (is (= :success (receive q :timeout 100 :timeout-val :success)))
+        (is (< (- (System/currentTimeMillis) start) 200))))))
+
 (deftest publish-from-a-listener-should-work
   (let [q (random-queue)
         q2 (random-queue)
