@@ -20,13 +20,14 @@
             [immutant.messaging :as msg]))
 
 (def queue (msg/queue "/queue/test" :durable false))
-(msg/queue "remote" :durable false)
+(def local-remote-queue (msg/queue "remote" :durable false))
 (def conn (if (in-container?)
             (msg/connection :host "localhost" :port (messaging-remoting-port)
               :username "testuser" :password "testuser" :remote-type :hornetq-wildfly
               :xa true)
             (msg/connection :host "localhost" :xa true)))
 (def remote-queue (msg/queue "remote" :connection conn))
+
 (def trigger (msg/queue "/queue/trigger" :durable false))
 (def cache (csh/cache "tx-test" :transactional true))
 
@@ -58,14 +59,14 @@
   (with-open [_ (msg/listen trigger listener)]
     (msg/publish trigger {:tx? true})
     (is (= "kiwi" (msg/receive queue :timeout 1000)))
-    (is (= "starfruit" (msg/receive remote-queue :timeout 1000)))
+    (is (= "starfruit" (msg/receive local-remote-queue :timeout 1000)))
     (is (= 1 (:a cache)))))
 
 (deftest transactional-writes-in-listener-should-fail-on-exception
   (with-open [_ (msg/listen trigger listener)]
     (msg/publish trigger {:tx? true :throw? true})
     (is (nil? (msg/receive queue :timeout 1000)))
-    (is (nil? (msg/receive remote-queue :timeout 1000)))
+    (is (nil? (msg/receive local-remote-queue :timeout 1000)))
     (is (nil? (:a cache)))
     (is (= 10 (:deliveries cache)))))
 
@@ -73,7 +74,7 @@
   (with-open [_ (msg/listen trigger listener :xa true)]
     (msg/publish trigger {:tx? true :rollback? true})
     (is (nil? (msg/receive queue :timeout 1000)))
-    (is (nil? (msg/receive remote-queue :timeout 1000)))
+    (is (nil? (msg/receive local-remote-queue :timeout 1000)))
     (is (nil? (:a cache)))
     (is (= 10 (:deliveries cache)))))
 
@@ -89,4 +90,4 @@
     (is (= (take 10 (repeat "kiwi"))
           (loop [i 10, v []] (if (zero? i) v (recur (dec i) (conj v (msg/receive queue :timeout 1000)))))))
     (is (= (take 10 (repeat "starfruit"))
-          (loop [i 10, v []] (if (zero? i) v (recur (dec i) (conj v (msg/receive remote-queue :timeout 1000)))))))))
+          (loop [i 10, v []] (if (zero? i) v (recur (dec i) (conj v (msg/receive local-remote-queue :timeout 1000)))))))))
