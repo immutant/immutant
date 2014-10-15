@@ -206,11 +206,11 @@ as Immutant relies on some of them.
 
 We've also exposed a few HornetQ settings as system properties, namely:
 
-| Property           | Description                                                 | Default           |
-|--------------------|-------------------------------------------------------------|-------------------|
-| hornetq.data.dir   | The base directory for HornetQ to store its data files      | `./hornetq-data/` |
-| hornetq.netty.port | The port that HornetQ will listen on for remote connections | `5445`            |
-| hornetq.netty.host | The host that HornetQ will listen on for remote connections | `localhost`       |
+| Property             | Description                                                 | Default           |
+|----------------------|-------------------------------------------------------------|-------------------|
+| `hornetq.data.dir`   | The base directory for HornetQ to store its data files      | `./hornetq-data/` |
+| `hornetq.netty.port` | The port that HornetQ will listen on for remote connections | `5445`            |
+| `hornetq.netty.host` | The host that HornetQ will listen on for remote connections | `localhost`       |
 
 Note that any custom xml or system properties will be ignored when
 running inside WildFly - you'll need to make adjustments to the
