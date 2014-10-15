@@ -168,4 +168,12 @@ Split across three namespaces:
 
 Contains only `wrap-development` and `wrap-session`
 
-## immutant.xa -> TBD
+## immutant.xa -> immutant.transactions
+
+Listeners are no longer automatically enlisted participants in an XA
+transaction. Within the handler fn, you must now explicitly define a
+transaction using one of the macros in `immutant.transactions`. If an
+exception escapes that body, the tx will be rolled back, and if the
+exception bubbles out of the handler, the message will be queued for
+redelivery. But the rollback of the tx has no relationship to
+redelivery, which is only triggered by the exception.
