@@ -32,7 +32,7 @@
 (defn attempt-transaction-external [& [f]]
   (try
     (with-open [conn (msg/connection :xa true)]
-      (required
+      (transaction
         (msg/publish queue "kiwi" :connection conn)
         (.put cache :a 1)
         (if f (f))))
@@ -41,7 +41,7 @@
 
 (defn attempt-transaction-internal [& [f]]
   (try
-    (required
+    (transaction
       (msg/publish queue "kiwi" :xa true)
       (.put cache :a 1)
       (if f (f)))
@@ -72,5 +72,5 @@
   (msg/publish queue "foo")
   (required
     (msg/receive queue :xa true)
-    (.setRollbackOnly manager))
+    (set-rollback-only))
   (is (= "foo" (msg/receive queue :timeout 1000))))

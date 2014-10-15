@@ -19,8 +19,28 @@
 
 (def tx (WunderBoss/findOrCreateComponent Transaction))
 
-(def ^javax.transaction.TransactionManager manager
-  (.manager tx))
+(def
+  ^{:doc "The JTA TransactionManager"
+    :tag javax.transaction.TransactionManager}
+  manager (.manager tx))
+
+(defmacro transaction
+  "The body constitutes a new transaction and all actions on XA
+  components therein either succeed or fail, atomically. Any exception
+  tossed within the body will cause the transaction to rollback.
+  Otherwise, the transaction is committed and the value of the last
+  expression in the body is returned. This is semantically equivalent
+  to the JEE RequiresNew transaction scope."
+  [& body]
+  (let [f `(fn [] ~@body)]
+    `(.requiresNew tx ~f)))
+
+(defn set-rollback-only
+  "Modify the current transaction such that the only possible outcome
+  is a rollback; useful when rollback is desired but an exception is
+  not"
+  []
+  (.setRollbackOnly manager))
 
 ;;; Macros analagous to the JEE Transaction attribute scopes
 

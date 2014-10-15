@@ -38,11 +38,11 @@
   (not-supported
     (.put cache :deliveries (inc (or (:deliveries cache) 0))))
   (when (:throw? m) (throw (Exception. "rollback")))
-  (when (:rollback? m) (.setRollbackOnly manager)))
+  (when (:rollback? m) (set-rollback-only)))
 
 (defn listener [m]
   (if (:tx? m)
-    (required (work m))
+    (transaction (work m))
     (work m)))
 
 (use-fixtures :each
