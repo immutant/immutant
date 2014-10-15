@@ -169,16 +169,14 @@
      * :persistent - whether undelivered messages survive restarts [true]
      * :properties - a map to which selectors may be applied, overrides metadata [nil]
      * :connection - a connection to use; caller expected to close [nil]
-     * :session    - a session to use; caller expected to close [nil]
-     * :xa         - boolean denoting whether a new XA connection be used [false]"
+     * :session    - a session to use; caller expected to close [nil]"
   [destination message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-connection :session)
                   (merge-connection destination)
                   (o/validate-options publish)
-                  (update-in [:properties] #(or % (meta message)))
-                  (as-> m (if (:xa m) (assoc m :connection Connection/XA) m)))
+                  (update-in [:properties] #(or % (meta message))))
         coerced-options (o/extract-options options Destination$SendOption)
         ^Destination dest (:destination destination)]
     (.send dest message (codecs/lookup-codec (:encoding options :edn))
@@ -186,7 +184,7 @@
 
 (o/set-valid-options! publish
   (conj (o/opts->set Destination$SendOption)
-    :encoding :xa))
+    :encoding))
 
 (defn receive
   "Receive a message from `destination`.
@@ -207,15 +205,13 @@
      * :decode?      - if true, the decoded message body is returned. Otherwise, the
                        base message object is returned [true]
      * :connection   - a connection to use; caller expected to close [nil]
-     * :session      - a session to use; caller expected to close [nil]
-     * :xa           - boolean denoting whether a new XA connection be used [false]"
+     * :session      - a session to use; caller expected to close [nil]"
   [destination & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-connection :session)
                   (merge-connection destination)
-                  (o/validate-options receive)
-                  (as-> m (if (:xa m) (assoc m :connection Connection/XA) m)))
+                  (o/validate-options receive))
         ^Message message (.receive ^Destination (:destination destination)
                            codecs/codecs
                            (o/extract-options options Destination$ReceiveOption))]
@@ -227,7 +223,7 @@
 
 (o/set-valid-options! receive
   (conj (o/opts->set Destination$ReceiveOption)
-    :decode? :encoding :timeout-val :xa))
+    :decode? :encoding :timeout-val))
 
 (defn listen
   "Registers `f` to receive each message sent to `destination`.
@@ -245,7 +241,6 @@
      * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
                        base message object is passed [true]
      * :connection   - a connection to use; caller expected to close [nil]
-     * :xa           - boolean denoting whether a new XA connection be used [false]
 
    Returns a listener object that can be stopped by passing it to [[stop]], or by
    calling .close on it."
@@ -253,15 +248,14 @@
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-connection destination)
-                  (o/validate-options listen)
-                  (as-> m (if (:xa m) (assoc m :connection Connection/XA) m)))]
+                  (o/validate-options listen))]
     (.listen ^Destination (:destination destination)
       (message-handler f (:decode? options true))
       codecs/codecs
       (o/extract-options options Destination$ListenOption))))
 
 (o/set-valid-options! listen
-  (conj (o/opts->set Destination$ListenOption) :decode? :xa))
+  (conj (o/opts->set Destination$ListenOption) :decode?))
 
 (defn request
   "Send `message` to `queue` and return a Future that will retrieve the response.

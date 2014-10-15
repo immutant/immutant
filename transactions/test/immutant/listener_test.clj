@@ -32,7 +32,7 @@
 (def cache (csh/cache "tx-test" :transactional true))
 
 (defn work [m]
-  (msg/publish queue "kiwi" :xa true)
+  (msg/publish queue "kiwi")
   (msg/publish remote-queue "starfruit")
   (.put cache :a 1)
   (not-supported

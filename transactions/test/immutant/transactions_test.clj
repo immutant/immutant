@@ -42,7 +42,7 @@
 (defn attempt-transaction-internal [& [f]]
   (try
     (transaction
-      (msg/publish queue "kiwi" :xa true)
+      (msg/publish queue "kiwi")
       (.put cache :a 1)
       (if f (f)))
     (catch Exception e
@@ -71,6 +71,6 @@
 (deftest transactional-receive
   (msg/publish queue "foo")
   (required
-    (msg/receive queue :xa true)
+    (msg/receive queue)
     (set-rollback-only))
   (is (= "foo" (msg/receive queue :timeout 1000))))
