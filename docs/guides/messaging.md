@@ -194,6 +194,28 @@ the session yourself (via the
       (publish q n :session session))))
 ```
 
+## HornetQ configuration
+
+When used outside of WildFly, we configure [HornetQ] via a pair of xml
+files ([hornetq-configuration.xml] and [hornetq-jms.xml]). If you need
+to adjust any of the HornetQ [configuration options], you can provide
+a copy of one (or both) of those files on your application's classpath
+and your copies will be used instead of the default ones. When making
+changes to these files, be careful about changing existing settings,
+as Immutant relies on some of them.
+
+We've also exposed a few HornetQ settings as system properties, namely:
+
+| Property           | Description                                                 | Default           |
+|--------------------|-------------------------------------------------------------|-------------------|
+| hornetq.data.dir   | The base directory for HornetQ to store its data files      | `./hornetq-data/` |
+| hornetq.netty.port | The port that HornetQ will listen on for remote connections | `5445`            |
+| hornetq.netty.host | The host that HornetQ will listen on for remote connections | `localhost`       |
+
+Note that any custom xml or system properties will be ignored when
+running inside WildFly - you'll need to make adjustments to the
+WildFly configuration to achieve similar effects.
+
 ## More to come
 
 That was just a brief introduction to the messaging API. There are
@@ -207,3 +229,6 @@ transactional sessions)...
 [request-response]: https://en.wikipedia.org/wiki/Request-response
 [Future]: http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Future.html
 [edn]: https://github.com/edn-format/edn
+[hornetq-configuration.xml]: https://github.com/projectodd/wunderboss/blob/{{wunderboss-tag}}/modules/messaging/src/main/resources/default-hornetq-configuration.xml
+[hornetq-jms.xml]: https://github.com/projectodd/wunderboss/blob/{{wunderboss-tag}}/modules/messaging/src/main/resources/default-hornetq-jms.xml
+[configuration options]: https://docs.jboss.org/hornetq/2.4.0.Final/docs/user-manual/html_single/#server.configuration

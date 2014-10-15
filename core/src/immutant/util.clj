@@ -92,7 +92,7 @@
   []
   (if-let [wf-port-fn (try-resolve 'immutant.wildfly/messaging-remoting-port)]
     (wf-port-fn)
-    5445))
+    (read-string (System/getProperty "hornetq.netty.port" "5445"))))
 
 (defn app-relative
   "Returns an absolute file relative to [[app-root]]."

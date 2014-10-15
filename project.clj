@@ -62,7 +62,7 @@
                          :license {:name "Apache Software License - v 2.0"
                                    :url "http://www.apache.org/licenses/LICENSE-2.0"
                                    :distribution :repo}
-                         :plugins [[org.immutant/build-helper "0.2.4"]]
+                         :plugins [[org.immutant/build-helper "0.2.5"]]
                          :hooks [build-helper.plugin.pom/hooks]
 
                          :signing {:gpg-key "BFC757F9"}
@@ -83,7 +83,7 @@
                         compojure                  "1.1.8"
 
                         ;; org.projectodd.wunderboss  "0.1.0"
-                        org.projectodd.wunderboss  "1.x.incremental.146"
+                        org.projectodd.wunderboss  "1.x.incremental.147"
                         ;;org.projectodd.wunderboss  "0.2.0-SNAPSHOT"
 
                         org.immutant               :version}}

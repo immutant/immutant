@@ -225,11 +225,22 @@
         :when (.endsWith (.getName f) ".md")]
     (parse-guide f)))
 
+(defn add-wunderboss-tag [{:keys [versions] :as options}]
+  (assoc options
+    :wunderboss-tag (let [version (versions 'org.projectodd.wunderboss)]
+                      (if (re-find #"^\d+\.\d+\.\d+$" version)
+                        version
+                        "master"))))
+
+(defn add-mustache-data [options]
+  (-> options
+    add-wunderboss-tag))
+
 (defn render-guides [options guides target-dir]
   (doseq [{:keys [source-file content output-file] :as guide} guides]
     (println "Rendering" (.getName source-file) "to" (str target-dir "/" output-file))
     (->>
-      (cp/render content options)
+      (cp/render content (add-mustache-data options))
       render-markdown
       (add-toc guide)
       (add-content-header guide)

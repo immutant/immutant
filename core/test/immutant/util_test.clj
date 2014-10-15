@@ -12,14 +12,20 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/messaging "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.9"]]
+(ns immutant.util-test
+  (:require [immutant.util :refer :all]
+            [clojure.test  :refer :all]))
 
-  :dependencies [[org.immutant/core _]
-                 [org.projectodd.wunderboss/wunderboss-messaging _]]
+(deftest messaging-remote-port-should-work
+  (testing "the default"
+    (is (= 5445 (messaging-remoting-port))))
 
-  :jvm-opts ["-Dhornetq.data.dir=target/hornetq-data"]
+  (testing "honor the sysprop"
+    (let [props (System/getProperties)]
+      (System/setProperty "hornetq.netty.port" "1234")
+      (is (= 1234 (messaging-remoting-port)))
+      (System/setProperties props)))
 
-  :profiles {:dev
-             {:dependencies [[cheshire "5.3.1"]
-                             [org.clojure/data.fressian "0.2.0"]]}})
+  (testing "inside wildfly"
+    (with-redefs [immutant.internal.util/try-resolve (constantly (constantly 8080))]
+      (is (= 8080 (messaging-remoting-port))))))

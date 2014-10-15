@@ -18,6 +18,8 @@
   :dependencies [[org.immutant/core _]
                  [org.projectodd.wunderboss/wunderboss-transactions _]]
 
+  :jvm-opts ["-Dhornetq.data.dir=target/hornetq-data"]
+
   :profiles {:dev
              {:dependencies [[org.immutant/messaging _]
                              [org.immutant/caching _]]}})
