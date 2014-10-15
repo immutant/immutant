@@ -16,6 +16,7 @@
   (:require [clojure.test :refer :all]
             [immutant.util :refer (in-container? messaging-remoting-port)]
             [immutant.transactions :refer :all]
+            [immutant.transactions.scope :refer (not-supported)]
             [immutant.caching :as csh]
             [immutant.messaging :as msg]))
 

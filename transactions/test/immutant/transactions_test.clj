@@ -16,6 +16,7 @@
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [immutant.transactions :refer :all]
+            [immutant.transactions.scope :refer (required)]
             [immutant.util :refer [in-container? set-log-level! reset-fixture]]
             [immutant.messaging :as msg]
             [immutant.caching   :as csh]))

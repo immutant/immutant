@@ -29,7 +29,7 @@
              :integs {}}
 
   :aliases {"docs-from-index" ["build-helper" "docs" "generate" "docs/guides"
-                               "caching" "core" "messaging" "scheduling" "web" "wildfly"]
+                               "caching" "core" "messaging" "scheduling" "transactions" "web" "wildfly"]
             "docs" ["do" "modules" "doc-index" "," "docs-from-index"]}
   :modules  {:subprocess false
              :inherited {:repositories [["projectodd-upstream"

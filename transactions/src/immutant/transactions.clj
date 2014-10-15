@@ -17,7 +17,7 @@
   (:import [org.projectodd.wunderboss WunderBoss]
            [org.projectodd.wunderboss.transactions Transaction]))
 
-(def tx (WunderBoss/findOrCreateComponent Transaction))
+(def ^:no-doc tx (WunderBoss/findOrCreateComponent Transaction))
 
 (def
   ^{:doc "The JTA TransactionManager"
@@ -29,8 +29,8 @@
   components therein either succeed or fail, atomically. Any exception
   tossed within the body will cause the transaction to rollback.
   Otherwise, the transaction is committed and the value of the last
-  expression in the body is returned. This is semantically equivalent
-  to the JEE RequiresNew transaction scope."
+  expression in the body is returned. This is effectively an alias for
+  the [[immutant.transactions.scope/requires-new]] transaction scope."
   [& body]
   (let [f `(fn [] ~@body)]
     `(.requiresNew tx ~f)))
@@ -41,41 +41,3 @@
   not"
   []
   (.setRollbackOnly manager))
-
-;;; Macros analagous to the JEE Transaction attribute scopes
-
-(defmacro required
-  "JEE Required - execute within current transaction, if any, otherwise wrap body in a new one"
-  [& body]
-  (let [f `(fn [] ~@body)]
-    `(.required tx ~f)))
-
-(defmacro requires-new
-  "JEE RequiresNew - suspend current transaction, if any, and wrap body in a new one"
-  [& body]
-  (let [f `(fn [] ~@body)]
-    `(.requiresNew tx ~f)))
-
-(defmacro not-supported
-  "JEE NotSupported - suspend current transaction, if any, and run body without a transaction"
-  [& body]
-  (let [f `(fn [] ~@body)]
-    `(.notSupported tx ~f)))
-
-(defmacro supports
-  "JEE Supports - run body regardless of current transaction state (unpredictable)"
-  [& body]
-  (let [f `(fn [] ~@body)]
-    `(.supports tx ~f)))
-
-(defmacro mandatory
-  "JEE Mandatory - throws an exception unless there's an active transaction"
-  [& body]
-  (let [f `(fn [] ~@body)]
-    `(.mandatory tx ~f)))
-
-(defmacro never
-  "JEE Never - throws an exception if there's an active transaction"
-  [& body]
-  (let [f `(fn [] ~@body)]
-    `(.never tx ~f)))
