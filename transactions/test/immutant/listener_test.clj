@@ -32,7 +32,7 @@
 (def cache (csh/cache "tx-test" :transactional true))
 
 (defn work [m]
-  (msg/publish queue "kiwi")
+  (msg/publish queue "kiwi" :xa true)
   (msg/publish remote-queue "starfruit")
   (.put cache :a 1)
   (not-supported
@@ -71,12 +71,12 @@
     (is (= 10 (:deliveries cache)))))
 
 (deftest transactional-writes-in-listener-should-fail-on-rollback
-  (with-open [_ (msg/listen trigger listener :xa true)]
+  (with-open [_ (msg/listen trigger listener)]
     (msg/publish trigger {:tx? true :rollback? true})
     (is (nil? (msg/receive queue :timeout 1000)))
     (is (nil? (msg/receive local-remote-queue :timeout 1000)))
     (is (nil? (:a cache)))
-    (is (= 10 (:deliveries cache)))))
+    (is (= 1 (:deliveries cache)))))
 
 (deftest non-transactional-writes-in-listener-with-exception
   (with-open [_ (msg/listen trigger listener :transacted false)]
