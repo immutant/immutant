@@ -199,8 +199,10 @@
           [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
     (with-open [c (apply connection :host "localhost" :port (u/messaging-remoting-port)
                     extra-connect-opts)]
-      (let [start (System/currentTimeMillis)
-            q (queue "remote" :connection c)]
+      (let [q (queue "remote" :connection c)
+            start (System/currentTimeMillis)]
+        ;; warm up the connection
+        (receive q :timeout 1)
         (is (= :success (receive q :timeout 100 :timeout-val :success)))
         (is (< (- (System/currentTimeMillis) start) 200))))))
 
