@@ -193,13 +193,13 @@
           (= :hi (receive q :session s :timeout 100 :timeout-val :failure)))))))
 
 (deftest remote-receive-should-properly-timeout
-  (queue "remote" :durable false)
-  (let [extra-connect-opts
+  (let [q-name (.name (:destination (random-queue)))
+        extra-connect-opts
         (when (u/in-container?)
           [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
     (with-open [c (apply connection :host "localhost" :port (u/messaging-remoting-port)
                     extra-connect-opts)]
-      (let [q (queue "remote" :connection c)
+      (let [q (queue q-name :connection c)
             start (System/currentTimeMillis)]
         ;; warm up the connection
         (receive q :timeout 1)
