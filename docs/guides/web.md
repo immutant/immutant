@@ -13,15 +13,20 @@ websockets.
 
 ## The Namespaces
 
-The primary namespace, [immutant.web], is comprised of just two
-functions and a convenient macro:
+The primary namespace, [immutant.web], includes the two main functions
+you'll use to run your handlers:
 
 * `run` - runs your handler in a specific environment, responding to
   web requests matching a given host, port, path and virtual host. The
   handler may be either a [Ring] function, Servlet instance, or
   Undertow HttpHandler
-* `run-dmc` - runs your handler in *Development Mode* (the 'C' is silent)
 * `stop` - stops your handler[s]
+
+Also included:
+
+* `run-dmc` - runs your handler in *Development Mode* (the 'C' is silent)
+* `server` - provides finer-grained control over the embedded web
+  server hosting your handler[s].
 
 The [immutant.web.middleware] namespace includes two Ring middleware
 functions:
@@ -41,8 +46,9 @@ which includes the following:
 * `wrap-websocket` - middleware to attach websocket callback functions
   to a Ring handler
 
-Finally, [immutant.web.undertow] exposes tuning options for Undertow,
-should your app require that level of configuration.
+The [immutant.web.undertow] namespace exposes tuning options for
+Undertow, the ability to open additional listeners, and flexible SSL
+configuration.
 
 ## A sample REPL session
 
@@ -130,21 +136,6 @@ stop to stop your handler.
 Stopping your handlers isn't strictly necessary if you're content to
 just let the JVM exit, but it can be handy at a REPL.
 
-### Virtual Hosts
-
-The `:host` option denotes the IP interface to which the web server is
-bound, which may not be publicly accessible. You can extend access to
-other hosts using the `:virtual-host` option, which takes either a
-single hostname or multiple:
-
-```clojure
-(run app :virtual-host "yourapp.com")
-(run app :virtual-host ["app.io" "app.us"])
-```
-
-Multiple applications can run on the same `:host` and `:port` as long
-as each has a unique combination of `:virtual-host` and `:path`.
-
 ### Advanced Usage
 
 The `run` function returns a map that includes the options passed to
@@ -180,7 +171,22 @@ You could even omit `:path` since "/" is the default. And because ola
 was the only app running on the web server listening on port 8081, it
 will be shutdown automatically.
 
-### Handler Types
+## Virtual Hosts
+
+The `:host` option denotes the IP interface to which the web server is
+bound, which may not be publicly accessible. You can extend access to
+other hosts using the `:virtual-host` option, which takes either a
+single hostname or multiple:
+
+```clojure
+(run app :virtual-host "yourapp.com")
+(run app :virtual-host ["app.io" "app.us"])
+```
+
+Multiple applications can run on the same `:host` and `:port` as long
+as each has a unique combination of `:virtual-host` and `:path`.
+
+## Handler Types
 
 Though the handlers you run will typically be Ring functions, you can
 also pass any valid implementation of `javax.servlet.Servlet` or
@@ -202,7 +208,7 @@ a very simple [Pedestal] service running on Immutant:
   (run (::http/servlet (http/create-servlet service)) options))
 ```
 
-### Development Mode
+## Development Mode
 
 The `run-dmc` macro resulted from a desire to provide a no-fuss way to
 enjoy all the benefits of REPL-based development. Before calling
@@ -215,7 +221,7 @@ your app in a browser.
 Both `run` and `run-dmc` accept the same options. You can even mix
 them within a single threaded call.
 
-### WebSockets
+## WebSockets
 
 Also included in the `org.immutant/web` library is the
 [immutant.web.websocket] namespace, which includes the
@@ -269,7 +275,7 @@ Note the `:path` argument applies to both the Ring handler and the
 WebSocket, distinguished only by the request protocol, e.g. `http://`
 vs `ws://`.
 
-#### The WebSocket Handshake
+### The WebSocket Handshake
 
 Often, applications require access to data in the original upgrade
 request associated with a WebSocket connection, perhaps for user
