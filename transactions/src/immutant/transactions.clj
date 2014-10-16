@@ -25,15 +25,16 @@
   manager (.manager tx))
 
 (defmacro transaction
-  "The body constitutes a new transaction and all actions on XA
-  components therein either succeed or fail, atomically. Any exception
+  "Execute body within current transaction, if any, otherwise start a
+  new transaction, execute body, and either commit or rollback all
+  actions on XA components contained therein atomically. Any exception
   tossed within the body will cause the transaction to rollback.
   Otherwise, the transaction is committed and the value of the last
   expression in the body is returned. This is effectively an alias for
-  the [[immutant.transactions.scope/requires-new]] transaction scope."
+  the [[immutant.transactions.scope/required]] transaction scope."
   [& body]
   (let [f `(fn [] ~@body)]
-    `(.requiresNew tx ~f)))
+    `(.required tx ~f)))
 
 (defn set-rollback-only
   "Modify the current transaction such that the only possible outcome
