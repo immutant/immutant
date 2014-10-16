@@ -37,12 +37,16 @@ Clojure macros. In fact, the `immutant.transactions/transaction` macro
 is merely an alias for `immutant.transactions.scope/required`, which
 is the implicit attribute used in JEE. There are a total of 6 macros:
 
-| `required`      | Execute within current transaction, if any, otherwise start a new one, execute, commit or rollback.              |
-| `requires-new`  | Suspend current transaction, if any, start a new one, execute, commit or rollback, and resume the suspended one. |
-| `not-supported` | Suspend current transaction, if any, and execute without a transaction.                                          |
-| `supports`      | Execute the body whether there's a transaction or not; may lead to unpredictable results                         |
-| `mandatory`     | Toss an exception if there's no active transaction                                                               |
-| `never`         | Toss an exception if there is an active transaction                                                              |
+* `required`- Execute within current transaction, if any, otherwise
+  start a new one, execute, commit or rollback
+* `requires-new`- Suspend current transaction, if any, start a new
+  one, execute, commit or rollback, and resume the suspended one
+* `not-supported` - Suspend current transaction, if any, and execute
+  without a transaction
+* `supports`- Execute the body whether there's a transaction or not;
+  may lead to unpredictable results
+* `mandatory` - Toss an exception if there's no active transaction
+* `never` - Toss an exception if there is an active transaction
 
 These macros give the developer complete declarative control over
 the transactional semantics of their application as its functional
