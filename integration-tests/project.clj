@@ -36,7 +36,8 @@
                          :resource-paths ["../web/dev-resources"]
                          :test-paths ["../web/test-integration"]
                          :main integs.web}
-             :integ-transactions {:test-paths ["../transactions/test"]}
+             :integ-transactions {:test-paths ["../transactions/test"]
+                                  :dependencies [[org.clojure/java.jdbc _]]}
 
              :web [:integ-base :integ-web]
              :scheduling [:integ-base :integ-scheduling]

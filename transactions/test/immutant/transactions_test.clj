@@ -38,7 +38,7 @@
         (.put cache :a 1)
         (if f (f))))
     (catch Exception e
-      (-> e .getCause .getMessage))))
+      (-> e .getMessage))))
 
 (defn attempt-transaction-internal [& [f]]
   (try
@@ -47,7 +47,7 @@
       (.put cache :a 1)
       (if f (f)))
     (catch Exception e
-      (-> e .getCause .getMessage))))
+      (-> e .getMessage))))
 
 (deftest verify-transaction-success-external
   (is (nil? (attempt-transaction-external)))

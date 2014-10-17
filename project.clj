@@ -81,9 +81,10 @@
                         http.async.client          "0.5.2"
                         stylefruits/gniazdo        "0.1.0"
                         compojure                  "1.1.8"
+                        org.clojure/java.jdbc      "0.3.5"
 
                         ;; org.projectodd.wunderboss  "0.1.0"
-                        org.projectodd.wunderboss  "1.x.incremental.149"
+                        org.projectodd.wunderboss  "1.x.incremental.151"
                         ;;org.projectodd.wunderboss  "0.2.0-SNAPSHOT"
 
                         org.immutant               :version}}
