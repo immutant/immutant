@@ -154,44 +154,44 @@ dereference:
 The responder is just a fancy listener, and can be deregistered the
 same way as a listener.
 
-## Remote connections
+## Remote contexts
 
 To connect to a remote HornetQ instance, you'll need to create a
-connection (via the
-[connection](immutant.messaging.html#var-connection) function), and
+remote context (via the
+[context](immutant.messaging.html#var-context) function), and
 use it when getting a reference to the destination:
 
 ```clojure
-(with-open [connection (connection :host "some-host" :port 5445)]
+(with-open [context (context :host "some-host" :port 5445)]
   (publish
-    (queue "foo" :connection connection)
+    (queue "foo" :context context)
     "a message"))
 ```
 
 A few things to note about the above example:
 
-* We're using `with-open` because you need to close any connections you make
-* We're passing the connection to `queue`, which causes `queue` to
+* We're using `with-open` because you need to close any contexts you make
+* We're passing the context to `queue`, which causes `queue` to
   just return a reference to the remote queue, *without* asking
   HornetQ to create it. You'll need to make sure it already exists.
-* We don't need to pass the connection to `publish`, since it will
-  reuse the connection that was used to create the destination
+* We don't need to pass the context to `publish`, since it will
+  reuse the context that was used to create the destination
   reference.
 
-## Reusing sessions
+## Reusing contexts
 
-By default, Immutant creates a new session object for each `publish`,
-`request` or `receive` call. Creating a session isn't free, and incurs
+By default, Immutant creates a new context object for each `publish`,
+`request` or `receive` call. Creating a context isn't free, and incurs
 some performance overhead. If you plan on calling any of those
 functions in a tight loop, you can gain some performance by creating
-the session yourself (via the
-[session](immutant.messaging.html#var-session) function):
+the context yourself (via the
+[context](immutant.messaging.html#var-context) function):
 
 ```clojure
-(with-open [session (session)]
+(with-open [context (context)]
   (let [q (queue "foo")]
     (dotimes [n 10000]
-      (publish q n :session session))))
+      (publish q n :context context))))
 ```
 
 ## HornetQ configuration

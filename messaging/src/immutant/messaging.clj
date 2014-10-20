@@ -19,80 +19,40 @@
             [immutant.internal.util    :as u]
             [immutant.codecs           :as codecs]
             [immutant.messaging.internal :refer :all])
-  (:import [org.projectodd.wunderboss.messaging Connection Destination
-            Connection$CreateSessionOption
-            Destination$SendOption Destination$ListenOption
+  (:import [org.projectodd.wunderboss.messaging Context Destination
+            Destination$ListenOption
+            Destination$PublishOption
             Destination$ReceiveOption
             Message
-            Messaging Messaging$CreateConnectionOption
+            Messaging Messaging$CreateContextOption
             Messaging$CreateOption Messaging$CreateQueueOption
             Messaging$CreateTopicOption
             Queue Topic
-            Topic$SubscribeOption Topic$UnsubscribeOption
-            Session]))
+            Topic$SubscribeOption Topic$UnsubscribeOption]))
 
-(defn queue
-  "Establishes a handle to a messaging queue.
+(defn ^Context context
+  "Creates a messaging context.
 
-   The following options are supported [default]:
+   A context represents a remote or local connection to the messaging
+   broker.
 
-   * :connection - a connection to a remote broker [nil]
-   * :durable?   - whether messages persist across restarts [true]
-   * :selector   - a JMS (SQL 92) expression to filter published messages [nil]
+   There are three reasons you would create a context:
 
-   If given a :connection, the connection is remembered and used as a
-   default option to any fn that takes a queue and a connection.
+   1) for communicating with a remote HornetQ instance
+   2) for sharing a context among multiple publish or receive calls when
+      sending many messages in a tight loop
+   3) xa {{jcrossley3 should finish this}}
 
-   This creates the queue if no :connection is provided and it does not
-   yet exist."
-  [queue-name & options]
-  (let [options (-> options
-                  u/kwargs-or-map->map
-                  (o/validate-options queue))]
-    {:destination
-     (.findOrCreateQueue (broker options) queue-name
-       (o/extract-options options Messaging$CreateQueueOption)),
-     :connection (:connection options)}))
-
-(o/set-valid-options! queue
-  (conj (o/opts->set Messaging$CreateQueueOption) :durable?))
-
-(defn topic
-  "Establishes a handle to a messaging topic.
-
-   The following options are supported [default]:
-
-   * :connection - a connection to a remote broker [nil]
-
-   If given a :connection, the connection is remembered and used as a
-   default option to any fn that takes a topic and a connection.
-
-   This creates the topic if no :connection is provided and it does not
-   yet exist."
-  [topic-name & options]
-  (let [options (-> options
-                  u/kwargs-or-map->map
-                  (o/validate-options topic))]
-    {:destination
-     (.findOrCreateTopic (broker options) topic-name
-       (o/extract-options options Messaging$CreateTopicOption)),
-     :connection (:connection options)}))
-
-(o/set-valid-options! topic
-  (o/opts->set Messaging$CreateTopicOption))
-
-(defn ^Connection connection
-  "Creates a connection to the messaging broker.
-
-   You are responsible for closing any connection created via this
+   You are responsible for closing any contexts created via this
    function.
 
-   Options that apply to both local and remote connections are [default]:
+   Options that apply to both local and remote contexts are [default]:
 
    * :client-id - identifies the client id for use with a durable topic subscriber [nil]
-   * :xa - if true, returns an XA connection for use in a distributed transaction [false]
+   * :xa        - if true, returns an XA context for use in a distributed transaction [false]
+   * :mode      - one of: :auto-ack, :client-ack, :transacted. Ignored if :xa is true. [:auto-ack]
 
-   Options that apply to only remote connections are [default]:
+   Options that apply to only remote contexts are [default]:
 
    * :host - the host of a remote broker [nil]
    * :port - the port of a remote broker [nil, 5445 if :host provided]
@@ -104,7 +64,7 @@
    * :reconnect-attempts - total number of reconnect attempts to make
                            before giving up (-1 for unlimited) [0]
    * :reconnect-retry-interval - the period in milliseconds between subsequent
-                                 reconnection attempts [2000]
+                                 recontext attempts [2000]
    * :reconnect-max-retry-interval - the max retry interval that will be used [2000]
    * :reconnect-retry-interval-multiplier - a multiplier to apply to the time
                                             since the last retry to compute the
@@ -112,43 +72,64 @@
   [& options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (o/validate-options connection)
+                  (update-in [:mode] coerce-context-mode)
+                  (o/validate-options context)
                   (update-in [:remote-type] o/->underscored-string))]
-    (.createConnection (broker nil)
-      (o/extract-options options Messaging$CreateConnectionOption))))
+    (.createContext (broker nil)
+      (o/extract-options options Messaging$CreateContextOption))))
 
-(o/set-valid-options! connection
-  (o/opts->set Messaging$CreateConnectionOption))
+(o/set-valid-options! context
+  (o/opts->set Messaging$CreateContextOption))
 
-(defn ^Session session
-  "Creates a session from the given `connection`.
-
-   If no connection is provided, the default shared connection is
-   used.
+(defn queue
+  "Establishes a handle to a messaging queue.
 
    The following options are supported [default]:
 
-     * :mode       - one of: :auto-ack, :client-ack, :transacted [:auto-ack]
-     * :connection - a connection to use; caller expected to close [nil]
+   * :context    - a context to a remote broker [nil]
+   * :durable?   - whether messages persist across restarts [true]
+   * :selector   - a JMS (SQL 92) expression to filter published messages [nil]
 
-   If given a :connection, the connection is remembered and used as a
-   default option to any fn that takes a session and a connection.
+   If given a :context, the context is remembered and used as a
+   default option to any fn that takes a queue and a context.
 
-   You are responsible for closing any sessions created via this
-   function.
-
-   TODO: more docs/examples"
-  [& options]
+   This creates the queue if no :context is provided and it does not
+   yet exist."
+  [queue-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (update-in [:mode] coerce-session-mode)
-                  (o/validate-options session))]
-    (.createSession (or (:connection options) (.defaultConnection (broker nil)))
-      (o/extract-options options Connection$CreateSessionOption))))
+                  (o/validate-options queue))]
+    {:destination
+     (.findOrCreateQueue (broker options) queue-name
+       (o/extract-options options Messaging$CreateQueueOption)),
+     :context (:context options)}))
 
-(o/set-valid-options! session
-  (conj (o/opts->set Connection$CreateSessionOption)
-    :connection))
+(o/set-valid-options! queue
+  (conj (o/opts->set Messaging$CreateQueueOption) :durable?))
+
+(defn topic
+  "Establishes a handle to a messaging topic.
+
+   The following options are supported [default]:
+
+   * :context - a context to a remote broker [nil]
+
+   If given a :context, the context is remembered and used as a
+   default option to any fn that takes a topic and a context.
+
+   This creates the topic if no :context is provided and it does not
+   yet exist."
+  [topic-name & options]
+  (let [options (-> options
+                  u/kwargs-or-map->map
+                  (o/validate-options topic))]
+    {:destination
+     (.findOrCreateTopic (broker options) topic-name
+       (o/extract-options options Messaging$CreateTopicOption)),
+     :context (:context options)}))
+
+(o/set-valid-options! topic
+  (o/opts->set Messaging$CreateTopicOption))
 
 (defn publish
   "Send a message to a destination.
@@ -158,8 +139,8 @@
    identifiers (because they can be used in selectors) and can be overridden
    using the :properties option.
 
-   If no connection is provided, the default shared connection is
-   used. If no session is provided, a new one is opened and closed.
+   If no context is provided, a new one is created for each call, which
+   can be inefficient if you are sending a large number of messages.
 
    The following options are supported [default]:
 
@@ -168,22 +149,20 @@
      * :ttl        - time to live, in millis [0 (forever)]
      * :persistent - whether undelivered messages survive restarts [true]
      * :properties - a map to which selectors may be applied, overrides metadata [nil]
-     * :connection - a connection to use; caller expected to close [nil]
-     * :session    - a session to use; caller expected to close [nil]"
+     * :context    - a context to use; caller expected to close [nil]"
   [destination message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (merge-connection :session)
-                  (merge-connection destination)
+                  (merge-context destination)
                   (o/validate-options publish)
                   (update-in [:properties] #(or % (meta message))))
-        coerced-options (o/extract-options options Destination$SendOption)
+        coerced-options (o/extract-options options Destination$PublishOption)
         ^Destination dest (:destination destination)]
-    (.send dest message (codecs/lookup-codec (:encoding options :edn))
+    (.publish dest message (codecs/lookup-codec (:encoding options :edn))
       coerced-options)))
 
 (o/set-valid-options! publish
-  (conj (o/opts->set Destination$SendOption)
+  (conj (o/opts->set Destination$PublishOption)
     :encoding))
 
 (defn receive
@@ -192,8 +171,8 @@
    If a :selector is provided, then only messages having
    metadata/properties matching that expression may be received.
 
-   If no connection is provided, the default shared connection is
-   used. If no session is provided, a new one is opened and closed.
+   If no context is provided, a new one is created for each call, which
+   can be inefficient if you are receiving a large number of messages.
 
    The following options are supported [default]:
 
@@ -204,13 +183,11 @@
      * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
      * :decode?      - if true, the decoded message body is returned. Otherwise, the
                        base message object is returned [true]
-     * :connection   - a connection to use; caller expected to close [nil]
-     * :session      - a session to use; caller expected to close [nil]"
+     * :context      - a context to use; caller expected to close [nil]"
   [destination & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (merge-connection :session)
-                  (merge-connection destination)
+                  (merge-context destination)
                   (o/validate-options receive))
         ^Message message (.receive ^Destination (:destination destination)
                            codecs/codecs
@@ -231,23 +208,20 @@
    If a :selector is provided, then only messages having
    metadata/properties matching that expression will be received.
 
-   If no connection is provided, the default shared connection is
-   used.
-
    The following options are supported [default]:
 
      * :concurrency  - the number of threads handling messages [1]
      * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
      * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
                        base message object is passed [true]
-     * :connection   - a connection to use; caller expected to close [nil]
+     * :context      - a remote context to use; caller expected to close [nil]
 
    Returns a listener object that can be stopped by passing it to [[stop]], or by
    calling .close on it."
   [destination f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (merge-connection destination)
+                  (merge-context destination)
                   (o/validate-options listen))]
     (.listen ^Destination (:destination destination)
       (message-handler f (:decode? options true))
@@ -267,11 +241,10 @@
   [queue message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (merge-connection :session)
-                  (merge-connection queue)
+                  (merge-context queue)
                   (o/validate-options publish)
                   (update-in [:properties] #(or % (meta message))))
-        coerced-options (o/extract-options options Destination$SendOption)
+        coerced-options (o/extract-options options Destination$PublishOption)
         ^Queue q (:destination queue)
         future (.request q message
                  (codecs/lookup-codec (:encoding options :edn))
@@ -289,7 +262,7 @@
   [queue f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (merge-connection queue)
+                  (merge-context queue)
                   (o/validate-options respond))]
     (.respond ^Queue (:destination queue)
       (message-handler f (:decode? options true))
@@ -309,8 +282,8 @@
    If a :selector is provided, then only messages having
    metadata/properties matching that expression may be received.
 
-   If no connection is provided, a new connection is created for this
-   subscriber. If a connection is provided, it must have its :client-id
+   If no context is provided, a new context is created for this
+   subscriber. If a context is provided, it must have its :client-id
    set.
 
    The following options are supported [default]:
@@ -318,7 +291,7 @@
      * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
      * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
                        javax.jms.Message object is passed [true]
-     * :connection   - a connection to use; caller expected to close [nil]
+     * :context      - a context to use; caller expected to close [nil]
 
    Returns a listener object that can can be stopped by passing it to [[stop]], or by
    calling .close on it.
@@ -327,7 +300,7 @@
   [topic subscription-name f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (merge-connection topic)
+                  (merge-context topic)
                   (o/validate-options listen subscribe))]
     (.subscribe ^Topic (:destination topic) (name subscription-name)
       (message-handler f (:decode? options true))
@@ -340,18 +313,18 @@
 (defn unsubscribe
   "Tears down the durable topic subscription on `topic` named `subscription-name`.
 
-   If no connection is provided, a new connection is created for this
-   action. If a connection is provided, it must have its :client-id set
+   If no context is provided, a new context is created for this
+   action. If a context is provided, it must have its :client-id set
    to the same value used when creating the subscription. See
    [[subscribe]].
 
    The following options are supported [default]:
 
-     * :connection   - a connection to use; caller expected to close [nil]"
+     * :context   - a context to use; caller expected to close [nil]"
   [topic subscription-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (merge-connection topic)
+                  (merge-context topic)
                   (o/validate-options unsubscribe))]
     (.unsubscribe ^Topic (:destination topic) (name subscription-name)
       (o/extract-options options Topic$UnsubscribeOption))))
@@ -360,12 +333,12 @@
   (o/opts->set Topic$UnsubscribeOption))
 
 (defn stop
-  "Stops the given connection, destination, listener, session, or subscription listener.
+  "Stops the given context, destination, listener, or subscription listener.
 
    Note that stopping a destination may remove it from the broker if
    called outside of the container."
   [x]
-  (let [x (:destination x (:session x x))]
+  (let [x (:destination x x)]
     (if (instance? Destination x)
       (.stop x)
       (.close x))))

@@ -1,4 +1,3 @@
-;; Copyright 2014 Red Hat, Inc, and individual contributors.
 ;;
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -18,12 +17,12 @@
     (:import java.lang.AutoCloseable
              org.projectodd.wunderboss.WunderBoss
              [org.projectodd.wunderboss.messaging
-              ConcreteReply Connection
+              ConcreteReply
+              Context Context$Mode
               Message
               Messaging Messaging$CreateOption
-              Messaging$CreateConnectionOption
-              MessageHandler ReplyableMessage
-              Session$Mode]))
+              Messaging$CreateContextOption
+              MessageHandler ReplyableMessage]))
 
 (def ^:internal create-defaults (o/opts->defaults-map Messaging$CreateOption))
 
@@ -74,18 +73,14 @@
                                message))]
           (ConcreteReply. reply (meta reply)))))))
 
-(defn coerce-session-mode [mode]
+(defn coerce-context-mode [mode]
   (case mode
-    nil         Session$Mode/AUTO_ACK
-    :auto-ack   Session$Mode/AUTO_ACK
-    :client-ack Session$Mode/CLIENT_ACK
-    :transacted Session$Mode/TRANSACTED
+    nil         Context$Mode/AUTO_ACK
+    :auto-ack   Context$Mode/AUTO_ACK
+    :client-ack Context$Mode/CLIENT_ACK
+    :transacted Context$Mode/TRANSACTED
     (throw (IllegalArgumentException.
-             (str mode " is not a valid session mode")))))
+             (str mode " is not a valid context mode")))))
 
-(defn merge-connection [opts x]
-  (if (= :session x)
-    (update-in opts [:connection]
-      #(or % (when-let [s (:session opts)]
-               (.connection s))))
-    (update-in opts [:connection] #(or % (:connection x)))))
+(defn merge-context [opts x]
+  (update-in opts [:context] #(or % (:context x))))

@@ -16,7 +16,7 @@
   (:require [clojure.test :refer :all]
             [immutant.messaging :refer :all]
             [immutant.util :as u])
-  (:import org.projectodd.wunderboss.messaging.Connection))
+  (:import org.projectodd.wunderboss.messaging.Context))
 
 (u/set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
 
@@ -41,31 +41,23 @@
 (deftest destination-should-be-stoppable
   (stop (queue "foo")))
 
-(deftest session-should-work
-  (with-open [s (session)]
-    (is s)))
-
-(deftest session-with-mode-should-work
-  (with-open [s (session :mode :transacted)]
-    (is s)))
-
-(deftest session-should-throw-with-invalid-mode
+(deftest context-should-throw-with-invalid-mode
   (is (thrown? IllegalArgumentException
-        (session :mode :blarg))))
+        (context :mode :blarg))))
 
-(deftest connection-should-work
-  (with-open [c (connection)]
+(deftest context-should-work
+  (with-open [c (context)]
     (is c)
-    (is (instance? Connection c))))
+    (is (instance? Context c))))
 
-(deftest connection-should-accept-kwargs-and-map
-  (with-open [c (connection :port 1234)]
+(deftest context-should-accept-kwargs-and-map
+  (with-open [c (context :port 1234)]
     (is c))
-  (with-open [c (connection {:port 1234})]
+  (with-open [c (context {:port 1234})]
     (is c)))
 
-(deftest connection-should-validate-opts
-  (is (thrown? IllegalArgumentException (connection :bad :option))))
+(deftest context-should-validate-opts
+  (is (thrown? IllegalArgumentException (context :bad :option))))
 
 (deftest publish-receive-should-work
   (let [q (queue "foo" :durable false)]
@@ -168,42 +160,44 @@
         (is (= 100 (deref r2 2000 :fail)))
         (is (= 25 (deref r3 2000 :fail)))))))
 
-(deftest transactional-session-should-work
+(deftest transactional-context-should-work
   (let [q (queue "tx-queue" :durable false)]
-    (with-open [s (session :mode :transacted)]
-      (publish q :first :session s)
+    (with-open [s (context :mode :transacted)]
+      (publish q :first :context s)
       (.commit s)
-      (publish q :second :session s)
+      (publish q :second :context s)
       (.rollback s))
     (is (= :first (receive q :timeout 100 :timeout-val :failure)))
     (is (= :success (receive q :timeout 100 :timeout-val :success)))))
 
-(deftest remote-connection-should-work
+(deftest remote-context-should-work
   (queue "remote" :durable false)
   (let [extra-connect-opts
         (when (u/in-container?)
           [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
-    (with-open [c (apply connection :host "localhost" :port (u/messaging-remoting-port)
+    (with-open [c (apply context :host "localhost" :port (u/messaging-remoting-port)
                     extra-connect-opts)]
-      (let [q (queue "remote" :connection c)]
+      (let [q (queue "remote" :context c)]
         (publish q :hi)
-        (= :hi (receive q :timeout 100 :timeout-val :failure))
-        (with-open [s (session :connection c)]
-          (publish q :hi :session s)
-          (= :hi (receive q :session s :timeout 100 :timeout-val :failure)))))))
+        (= :hi (receive q :timeout 100 :timeout-val :failure))))))
 
 (deftest remote-receive-should-properly-timeout
   (let [q-name (.name (:destination (random-queue)))
         extra-connect-opts
         (when (u/in-container?)
           [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
-    (with-open [c (apply connection :host "localhost" :port (u/messaging-remoting-port)
+    (immutant.internal.util/warn "TC: pre-connect")
+    (with-open [c (apply context :host "localhost" :port (u/messaging-remoting-port)
                     extra-connect-opts)]
-      (let [q (queue q-name :connection c)
+      (immutant.internal.util/warn "TC: pre queue")
+      (let [q (queue q-name :context c)
             start (System/currentTimeMillis)]
-        ;; warm up the connection
+        ;; warm up the context
+        (immutant.internal.util/warn "TC: pre warmup")
         (receive q :timeout 1)
+        (immutant.internal.util/warn "TC: post warmup")
         (is (= :success (receive q :timeout 100 :timeout-val :success)))
+        (immutant.internal.util/warn "TC: post rcv")
         (is (< (- (System/currentTimeMillis) start) 200))))))
 
 (deftest publish-from-a-listener-should-work
@@ -244,11 +238,11 @@
 (deftest publish-to-a-remote-queue-from-a-listener-should-work
   (queue "remote" :durable false)
   (let [conn (if (u/in-container?)
-               (connection :host "localhost" :port (u/messaging-remoting-port)
+               (context :host "localhost" :port (u/messaging-remoting-port)
                  :username "testuser" :password "testuser" :remote-type :hornetq-wildfly)
-               (connection :host "localhost"))
+               (context :host "localhost"))
         q (random-queue)
-        remote-q (queue "remote" :connection conn)
+        remote-q (queue "remote" :context conn)
         l (listen q #(publish remote-q %))]
     (try
       (publish q :ham)

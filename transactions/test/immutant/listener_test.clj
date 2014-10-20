@@ -23,11 +23,11 @@
 (def queue (msg/queue "/queue/test" :durable false))
 (def local-remote-queue (msg/queue "remote" :durable false))
 (def conn (if (in-container?)
-            (msg/connection :host "localhost" :port (messaging-remoting-port)
+            (msg/context :host "localhost" :port (messaging-remoting-port)
               :username "testuser" :password "testuser" :remote-type :hornetq-wildfly
               :xa true)
-            (msg/connection :host "localhost" :xa true)))
-(def remote-queue (msg/queue "remote" :connection conn))
+            (msg/context :host "localhost" :xa true)))
+(def remote-queue (msg/queue "remote" :context conn))
 
 (def trigger (msg/queue "/queue/trigger" :durable false))
 (def cache (csh/cache "tx-test" :transactional true))

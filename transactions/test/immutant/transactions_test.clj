@@ -32,9 +32,9 @@
 
 (defn attempt-transaction-external [& [f]]
   (try
-    (with-open [conn (msg/connection :xa true)]
+    (with-open [conn (msg/context :xa true)]
       (transaction
-        (msg/publish queue "kiwi" :connection conn)
+        (msg/publish queue "kiwi" :context conn)
         (.put cache :a 1)
         (if f (f))))
     (catch Exception e
