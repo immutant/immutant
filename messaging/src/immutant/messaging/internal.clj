@@ -73,14 +73,16 @@
                                message))]
           (ConcreteReply. reply (meta reply)))))))
 
-(defn coerce-context-mode [mode]
-  (case mode
-    nil         Context$Mode/AUTO_ACK
-    :auto-ack   Context$Mode/AUTO_ACK
-    :client-ack Context$Mode/CLIENT_ACK
-    :transacted Context$Mode/TRANSACTED
-    (throw (IllegalArgumentException.
-             (str mode " is not a valid context mode")))))
+(defn coerce-context-mode [opts]
+  (if-let [mode (:mode opts)]
+    (assoc opts
+      :mode (case mode
+              :auto-ack   Context$Mode/AUTO_ACK
+              :client-ack Context$Mode/CLIENT_ACK
+              :transacted Context$Mode/TRANSACTED
+              (throw (IllegalArgumentException.
+                       (str mode " is not a valid context mode")))))
+    opts))
 
 (defn merge-context [opts x]
   (update-in opts [:context] #(or % (:context x))))

@@ -80,7 +80,7 @@
     (is (= 1 (:deliveries cache)))))
 
 (deftest non-transactional-writes-in-listener-with-exception
-  (with-open [_ (msg/listen trigger listener :transacted false)]
+  (with-open [_ (msg/listen trigger listener :mode :auto-ack)]
     (msg/publish trigger {:throw? true})
     (is (= 10 (loop [i 0]
                 (Thread/sleep 100)

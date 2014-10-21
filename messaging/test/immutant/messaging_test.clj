@@ -247,7 +247,7 @@
         l (listen q (fn [m]
                       (publish q2 m)
                       (throw (Exception. "expected exception")))
-            :transacted false)]
+            :mode :auto-ack)]
     (try
       (publish q :success)
       (is (= :success (receive q2 :timeout 1000 :timeout-val :failure)))

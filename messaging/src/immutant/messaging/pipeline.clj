@@ -179,7 +179,7 @@
         opts (-> opts
                (merge (meta f))
                (assoc :decode? false
-                      :transacted false
+                      :mode :auto-ack
                       :selector (str "step = '" step "'")))]
     (msg/listen pl
       (-> f

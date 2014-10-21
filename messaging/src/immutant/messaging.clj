@@ -72,7 +72,7 @@
   [& options]
   (let [options (-> options
                   u/kwargs-or-map->map
-                  (update-in [:mode] coerce-context-mode)
+                  coerce-context-mode
                   (o/validate-options context)
                   (as-> % (assoc % :client-id (:subscription-name %)))
                   (dissoc :subscription-name)
@@ -219,6 +219,8 @@
      * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
                        base message object is passed [true]
      * :context      - a remote context to use; caller expected to close [nil]
+     * :mode         - the mode to use for the listener context. One of :auto-ack, :client-ack,
+                       :transacted [:transacted]
 
    Returns a listener object that can be stopped by passing it to [[stop]], or by
    calling .close on it."
@@ -226,6 +228,7 @@
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-context destination)
+                  coerce-context-mode
                   (o/validate-options listen))]
     (.listen ^Destination (:destination destination)
       (message-handler f (:decode? options true))
@@ -267,6 +270,7 @@
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-context queue)
+                  coerce-context-mode
                   (o/validate-options respond))]
     (.respond ^Queue (:destination queue)
       (message-handler f (:decode? options true))
