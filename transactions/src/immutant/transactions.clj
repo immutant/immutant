@@ -17,7 +17,7 @@
   (:import [org.projectodd.wunderboss WunderBoss]
            [org.projectodd.wunderboss.transactions Transaction]))
 
-(def ^:no-doc tx (WunderBoss/findOrCreateComponent Transaction))
+(def ^:no-doc ^Transaction tx (WunderBoss/findOrCreateComponent Transaction))
 
 (def
   ^{:doc "The JTA TransactionManager"
@@ -42,3 +42,12 @@
   not"
   []
   (.setRollbackOnly manager))
+
+(defn enlist
+  "Enlist a valid XAResource as a participant in the current
+  transaction. Not required for Immutant resources, i.e. messaging and
+  caching, as they will be enlisted automatically."
+  [^javax.transaction.xa.XAResource resource]
+  (-> manager
+    .getTransaction
+    (.enlistResource resource)))

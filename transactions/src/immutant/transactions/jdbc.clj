@@ -19,7 +19,7 @@
             [clojure.java.jdbc :as jdbc]))
 
 (defn ^:no-doc prepared-statement
- [con stmt]
+ [con ^PreparedStatement stmt]
  (reify PreparedStatement
    ;; Make the wrapper the statement's back-reference
    (getConnection [_] con)
@@ -40,7 +40,7 @@
    (close [_] (.close stmt))))
 
 (defn ^:no-doc connection
- [con]
+ [^Connection con]
  (reify Connection
    ;; Eat these since they're illegal on an XA connection
    (setAutoCommit [& _])
