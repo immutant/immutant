@@ -19,7 +19,8 @@
             [immutant.transactions.scope :refer (required not-supported)]
             [immutant.util :refer [in-container? set-log-level! messaging-remoting-port]]
             [immutant.messaging :as msg]
-            [immutant.caching   :as csh]))
+            [immutant.caching   :as csh]
+            [clojure.java.jdbc :as sql]))
 
 (set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
 (def cache (csh/cache "tx-test" :transactional true))
@@ -32,10 +33,16 @@
             (msg/context :host "localhost" :xa true)))
 (def remote-queue (msg/queue "remote" :context conn))
 (def trigger (msg/queue "/queue/trigger" :durable false))
+(def spec {:connection-uri "jdbc:h2:mem:ooc;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"})
 
 (use-fixtures :each
   (fn [f]
     (.clear cache)
+    (try
+      (sql/db-do-commands spec
+        (try (sql/drop-table-ddl :things) (catch Exception _))
+        (sql/create-table-ddl :things [:name "varchar(50)"]))
+      (catch Exception _))
     (f)))
 
 (use-fixtures :once
@@ -43,14 +50,30 @@
     (f)
     (.close conn)))
 
+;;; Helper methods to verify database activity
+(defn write-thing-to-db [spec name]
+  (sql/insert! spec :things {:name name}))
+(defn read-thing-from-db [spec name]
+  (-> (sql/query spec ["select name from things where name = ?" name])
+    first))
+(defn count-things-in-db [spec]
+  (-> (sql/query spec ["select count(*) c from things"])
+    first
+    :c
+    int))
+
 (defn work [m]
   (msg/publish queue "kiwi")
   (msg/publish remote-queue "starfruit")
   (.put cache :a 1)
   (not-supported
     (.put cache :deliveries (inc (or (:deliveries cache) 0))))
-  (when (:throw? m) (throw (Exception. "rollback")))
-  (when (:rollback? m) (set-rollback-only)))
+  (sql/with-db-transaction [t spec]
+    (write-thing-to-db t "tangerine")
+    (when (:throw? m) (throw (Exception. "rollback")))
+    (when (:rollback? m)
+      (set-rollback-only)
+      (sql/db-set-rollback-only! t))))
 
 (defn listener [m]
   (if (:tx? m)
@@ -77,17 +100,15 @@
   (is (= "kiwi" (msg/receive queue :timeout 1000)))
   (is (= "starfruit" (msg/receive local-remote-queue :timeout 1000)))
   (is (= 1 (:a cache))) 
-  ;; (is (= "kiwi" (:name (read-thing-from-db {:datasource ds} "kiwi"))))
-  ;; (is (= 1 (count-things-in-db {:datasource ds})))
-  )
+  (is (= "tangerine" (:name (read-thing-from-db spec "tangerine"))))
+  (is (= 1 (count-things-in-db spec))))
 
 (defn verify-failure []
   (is (nil? (msg/receive queue :timeout 1000)))
   (is (nil? (msg/receive local-remote-queue :timeout 1000)))
   (is (nil? (:a cache))) 
-  ;; (is (nil? (read-thing-from-db {:datasource ds} "kiwi")))
-  ;; (is (= 0 (count-things-in-db {:datasource ds})))
-  )
+  (is (nil? (read-thing-from-db spec "tangerine")))
+  (is (= 0 (count-things-in-db spec))))
 
 (deftest verify-transaction-success-external
   (is (nil? (attempt-transaction-external)))

@@ -82,6 +82,7 @@
                         stylefruits/gniazdo        "0.1.0"
                         compojure                  "1.1.8"
                         org.clojure/java.jdbc      "0.3.5"
+                        h2                         "1.3.176"
 
                         ;; org.projectodd.wunderboss  "0.1.0"
                         org.projectodd.wunderboss  "1.x.incremental.159"

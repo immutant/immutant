@@ -37,7 +37,8 @@
                          :test-paths ["../web/test-integration"]
                          :main integs.web}
              :integ-transactions {:test-paths ["../transactions/test"]
-                                  :dependencies [[org.clojure/java.jdbc _]]}
+                                  :dependencies [[org.clojure/java.jdbc _]
+                                                 [com.h2database/h2 _]]}
 
              :web [:integ-base :integ-web]
              :scheduling [:integ-base :integ-scheduling]

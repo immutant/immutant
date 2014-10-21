@@ -23,4 +23,5 @@
   :profiles {:dev
              {:dependencies [[org.immutant/messaging _]
                              [org.immutant/caching _]
-                             [org.clojure/java.jdbc _]]}})
+                             [org.clojure/java.jdbc _]
+                             [com.h2database/h2 _]]}})
