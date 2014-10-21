@@ -178,3 +178,26 @@ exception escapes that body, the tx will be rolled back, and if the
 exception bubbles out of the handler, the message will be queued for
 redelivery. But the rollback of the tx has no relationship to
 redelivery, which is only triggered by the exception.
+
+Messaging connections, now called contexts, are no longer XA by
+default, so you must set the :xa option to true when you create your
+own contexts to pass to the messaging functions. If you don't pass
+your own contexts, those functions will create an XA capable context
+only if within an active transaction as defined by the scoping macros.
+
+The `immutant.xa/datasource` function has been removed, as it would be
+impractical to support it outside of the app server. It's still
+possible to include SQL datasources within an XA transaction inside
+WildFly by configuring them there and referring to them by JNDI name.
+It is also possible to manipulate a non-XA SQL datasource within an XA
+transaction as long as 1) it's the only non-XA resource and 2) it is
+operated on last. This "trick" relies on an exception being thrown if
+the datasource operation fails, hence causing the other XA
+participants, e.g. messaging destinations or caches, to roll back.
+
+## immutant.xa.transaction -> immutant.transactions.scope
+
+All the scope macros, analogous to the JEE Transaction attribute
+annotations, have been moved to `immutant.transactions.scope`. The
+`immutant.transactions/transaction` macro is an alias for
+`immutant.transactions.scope/required`, just as in Immutant 1.x.

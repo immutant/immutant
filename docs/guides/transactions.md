@@ -21,6 +21,36 @@ to the delivery of a message to a remote queue, i.e. the message is
 only sent if the database and data grid update successfully. If any
 single component of an XA transaction fails, all of them rollback.
 
+## Defining a transaction
+
+If you're familiar with [JTA], we make a `TransactionManager`
+available via the [[immutant.transactions/manager]] var, and
+everything else provided by the library is mostly a syntactic sugary
+glaze around that instance. For example, the
+[[immutant.transactions/transaction]] macro will query the manager to
+see if a transaction is active. If so, it'll simply invoke its body,
+relying on the transactional components within to automatically enlist
+themselves as XA resources. Otherwise, it'll start a new transaction,
+execute its body, and commit the transaction unless an exception is
+caught, in which case the transaction is rolled back. For example,
+
+```clojure
+(def queue (msg/queue "/queue/test"))
+(def cache (csh/cache "test" :transactional true))
+
+(transaction
+  (msg/publish queue "message")
+  (csh/compare-and-swap! cache :count (fnil inc 0)))
+```
+
+Here, we've tied the success of a messaging operation to that of a
+caching operation. Either both succeed or neither succeeds,
+atomically. Note that the cache had to be created with its
+:transactional flag set. The publish function will detect an active
+transaction and create an XA-capable context with which to send the
+message. If you pass a context for publish to use, be sure its :xa
+flag is set if you're publishing within a transaction.
+
 ## Transaction Scope
 
 When transactional components interact, the state of a transaction
@@ -30,7 +60,7 @@ been started prior to its invocation? In JEE container-managed
 persistence, a developer answers these questions using the
 `@TransactionAttribute` annotation.
 
-But annotations are gross, man!
+But annotations are gross, friend!
 
 So in Immutant, [JEE transaction attributes] are represented as
 Clojure macros. In fact, the `immutant.transactions/transaction` macro
@@ -58,3 +88,4 @@ chunks are combined.
 [HornetQ]: http://www.jboss.org/hornetq
 [XA protocol]: http://en.wikipedia.org/wiki/X/Open_XA
 [JEE transaction attributes]: http://docs.oracle.com/javaee/7/tutorial/doc/transactions003.htm
+[JTA]: http://www.oracle.com/technetwork/java/javaee/jta/index.html

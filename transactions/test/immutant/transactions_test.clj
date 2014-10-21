@@ -65,9 +65,9 @@
 (defn work [m]
   (msg/publish queue "kiwi")
   (msg/publish remote-queue "starfruit")
-  (.put cache :a 1)
+  (csh/compare-and-swap! cache :a (constantly 1))
   (not-supported
-    (.put cache :deliveries (inc (or (:deliveries cache) 0))))
+    (csh/compare-and-swap! cache :deliveries (fnil inc 0)))
   (sql/with-db-transaction [t spec]
     (write-thing-to-db t "tangerine")
     (when (:throw? m) (throw (Exception. "rollback")))
