@@ -305,7 +305,7 @@
     (.subscribe ^Topic (:destination topic) (name subscription-name)
       (message-handler f (:decode? options true))
       codecs/codecs
-      (o/extract-options options Topic$UnsubscribeOption))))
+      (o/extract-options options Topic$SubscribeOption))))
 
 (o/set-valid-options! subscribe
   (conj (o/opts->set Topic$SubscribeOption) :decode?))
