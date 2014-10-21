@@ -106,7 +106,8 @@ restore `internal-scheduler`?)
 
 Has a similar API, except around destination creation and passing. Fns
 now take destination objects instead of strings, and the destination
-objects must be created via `create-queue` and `create-topic`.
+objects must be created via `queue` and `topic`. Connections and
+sessions have been replaced with contexts, available from `context`.
 
 `unlisten` and `stop` have been merged in to `stop`. `message-seq` is
 no more.
