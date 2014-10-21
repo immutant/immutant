@@ -36,12 +36,11 @@
    A context represents a remote or local connection to the messaging
    broker.
 
-   There are three reasons you would create a context:
+   There are two reasons you would create a context rather than
+   rely on the messaging functions to lazily create them as needed:
 
    1) for communicating with a remote HornetQ instance
-   2) for sharing a context among multiple publish or receive calls when
-      sending many messages in a tight loop
-   3) xa {{jcrossley3 should finish this}}
+   2) for sharing a context among a batch of messaging operations
 
    You are responsible for closing any contexts created via this
    function.

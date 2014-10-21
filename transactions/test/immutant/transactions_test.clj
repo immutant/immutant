@@ -16,58 +16,95 @@
   (:require [clojure.test :refer :all]
             [clojure.java.io :as io]
             [immutant.transactions :refer :all]
-            [immutant.transactions.scope :refer (required)]
-            [immutant.util :refer [in-container? set-log-level! reset-fixture]]
+            [immutant.transactions.scope :refer (required not-supported)]
+            [immutant.util :refer [in-container? set-log-level! messaging-remoting-port]]
             [immutant.messaging :as msg]
             [immutant.caching   :as csh]))
 
 (set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
-(def queue (msg/queue "/queue/test" :durable false))
 (def cache (csh/cache "tx-test" :transactional true))
+(def queue (msg/queue "/queue/test" :durable false))
+(def local-remote-queue (msg/queue "remote" :durable false))
+(def conn (if (in-container?)
+            (msg/context :host "localhost" :port (messaging-remoting-port)
+              :username "testuser" :password "testuser" :remote-type :hornetq-wildfly
+              :xa true)
+            (msg/context :host "localhost" :xa true)))
+(def remote-queue (msg/queue "remote" :context conn))
+(def trigger (msg/queue "/queue/trigger" :durable false))
 
 (use-fixtures :each
   (fn [f]
     (.clear cache)
     (f)))
 
-(defn attempt-transaction-external [& [f]]
+(use-fixtures :once
+  (fn [f]
+    (f)
+    (.close conn)))
+
+(defn work [m]
+  (msg/publish queue "kiwi")
+  (msg/publish remote-queue "starfruit")
+  (.put cache :a 1)
+  (not-supported
+    (.put cache :deliveries (inc (or (:deliveries cache) 0))))
+  (when (:throw? m) (throw (Exception. "rollback")))
+  (when (:rollback? m) (set-rollback-only)))
+
+(defn listener [m]
+  (if (:tx? m)
+    (transaction (work m))
+    (work m)))
+
+(defn attempt-transaction-external [& {:as m}]
   (try
     (with-open [conn (msg/context :xa true)]
       (transaction
-        (msg/publish queue "kiwi" :context conn)
-        (.put cache :a 1)
-        (if f (f))))
+        (msg/publish queue "pineapple" :context conn)
+        (work m)))
     (catch Exception e
       (-> e .getMessage))))
 
-(defn attempt-transaction-internal [& [f]]
+(defn attempt-transaction-internal [& {:as m}]
   (try
     (transaction
-      (msg/publish queue "kiwi")
-      (.put cache :a 1)
-      (if f (f)))
+      (work m))
     (catch Exception e
       (-> e .getMessage))))
+
+(defn verify-success []
+  (is (= "kiwi" (msg/receive queue :timeout 1000)))
+  (is (= "starfruit" (msg/receive local-remote-queue :timeout 1000)))
+  (is (= 1 (:a cache))) 
+  ;; (is (= "kiwi" (:name (read-thing-from-db {:datasource ds} "kiwi"))))
+  ;; (is (= 1 (count-things-in-db {:datasource ds})))
+  )
+
+(defn verify-failure []
+  (is (nil? (msg/receive queue :timeout 1000)))
+  (is (nil? (msg/receive local-remote-queue :timeout 1000)))
+  (is (nil? (:a cache))) 
+  ;; (is (nil? (read-thing-from-db {:datasource ds} "kiwi")))
+  ;; (is (= 0 (count-things-in-db {:datasource ds})))
+  )
 
 (deftest verify-transaction-success-external
   (is (nil? (attempt-transaction-external)))
-  (is (= "kiwi" (msg/receive queue :timeout 1000)))
-  (is (= 1 (:a cache))))
+  (is (= "pineapple" (msg/receive queue :timeout 1000)))
+  (verify-success))
 
 (deftest verify-transaction-failure-external
-  (is (= "force rollback" (attempt-transaction-external #(throw (Exception. "force rollback")))))
-  (is (nil? (msg/receive queue :timeout 1000)))
-  (is (nil? (:a cache))))
+  (is (= "rollback" (attempt-transaction-external :throw? true)))
+  (verify-failure))
 
 (deftest verify-transaction-success-internal
   (is (nil? (attempt-transaction-internal)))
-  (is (= "kiwi" (msg/receive queue :timeout 1000)))
-  (is (= 1 (:a cache))))
+  (verify-success))
 
 (deftest verify-transaction-failure-internal
-  (is (= "force rollback" (attempt-transaction-internal #(throw (Exception. "force rollback")))))
-  (is (nil? (msg/receive queue :timeout 1000)))
-  (is (nil? (:a cache))))
+  (is (= "rollback" (attempt-transaction-internal :throw? true)))
+  (verify-failure))
 
 (deftest transactional-receive
   (msg/publish queue "foo")
@@ -75,3 +112,34 @@
     (msg/receive queue)
     (set-rollback-only))
   (is (= "foo" (msg/receive queue :timeout 1000))))
+
+(deftest transactional-writes-in-listener-should-work
+  (with-open [_ (msg/listen trigger listener)]
+    (msg/publish trigger {:tx? true})
+    (verify-success)))
+
+(deftest transactional-writes-in-listener-should-fail-on-exception
+  (with-open [_ (msg/listen trigger listener)]
+    (msg/publish trigger {:tx? true :throw? true})
+    (verify-failure)
+    (is (= 10 (:deliveries cache)))))
+
+(deftest transactional-writes-in-listener-should-fail-on-rollback
+  (with-open [_ (msg/listen trigger listener)]
+    (msg/publish trigger {:tx? true :rollback? true})
+    (verify-failure)
+    (is (= 1 (:deliveries cache)))))
+
+(deftest non-transactional-writes-in-listener-with-exception
+  (with-open [_ (msg/listen trigger listener :mode :auto-ack)]
+    (msg/publish trigger {:throw? true})
+    (is (= 10 (loop [i 0]
+                (Thread/sleep 100)
+                (if (or (= 50 i) (= 10 (:deliveries cache)))
+                  (:deliveries cache)
+                  (recur (inc i))))))
+    (is (= 1 (:a cache)))
+    (is (= (take 10 (repeat "kiwi"))
+          (loop [i 10, v []] (if (zero? i) v (recur (dec i) (conj v (msg/receive queue :timeout 1000)))))))
+    (is (= (take 10 (repeat "starfruit"))
+          (loop [i 10, v []] (if (zero? i) v (recur (dec i) (conj v (msg/receive local-remote-queue :timeout 1000)))))))))

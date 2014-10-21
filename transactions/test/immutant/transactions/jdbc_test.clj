@@ -23,28 +23,26 @@
 
 (def spec {:factory factory :name "java:jboss/datasources/ExampleDS"})
 
-(defn create-database []
-  (sql/db-do-commands spec
-    (sql/create-table-ddl :things
-      [:name :varchar]))
-
-  (transaction
-    (sql/insert! spec :things {:name "success"}))
-
-  (transaction
-    (sql/with-db-transaction [con spec]
-      (sql/delete! con :things [true])
-      (sql/db-set-rollback-only! con)))
-
-  (try
-    (transaction
-      (sql/delete! spec :things [true])
-      (throw (NegativeArraySizeException. "test rollback by exception")))
-    (catch NegativeArraySizeException _)))
-
 (if (in-container?)
-  (deftest foo
-    (create-database)
+  (deftest jdbc-transactions
+    (sql/db-do-commands spec
+      (sql/create-table-ddl :things
+        [:name :varchar]))
+
+    (transaction
+      (sql/insert! spec :things {:name "success"}))
+
+    (transaction
+      (sql/with-db-transaction [con spec]
+        (sql/delete! con :things [true])
+        (sql/db-set-rollback-only! con)))
+
+    (try
+      (transaction
+        (sql/delete! spec :things [true])
+        (throw (NegativeArraySizeException. "test rollback by exception")))
+      (catch NegativeArraySizeException _))
+
     (is (= "success" (-> (sql/query spec ["select name from things"])
                        first
                        :name)))))
