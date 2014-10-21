@@ -116,6 +116,26 @@
     (with-open [listener (subscribe t "my-sub" #(deliver @called %))]
       (is (= :success (deref @called 1000 :success))))))
 
+(deftest durable-subscriber-with-context
+  (with-open [context (context :subscription-name "my-sub")]
+    (let [called (atom (promise))
+          t (topic "subscribe")
+          listener (subscribe t "my-sub" #(deliver @called %) :context context)]
+      (publish t :hi)
+      (is (= :hi (deref @called 1000 :fail)))
+      (reset! called (promise))
+      (stop listener)
+      (publish t :hi-again)
+      (is (= :fail (deref @called 100 :fail)))
+      (with-open [listener (subscribe t "my-sub" #(deliver @called %) :context context)]
+        (is (= :hi-again (deref @called 1000 :fail))))
+      (unsubscribe t "my-sub" :context context)
+      (reset! called (promise))
+      (stop listener)
+      (publish t :failure)
+      (with-open [listener (subscribe t "my-sub" #(deliver @called %) :context context)]
+        (is (= :success (deref @called 1000 :success)))))))
+
 (def ^:dynamic *dvar* :unbound)
 
 (deftest listen-should-work-with-conveyed-bindings

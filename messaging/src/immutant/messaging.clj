@@ -48,9 +48,9 @@
 
    Options that apply to both local and remote contexts are [default]:
 
-   * :client-id - identifies the client id for use with a durable topic subscriber [nil]
-   * :xa        - if true, returns an XA context for use in a distributed transaction [false]
-   * :mode      - one of: :auto-ack, :client-ack, :transacted. Ignored if :xa is true. [:auto-ack]
+   * :subscription-name - identifies the context for use with a durable topic subscriber [nil]
+   * :xa                - if true, returns an XA context for use in a distributed transaction [false]
+   * :mode              - one of: :auto-ack, :client-ack, :transacted. Ignored if :xa is true. [:auto-ack]
 
    Options that apply to only remote contexts are [default]:
 
@@ -74,12 +74,16 @@
                   u/kwargs-or-map->map
                   (update-in [:mode] coerce-context-mode)
                   (o/validate-options context)
+                  (as-> % (assoc % :client-id (:subscription-name %)))
+                  (dissoc :subscription-name)
                   (update-in [:remote-type] o/->underscored-string))]
     (.createContext (broker nil)
       (o/extract-options options Messaging$CreateContextOption))))
 
 (o/set-valid-options! context
-  (o/opts->set Messaging$CreateContextOption))
+  (-> (o/opts->set Messaging$CreateContextOption)
+    (conj :subscription-name)
+    (disj :client-id)))
 
 (defn queue
   "Establishes a handle to a messaging queue.
@@ -283,8 +287,8 @@
    metadata/properties matching that expression may be received.
 
    If no context is provided, a new context is created for this
-   subscriber. If a context is provided, it must have its :client-id
-   set.
+   subscriber. If a context is provided, it must have
+   its :subscription-name set as well.
 
    The following options are supported [default]:
 
@@ -314,8 +318,8 @@
   "Tears down the durable topic subscription on `topic` named `subscription-name`.
 
    If no context is provided, a new context is created for this
-   action. If a context is provided, it must have its :client-id set
-   to the same value used when creating the subscription. See
+   action. If a context is provided, it must have its :subscription-name
+   set to the same value used when creating the subscription. See
    [[subscribe]].
 
    The following options are supported [default]:
