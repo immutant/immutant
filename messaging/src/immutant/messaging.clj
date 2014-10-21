@@ -87,17 +87,17 @@
 (defn queue
   "Establishes a handle to a messaging queue.
 
-   The following options are supported [default]:
-
-   * :context    - a context to a remote broker [nil]
-   * :durable?   - whether messages persist across restarts [true]
-   * :selector   - a JMS (SQL 92) expression to filter published messages [nil]
-
-   If given a :context, the context is remembered and used as a
-   default option to any fn that takes a queue and a context.
+   If given a :context, the context must be remote, and is remembered and
+   used as a default option to any fn that takes a queue and a context.
 
    This creates the queue if no :context is provided and it does not
-   yet exist."
+   yet exist.
+
+   The following options are supported [default]:
+
+   * :context    - a context for a *remote* broker [nil]
+   * :durable?   - whether messages persist across restarts [true]
+   * :selector   - a JMS (SQL 92) expression to filter published messages [nil]"
   [queue-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -113,15 +113,16 @@
 (defn topic
   "Establishes a handle to a messaging topic.
 
-   The following options are supported [default]:
-
-   * :context - a context to a remote broker [nil]
-
-   If given a :context, the context is remembered and used as a
-   default option to any fn that takes a topic and a context.
+   If given a :context, the context must be remote, and the context is
+   remembered and used as a default option to any fn that takes a topic
+   and a context.
 
    This creates the topic if no :context is provided and it does not
-   yet exist."
+   yet exist.
+
+   The following options are supported [default]:
+
+   * :context - a context for a *remote* broker [nil]"
   [topic-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -211,13 +212,18 @@
    If a :selector is provided, then only messages having
    metadata/properties matching that expression will be received.
 
+   If given a :context, the context must be remote, and the mode of that
+   context is ignored, since it is used solely to generate sub-contexts
+   for each listener thread. Closing the given context will also close
+   the listener.
+
    The following options are supported [default]:
 
      * :concurrency  - the number of threads handling messages [1]
      * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
      * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
                        base message object is passed [true]
-     * :context      - a remote context to use; caller expected to close [nil]
+     * :context      - a context for a *remote* broker; caller expected to close [nil]
      * :mode         - the mode to use for the listener context. One of :auto-ack, :client-ack,
                        :transacted [:transacted]
 
