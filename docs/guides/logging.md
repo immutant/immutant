@@ -20,7 +20,7 @@ will be handled by Logback, as will anything your app logs via
 clojure.tools.logging).
 
 You can adjust the root logging level at runtime by calling
-[immutant.util/set-log-level!]. **Note**: this will only work if
+[[immutant.util/set-log-level!]]. **Note**: this will only work if
 Logback is actually being used, and not replaced with another
 implementation as we discuss below.
 
@@ -152,7 +152,6 @@ information on running your application in WildFly, see our
 [Logback]: http://logback.qos.ch/
 [clojure.tools.logging]: https://github.com/clojure/tools.logging
 [Timbre]: https://github.com/ptaoussanis/timbre
-[immutant.util/set-log-level!]: immutant.util.html#var-set-log-level.21
 [myriad options]: http://logback.qos.ch/manual/index.html
 [logback.xml]: http://logback.qos.ch/manual/configuration.html
 [default configuration]: https://github.com/projectodd/wunderboss/blob/master/modules/core/src/main/resources/logback-default.xml

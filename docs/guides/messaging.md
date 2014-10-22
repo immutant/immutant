@@ -1,6 +1,7 @@
 ---
 {:title "Messaging"
  :sequence 2
+ :base-ns 'immutant.messaging
  :description "Simple creation and usage of distributed queues and topics"}
 ---
 
@@ -17,39 +18,32 @@ primary destination types: *queues* and *topics*. Queues represent
 point-to-point destinations, and topics publish/subscribe.
 
 To use a destination, we need to get a reference to one via the
-[queue](immutant.messaging.html#var-queue) or
-[topic](immutant.messaging.html#var-topic)
-functions, depending on the type required. This will create the
-destination if it does not already exist. This is a bit different than
-the 1.x API, which provided a single `start` function for this, and
-determined the type of destination based on conventions around the
-provided name. In 2.x, we've removed those naming conventions.
+[[queue]] or [[topic]] functions, depending on the type required. This
+will create the destination if it does not already exist. This is a
+bit different than the 1.x API, which provided a single `start`
+function for this, and determined the type of destination based on
+conventions around the provided name. In 2.x, we've removed those
+naming conventions.
 
 Once we have a reference to a destination, we can operate on it with
 the following functions:
 
-* [publish](immutant.messaging.html#var-publish) -
-  sends a message to the destination
-* [receive](immutant.messaging.html#var-receive) -
-  receives a single message from the destination
-* [listen](immutant.messaging.html#var-listen) -
-  registers a function to be called each time a message
+* [[publish]] - sends a message to the destination
+* [[receive]] - receives a single message from the destination
+* [[listen]] - registers a function to be called each time a message
   arrives at the destination
 
 If the destination is a queue, we can do synchronous messaging
 ([request-response]):
 
-* [respond](immutant.messaging.html#var-respond) -
-  registers a function that receives each request, and the
-  returned value will be sent back to the requester
-* [request](immutant.messaging.html#var-request) -
-  sends a message to the responder
+* [[respond]] - registers a function that receives each request, and
+  the returned value will be sent back to the requester
+* [[request]] - sends a message to the responder
 
 Finally, to deregister listeners, responders, and destinations, we
-provide a single
-[stop](immutant.messaging.html#var-stop)
-function. This is another difference from 1.x -
-the `unlisten` and `stop` functions have been collapsed to `stop`.
+provide a single [[stop]] function. This is another difference
+from 1.x - the `unlisten` and `stop` functions have been collapsed to
+`stop`.
 
 ### Some Examples
 
@@ -157,9 +151,8 @@ same way as a listener.
 ## Remote contexts
 
 To connect to a remote HornetQ instance, you'll need to create a
-remote context (via the
-[context](immutant.messaging.html#var-context) function), and
-use it when getting a reference to the destination:
+remote context (via the [[context]] function), and use it when getting
+a reference to the destination:
 
 ```clojure
 (with-open [context (context :host "some-host" :port 5445)]
@@ -184,8 +177,7 @@ By default, Immutant creates a new context object for each `publish`,
 `request` or `receive` call. Creating a context isn't free, and incurs
 some performance overhead. If you plan on calling any of those
 functions in a tight loop, you can gain some performance by creating
-the context yourself (via the
-[context](immutant.messaging.html#var-context) function):
+the context yourself (via the [[context]] function):
 
 ```clojure
 (with-open [context (context)]

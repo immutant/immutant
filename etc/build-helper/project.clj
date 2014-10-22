@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 ;; *** NOTE: update the version in docs.clj when you change it here ***
-(defproject org.immutant/build-helper "0.2.5"
+(defproject org.immutant/build-helper "0.2.6"
   :description "A plugin to aid in building Immutant"
   :url "https://github.com/immutant/immutant"
   :license {:name "Apache Software License - v 2.0"

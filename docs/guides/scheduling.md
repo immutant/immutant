@@ -12,7 +12,7 @@ based on Quartz 2.2, though.
 
 ## The API
 
-At first glance, the API for [immutant.scheduling] appears bigger than
+At first glance, the API for [[immutant.scheduling]] appears bigger than
 it really is, but there are only two essential functions:
 
 * `schedule` - for scheduling your jobs
@@ -145,9 +145,10 @@ of the following are equivalent:
 ### Supports Joda clj-time
 
 If you're using the [clj-time] library in your project, you can load
-the [immutant.scheduling.joda] namespace. This will extend
-`org.joda.time.DateTime` instances to the [AsTime] protocol, enabling
-them to be used as arguments to `at` and `until`, e.g.
+the [[immutant.scheduling.joda]] namespace. This will extend
+`org.joda.time.DateTime` instances to the
+[[immutant.coercions/AsTime]] protocol, enabling them to be used as
+arguments to `at` and `until`, e.g.
 
 ```clojure
 (require '[clj-time.core :refer [today-at plus hours]])
@@ -159,8 +160,9 @@ them to be used as arguments to `at` and `until`, e.g.
       (until (plus t (hours 8))))))
 ```
 
-It also provides the function, `schedule-seq`. Inspired by [chime-at],
-it takes not a specification map but a sequence of times, as might be
+It also provides the function,
+[[immutant.scheduling.joda/schedule-seq]]. Inspired by [chime-at], it
+takes not a specification map but a sequence of times, as might be
 returned from `clj-time.periodic/periodic-seq`, subject to the
 application of any of Clojure's core sequence-manipulating functions.
 
@@ -194,9 +196,6 @@ actually scheduling it. On the other hand, my cron spec test is going
 to take more than a week to run! ;)
 
 
-[immutant.scheduling]: immutant.scheduling.html
-[immutant.scheduling.joda]: immutant.scheduling.joda.html
-[AsTime]: immutant.scheduling.coercions.html
 [Quartz-style]: http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06
 [installation]: guide-installation.html
 [clj-time]: https://github.com/clj-time/clj-time

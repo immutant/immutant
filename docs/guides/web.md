@@ -1,6 +1,7 @@
 ---
 {:title "Web"
  :sequence 1.5
+ :base-ns 'immutant.web
  :description "Running Clojure web applications and WebSockets"}
 ---
 
@@ -13,7 +14,7 @@ websockets.
 
 ## The Namespaces
 
-The primary namespace, [immutant.web], includes the two main functions
+The primary namespace, [[immutant.web]], includes the two main functions
 you'll use to run your handlers:
 
 * `run` - runs your handler in a specific environment, responding to
@@ -28,7 +29,7 @@ Also included:
 * `server` - provides finer-grained control over the embedded web
   server hosting your handler[s].
 
-The [immutant.web.middleware] namespace includes two Ring middleware
+The [[immutant.web.middleware]] namespace includes two Ring middleware
 functions:
 
 * `wrap-session` - enables session sharing among your Ring handler and
@@ -37,7 +38,7 @@ functions:
 * `wrap-development` - included automatically by `run-dmc`, this
   aggregates some middleware handy during development.
 
-[WebSockets] are created using the [immutant.web.websocket] namespace,
+[WebSockets] are created using the [[immutant.web.websocket]] namespace,
 which includes the following:
 
 * `Channel` - a protocol for WebSocket interaction.
@@ -46,7 +47,7 @@ which includes the following:
 * `wrap-websocket` - middleware to attach websocket callback functions
   to a Ring handler
 
-The [immutant.web.undertow] namespace exposes tuning options for
+The [[immutant.web.undertow]] namespace exposes tuning options for
 Undertow, the ability to open additional listeners, and flexible SSL
 configuration.
 
@@ -89,7 +90,7 @@ Which, if we make the default values explicit, is equivalent to this:
 (run app {:host "localhost" :port 8080 :path "/"})
 ```
 
-Or, since `run` takes options as either an explicit map or keyword
+Or, since [[run]] takes options as either an explicit map or keyword
 arguments (kwargs), this:
 
 ```clojure
@@ -210,7 +211,7 @@ a very simple [Pedestal] service running on Immutant:
 
 ## Development Mode
 
-The `run-dmc` macro resulted from a desire to provide a no-fuss way to
+The [[run-dmc]] macro resulted from a desire to provide a no-fuss way to
 enjoy all the benefits of REPL-based development. Before calling
 `run`, `run-dmc` will first ensure that your Ring handler is
 var-quoted and wrapped in the `reload` and `stacktrace` middleware
@@ -224,7 +225,7 @@ them within a single threaded call.
 ## WebSockets
 
 Also included in the `org.immutant/web` library is the
-[immutant.web.websocket] namespace, which includes the
+[[immutant.web.websocket]] namespace, which includes the
 `wrap-websocket` function that attaches a map of callback functions to
 your Ring handler. Though it looks like Ring middleware, it actually
 returns an `HttpHandler` instead of a function, so it must come last
@@ -280,7 +281,7 @@ vs `ws://`.
 Often, applications require access to data in the original upgrade
 request associated with a WebSocket connection, perhaps for user
 authentication or some such. That data is made available via the
-`immutant.web.websocket/Handshake` protocol, an instance of which is
+[[immutant.web.websocket/Handshake]] protocol, an instance of which is
 passed to the `:on-open` callback.
 
 In particular, you can access all the headers sent in the upgrade
@@ -322,10 +323,6 @@ You should be able to clone it somewhere, cd there, and `lein run`.
 
 Have fun!
 
-[immutant.web]: immutant.web.html
-[immutant.web.middleware]: immutant.web.middleware.html
-[immutant.web.websocket]: immutant.web.websocket.html
-[immutant.web.undertow]: immutant.web.undertow.html
 [Undertow]: http://undertow.io/
 [Ring]: https://github.com/ring-clojure/ring/wiki
 [installation]: guide-installation.html

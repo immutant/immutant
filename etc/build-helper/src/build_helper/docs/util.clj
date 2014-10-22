@@ -114,12 +114,13 @@
            Extensions/STRIKETHROUGH
            Extensions/TABLES
            Extensions/FENCED_CODE_BLOCKS
+           Extensions/WIKILINKS
            Extensions/DEFINITIONS
            Extensions/ABBREVIATIONS)
    2000))
 
-(defn render-markdown [content]
-  (.markdownToHtml pegdown content))
+(defn render-markdown [guide namespaces content]
+  (.markdownToHtml pegdown content (#'html/link-renderer {:namespaces namespaces} (:base-ns guide))))
 
 (defn guides-menu [guides]
   [:div#guides
@@ -241,7 +242,7 @@
     (println "Rendering" (.getName source-file) "to" (str target-dir "/" output-file))
     (->>
       (cp/render content (add-mustache-data options))
-      render-markdown
+      (render-markdown guide (:namespaces options))
       (add-toc guide)
       (add-content-header guide)
       (wrap-template guides guide target-dir)
@@ -284,7 +285,8 @@
   (bob/add-hook #'html/namespaces-menu #'add-guides-menu)
 
   (let [target-dir (.getCanonicalPath (io/file target-path "apidocs"))
-        guides (parse-guides (io/file guides-dir))]
+        guides (parse-guides (io/file guides-dir))
+        namespaces (apply load-indexes options base-dirs)]
     (binding [*guides* guides]
       (println "Generating api docs to" target-dir "...")
       (-> codox-options
@@ -292,7 +294,7 @@
                                         "thedeuce"
                                         version))
         (assoc :version version
-               :namespaces (apply load-indexes options base-dirs)
+               :namespaces namespaces
                :output-dir target-dir)
         (html/write-docs))
       (doseq [f ["assets/immutant.css"
@@ -306,4 +308,6 @@
                  "assets/jquery.syntax.layout.plain.js"
                  "assets/jquery.syntax.min.js"]]
         (cp f target-dir))
-      (render-guides options guides target-dir))))
+      (render-guides
+        (assoc options :namespaces namespaces)
+        guides target-dir))))

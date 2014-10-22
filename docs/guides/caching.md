@@ -1,6 +1,7 @@
 ---
 {:title "Caching"
  :sequence 4
+ :base-ns 'immutant.caching
  :description "Flexible caching and memoization using a linearly-scalable data grid"}
 ---
 
@@ -11,7 +12,7 @@ locally embedded within your app, Infinispan caches offer features
 such as eviction, expiration, persistence, and transactions that
 aren't available in typical [ConcurrentMap] implementations.
 
-This guide will explore the [immutant.caching] namespace, which
+This guide will explore the [[immutant.caching]] namespace, which
 provides access to Infinispan, whether your app is deployed to a
 WildFly/EAP cluster or not. The API has changed quite a bit in "The
 Deuce" from 1.x, which we'll point out as we go along.
@@ -19,7 +20,7 @@ Deuce" from 1.x, which we'll point out as we go along.
 ## Creation and Configuration
 
 Caches are created, started, and referenced using the
-[immutant.caching/cache] function. It accepts a number of optional
+[[immutant.caching/cache]] function. It accepts a number of optional
 configuration arguments, but the only required one is a name, since
 every cache must be uniquely named. If you pass the name of a cache
 that already exists, a reference to the existing cache will be
@@ -28,7 +29,7 @@ pass. So two Immutant cache instances with the same name will be
 backed by the same Infinispan cache.
 
 If you wish to reconfigure an existing cache, you must stop it first
-by calling `immutant.caching/stop`. This is a significant change from
+by calling [[immutant.caching/stop]]. This is a significant change from
 1.x, which included `create`, `lookup`, and `lookup-or-create`
 functions, but no `stop`. In 2.x, those have been replaced by `cache` and
 `stop`.
@@ -37,9 +38,9 @@ Infinispan is a veritable morass of enterprisey configuration.
 Immutant tries to strike a convention/configuration balance by
 representing the more common options as keywords passed to the `cache`
 function, while still supporting the more esoteric config via
-`immutant.caching/builder` and Java interop.
+[[immutant.caching/builder]] and Java interop.
 
-See the [immutant.caching/cache] apidoc for a list of its supported
+See the [[immutant.caching/cache]] apidoc for a list of its supported
 options, passed as either an explicit map or "kwargs" (keyword
 arguments).
 
@@ -88,7 +89,7 @@ all you need to read data from an Immutant cache.
 
 ### Writing
 
-In addition to Java interop, [immutant.caching/compare-and-swap!] may
+In addition to Java interop, [[immutant.caching/compare-and-swap!]] may
 be used to cache entries atomically, providing a consistent view of
 the cache to callers. Internally, it uses the [ConcurrentMap] methods,
 `replace` to swap values with existing entries, and `putIfAbsent` when
@@ -167,7 +168,7 @@ specified, the entry is deleted after the time elapses, but the
 specified, whichever elapses first "wins" and triggers expiration.
 
 It's possible to vary the `:ttl` and `:idle` times among entries in a
-single cache using the `with-expiration` function:
+single cache using the [[with-expiration]] function:
 
 ```clojure
 
@@ -181,7 +182,7 @@ single cache using the `with-expiration` function:
 #### Eviction
 
 To avoid memory exhaustion, you can include the `:max-entries` option
-to [immutant.caching/cache] as well as the `:eviction` policy to
+to [[immutant.caching/cache]] as well as the `:eviction` policy to
 determine which entries to evict. And if the `:persist` option is set,
 evicted entries are not deleted but rather flushed to disk so that the
 entries in memory are always a finite subset of those on disk.
@@ -203,7 +204,7 @@ of `:lru` (Least Recently Used).
 ### Encoding
 
 Cache entries are not encoded by default, but may be decorated with a
-codec using the `with-codec` function. Provided codecs include `:edn`,
+codec using the [[with-codec]] function. Provided codecs include `:edn`,
 `:json`, and `:fressian`, but the latter two require additional
 dependencies: `cheshire` and `org.clojure/data.fressian`,
 respectively.
@@ -234,8 +235,8 @@ transitive dependency on specific versions of [core.memoize] and
 [core.cache] that occasionally conflicted with other libraries.
 
 In *The Deuce*, we moved `memo` to its own namespace,
-[immutant.caching.core-memoize], along with a corresponding
-[immutant.caching.core-cache]. So if you wish to call `memo`, your app
+[[immutant.caching.core-memoize]], along with a corresponding
+[[immutant.caching.core-cache]]. So if you wish to call `memo`, your app
 must declare a dependency on [core.memoize].
 
 Here's a contrived example showing how memoization incurs the expense
@@ -294,14 +295,9 @@ capabilities is to deploy your app to a [WildFly] cluster.
 
 [ConcurrentMap]: http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ConcurrentMap.html
 [Infinispan]: http://infinispan.org
-[immutant.caching]: immutant.caching.html
-[immutant.caching/cache]: immutant.caching.html#var-cache
-[immutant.caching/compare-and-swap!]:immutant.caching.html#var-compare-and-swap.21
 [feature-demo]: https://github.com/immutant/feature-demo/blob/thedeuce/src/demo/caching.clj
 [:lirs]: http://en.wikipedia.org/wiki/LIRS_caching_algorithm
 [core.cache]: https://github.com/clojure/core.cache
 [core.memoize]: https://github.com/clojure/core.memoize
 [memoization]: http://en.wikipedia.org/wiki/Memoization
-[immutant.caching.core-memoize]: immutant.caching.core-memoize.html
-[immutant.caching.core-cache]: immutant.caching.core-cache.html
 [WildFly]: guide-wildfly.html

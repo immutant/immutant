@@ -17,7 +17,7 @@ This list includes all of the Immutant namespaces, some of which
 were/are for internal use only.
 
 
-## immutant.cache -> [immutant.caching](immutant.caching.html)
+## immutant.cache -> [[immutant.caching]]
 
 The `Mutable` interface is gone. To put something in an immutant
 cache, you can use either the new `immutant.caching/compare-and-swap!`
@@ -63,13 +63,13 @@ Some option keys and values have changed:
 ### immutant.cache.core REMOVED
 ### immutant.cache.wrapper REMOVED
 
-## [immutant.codecs](immutant.codecs.html)
+## [[immutant.codecs]]
 
 `:text` codec was removed. The default supplied codecs in 2.x are:
 `:none`, `:edn`, and `:json`. `:fressian` can be enabled by calling
 `immutant.codecs.fressian/register-fressian-codec`.
 
-## [immutant.daemons](immutant.daemons.html)
+## [[immutant.daemons]]
 
 Now resides in
 [org.immutant/core](https://clojars.org/org.immutant/core), with a
@@ -82,7 +82,7 @@ facilities with standard tools outside of the container with 2.x, and
 we're no longer exposing the project map, so this wouldn't be very
 useful inside the container with 2.x.
 
-## immutant.jobs -> [immutant.scheduling](immutant.scheduling.html)
+## immutant.jobs -> [[immutant.scheduling]]
 
 The API is similar. `schedule` now takes a map or kwargs, and there
 are now helpers for each option that help you generate that map. A
@@ -102,7 +102,7 @@ restore `internal-scheduler`?)
 
 ## immutant.logging REMOVED
 
-## [immutant.messaging](immutant.messaging.html)
+## [[immutant.messaging]]
 
 Has a similar API, except around destination creation and passing. Fns
 now take destination objects instead of strings, and the destination
@@ -120,7 +120,7 @@ Brought over with few changes.
 
 Merged with `immutant.messaging.internal`.
 
-### [immutant.messaging.hornetq](immutant.messaging.hornetq.html)
+### [[immutant.messaging.hornetq]]
 
 Brought over with a few changes.
 
@@ -128,7 +128,7 @@ Brought over with a few changes.
 
 Brought over, but with a drastically different API.
 
-## immutant.pipeline -> [immutant.messaging.pipeline](immutant.messaging.pipeline.html)
+## immutant.pipeline -> [[immutant.messaging.pipeline]]
 
 The API is unchanged, other than renaming the namespace.
 
@@ -151,11 +151,11 @@ container.
 
 Split across three namespaces:
 
-* [immutant.util](immutant.util.html) - fns appropriate for app use
+* [[immutant.util]] - fns appropriate for app use
 * immutant.internal.util - fns used by Immutant itself, and not intended for app use
-* [immutant.wildfly](immutant.wildfly.html) - in-container specific functions
+* [[immutant.wildfly]] - in-container specific functions
 
-## [immutant.web](immutant.web.html)
+## [[immutant.web]]
 
 * `start` is now `run`
 * `start-servlet` is also now `run`
@@ -165,15 +165,15 @@ Split across three namespaces:
 ### immutant.web.servlet -> REMOVED
 ### immutant.web.session.internal -> REMOVED
 
-### [immutant.web.middleware](immutant.web.middleware.html)
+### [[immutant.web.middleware]]
 
 Contains only `wrap-development` and `wrap-session`
 
-## immutant.xa -> immutant.transactions
+## immutant.xa -> [[immutant.transactions]]
 
 Listeners are no longer automatically enlisted participants in an XA
 transaction. Within the handler fn, you must now explicitly define a
-transaction using one of the macros in `immutant.transactions`. If an
+transaction using one of the macros in [[immutant.transactions]]. If an
 exception escapes that body, the tx will be rolled back, and if the
 exception bubbles out of the handler, the message will be queued for
 redelivery. But the rollback of the tx has no relationship to
@@ -198,6 +198,6 @@ participants, e.g. messaging destinations or caches, to roll back.
 ## immutant.xa.transaction -> immutant.transactions.scope
 
 All the scope macros, analogous to the JEE Transaction attribute
-annotations, have been moved to `immutant.transactions.scope`. The
-`immutant.transactions/transaction` macro is an alias for
-`immutant.transactions.scope/required`, just as in Immutant 1.x.
+annotations, have been moved to [[immutant.transactions.scope]]. The
+[[immutant.transactions/transaction]] macro is an alias for
+[[immutant.transactions.scope/required]], just as in Immutant 1.x.

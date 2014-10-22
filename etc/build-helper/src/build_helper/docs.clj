@@ -18,7 +18,7 @@
 
 (defn generate-index [project]
   (eval/eval-in-project
-    (update-in project [:dependencies] conj '[org.immutant/build-helper "0.2.5"]) ;; TODO: don't hardcode this version?
+    (update-in project [:dependencies] conj '[org.immutant/build-helper "0.2.6"]) ;; TODO: don't hardcode this version?
     `(build-helper.docs.util/generate-index
        ~(:root project)
        ~(:target-path project)
