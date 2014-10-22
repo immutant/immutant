@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/transactions "2.0.0-SNAPSHOT"
+(defproject org.immutant/transactions "2.0.0-alpha2"
   :plugins [[lein-modules "0.3.9"]]
 
   :dependencies [[org.immutant/core _]
