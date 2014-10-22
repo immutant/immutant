@@ -135,7 +135,7 @@
       (:ttl options -1)
       (:idle options -1))))
 
-(defn compare-and-swap!
+(defn swap-in!
   "Atomically swaps the value associated to the key in the cache with
   the result of applying f, passing the current value as the first
   param along with any args, returning the new cached value. Function

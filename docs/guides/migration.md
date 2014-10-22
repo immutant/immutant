@@ -20,7 +20,7 @@ were/are for internal use only.
 ## immutant.cache -> [[immutant.caching]]
 
 The `Mutable` interface is gone. To put something in an immutant
-cache, you can use either the new `immutant.caching/compare-and-swap!`
+cache, you can use either the new `immutant.caching/swap-in!`
 or java interop (`org.infinispan.Cache` extends `ConcurrentMap` and
 therefore `Map`). To insert entries with various ttl/idle values, use
 the new `with-expiration` function.

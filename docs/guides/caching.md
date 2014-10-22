@@ -89,7 +89,7 @@ all you need to read data from an Immutant cache.
 
 ### Writing
 
-In addition to Java interop, [[immutant.caching/compare-and-swap!]] may
+In addition to Java interop, [[immutant.caching/swap-in!]] may
 be used to cache entries atomically, providing a consistent view of
 the cache to callers. Internally, it uses the [ConcurrentMap] methods,
 `replace` to swap values with existing entries, and `putIfAbsent` when
@@ -99,9 +99,9 @@ the entry doesn't exist.
 
   (def foo (cache "foo"))
 
-  (compare-and-swap! foo :a (fnil inc 0))         ;=> 1
-  (compare-and-swap! foo :b (constantly "foo"))   ;=> "foo"
-  (compare-and-swap! foo :a inc)                  ;=> 2
+  (swap-in! foo :a (fnil inc 0))         ;=> 1
+  (swap-in! foo :b (constantly "foo"))   ;=> "foo"
+  (swap-in! foo :a inc)                  ;=> 2
 
 ```
 
@@ -175,7 +175,7 @@ single cache using the [[with-expiration]] function:
   (def baz (cache "baz", :ttl [5 :minutes], :idle [1 :minute]))
   (.putAll baz {:a 1 :b 2 :c 3})
   (let [c (with-expiration baz :ttl [1 :hour] :idle [20 :minutes])]
-    (compare-and-swap! c :a dec)
+    (swap-in! c :a dec)
 
 ```
 

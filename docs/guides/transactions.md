@@ -40,16 +40,16 @@ caught, in which case the transaction is rolled back. For example,
 
 (transaction
   (msg/publish queue "message")
-  (csh/compare-and-swap! cache :count (fnil inc 0)))
+  (csh/swap-in! cache :count (fnil inc 0)))
 ```
 
-Here, we've tied the success of a messaging operation to that of a
-caching operation. Either both succeed or neither succeeds,
-atomically. Note that the cache had to be created with its
-:transactional flag set. The publish function will detect an active
-transaction and create an XA-capable context with which to send the
-message. If you pass a context for publish to use, be sure its :xa
-flag is set if you're publishing within a transaction.
+Here, we've combined a messaging call and a caching call into a
+single, atomic operation. Either both succeed or neither succeeds.
+Note that the cache had to be created with its `:transactional` flag
+set. The publish function will detect an active transaction and create
+an XA-capable context with which to send the message. If you pass a
+context for publish to use, be sure its `:xa` flag is set if you
+intend to publish within a transaction.
 
 ## Transaction Scope
 
@@ -63,9 +63,10 @@ persistence, a developer answers these questions using the
 But annotations are gross, friend!
 
 So in Immutant, [JEE transaction attributes] are represented as
-Clojure macros. In fact, the `immutant.transactions/transaction` macro
-is merely an alias for `immutant.transactions.scope/required`, which
-is the implicit attribute used in JEE. There are a total of 6 macros:
+Clojure macros. In fact, the [[immutant.transactions/transaction]]
+macro is merely an alias for [[immutant.transactions.scope/required]],
+which is the implicit attribute used in JEE. There are a total of 6
+macros:
 
 * `required`- Execute within current transaction, if any, otherwise
   start a new one, execute, commit or rollback
