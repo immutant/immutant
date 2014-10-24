@@ -48,15 +48,15 @@
    Run calls may be threaded together:
 
    ```
-     (-> (run hello)
-       (assoc :path \"/howdy\")
-       (->> (run howdy))
+     (-> (run ello)
+       (assoc :path \"/owdy\")
+       (->> (run owdy))
        (merge {:path \"/\" :port 8081})
        (->> (run ola)))
    ```
 
    The above actually creates two web server instances, one listening
-   for hello and howdy requests on port 8080, and another listening
+   for ello and owdy requests on port 8080, and another listening
    for ola requests on 8081.
 
    The underlying web server for Immutant is Undertow, which supports

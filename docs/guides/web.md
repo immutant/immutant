@@ -144,15 +144,15 @@ it, so you can thread `run` calls together, useful when your
 application runs multiple handlers. For example,
 
 ```clojure
-(def everything (-> (run hello)
-                  (assoc :path "/howdy")
-                  (->> (run howdy))
+(def everything (-> (run ello)
+                  (assoc :path "/owdy")
+                  (->> (run owdy))
                   (merge {:path "/" :port 8081})
                   (->> (run ola))))
 ```
 
 The above actually creates two Undertow web server instances: one
-serving requests for the `hello` and `howdy` handlers on port 8080,
+serving requests for the `ello` and `owdy` handlers on port 8080,
 and one serving `ola` responses on port 8081.
 
 You can stop all three apps (and shutdown the two web servers) like
