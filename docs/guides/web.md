@@ -187,6 +187,53 @@ single hostname or multiple:
 Multiple applications can run on the same `:host` and `:port` as long
 as each has a unique combination of `:virtual-host` and `:path`.
 
+## Advanced Undertow Options
+
+The [[immutant.web.undertow]] namespace includes a number of
+composable functions that turn a map of various keywords into a map
+containing an `Undertow$Builder` instance mapped to the keyword,
+`:configuration`. The composition of all the functions is
+[[immutant.web.undertow/options]]. This is how the various Undertow
+options are exposed.
+
+For a contrived example, say we wanted our handler to run with 42
+worker threads, listening for requests on two ports, 8888 and 9999:
+
+```clojure
+(def opts (-> {:port 8888 :worker-threads 42}
+            immutant.web.undertow/options
+            (assoc :port 9999)
+            immutant.web.undertow/listen))
+(run app opts)
+```
+
+### SSL configuration
+
+SSL and Java is a notoriously gnarly combination that is way outside
+the scope of this guide. Ultimately, Undertow needs either a
+`javax.net.ssl.SSLContext` or a `javax.net.ssl.KeyManager[]` and an
+optional `javax.net.ssl.TrustManager[]`.
+
+You may also pass a `KeyStore` instance or a path to one on disk, and
+the `SSLContext` will be created for you. For example,
+
+```clojure
+(run app (immutant.web.undertow/options
+           :ssl-port 8443
+           :keystore "/path/to/keystore.jks"
+           :key-password "password"))
+```
+
+Another option is to use the [less-awful-ssl] library; maybe something
+along these lines:
+
+```clojure
+(def context (less.awful.ssl/ssl-context "client.pkcs8" "client.crt" "ca.crt"))
+(run app (immutant.web.undertow/options
+           :ssl-port 8443
+           :ssl-context context))
+```
+
 ## Handler Types
 
 Though the handlers you run will typically be Ring functions, you can
@@ -332,3 +379,4 @@ Have fun!
 [Caribou]: http://let-caribou.in/
 [WebSockets]: http://en.wikipedia.org/wiki/WebSocket
 [Immutant Feature Demo]: https://github.com/immutant/feature-demo
+[less-awful-ssl]: https://github.com/aphyr/less-awful-ssl
