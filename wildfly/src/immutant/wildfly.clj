@@ -52,27 +52,29 @@
     (URL. (str "file" (last match)))
     url))
 
-(defn- get-module-loader-urls [loader]
+(defn ^:no-doc get-module-loader-urls [loader]
   (->> loader
     get-resource-loaders
     (map (comp if-exists? vfs->file loader->url))
     (keep identity)))
 
-(defmacro ^:no-doc extend-module-classloader-to-cjc []
-  (if (u/try-resolve 'clojure.java.classpath/URLClasspath)
-    `(extend-type (module-class-loader-class)
-       clojure.java.classpath/URLClasspath
-       (urls [cl#]
-         (get-module-loader-urls cl#)))))
+(defn ^:no-doc extend-module-classloader-to-cjc []
+  (when (u/try-resolve 'clojure.java.classpath/URLClasspath)
+    (eval
+      `(extend-protocol clojure.java.classpath/URLClasspath
+         (module-class-loader-class)
+         (urls [cl#]
+           (get-module-loader-urls cl#))))))
 
-(defmacro ^:no-doc extend-module-classloader-to-dynapath []
-  (if (u/try-resolve 'dynapath.dynamic-classpath/DynamicClasspath)
-    `(extend-protocol dynapath.dynamic-classpath/DynamicClasspath
-       (module-class-loader-class)
-       (can-read? [cl#] true)
-       (can-add? [cl#] false)
-       (classpath-urls [cl#]
-         (get-module-loader-urls cl#)))))
+(defn ^:no-doc extend-module-classloader-to-dynapath []
+  (when (u/try-resolve 'dynapath.dynamic-classpath/DynamicClasspath)
+    (eval
+      `(extend-protocol dynapath.dynamic-classpath/DynamicClasspath
+         (module-class-loader-class)
+         (can-read? [cl#] true)
+         (can-add? [cl#] false)
+         (classpath-urls [cl#]
+           (get-module-loader-urls cl#))))))
 
 (defn ^:no-doc init-deployment
   "Initializes an in-container deployment. Should be used by the
