@@ -130,10 +130,10 @@ connection returned from the datasource bound to that name that are
 illegal within an XA transaction, specifically: `commit`, `rollback`,
 and `setAutoCommit`. It's up to the `TransactionManager` to
 commit/rollback a distributed transaction, not its constituents. So
-Immutant provides a [[immutant.transactions.jdbc/factory] function
-that wraps the connection to turn those calls into no-ops. This means
-the database spec you pass to [java.jdbc] should look something like
-this:
+Immutant provides a factory function,
+[[immutant.transactions.jdbc/factory], that wraps the connection to
+turn those calls into no-ops. This means the database spec you pass to
+[java.jdbc] should look something like this:
 
 ```clojure
 (def db-spec {:factory immutant.transactions.jdbc/factory

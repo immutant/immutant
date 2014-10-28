@@ -187,23 +187,24 @@ single hostname or multiple:
 Multiple applications can run on the same `:host` and `:port` as long
 as each has a unique combination of `:virtual-host` and `:path`.
 
-## Advanced Undertow Options
+## Advanced Undertow Configuration
 
 The [[immutant.web.undertow]] namespace includes a number of
 composable functions that turn a map of various keywords into a map
-containing an `Undertow$Builder` instance mapped to the keyword,
-`:configuration`. The composition of all the functions is
-[[immutant.web.undertow/options]]. This is how the various Undertow
-options are exposed.
+containing an `io.undertow.Undertow$Builder` instance mapped to the
+keyword, `:configuration`. So Undertow configuration is exposed via a
+composite of these functions called [[immutant.web.undertow/options]].
 
 For a contrived example, say we wanted our handler to run with 42
-worker threads, listening for requests on two ports, 8888 and 9999:
+worker threads, and listen for requests on two ports, 8888 and 9999.
+Weird, but possible. To do it, we'll need to pass the `:port` option
+twice, in a manner of speaking:
 
 ```clojure
-(def opts (-> {:port 8888 :worker-threads 42}
-            immutant.web.undertow/options
+(require '[immutant.web.undertow :refer (options)])
+(def opts (-> (options :port 8888 :worker-threads 42)
             (assoc :port 9999)
-            immutant.web.undertow/listen))
+            options))
 (run app opts)
 ```
 
@@ -233,6 +234,10 @@ along these lines:
            :ssl-port 8443
            :ssl-context context))
 ```
+
+Client authentication may be specified using the `:client-auth`
+option, where possible values are `:want` and `:need`. Or, if you're
+fancy, `:requested` and `:required`.
 
 ## Handler Types
 
