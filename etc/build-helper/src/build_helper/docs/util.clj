@@ -59,12 +59,12 @@
         (format "<code>%s</code>" link)))))
 
 (defn set-format-on-vars [entry]
-  (if (map? entry)
+  (if (:doc entry)
     (assoc entry :doc/format :markdown)
     entry))
 
 (defn massage-docstring [entry]
-  (if (map? entry)
+  (if (:doc entry)
     (update-in entry [:doc] fn-link->code)
     entry))
 
