@@ -54,4 +54,5 @@
        :want      SslClientAuthMode/REQUESTED
        :requested SslClientAuthMode/REQUESTED
        :need      SslClientAuthMode/REQUIRED
-       :required  SslClientAuthMode/REQUIRED))
+       :required  SslClientAuthMode/REQUIRED)
+  (is (thrown? IllegalArgumentException (options :client-auth :invalid))))
