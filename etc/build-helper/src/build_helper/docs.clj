@@ -14,11 +14,21 @@
 
 (ns build-helper.docs
   (:require [leiningen.core.eval    :as eval]
-            [build-helper.docs.util :as u]))
+            [build-helper.docs.util :as u]
+            [clojure.java.io        :as io])
+  (:import java.util.Properties))
+
+(def version
+  (.getProperty
+    (doto (Properties.)
+      (.load (->> "META-INF/maven/org.immutant/build-helper/pom.properties"
+               io/resource
+               io/reader)))
+    "version"))
 
 (defn generate-index [project]
   (eval/eval-in-project
-    (update-in project [:dependencies] conj '[org.immutant/build-helper "0.2.6"]) ;; TODO: don't hardcode this version?
+    (update-in project [:dependencies] conj ['org.immutant/build-helper version])
     `(build-helper.docs.util/generate-index
        ~(:root project)
        ~(:target-path project)

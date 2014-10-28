@@ -12,7 +12,6 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-;; *** NOTE: update the version in docs.clj when you change it here ***
 (defproject org.immutant/build-helper "0.2.7"
   :description "A plugin to aid in building Immutant"
   :url "https://github.com/immutant/immutant"
