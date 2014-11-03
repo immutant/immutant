@@ -69,16 +69,17 @@
   (get-names [request]      (enumeration-seq (.getHeaderNames request)))
   (get-values [request key] (enumeration-seq (.getHeaders request key)))
   HttpServletResponse
+  (get-value [response key] (.getHeader response key))
   (set-header [response key value] (.setHeader response key value))
   (add-header [response key value] (.addHeader response key value)))
 
 (defn write-response
   "Update the HttpServletResponse from the ring response map."
-  [^HttpServletResponse response, {:keys [status headers body] :as ring-map}]
+  [^HttpServletResponse response, {:keys [status headers body]}]
   (when status
     (.setStatus response status))
   (i/write-headers response headers)
-  (i/write-body body (.getOutputStream response) ring-map))
+  (i/write-body body (.getOutputStream response) response))
 
 (defn ^Endpoint create-endpoint
   "Create a JSR-356 endpoint from one or more callback functions.

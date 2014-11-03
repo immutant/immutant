@@ -104,6 +104,7 @@
 (defprotocol Headers
   (get-names [x])
   (get-values [x key])
+  (get-value [x key])
   (set-header [x key value])
   (add-header [x key value]))
 
@@ -126,13 +127,13 @@
         (add-header output k (str value)))
       (set-header output k (str v)))))
 
-(defn get-character-encoding [response]
-  (when-let [type (get-in response [:headers "Content-Type"])]
+(defn get-character-encoding [headers]
+  (when-let [type (get-value headers "content-type")]
     (second (re-find (deref #'util/charset-pattern) type))))
 
 (defprotocol BodyWriter
   "Writing different body types to output streams"
-  (write-body [body stream m]))
+  (write-body [body stream headers]))
 
 (extend-protocol BodyWriter
   Object
@@ -143,13 +144,13 @@
   (write-body [_ _ _])
 
   String
-  (write-body [body ^OutputStream os m]
-    (.write os (.getBytes body (or (get-character-encoding m) "UTF-8"))))
+  (write-body [body ^OutputStream os headers]
+    (.write os (.getBytes body (or (get-character-encoding headers) "UTF-8"))))
 
   ISeq
-  (write-body [body ^OutputStream os m]
+  (write-body [body ^OutputStream os headers]
     (doseq [fragment body]
-      (write-body fragment os m)))
+      (write-body fragment os headers)))
 
   File
   (write-body [body ^OutputStream os _]

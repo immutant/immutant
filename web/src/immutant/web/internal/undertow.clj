@@ -59,6 +59,7 @@
   i/Headers
   (get-names [headers] (map str (.getHeaderNames headers)))
   (get-values [headers ^String key] (.get headers key))
+  (get-value [headers ^String key] (.getFirst headers key))
   (set-header [headers ^String k ^String v] (.put headers (HttpString. k) v))
   (add-header [headers ^String k ^String v] (.add headers (HttpString. k) v)))
 
@@ -82,11 +83,14 @@
                                    (if (empty? v) "/" v)))
   (ssl-client-cert [_]))
 
-(defn- write-response [^HttpServerExchange exchange {:keys [status headers body] :as response}]
+(defn- write-response
+  "Write response to exchange"
+  [^HttpServerExchange exchange {:keys [status headers body]}]
   (when status
     (.setResponseCode exchange status))
-  (i/write-headers (.getResponseHeaders exchange) headers)
-  (i/write-body body (.getOutputStream exchange) response))
+  (let [^HeaderMap hmap (.getResponseHeaders exchange)]
+    (i/write-headers hmap headers)
+    (i/write-body body (.getOutputStream exchange) hmap)))
 
 (defn handle-request [f ^HttpServerExchange exchange]
   (.startBlocking exchange)
