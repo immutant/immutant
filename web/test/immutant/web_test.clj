@@ -240,4 +240,4 @@
 
 (deftest encoding
   (run (fn [r] (charset ((handler "ɮѪϴ") r) "UTF-16")))
-  (is (= "ɮѪϴ" (get-body url))))
+  (is (= "ɮѪϴ" (:body (http/get url {:as :auto})))))
