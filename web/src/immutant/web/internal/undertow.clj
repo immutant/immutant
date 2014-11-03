@@ -81,22 +81,18 @@
   (context [exchange]            (.getResolvedPath exchange))
   (path-info [exchange]          (let [v (.getRelativePath exchange)]
                                    (if (empty? v) "/" v)))
-  (ssl-client-cert [_]))
+  (ssl-client-cert [_])
 
-(defn- write-response
-  "Write response to exchange"
-  [^HttpServerExchange exchange {:keys [status headers body]}]
-  (when status
-    (.setResponseCode exchange status))
-  (let [^HeaderMap hmap (.getResponseHeaders exchange)]
-    (i/write-headers hmap headers)
-    (i/write-body body (.getOutputStream exchange) hmap)))
+  i/RingResponse
+  (set-status [exchange status] (.setResponseCode exchange status))
+  (header-map [exchange] (.getResponseHeaders exchange))
+  (output-stream [exchange] (.getOutputStream exchange)))
 
 (defn handle-request [f ^HttpServerExchange exchange]
   (.startBlocking exchange)
   (try
     (if-let [response (f (i/ring-request-map exchange [:server-exchange exchange]))]
-      (write-response exchange response)
+      (i/write-response exchange response)
       (throw (NullPointerException. "Ring handler returned nil")))
     (finally
       (.endExchange exchange))))

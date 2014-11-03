@@ -45,7 +45,6 @@
   (set-attribute! [session key value]
     (.setAttribute session key value)))
 
-
 (extend-type HttpServletRequest
   i/RingRequest
   (server-port [request]        (.getServerPort request))
@@ -62,24 +61,20 @@
   (body [request]               (.getInputStream request))
   (context [request]            (str (.getContextPath request) (.getServletPath request)))
   (path-info [request]          (.getPathInfo request))
-  (ssl-client-cert [request]    (first (.getAttribute request "javax.servlet.request.X509Certificate"))))
-
-(extend-protocol i/Headers
-  HttpServletRequest
+  (ssl-client-cert [request]    (first (.getAttribute request "javax.servlet.request.X509Certificate")))
+  i/Headers
   (get-names [request]      (enumeration-seq (.getHeaderNames request)))
-  (get-values [request key] (enumeration-seq (.getHeaders request key)))
-  HttpServletResponse
+  (get-values [request key] (enumeration-seq (.getHeaders request key))))
+
+(extend-type HttpServletResponse
+  i/RingResponse
+  (set-status [response status] (.setStatus response status))
+  (header-map [response] response)
+  (output-stream [response] (.getOutputStream response))
+  i/Headers
   (get-value [response key] (.getHeader response key))
   (set-header [response key value] (.setHeader response key value))
   (add-header [response key value] (.addHeader response key value)))
-
-(defn write-response
-  "Update the HttpServletResponse from the ring response map."
-  [^HttpServletResponse response, {:keys [status headers body]}]
-  (when status
-    (.setStatus response status))
-  (i/write-headers response headers)
-  (i/write-body body (.getOutputStream response) response))
 
 (defn ^Endpoint create-endpoint
   "Create a JSR-356 endpoint from one or more callback functions.
@@ -149,7 +144,7 @@
                             [:servlet-response response]
                             [:servlet-context  (delay (.getServletContext ^HttpServlet this))]))]
            (if-let [result (if handler (handler ring-map) {:status 404})]
-             (write-response response result)
+             (i/write-response response result)
              (throw (NullPointerException. "Ring handler returned nil")))))
        (init [^ServletConfig config]
          (proxy-super init config)

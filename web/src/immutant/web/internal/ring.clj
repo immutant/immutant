@@ -160,3 +160,18 @@
   (write-body [body ^OutputStream os _]
     (with-open [body body]
       (io/copy body os))))
+
+(defprotocol RingResponse
+  (header-map [x])
+  (set-status [x status])
+  (output-stream [x]))
+
+(defn write-response
+  "Set the status, write the headers and the content"
+  [response {:keys [status headers body]}]
+  (when status
+    (set-status response status))
+  (let [hmap (header-map response)]
+    (write-headers hmap headers)
+    (write-body body (output-stream response) hmap)))
+
