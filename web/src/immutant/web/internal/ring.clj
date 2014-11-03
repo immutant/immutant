@@ -127,7 +127,7 @@
         (add-header output k (str value)))
       (set-header output k (str v)))))
 
-(defn get-character-encoding [headers]
+(defn ^String get-character-encoding [headers]
   (when-let [type (get-value headers "content-type")]
     (second (re-find (deref #'util/charset-pattern) type))))
 
