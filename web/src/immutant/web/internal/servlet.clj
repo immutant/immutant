@@ -74,11 +74,11 @@
 
 (defn write-response
   "Update the HttpServletResponse from the ring response map."
-  [^HttpServletResponse response, {:keys [status headers body]}]
+  [^HttpServletResponse response, {:keys [status headers body] :as ring-map}]
   (when status
     (.setStatus response status))
   (i/write-headers response headers)
-  (i/write-body body (.getOutputStream response)))
+  (i/write-body body (.getOutputStream response) ring-map))
 
 (defn ^Endpoint create-endpoint
   "Create a JSR-356 endpoint from one or more callback functions.

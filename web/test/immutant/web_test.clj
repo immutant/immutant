@@ -21,6 +21,7 @@
             [testing.web           :refer [get-body hello handler]]
             [testing.hello.service :as pedestal]
             [ring.middleware.resource :refer [wrap-resource]]
+            [ring.util.response :refer (charset)]
             [clj-http.client :as http]
             [immutant.web.undertow :as undertow])
   (:import clojure.lang.ExceptionInfo
@@ -236,3 +237,7 @@
   (let [response (http/get "https://localhost:8443" {:insecure? true})]
     (is (= (:status response) 200))
     (is (= (:body response) "hello"))))
+
+(deftest encoding
+  (run (fn [r] (charset ((handler "ɮѪϴ") r) "UTF-16")))
+  (is (= "ɮѪϴ" (get-body url))))

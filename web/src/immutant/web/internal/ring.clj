@@ -15,7 +15,8 @@
 (ns ^{:no-doc true} immutant.web.internal.ring
     (:require [potemkin :refer [def-map-type]]
               [clojure.string :as str]
-              [clojure.java.io :as io])
+              [clojure.java.io :as io]
+              [ring.util.request :as util])
     (:import [java.io File InputStream OutputStream]
              [clojure.lang ISeq PersistentHashMap]))
 
@@ -128,30 +129,30 @@
 
 (defprotocol BodyWriter
   "Writing different body types to output streams"
-  (write-body [body stream]))
+  (write-body [body stream m]))
 
 (extend-protocol BodyWriter
   Object
-  (write-body [body _]
+  (write-body [body _ _]
     (throw (IllegalStateException. (str "Can't coerce body of type " (class body)))))
 
   nil
-  (write-body [_ _])
+  (write-body [_ _ _])
 
   String
-  (write-body [body ^OutputStream os]
-    (.write os (.getBytes body)))
+  (write-body [body ^OutputStream os m]
+    (.write os (.getBytes body (or (util/character-encoding m) "UTF-8"))))
 
   ISeq
-  (write-body [body ^OutputStream os]
+  (write-body [body ^OutputStream os m]
     (doseq [fragment body]
-      (write-body fragment os)))
+      (write-body fragment os m)))
 
   File
-  (write-body [body ^OutputStream os]
+  (write-body [body ^OutputStream os _]
     (io/copy body os))
 
   InputStream
-  (write-body [body ^OutputStream os]
+  (write-body [body ^OutputStream os _]
     (with-open [body body]
       (io/copy body os))))

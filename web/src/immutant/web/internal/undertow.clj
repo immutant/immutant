@@ -82,11 +82,11 @@
                                    (if (empty? v) "/" v)))
   (ssl-client-cert [_]))
 
-(defn- write-response [^HttpServerExchange exchange {:keys [status headers body]}]
+(defn- write-response [^HttpServerExchange exchange {:keys [status headers body] :as response}]
   (when status
     (.setResponseCode exchange status))
   (i/write-headers (.getResponseHeaders exchange) headers)
-  (i/write-body body (.getOutputStream exchange)))
+  (i/write-body body (.getOutputStream exchange) response))
 
 (defn handle-request [f ^HttpServerExchange exchange]
   (.startBlocking exchange)
