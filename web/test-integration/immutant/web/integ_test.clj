@@ -14,7 +14,7 @@
 
 (ns immutant.web.integ-test
   (:require [clojure.test :refer :all]
-            [testing.web :refer (get-body)]
+            [testing.web :refer (get-body get-response)]
             [testing.app :refer (run)]
             [immutant.web :refer (stop) :as web]
             [immutant.codecs :refer (decode)]
@@ -99,6 +99,12 @@
     (is (-> request :session :count))
     (is (map? (:headers request)))
     (is (< 3 (count (:headers request))))))
+
+(deftest response-charset-should-be-honored
+  (doseq [charset ["UTF-8" "Shift_JIS" "ISO-8859-1" "UTF-16" "US-ASCII"]]
+    (let [{:keys [headers raw-body]} (get-response (str (url) "charset?charset=" charset))]
+      (is (= (read-string (headers "BodyBytes"))
+            (into [] (.toByteArray raw-body)))))))
 
 (when (in-container?)
   (deftest run-in-container-outside-of-init-should-throw

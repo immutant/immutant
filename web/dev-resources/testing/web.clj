@@ -23,10 +23,10 @@
 
 (def hello (handler "hello"))
 
-(defn get-body
-  "Return the response body as a string if status=200, otherwise
-  return the numeric status code. Any response returning a :set-cookie
-  will cause subsequent requests to send them"
+(defn get-response
+  "Return the response as a map. Any response returning a :set-cookie
+  will cause subsequent requests to send them. The raw
+  ByteArrayOutputStream of the body is included as :raw-body]"
   [url & {:keys [headers cookies] :or {cookies @testing.web/cookies}}]
   (with-open [client (http/create-client)]
     (let [response (http/GET client url :headers headers :cookies cookies)]
@@ -35,8 +35,18 @@
         (throw error))
       (when (contains? (http/headers response) :set-cookie)
         (reset! testing.web/cookies (http/cookies response)))
-      (let [status (:code (http/status response))]
-        (if (= 200 status)
-          (http/string response)
-          status)))))
+      {:status (:code (http/status response))
+       :headers (http/headers response)
+       :raw-body @(:body response)
+       :body (http/string response)})))
 
+(defn get-body
+  "Return the response body as a string if status=200, otherwise return
+  the numeric status code. Any response returning a :set-cookie will
+  cause subsequent requests to send them."
+  [url & {:keys [headers cookies] :or {cookies @testing.web/cookies}}]
+  (with-open [client (http/create-client)]
+    (let [response (get-response url :headers headers :cookies cookies)]
+      (if (= 200 (:status response))
+          (:body response)
+          (:status response)))))

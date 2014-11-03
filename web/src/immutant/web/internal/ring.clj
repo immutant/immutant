@@ -126,6 +126,9 @@
         (add-header output k (str value)))
       (set-header output k (str v)))))
 
+(defn get-character-encoding [response]
+  (when-let [type (get-in response [:headers "Content-Type"])]
+    (second (re-find (deref #'util/charset-pattern) type))))
 
 (defprotocol BodyWriter
   "Writing different body types to output streams"
@@ -141,7 +144,7 @@
 
   String
   (write-body [body ^OutputStream os m]
-    (.write os (.getBytes body (or (util/character-encoding m) "UTF-8"))))
+    (.write os (.getBytes body (or (get-character-encoding m) "UTF-8"))))
 
   ISeq
   (write-body [body ^OutputStream os m]

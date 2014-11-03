@@ -18,7 +18,7 @@
             [immutant.web.middleware :refer (wrap-session)]
             [immutant.codecs :refer (encode)]
             [compojure.core :refer (GET defroutes)]
-            [ring.util.response :refer (redirect response)]))
+            [ring.util.response :refer (charset redirect response)]))
 
 (def handshakes (atom {}))
 
@@ -44,11 +44,19 @@
   [request]
   (response (encode (dissoc request :server-exchange :body :servlet :servlet-request :servlet-response :servlet-context))))
 
+(defn with-charset [request]
+  (let [[_ cs] (re-find #"charset=(.*)" (:query-string request))
+        body "気になったら"]
+    (charset {:headers {"BodyBytes" (pr-str (into [] (.getBytes body cs)))}
+              :body body}
+      cs)))
+
 (defroutes routes
   (GET "/" [] counter)
   (GET "/session" {s :session} (encode s))
   (GET "/unsession" [] {:session nil})
-  (GET "/request" [] dump))
+  (GET "/request" [] dump)
+  (GET "/charset" [] with-charset))
 
 (defn run []
   (web/run (-> #'routes
