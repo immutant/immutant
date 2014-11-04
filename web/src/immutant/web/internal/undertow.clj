@@ -49,11 +49,15 @@
     i/ring-session))
 
 (extend-type Session
-  i/SessionAttributes
+  i/Session
   (attribute [session key]
     (.getAttribute session key))
   (set-attribute! [session key value]
-    (.setAttribute session key value)))
+    (.setAttribute session key value))
+  (get-expiry [session]
+    (.getMaxInactiveInterval session))
+  (set-expiry [session timeout]
+    (.setMaxInactiveInterval session timeout)))
 
 (extend-type HeaderMap
   i/Headers

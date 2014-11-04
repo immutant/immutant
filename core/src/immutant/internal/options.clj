@@ -71,7 +71,7 @@
   [class]
   (->> class
     Option/optsFor
-    (map #(vector (.name %) %))
+    (map (fn [^Option o] (vector (.name o) o)))
     (into {})))
 
 (defn opts->defaults-map
@@ -79,7 +79,7 @@
   [class]
   (->> class
     opts->map
-    (map (fn [[k v]] [(keywordize k) (.defaultValue v)]))
+    (map (fn [[k ^Option v]] [(keywordize k) (.defaultValue v)]))
     (into {})))
 
 (defn opts->keywords

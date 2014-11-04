@@ -17,8 +17,9 @@
     (:import [org.projectodd.wunderboss.websocket Util]
              [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
              [javax.servlet Servlet ServletConfig ServletContext]
-             [javax.websocket Session Endpoint EndpointConfig MessageHandler$Whole]
-             [javax.websocket.server ServerContainer HandshakeRequest ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
+             [javax.websocket Session Endpoint EndpointConfig MessageHandler$Whole CloseReason]
+             [javax.websocket.server ServerContainer HandshakeRequest
+              ServerEndpointConfig ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
 (defn wrap-servlet-session
   "Ring middleware to insert a :session entry into the request, its
@@ -39,11 +40,15 @@
         response))))
 
 (extend-type HttpSession
-  i/SessionAttributes
+  i/Session
   (attribute [session key]
     (.getAttribute session key))
   (set-attribute! [session key value]
-    (.setAttribute session key value)))
+    (.setAttribute session key value))
+  (get-expiry [session]
+    (.getMaxInactiveInterval session))
+  (set-expiry [session timeout]
+    (.setMaxInactiveInterval session timeout)))
 
 (extend-type HttpServletRequest
   i/RingRequest
@@ -103,7 +108,7 @@
                            (onMessage [_ message] (on-message session message)))]
              (.addMessageHandler session (Util/createTextHandler handler))
              (.addMessageHandler session (Util/createBinaryHandler handler)))))
-       (onClose [session reason]
+       (onClose [session ^CloseReason reason]
          (when on-close (on-close session
                           {:code (.. reason getCloseCode getCode)
                            :reason (.getReasonPhrase reason)})))
@@ -120,7 +125,7 @@
                     (create (class endpoint) path)
                     (configurator (proxy [ServerEndpointConfig$Configurator] []
                                     (getEndpointInstance [c] endpoint)
-                                    (modifyHandshake [config request response]
+                                    (modifyHandshake [^ServerEndpointConfig config request response]
                                       (if handshake
                                         (handshake config request response)
                                         (-> config
@@ -147,9 +152,10 @@
              (i/write-response response result)
              (throw (NullPointerException. "Ring handler returned nil")))))
        (init [^ServletConfig config]
-         (proxy-super init config)
-         (if endpoint
-           (let [context (.getServletContext config)
-                 mapping (-> context (.getServletRegistration (.getServletName this)) .getMappings first)
-                 path (apply str (take (- (count mapping) 2) mapping))]
-             (add-endpoint endpoint context {:path (if (empty? path) "/" path)})))))))
+         (let [^HttpServlet this this]
+           (proxy-super init config)
+           (if endpoint
+             (let [context (.getServletContext config)
+                   mapping (-> context (.getServletRegistration (.getServletName this)) .getMappings first)
+                   path (apply str (take (- (count mapping) 2) mapping))]
+               (add-endpoint endpoint context {:path (if (empty? path) "/" path)}))))))))

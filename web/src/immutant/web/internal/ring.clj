@@ -22,9 +22,11 @@
 
 (def charset-pattern (deref #'ring.util.request/charset-pattern))
 
-(defprotocol SessionAttributes
+(defprotocol Session
   (attribute [session key])
-  (set-attribute! [session key value]))
+  (set-attribute! [session key value])
+  (get-expiry [session])
+  (set-expiry [session timeout]))
 
 (def ring-session-key "ring-session-data")
 
@@ -36,8 +38,8 @@
 (defn session-expirer
   [timeout]
   (fn [session]
-    (when (not= timeout (.getMaxInactiveInterval session))
-      (.setMaxInactiveInterval session timeout))
+    (when (not= timeout (get-expiry session))
+      (set-expiry session timeout))
     session))
 
 (def-map-type LazyMap [^java.util.Map m]
@@ -111,15 +113,16 @@
   (add-header [x key value]))
 
 (defn headers->map [headers]
-  (reduce
-    (fn [accum ^String name]
-      (assoc accum
-        (-> name .toLowerCase)
-        (->> name
-          (get-values headers)
-          (str/join ","))))
-    {}
-    (get-names headers)))
+  (persistent!
+    (reduce
+      (fn [accum ^String name]
+        (assoc! accum
+          (-> name .toLowerCase)
+          (->> name
+            (get-values headers)
+            (str/join ","))))
+      (transient {})
+      (get-names headers))))
 
 (defn write-headers
   [output, headers]

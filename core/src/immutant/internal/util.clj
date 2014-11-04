@@ -23,7 +23,7 @@
 (defn hash-based-component-name [defaults opts]
   (->> opts
     (merge defaults)
-    .hashCode
+    hash
     str))
 
 (defn kwargs-or-map->raw-map

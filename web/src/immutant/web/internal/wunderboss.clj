@@ -36,7 +36,7 @@
     (server-name (select-keys opts (disj (opts->set Web$CreateOption) :auto-start)))
     (extract-options opts Web$CreateOption)))
 
-(defn ^:internal mount [server handler opts]
+(defn ^:internal mount [^Web server handler opts]
   (let [opts (extract-options opts Web$RegisterOption)
         hdlr (if (fn? handler)
                (if (in-container?)
