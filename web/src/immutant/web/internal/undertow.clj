@@ -15,6 +15,7 @@
 (ns ^{:no-doc true} immutant.web.internal.undertow
     (:require [immutant.web.internal.ring :as i])
     (:import [io.undertow.server HttpHandler HttpServerExchange]
+             io.undertow.server.handlers.BlockingHandler
              io.undertow.server.session.Session
              [io.undertow.util HeaderMap Headers HttpString Sessions]
              [io.undertow.websockets.spi WebSocketHttpExchange]))
@@ -92,18 +93,10 @@
   (header-map [exchange] (.getResponseHeaders exchange))
   (output-stream [exchange] (.getOutputStream exchange)))
 
-(defn handle-request [f ^HttpServerExchange exchange]
-  (.startBlocking exchange)
-  (try
-    (if-let [response (f (i/ring-request-map exchange [:server-exchange exchange]))]
-      (i/write-response exchange response)
-      (throw (NullPointerException. "Ring handler returned nil")))
-    (finally
-      (.endExchange exchange))))
-
 (defn create-http-handler [handler]
-  (reify HttpHandler
-    (^void handleRequest [this ^HttpServerExchange exchange]
-      (if (.isInIoThread exchange)
-        (.dispatch exchange this)
-        (handle-request handler exchange)))))
+  (BlockingHandler. 
+    (reify HttpHandler
+      (^void handleRequest [this ^HttpServerExchange exchange]
+        (if-let [response (handler (i/ring-request-map exchange [:server-exchange exchange]))]
+          (i/write-response exchange response)
+          (throw (NullPointerException. "Ring handler returned nil")))))))
