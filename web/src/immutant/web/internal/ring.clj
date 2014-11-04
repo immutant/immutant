@@ -16,9 +16,11 @@
     (:require [potemkin :refer [def-map-type]]
               [clojure.string :as str]
               [clojure.java.io :as io]
-              [ring.util.request :as util])
+              ring.util.request)
     (:import [java.io File InputStream OutputStream]
              [clojure.lang ISeq PersistentHashMap]))
+
+(def charset-pattern (deref #'ring.util.request/charset-pattern))
 
 (defprotocol SessionAttributes
   (attribute [session key])
@@ -129,7 +131,7 @@
 
 (defn ^String get-character-encoding [headers]
   (when-let [type (get-value headers "content-type")]
-    (second (re-find (deref #'util/charset-pattern) type))))
+    (second (re-find charset-pattern type))))
 
 (defprotocol BodyWriter
   "Writing different body types to output streams"
@@ -145,7 +147,7 @@
 
   String
   (write-body [body ^OutputStream os headers]
-    (.write os (.getBytes body (or (get-character-encoding headers) "UTF-8"))))
+    (.write os (.getBytes body (or (get-character-encoding headers) "ISO-8859-1"))))
 
   ISeq
   (write-body [body ^OutputStream os headers]
