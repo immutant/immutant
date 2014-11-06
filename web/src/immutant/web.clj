@@ -83,7 +83,9 @@
       (internal/mount server handler options)
       (update-in options [:contexts server] conj (internal/mounts options)))))
 
-(set-valid-options! run (conj (opts->set Web$CreateOption Web$RegisterOption) :contexts :dispatch?))
+(set-valid-options! run (-> (opts->set Web$CreateOption Web$RegisterOption)
+                          (conj :contexts :dispatch?)
+                          (disj :dispatch)))
 
 (defn stop
   "Stops a running handler.

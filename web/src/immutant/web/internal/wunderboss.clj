@@ -25,7 +25,9 @@
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]
              javax.servlet.Servlet))
 
-(def ^:internal register-defaults (opts->defaults-map Web$RegisterOption))
+(def ^:internal register-defaults (as-> (opts->defaults-map Web$RegisterOption) m
+                                    (assoc m :dispatch? (:dispatch m))
+                                    (dissoc m :dispatch)))
 (def ^:internal create-defaults (opts->defaults-map Web$CreateOption))
 
 (def ^:internal server-name
