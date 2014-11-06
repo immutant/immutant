@@ -34,6 +34,7 @@
      * :port          The port listening for requests [8080]
      * :path          Maps the handler to a prefix of the url path [\"/\"]
      * :virtual-host  Virtual host name[s] (a String or a List of Strings) [nil]
+     * :dispatch?     Invoke handlers in worker thread pool [true]
 
    Note the web server only binds to the loopback interface, by
    default. To expose your handler to the network, set :host to an
@@ -65,6 +66,12 @@
    and that instance is easily constructed from a Clojure map using
    the [[immutant.web.undertow/options]] function.
 
+   If your handlers are compute-bound, you may be able to gain some
+   performance by setting :dispatch? to false. This causes the
+   handlers to run on Undertow's I/O threads, avoiding the context
+   switch of dispatching them to the worker thread pool, at the
+   risk of refusing client requests under load.
+
    When used inside WildFly, any calls to `run` must be within the
    initialization function for your application (your `-main`)."
   [handler & options]
@@ -76,7 +83,7 @@
       (internal/mount server handler options)
       (update-in options [:contexts server] conj (internal/mounts options)))))
 
-(set-valid-options! run (conj (opts->set Web$CreateOption Web$RegisterOption) :contexts))
+(set-valid-options! run (conj (opts->set Web$CreateOption Web$RegisterOption) :contexts :dispatch?))
 
 (defn stop
   "Stops a running handler.

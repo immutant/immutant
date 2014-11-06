@@ -15,7 +15,7 @@
 (ns ^:no-doc ^:internal immutant.internal.util
     "Various internal utility functions."
     (:require [clojure.string :as str]
-              [clojure.walk :refer (keywordize-keys)])
+              [clojure.walk :refer (postwalk)])
     (:import clojure.lang.IDeref
              java.util.UUID
              org.projectodd.wunderboss.WunderBoss))
@@ -25,6 +25,14 @@
     (merge defaults)
     hash
     str))
+
+(defn wash-keys
+  [m]
+  (let [f (fn [[k v]]
+            (let [s (name k)
+                  s (if (.endsWith s "?") (apply str (butlast s)) s)]
+              [(keyword s) v]))]
+    (postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)))
 
 (defn kwargs-or-map->raw-map
   "If vals contains one value, return it. Otherwise, treat as kwargs and coerce to a map."
@@ -37,8 +45,8 @@
 (def kwargs-or-map->map
   "If vals contains one value, return it. Otherwise, treat as kwargs and coerce to a map.
 
-   In either case, pass it through keywordize-keys"
-  (comp keywordize-keys kwargs-or-map->raw-map))
+   In either case, turn the keys into keywords"
+  (comp wash-keys kwargs-or-map->raw-map))
 
 (defn require-resolve
   "Requires and resolves the given namespace-qualified symbol."
