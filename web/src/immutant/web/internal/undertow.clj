@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.internal.undertow
-    (:require [immutant.web.internal.ring :as i])
+    (:require [immutant.web.internal.ring :as i]
+              [ring.middleware.session :as ring])
     (:import [io.undertow.server HttpHandler HttpServerExchange]
              io.undertow.server.session.Session
              [io.undertow.util HeaderMap Headers HttpString Sessions]
@@ -24,18 +25,20 @@
   value stored in the `io.undertow.server.session.Session` from the
   associated handler"
   [handler timeout]
-  (let [expirer (i/session-expirer timeout)]
+  (let [expirer (i/session-expirer timeout)
+        fallback (delay (ring/wrap-session handler))]
     (fn [request]
-      (let [^HttpServerExchange hse (:server-exchange request)
-            data (delay (-> hse Sessions/getOrCreateSession expirer i/ring-session))
-            ;; we assume the request map automatically derefs delays
-            response (handler (assoc request :session data))]
-        (when (contains? response :session)
-          (if-let [data (:session response)]
-            (i/set-ring-session! (Sessions/getOrCreateSession hse) data)
-            (when-let [session (Sessions/getSession hse)]
-              (.invalidate session hse))))
-        response))))
+      (if-let [^HttpServerExchange hse (:server-exchange request)]
+        (let [data (delay (-> hse Sessions/getOrCreateSession expirer i/ring-session))
+              ;; we assume the request map automatically derefs delays
+              response (handler (assoc request :session data))]
+          (when (contains? response :session)
+            (if-let [data (:session response)]
+              (i/set-ring-session! (Sessions/getOrCreateSession hse) data)
+              (when-let [session (Sessions/getSession hse)]
+                (.invalidate session hse))))
+          response)
+        (@fallback request)))))
 
 (defn ring-session
   "Temporarily use reflection until getSession returns something

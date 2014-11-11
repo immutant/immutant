@@ -18,7 +18,9 @@
             [immutant.util         :as u]
             [immutant.web          :refer :all]
             [immutant.web.internal.wunderboss :refer [create-defaults register-defaults]]
+            [immutant.web.middleware :refer (wrap-session)]
             [testing.web           :refer [get-body hello handler]]
+            [testing.app]
             [testing.hello.service :as pedestal]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.util.response :refer (charset)]
@@ -241,3 +243,9 @@
 (deftest encoding
   (run (fn [r] (charset ((handler "ɮѪϴ") r) "UTF-16")))
   (is (= "ɮѪϴ" (:body (http/get url {:as :auto})))))
+
+(deftest session-sans-web-context
+  (let [request {:uri "/" :request-method :get}]
+    (is (= "0" (:body (testing.app/routes request))))
+    (is (= "0" (:body ((-> testing.app/routes wrap-session) request))))
+    (is (get-in ((-> testing.app/routes wrap-session) request) [:headers "Set-Cookie"]))))
