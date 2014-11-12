@@ -6,7 +6,7 @@
 set -e
 
 BIN_DIR="${WORKSPACE}/bin"
-WF_DIR="${WORKSPACE}/wildfly"
+WF_DIR="${WORKSPACE}/wildfly-dists"
 WF8_VERSION="8.1.0.Final"
 WF9_VERSION="9.0.0.Alpha1"
 export PATH="${BIN_DIR}:${PATH}"
