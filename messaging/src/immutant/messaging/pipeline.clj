@@ -73,7 +73,8 @@
             [immutant.internal.util      :as u]
             [immutant.util               :as pu])
   (:import java.util.UUID
-           java.util.concurrent.TimeoutException))
+           java.util.concurrent.TimeoutException
+           org.projectodd.wunderboss.messaging.Message))
 
 (def ^:dynamic *pipeline*
   "The currently active pipeline fn. Will be bound within the
@@ -101,7 +102,7 @@
 
 (def ^:private correlation-property "correlationID")
 
-(defn- get-correlation-property [m]
+(defn- get-correlation-property [^Message m]
   (get (.properties m) correlation-property))
 
 (defn fanout

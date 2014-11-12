@@ -15,6 +15,7 @@
     (:require [immutant.internal.options :as o]
               [immutant.internal.util    :as u])
     (:import java.lang.AutoCloseable
+             java.util.concurrent.Future
              org.projectodd.wunderboss.WunderBoss
              [org.projectodd.wunderboss.messaging
               ConcreteReply
@@ -30,7 +31,7 @@
 (def broker-name
   (partial u/hash-based-component-name create-defaults))
 
-(defn broker [opts]
+(defn ^Messaging broker [opts]
   (WunderBoss/findOrCreateComponent Messaging
     (broker-name (select-keys opts (o/opts->set Messaging$CreateOption)))
     (o/extract-options opts Messaging$CreateOption)))
@@ -73,9 +74,9 @@
         (.unsubscribe topic id options)))
     (assoc meta :wrapped-destination topic)))
 
-(defn delegating-future [future result-fn]
+(defn delegating-future [^Future future result-fn]
   (reify
-    java.util.concurrent.Future
+    Future
     (cancel [_ interrupt?]
       (.cancel future interrupt?))
     (isCancelled [_]
