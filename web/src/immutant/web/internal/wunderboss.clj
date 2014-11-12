@@ -66,10 +66,14 @@
 
 (defn ^:internal run-dmc* [run handler & options]
   (let [result (apply run (wrap-development handler) options)
-        options (u/kwargs-or-map->map options)]
-    (browse-url (format "http://%s:%s%s%s"
-                  (:host options (:host create-defaults))
-                  (http-port options)
-                  (context-path)
-                  (:path options (:path register-defaults))))
+        options (u/kwargs-or-map->map options)
+        url (format "http://%s:%s%s%s"
+              (:host options (:host create-defaults))
+              (http-port options)
+              (context-path)
+              (:path options (:path register-defaults)))]
+    (try
+      (browse-url url)
+      (catch Exception e
+        (u/warn (format "Failed to browse to %s in run-dmc: %s" url (.getMessage e)))))
     result))
