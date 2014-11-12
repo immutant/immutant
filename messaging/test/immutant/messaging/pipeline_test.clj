@@ -37,7 +37,7 @@
     m))
 
 (defn pipeline-queue-name [pl]
-  (let [n (-> pl meta :pipeline :destination .name)]
+  (let [n (-> pl meta :pipeline .name)]
     (is n)
     n))
 
@@ -94,7 +94,7 @@
 (testing "the returned value"
 
   (deftest should-have-the-pipeline-queue-as-metadata
-    (let [q (-> "name" pipeline meta :pipeline :destination)]
+    (let [q (-> "name" pipeline meta :pipeline)]
       (is (instance? Queue q))
       (is (re-find #"pipeline-name$" (.name q)))))
 

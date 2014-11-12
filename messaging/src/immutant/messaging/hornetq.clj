@@ -28,8 +28,8 @@
     (.jmsServerManager broker)))
 
 (defn ^:private jms-name [dest]
-  (if-let [wrapped-dest (:destination dest)]
-    (.jmsName wrapped-dest)
+  (if-let [wd (-> dest meta :wrapped-destination)]
+    (.jmsName wd)
     dest))
 
 (defn destination-controller
@@ -78,7 +78,7 @@
 (defn ^:private normalize-destination-match [match]
   (jms-name
     (if (or
-          (:destination match)
+          (instance? Destination match)
           (= "#" match)
           (re-find #"^jms\.(queue|topic)\." match))
       match

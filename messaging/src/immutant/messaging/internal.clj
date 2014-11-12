@@ -22,7 +22,8 @@
               Message
               Messaging Messaging$CreateOption
               Messaging$CreateContextOption
-              MessageHandler ReplyableMessage]))
+              MessageHandler ReplyableMessage
+              Queue Topic]))
 
 (def ^:internal create-defaults (o/opts->defaults-map Messaging$CreateOption))
 
@@ -33,6 +34,44 @@
   (WunderBoss/findOrCreateComponent Messaging
     (broker-name (select-keys opts (o/opts->set Messaging$CreateOption)))
     (o/extract-options opts Messaging$CreateOption)))
+
+(defn queue-with-meta [^Queue queue meta]
+  (with-meta
+    (reify Queue
+      (listen [_ handler codecs options]
+        (.listen queue handler codecs options))
+      (name [_]
+        (.name queue))
+      (publish [_ content codec options]
+        (.publish queue content codec options))
+      (receive [_ codecs options]
+        (.receive queue codecs options))
+      (request [_ content codec codecs options]
+        (.request queue content codec codecs options))
+      (respond [_ handler codecs options]
+        (.respond queue handler codecs options))
+      (stop [_]
+        (.stop queue)))
+    (assoc meta :wrapped-destination queue)))
+
+(defn topic-with-meta [^Topic topic meta]
+  (with-meta
+    (reify Topic
+      (listen [_ handler codecs options]
+        (.listen topic handler codecs options))
+      (name [_]
+        (.name topic))
+      (publish [_ content codec options]
+        (.publish topic content codec options))
+      (receive [_ codecs options]
+        (.receive topic codecs options))
+      (stop [_]
+        (.stop topic))
+      (subscribe [_ id handler codecs options]
+        (.subscribe topic id handler codecs options))
+      (unsubscribe [_ id options]
+        (.unsubscribe topic id options)))
+    (assoc meta :wrapped-destination topic)))
 
 (defn delegating-future [future result-fn]
   (reify
@@ -85,4 +124,4 @@
     opts))
 
 (defn merge-context [opts x]
-  (update-in opts [:context] #(or % (:context x))))
+  (update-in opts [:context] #(or % (:context (meta x)))))

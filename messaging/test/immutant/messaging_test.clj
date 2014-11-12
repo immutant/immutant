@@ -206,7 +206,7 @@
 ;; right, and it's an HQ issue, so I'm disabling this test.
 
 #_(deftest remote-receive-should-properly-timeout
-  (let [q-name (.name (:destination (random-queue)))
+  (let [q-name (.name (random-queue))
         extra-connect-opts
         (when (u/in-container?)
           [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]

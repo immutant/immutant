@@ -102,10 +102,10 @@
   (let [options (-> options
                   u/kwargs-or-map->map
                   (o/validate-options queue))]
-    {:destination
-     (.findOrCreateQueue (broker options) queue-name
-       (o/extract-options options Messaging$CreateQueueOption)),
-     :context (:context options)}))
+    (queue-with-meta
+      (.findOrCreateQueue (broker options) queue-name
+        (o/extract-options options Messaging$CreateQueueOption))
+      {:context (:context options)})))
 
 (o/set-valid-options! queue
   (conj (o/opts->set Messaging$CreateQueueOption) :durable?))
@@ -127,10 +127,10 @@
   (let [options (-> options
                   u/kwargs-or-map->map
                   (o/validate-options topic))]
-    {:destination
-     (.findOrCreateTopic (broker options) topic-name
-       (o/extract-options options Messaging$CreateTopicOption)),
-     :context (:context options)}))
+    (topic-with-meta
+      (.findOrCreateTopic (broker options) topic-name
+        (o/extract-options options Messaging$CreateTopicOption))
+      {:context (:context options)})))
 
 (o/set-valid-options! topic
   (o/opts->set Messaging$CreateTopicOption))
@@ -154,15 +154,14 @@
      * :persistent - whether undelivered messages survive restarts [true]
      * :properties - a map to which selectors may be applied, overrides metadata [nil]
      * :context    - a context to use; caller expected to close [nil]"
-  [destination message & options]
+  [^Destination destination message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-context destination)
                   (o/validate-options publish)
                   (update-in [:properties] #(or % (meta message))))
-        coerced-options (o/extract-options options Destination$PublishOption)
-        ^Destination dest (:destination destination)]
-    (.publish dest message (codecs/lookup-codec (:encoding options :edn))
+        coerced-options (o/extract-options options Destination$PublishOption)]
+    (.publish destination message (codecs/lookup-codec (:encoding options :edn))
       coerced-options)))
 
 (o/set-valid-options! publish
@@ -188,13 +187,12 @@
      * :decode?      - if true, the decoded message body is returned. Otherwise, the
                        base message object is returned [true]
      * :context      - a context to use; caller expected to close [nil]"
-  [destination & options]
+  [^Destination destination & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-context destination)
                   (o/validate-options receive))
-        ^Message message (.receive ^Destination (:destination destination)
-                           codecs/codecs
+        ^Message message (.receive destination codecs/codecs
                            (o/extract-options options Destination$ReceiveOption))]
     (if message
       (if (:decode? options true)
@@ -229,13 +227,13 @@
 
    Returns a listener object that can be stopped by passing it to [[stop]], or by
    calling .close on it."
-  [destination f & options]
+  [^Destination destination f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-context destination)
                   coerce-context-mode
                   (o/validate-options listen))]
-    (.listen ^Destination (:destination destination)
+    (.listen destination
       (message-handler f (:decode? options true))
       codecs/codecs
       (o/extract-options options Destination$ListenOption))))
@@ -250,19 +248,18 @@
    with [[respond]].
 
    It takes the same options as [[publish]]."
-  [queue message & options]
+  [^Queue queue message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-context queue)
                   (o/validate-options publish)
-                  (update-in [:properties] #(or % (meta message))))
-        coerced-options (o/extract-options options Destination$PublishOption)
-        ^Queue q (:destination queue)
-        future (.request q message
+                  (update-in [:properties] #(or % (meta message))))]
+    (delegating-future
+      (.request queue message
                  (codecs/lookup-codec (:encoding options :edn))
                  codecs/codecs
-                 coerced-options)]
-    (delegating-future future decode-with-metadata)))
+                 (o/extract-options options Destination$PublishOption))
+      decode-with-metadata)))
 
 (defn respond
   "Listen for messages on `queue` sent by the [[request]] function and
@@ -271,13 +268,13 @@
    Accepts the same options as [[listen]], along with [default]:
 
      * :ttl  - time for the response mesage to live, in millis [60000 (1 minute)]"
-  [queue f & options]
+  [^Queue queue f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-context queue)
                   coerce-context-mode
                   (o/validate-options respond))]
-    (.respond ^Queue (:destination queue)
+    (.respond queue
       (message-handler f (:decode? options true))
       codecs/codecs
       (o/extract-options options Destination$ListenOption))))
@@ -310,12 +307,12 @@
    calling .close on it.
 
    Subscriptions should be torn down when no longer needed - see [[unsubscribe]]."
-  [topic subscription-name f & options]
+  [^Topic topic subscription-name f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-context topic)
                   (o/validate-options listen subscribe))]
-    (.subscribe ^Topic (:destination topic) (name subscription-name)
+    (.subscribe topic (name subscription-name)
       (message-handler f (:decode? options true))
       codecs/codecs
       (o/extract-options options Topic$SubscribeOption))))
@@ -334,12 +331,12 @@
    The following options are supported [default]:
 
      * :context   - a context to use; caller expected to close [nil]"
-  [topic subscription-name & options]
+  [^Topic topic subscription-name & options]
   (let [options (-> options
                   u/kwargs-or-map->map
                   (merge-context topic)
                   (o/validate-options unsubscribe))]
-    (.unsubscribe ^Topic (:destination topic) (name subscription-name)
+    (.unsubscribe topic (name subscription-name)
       (o/extract-options options Topic$UnsubscribeOption))))
 
 (o/set-valid-options! unsubscribe
@@ -351,7 +348,6 @@
    Note that stopping a destination may remove it from the broker if
    called outside of the container."
   [x]
-  (let [x (:destination x x)]
-    (if (instance? Destination x)
-      (.stop x)
-      (.close x))))
+  (if (instance? Destination x)
+    (.stop x)
+    (.close x)))
