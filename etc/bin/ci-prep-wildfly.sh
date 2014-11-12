@@ -11,6 +11,7 @@ fi
 
 if [ ! -d ${jboss_home} ]; then
   echo "Installing WildFly ${version} to ${dest_dir}"
+  mkdir -p ${dest_dir}
   cd ${dest_dir}
   wget http://download.jboss.org/wildfly/${version}/wildfly-${version}.tar.gz
   tar xf wildfly-${version}.tar.gz
