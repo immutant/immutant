@@ -95,7 +95,11 @@
 
    The following options are supported [default]:
 
-   * :context    - a context for a *remote* broker [nil]
+   * :context - a context for a *remote* broker. Cannot be specified
+     with any other options. [nil]
+
+   Or:
+
    * :durable?   - whether messages persist across restarts [true]
    * :selector   - a JMS (SQL 92) expression to filter published messages [nil]"
   [queue-name & options]
