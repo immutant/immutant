@@ -69,7 +69,6 @@
   (:require [immutant.messaging          :as msg]
             [immutant.messaging.internal :as mi]
             [immutant.internal.options   :as o]
-            ;;[immutant.xa.transaction   :as tx]
             [immutant.internal.util      :as u]
             [immutant.util               :as pu])
   (:import java.util.UUID
@@ -168,11 +167,6 @@
                          correlation-property (get-correlation-property raw-message)}))))
     f))
 
-#_(defn- wrap-no-tx
-    [f]
-    (fn [m]
-      (tx/not-supported (f m))))
-
 (defn- pipeline-listen
   "Creates a listener on the pipeline for the given function."
   [pl opts f]
@@ -188,8 +182,7 @@
         wrap-decode
         (wrap-result-passing pl step next-step opts)
         (wrap-error-handler opts)
-        (wrap-step-bindings step next-step)
-        #_wrap-no-tx)
+        (wrap-step-bindings step next-step))
       opts)))
 
 (defn ^:internal ^:no-doc delayed
