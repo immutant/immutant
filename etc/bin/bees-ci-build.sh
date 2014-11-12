@@ -32,19 +32,24 @@ etc/bin/ci-prep-wildfly.sh ${WF_DIR} ${WF9_VERSION}
 
 etc/bin/reversion.sh 2.x.incremental.${BUILD_NUMBER}
 
+echo "Starting build + integ run against ${WF8_VERSION}"
 export JBOSS_HOME="${WF_DIR}/wildfly-${WF8_VERSION}"
 date
 lein with-profile +integs modules all
-date
 
+echo "Starting integs with ${WF9_VERSION}"
 export JBOSS_HOME="${WF_DIR}/wildfly-${WF9_VERSION}"
-echo "Running integs with ${WF9_VERSION}"
+date
 cd integration-tests
-lein with-profile +integs modules all
+lein with-profile +integs all
 cd -
 
+echo "Starting deploy build"
 date
 lein with-profile +incremental modules deploy
+
+echo "Starting doc build"
 date
 lein docs
+
 date
