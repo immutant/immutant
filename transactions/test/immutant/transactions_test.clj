@@ -23,16 +23,16 @@
             [clojure.java.jdbc :as sql]))
 
 (set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
-(def cache (csh/cache "tx-test" :transactional true))
-(def queue (msg/queue "/queue/test" :durable false))
-(def local-remote-queue (msg/queue "remote" :durable false))
+(def cache (csh/cache "tx-test" :transactional? true))
+(def queue (msg/queue "/queue/test" :durable? false))
+(def local-remote-queue (msg/queue "remote" :durable? false))
 (def conn (if (in-container?)
             (msg/context :host "localhost" :port (messaging-remoting-port)
               :username "testuser" :password "testuser" :remote-type :hornetq-wildfly
-              :xa true)
-            (msg/context :host "localhost" :xa true)))
+              :xa? true)
+            (msg/context :host "localhost" :xa? true)))
 (def remote-queue (msg/queue "remote" :context conn))
-(def trigger (msg/queue "/queue/trigger" :durable false))
+(def trigger (msg/queue "/queue/trigger" :durable? false))
 (def spec {:connection-uri "jdbc:h2:mem:ooc;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"})
 
 (use-fixtures :each
@@ -82,7 +82,7 @@
 
 (defn attempt-transaction-external [& {:as m}]
   (try
-    (with-open [conn (msg/context :xa true)]
+    (with-open [conn (msg/context :xa? true)]
       (transaction
         (msg/publish queue "pineapple" :context conn)
         (work m)))
@@ -99,14 +99,14 @@
 (defn verify-success []
   (is (= "kiwi" (msg/receive queue :timeout 1000)))
   (is (= "starfruit" (msg/receive local-remote-queue :timeout 1000)))
-  (is (= 1 (:a cache))) 
+  (is (= 1 (:a cache)))
   (is (= "tangerine" (:name (read-thing-from-db spec "tangerine"))))
   (is (= 1 (count-things-in-db spec))))
 
 (defn verify-failure []
   (is (nil? (msg/receive queue :timeout 1000)))
   (is (nil? (msg/receive local-remote-queue :timeout 1000)))
-  (is (nil? (:a cache))) 
+  (is (nil? (:a cache)))
   (is (nil? (read-thing-from-db spec "tangerine")))
   (is (= 0 (count-things-in-db spec))))
 

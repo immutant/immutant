@@ -289,7 +289,7 @@
 
 
 (defn ^{:valid-options
-        #{:concurrency :error-handler :result-ttl :step-deref-timeout :durable}}
+        #{:concurrency :error-handler :result-ttl :step-deref-timeout :durable?}}
   pipeline
   "Creates a pipeline function.
 
@@ -318,7 +318,7 @@
                          the result of a step that returns a delay,
                          in millis. Can be overridden on a per-step basis -
                          see the 'step' function. [10 seconds]
-   * :durable            whether messages persist across restarts [true]
+   * :durable?           whether messages persist across restarts [true]
 
    During the execution of each step and each error-handler call, the
    following vars are bound:
@@ -334,7 +334,7 @@
         pl-name (name pl-name)
         pl (msg/queue (format "%s.pipeline-%s"
                         (pu/app-name) pl-name)
-             :durable (:durable opts true))
+             :durable? (:durable? opts true))
         result-ttl (:result-ttl opts 3600000) ;; 1 hr
         keep-result? (>= result-ttl 0)
         steps (-> (take-while fn? args)

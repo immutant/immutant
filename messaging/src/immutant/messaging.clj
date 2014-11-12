@@ -48,7 +48,7 @@
    Options that apply to both local and remote contexts are [default]:
 
    * :subscription-name - identifies the context for use with a durable topic subscriber [nil]
-   * :xa                - if true, returns an XA context for use in a distributed transaction [false]
+   * :xa?               - if true, returns an XA context for use in a distributed transaction [false]
    * :mode              - one of: :auto-ack, :client-ack, :transacted. Ignored if :xa is true. [:auto-ack]
 
    Options that apply to only remote contexts are [default]:
@@ -82,7 +82,8 @@
 (o/set-valid-options! context
   (-> (o/opts->set Messaging$CreateContextOption)
     (conj :subscription-name)
-    (disj :client-id)))
+    (disj :client-id)
+    (o/boolify :xa)))
 
 (defn queue
   "Establishes a handle to a messaging queue.
@@ -112,7 +113,7 @@
       {:context (:context options)})))
 
 (o/set-valid-options! queue
-  (conj (o/opts->set Messaging$CreateQueueOption) :durable?))
+  (o/boolify (o/opts->set Messaging$CreateQueueOption) :durable))
 
 (defn topic
   "Establishes a handle to a messaging topic.
@@ -152,12 +153,12 @@
 
    The following options are supported [default]:
 
-     * :encoding   - one of: :edn, :json, :none, or other codec you've registered [:edn]
-     * :priority   - 0-9, or one of: :low, :normal, :high, :critical [4]
-     * :ttl        - time to live, in millis [0 (forever)]
-     * :persistent - whether undelivered messages survive restarts [true]
-     * :properties - a map to which selectors may be applied, overrides metadata [nil]
-     * :context    - a context to use; caller expected to close [nil]"
+     * :encoding    - one of: :edn, :json, :none, or other codec you've registered [:edn]
+     * :priority    - 0-9, or one of: :low, :normal, :high, :critical [4]
+     * :ttl         - time to live, in millis [0 (forever)]
+     * :persistent? - whether undelivered messages survive restarts [true]
+     * :properties  - a map to which selectors may be applied, overrides metadata [nil]
+     * :context     - a context to use; caller expected to close [nil]"
   [^Destination destination message & options]
   (let [options (-> options
                   u/kwargs-or-map->map
@@ -169,8 +170,9 @@
       coerced-options)))
 
 (o/set-valid-options! publish
-  (conj (o/opts->set Destination$PublishOption)
-    :encoding))
+  (-> (o/opts->set Destination$PublishOption)
+    (conj :encoding)
+    (o/boolify :persistent)))
 
 (defn receive
   "Receive a message from `destination`.
@@ -205,8 +207,9 @@
       (:timeout-val options))))
 
 (o/set-valid-options! receive
-  (conj (o/opts->set Destination$ReceiveOption)
-    :decode? :encoding :timeout-val))
+  (-> (o/opts->set Destination$ReceiveOption)
+    (conj :encoding :timeout-val)
+    (o/boolify :decode)))
 
 (defn listen
   "Registers `f` to receive each message sent to `destination`.
@@ -243,7 +246,7 @@
       (o/extract-options options Destination$ListenOption))))
 
 (o/set-valid-options! listen
-  (conj (o/opts->set Destination$ListenOption) :decode?))
+  (o/boolify (o/opts->set Destination$ListenOption) :decode))
 
 (defn request
   "Send `message` to `queue` and return a Future that will retrieve the response.
@@ -322,7 +325,7 @@
       (o/extract-options options Topic$SubscribeOption))))
 
 (o/set-valid-options! subscribe
-  (conj (o/opts->set Topic$SubscribeOption) :decode?))
+  (o/boolify (o/opts->set Topic$SubscribeOption) :decode))
 
 (defn unsubscribe
   "Tears down the durable topic subscription on `topic` named `subscription-name`.

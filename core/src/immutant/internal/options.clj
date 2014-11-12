@@ -104,3 +104,21 @@
                               (optsm (->underscored-string k)))]
                [key v])))
       (into {}))))
+
+(defn boolify
+  "Appends ? to each of `keywords` in `coll`, replacing the original.
+
+   `coll` must be a set or map."
+  [coll & keywords]
+  (letfn [(add-? [kw]
+             (keyword (str (name kw) \?)))]
+    (reduce
+      (if (set? coll)
+        (fn [s kw]
+          (conj (disj s kw) (add-? kw)))
+        (fn [m kw]
+          (let [currval (kw m)]
+            (assoc (dissoc m kw)
+              (add-? kw) currval))))
+      coll
+      keywords)))

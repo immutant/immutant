@@ -23,7 +23,7 @@
 (use-fixtures :once u/reset-fixture)
 
 (defn random-queue []
-  (queue (str (java.util.UUID/randomUUID)) :durable false))
+  (queue (str (java.util.UUID/randomUUID)) :durable? false))
 
 (deftest queue-topic-should-work
   (is (queue "foo"))
@@ -60,7 +60,7 @@
   (is (thrown? IllegalArgumentException (context :bad :option))))
 
 (deftest publish-receive-should-work
-  (let [q (queue "foo" :durable false)]
+  (let [q (queue "foo" :durable? false)]
     (publish q "hi")
     (is (= "hi" (receive q)))))
 
@@ -166,12 +166,12 @@
 
 (deftest respond-should-work-with-conveyed-bindings
   (binding [*dvar* :bound]
-    (let [q (queue "rr-queue" :durable false)]
+    (let [q (queue "rr-queue" :durable? false)]
       (with-open [listener (respond q (fn [_] *dvar*))]
         (is (= :bound (deref (request q :whatevs) 2000 :fail)))))))
 
 (deftest request-respond-should-coordinate-results
-  (let [q (queue "rr-queue" :durable false)]
+  (let [q (queue "rr-queue" :durable? false)]
     (with-open [listener (respond q (fn [m] (Thread/sleep m) m) :concurrency 5)]
       (let [r1 (request q 50)
             r2 (request q 100)
@@ -181,7 +181,7 @@
         (is (= 25 (deref r3 2000 :fail)))))))
 
 (deftest transactional-context-should-work
-  (let [q (queue "tx-queue" :durable false)]
+  (let [q (queue "tx-queue" :durable? false)]
     (with-open [s (context :mode :transacted)]
       (publish q :first :context s)
       (.commit s)
@@ -191,7 +191,7 @@
     (is (= :success (receive q :timeout 100 :timeout-val :success)))))
 
 (deftest remote-context-should-work
-  (queue "remote" :durable false)
+  (queue "remote" :durable? false)
   (let [extra-connect-opts
         (when (u/in-container?)
           [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
@@ -255,7 +255,7 @@
         (.close l)))))
 
 (deftest publish-to-a-remote-queue-from-a-listener-should-work
-  (queue "remote" :durable false)
+  (queue "remote" :durable? false)
   (let [conn (if (u/in-container?)
                (context :host "localhost" :port (u/messaging-remoting-port)
                  :username "testuser" :password "testuser" :remote-type :hornetq-wildfly)

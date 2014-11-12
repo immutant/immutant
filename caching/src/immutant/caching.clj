@@ -78,7 +78,7 @@
    TransactionManager is available. The locking scheme may be either
    :optimisitic or :pessimistic
 
-   * :transactional - whether the cache is transactional [false]
+   * :transactional? - whether the cache is transactional [false]
    * :locking - transactional locking scheme [:optimistic]
 
    Advanced configuration: the options listed above are the most
@@ -96,7 +96,7 @@
                   (extract-options Caching$CreateOption))]
     (.findOrCreate (component) name options)))
 
-(set-valid-options! cache (opts->set Caching$CreateOption))
+(set-valid-options! cache (boolify (opts->set Caching$CreateOption) :transactional))
 
 (defn with-codec
   "Takes a cache and a keyword denoting a codec, and returns a new

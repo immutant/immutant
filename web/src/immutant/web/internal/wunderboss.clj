@@ -15,7 +15,8 @@
 (ns ^:no-doc ^:internal immutant.web.internal.wunderboss
     (:require [immutant.web.internal.undertow :refer [create-http-handler]]
               [immutant.web.internal.servlet  :refer [create-servlet]]
-              [immutant.internal.options  :refer [extract-options opts->set opts->defaults-map opts->map keywordize]]
+              [immutant.internal.options  :refer [boolify extract-options opts->set
+                                                  opts->defaults-map opts->map keywordize]]
               [immutant.internal.util     :as u]
               [immutant.util              :refer [in-container? context-path http-port]]
               [immutant.web.middleware    :refer [wrap-development]]
@@ -25,9 +26,9 @@
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]
              javax.servlet.Servlet))
 
-(def ^:internal register-defaults (as-> (opts->defaults-map Web$RegisterOption) m
-                                    (assoc m :dispatch? (:dispatch m))
-                                    (dissoc m :dispatch)))
+(def ^:internal register-defaults (-> (opts->defaults-map Web$RegisterOption)
+                                    (boolify :dispatch)))
+
 (def ^:internal create-defaults (opts->defaults-map Web$CreateOption))
 
 (def ^:internal server-name

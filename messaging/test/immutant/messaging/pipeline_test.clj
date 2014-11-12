@@ -81,15 +81,15 @@
     (let [q-args (atom nil)]
       (with-redefs [immutant.messaging/queue (fn [& args] (reset! q-args args))
                     immutant.messaging.pipeline/pipeline-listen (constantly nil)]
-        (pipeline "my-pl-with-options" :durable :red)
-        (is (= [:durable :red] (rest @q-args))))))
+        (pipeline "my-pl-with-options" :durable? :red)
+        (is (= [:durable? :red] (rest @q-args))))))
 
   (deftest should-take-a-map-of-args-as-well
     (let [q-args (atom nil)]
       (with-redefs [immutant.messaging/queue (fn [& args] (reset! q-args args))
                     immutant.messaging.pipeline/pipeline-listen (constantly nil)]
-        (pipeline "my-pl-with-map-options" {:durable :yellow})
-        (is (= [:durable :yellow] (rest @q-args)))))))
+        (pipeline "my-pl-with-map-options" {:durable? :yellow})
+        (is (= [:durable? :yellow] (rest @q-args)))))))
 
 (testing "the returned value"
 

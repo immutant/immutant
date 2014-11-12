@@ -14,7 +14,7 @@
 
 (ns immutant.web
   "Serve web requests using Ring handlers, Servlets, or Undertow HttpHandlers"
-  (:require [immutant.internal.options :refer [opts->set set-valid-options!
+  (:require [immutant.internal.options :refer [boolify opts->set set-valid-options!
                                                validate-options extract-options]]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
             [immutant.web.internal.wunderboss :as internal])
@@ -84,8 +84,8 @@
       (update-in options [:contexts server] conj (internal/mounts options)))))
 
 (set-valid-options! run (-> (opts->set Web$CreateOption Web$RegisterOption)
-                          (conj :contexts :dispatch?)
-                          (disj :dispatch)))
+                          (conj :contexts)
+                          (boolify :dispatch)))
 
 (defn stop
   "Stops a running handler.
