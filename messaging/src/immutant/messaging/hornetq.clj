@@ -117,11 +117,11 @@
    * :address-full-message-policy [:page] - Specifies what should
      happen when an address reaches :max-size-bytes in undelivered
      messages. Options are:
-      * :block - publish calls will block until the current size
-        drops below :max-size-bytes
-      * :drop - new messages are silently dropped
-      * :fail - new messages are dropped and an exception is thrown on publish
-      * :page - new messages will be paged to disk
+       * :block - publish calls will block until the current size
+         drops below :max-size-bytes
+       * :drop - new messages are silently dropped
+       * :fail - new messages are dropped and an exception is thrown on publish
+       * :page - new messages will be paged to disk
      See http://docs.jboss.org/hornetq/2.3.0.Final/docs/user-manual/html/paging.html
 
    * :dead-letter-address [jms.queue.DLQ] - If set, any messages that

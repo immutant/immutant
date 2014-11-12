@@ -20,10 +20,11 @@
   (:import java.net.URL
            org.projectodd.wunderboss.WunderBoss))
 
-(def module-class-loader-class (memoize #(u/try-import 'org.jboss.modules.ModuleClassLoader)))
-(def in-cluster (delay (-> (u/try-import 'org.projectodd.wunderboss.wildfly.ClusterUtils)
-                         (.getMethod "inCluster" nil)
-                         (.invoke nil nil))))
+(def ^:no-doc module-class-loader-class (memoize #(u/try-import 'org.jboss.modules.ModuleClassLoader)))
+
+(def ^:no-doc in-cluster (delay (-> (u/try-import 'org.projectodd.wunderboss.wildfly.ClusterUtils)
+                                  (.getMethod "inCluster" nil)
+                                  (.invoke nil nil))))
 
 (defn- get-resource-loaders
   [cl]
