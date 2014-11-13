@@ -16,15 +16,16 @@
   (:require [immutant.codecs :refer :all]
             [clojure.test    :refer :all]))
 
+(deftest codec-set-should-work
+  (is (= #{:none :edn :json} (codec-set))))
+
 (defn test-codec [object encoding]
   (let [encoded (encode object encoding)]
     (is (= object (decode encoded encoding)))))
 
-(deftest json-string
-  (test-codec "a random text message" :json))
-
-(deftest edn-string
-  (test-codec "a simple text message" :edn))
+(deftest encode-string
+  (doseq [e (codec-set)]
+    (test-codec "a random text message" e)))
 
 (deftest edn-date
   (test-codec (java.util.Date.) :edn))
@@ -35,26 +36,15 @@
 (deftest edn-date-inside-vector
   (test-codec [(java.util.Date.)] :edn))
 
-(deftest json-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :json))
-
-(deftest none-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :none))
-
-(deftest edn-complex-hash
-  (test-codec {:a "b" :c [1 2 3 {:foo 42}]} :edn))
+(deftest complex-hash
+  (doseq [e (codec-set)]
+    (test-codec {:a "b" :c [1 2 3 {:foo 42}]} e)))
 
 (deftest complex-json-encoding
   (let [message {:a "b" :c [1 2 3 {:foo 42}]}
         encoded (encode message :json)]
     (is (= message (decode encoded :json)))
     (is (= message (decode "{\"a\":\"b\",\"c\":[1,2,3,{\"foo\":42}]}" :json)))))
-
-(deftest none
-  (test-codec "ham biscuit" :none))
-
-(deftest codec-set-should-work
-  (is (= #{:none :edn :json} (codec-set))))
 
 (deftest decode-nil
   (doseq [codec-name (codec-set)]
