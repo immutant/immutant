@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.transactions
-  "Providing support for distributed (XA) transactions"
+  "Provides support for distributed (XA) transactions."
   (:import [org.projectodd.wunderboss WunderBoss]
            [org.projectodd.wunderboss.transactions Transaction]))
 

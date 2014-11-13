@@ -13,6 +13,8 @@
 ;; limitations under the License.
 
 (defproject org.immutant/web "2.0.0-SNAPSHOT"
+  :description "Serve web requests using Ring handlers, Servlets, or Undertow HttpHandlers."
+
   :plugins [[lein-modules "0.3.9"]]
 
   :dependencies [[org.immutant/core _]

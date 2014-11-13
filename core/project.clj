@@ -13,6 +13,7 @@
 ;; limitations under the License.
 
 (defproject org.immutant/core "2.0.0-SNAPSHOT"
+  :description "Utilities shared by Immutant libs."
   :plugins [[lein-modules "0.3.9"]]
 
   :dependencies [[org.clojure/java.classpath _]

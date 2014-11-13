@@ -13,6 +13,8 @@
 ;; limitations under the License.
 
 (defproject org.immutant/scheduling "2.0.0-SNAPSHOT"
+  :description "Schedule jobs for execution in the future."
+
   :plugins [[lein-modules "0.3.9"]]
 
   :dependencies [[org.immutant/core _]

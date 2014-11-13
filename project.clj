@@ -58,7 +58,7 @@
                                         :subscribe "immutant-users-subscribe@immutant.org"
                                         :post "immutant-users@immutant.org"}
                          :url "http://immutant.org"
-                         :scm {:dir ".."}
+                         :scm {:dir "."}
                          :license {:name "Apache Software License - v 2.0"
                                    :url "http://www.apache.org/licenses/LICENSE-2.0"
                                    :distribution :repo}
