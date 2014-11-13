@@ -104,14 +104,17 @@
                           "sync_request_id"))
       result)))
 
-(defn message-handler [f decode?]
-  (let [bound-f (bound-fn [m] (f m))]
-    (reify MessageHandler
-      (onMessage [_ message _]
-        (let [reply (bound-f (if decode?
-                               (decode-with-metadata message)
-                               message))]
-          (ConcreteReply. reply (meta reply)))))))
+(defn message-handler
+  ([f decode?]
+     (message-handler f decode? false))
+  ([f decode? reply?]
+     (let [bound-f (bound-fn [m] (f m))]
+       (reify MessageHandler
+         (onMessage [_ message _]
+           (let [reply (bound-f (if decode?
+                                  (decode-with-metadata message)
+                                  message))]
+             (when reply? (ConcreteReply. reply (meta reply)))))))))
 
 (defn coerce-context-mode [opts]
   (if-let [mode (:mode opts)]

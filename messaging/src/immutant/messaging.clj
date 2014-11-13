@@ -282,7 +282,7 @@
                   coerce-context-mode
                   (o/validate-options respond))]
     (.respond queue
-      (message-handler f (:decode? options true))
+      (message-handler f (:decode? options true) true)
       codecs/codecs
       (o/extract-options options Destination$ListenOption))))
 
