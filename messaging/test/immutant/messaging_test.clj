@@ -269,3 +269,12 @@
       (finally
         (.close conn)
         (.close l)))))
+
+(defrecord TestRecord [x])
+
+(deftest records-should-be-publishable-via-the-:none-encoding
+  (let [q (random-queue)
+        p (promise)]
+    (with-open [l (listen q #(deliver p %))]
+      (publish q (->TestRecord 1) :encoding :none)
+      (is (= (->TestRecord 1) (deref p 10000 :timeout))))))

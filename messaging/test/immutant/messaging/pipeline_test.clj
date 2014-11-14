@@ -353,10 +353,8 @@
 (defrecord TestRecord [a])
 
 (deftest with-a-record
-  (if (u/in-container?)
-    (let [pl (pipeline :with-a-record #(update-in % [:a] inc))]
-      (is (= (->TestRecord 2) (deref (pl (->TestRecord 1)) 10000 :timeout))))
-    (println "NOTE: pipeline record test disabled out-of-container, as it will fail. TODO: fix it")))
+  (let [pl (pipeline :with-a-record #(update-in % [:a] inc))]
+    (is (= (->TestRecord 2) (deref (pl (->TestRecord 1)) 10000 :timeout)))))
 
 (deftest pipeline-returning-nil-should-return-nil-instead-of-timeout-val
   (let [pl (pipeline :nil-pl (constantly nil))]

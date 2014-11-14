@@ -105,6 +105,18 @@
                     (catch Exception e# (if (> x# ~end) (throw e#))))]
        (or result# (do (Thread/sleep x#) (recur (* 2 x#)))))))
 
+(defmacro with-tccl
+  "Evaluates `body` with the tccl set to `cl`, restoring the original
+   tccl when done."
+  [cl & body]
+  `(let [thread# (Thread/currentThread)
+         curr-cl# (.getContextClassLoader thread#)]
+     (.setContextClassLoader thread# ~cl)
+     (try
+       ~@body
+       (finally
+         (.setContextClassLoader thread# curr-cl#)))))
+
 (defn uuid []
   "Generates a random uuid string."
   (str (java.util.UUID/randomUUID)))

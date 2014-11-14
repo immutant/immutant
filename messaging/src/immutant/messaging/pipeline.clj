@@ -199,7 +199,11 @@
         ([timeout-ms timeout-val]
            (if (realized?)
              @val
-             (rcv timeout-ms timeout-val))))
+             ;; use baseLoader as the tccl to allow records to be
+             ;; decoded, since HornetQ will use the tccl to load the
+             ;; record class
+             (u/with-tccl (clojure.lang.RT/baseLoader)
+               (rcv timeout-ms timeout-val)))))
       (isRealized []
         (realized?)))))
 

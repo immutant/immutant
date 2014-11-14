@@ -108,13 +108,18 @@
   ([f decode?]
      (message-handler f decode? false))
   ([f decode? reply?]
-     (let [bound-f (bound-fn [m] (f m))]
+     (let [loader (clojure.lang.RT/baseLoader)
+           bound-f (bound-fn [m] (f m))]
        (reify MessageHandler
          (onMessage [_ message _]
-           (let [reply (bound-f (if decode?
-                                  (decode-with-metadata message)
-                                  message))]
-             (when reply? (ConcreteReply. reply (meta reply)))))))))
+           ;; use baseLoader as the tccl to allow records to be
+           ;; decoded, since HornetQ will use the tccl to load the
+           ;; record class
+           (u/with-tccl loader
+             (let [reply (bound-f (if decode?
+                                    (decode-with-metadata message)
+                                    message))]
+               (when reply? (ConcreteReply. reply (meta reply))))))))))
 
 (defn coerce-context-mode [opts]
   (if-let [mode (:mode opts)]
