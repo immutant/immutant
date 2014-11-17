@@ -188,8 +188,8 @@ the context yourself (via the [[context]] function):
 
 ## Context modes
 
-When creating a context, you can optionally pass an optional `:mode`
-that controls how messages will be acknowledged and delivered.
+When creating a context, you can pass a `:mode` option that controls
+how messages will be acknowledged and delivered.
 
 Immutant provides three modes:
 
