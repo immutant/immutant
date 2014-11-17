@@ -49,7 +49,7 @@
 
    * :subscription-name - identifies the context for use with a durable topic subscriber [nil]
    * :xa?               - if true, returns an XA context for use in a distributed transaction [false]
-   * :mode              - one of: :auto-ack, :client-ack, :transacted. Ignored if :xa is true. [:auto-ack]
+   * :mode              - one of: :auto-ack, :client-ack, :transacted. Ignored if :xa? is true. [:auto-ack]
 
    Options that apply to only remote contexts are [default]:
 

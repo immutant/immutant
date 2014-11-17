@@ -186,6 +186,64 @@ the context yourself (via the [[context]] function):
       (publish q n :context context))))
 ```
 
+## Context modes
+
+When creating a context, you can optionally pass an optional `:mode`
+that controls how messages will be acknowledged and delivered.
+
+Immutant provides three modes:
+
+* `:auto-ack` - when this mode is active, receipt of a message is
+  automatically acknowledged when a `receive` call completes. This
+  mode doesn't affect publication - `publish` calls will complete
+  immediately. This is the default mode for contexts.
+
+* `:client-ack` - when this mode is active, you are responsible for
+  acknowledging the message manually by calling `.acknowledge` on the
+  Message object. This means you need to get the raw message (by
+  passing `:decode? false` to `receive`). This mode doesn't affect
+  publication - `publish` calls will complete immediately.
+
+* `:transacted` - when this mode is active, you are responsible for
+  committing or rolling back (by calling `.commit` or `.rollback` on
+  the context, respectively) any actions performed on the
+  context. This applies to publishes *and* receives.
+
+:auto-ack is the default for contexts, :transacted for listeners.
+
+If a context is created with `:xa? true`, the `:mode` option is
+ignored. See the [Transactions Guide] for more details.
+
+## Context modes for listeners
+
+The [[listen]] and [[respond]] functions take a `:mode` option, which
+is used *instead* of the mode of any `:context` option (listeners need
+a context per thread, so create and manage their own contexts). The
+`:mode` option to these functions takes the same modes as above, with
+the following behavioral differences (note that `:transacted` is the
+default for listeners, *not* `:auto-ack`):
+
+* `:auto-ack` - when active, the receipt of the message will
+  automatically be acknowledged when the handler function completes.
+
+* `:client-ack` - when active, you are responsible for
+  acknowledging the message manually by calling `.acknowledge` on the
+  Message object. This means you need to get the raw message (by
+  passing `:decode? false` to `listen`).
+
+* `:transacted` - when active, `.commit` is called on the context
+  automatically if the handler function completes successfully. If it
+  throws an exception, `.rollback` is called on the context. Any
+  messaging operations that take a context will use the context that
+  is active for the listener itself (if not passed one
+  explicitly). This means that any messaging operations within the
+  handler function are also transacted. This is the default mode for
+  listeners.
+
+If you need to use distributed transactions (XA) within a listener
+function, you are responsible for demarcating the transaction. See the
+[Transactions Guide] for more details.
+
 ## HornetQ configuration
 
 When used outside of WildFly, we configure [HornetQ] via a pair of xml
@@ -224,3 +282,4 @@ transactional sessions)...
 [edn]: https://github.com/edn-format/edn
 [default versions]: https://github.com/projectodd/wunderboss/blob/{{wunderboss-tag}}/modules/messaging/src/main/resources/
 [configuration options]: https://docs.jboss.org/hornetq/2.4.0.Final/docs/user-manual/html_single/#server.configuration
+[Transactions Guide]: guide-transactions.html
