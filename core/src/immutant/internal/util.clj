@@ -117,8 +117,9 @@
        (finally
          (.setContextClassLoader thread# curr-cl#)))))
 
-(defn uuid []
+(defn uuid
   "Generates a random uuid string."
+  []
   (str (java.util.UUID/randomUUID)))
 
 (defn ^org.slf4j.Logger logger
