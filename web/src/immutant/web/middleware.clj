@@ -45,7 +45,7 @@
   Supported options:
 
      * :timeout The number of seconds of inactivity before session expires [1800]
-     * :cookie-name The name of the cookie that holds the session key [\"ring-session\"]
+     * :cookie-name The name of the cookie that holds the session key [\"JSESSIONID\"]
      * :cookie-attrs A map of attributes to associate with the session cookie [nil]
 
   A :timeout value less than or equal to zero indicates the session
