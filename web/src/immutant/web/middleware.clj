@@ -44,14 +44,25 @@
 
   Supported options:
 
-     * :timeout The number of seconds of inactivity before session
-       expires [1800]
+     * :timeout The number of seconds of inactivity before session expires [1800]
+     * :cookie-name The name of the cookie that holds the session key [\"ring-session\"]
+     * :cookie-attrs A map of attributes to associate with the session cookie [nil]
 
   A :timeout value less than or equal to zero indicates the session
-  should never expire"
+  should never expire.
+
+  The following :cookie-attrs keys are supported:
+
+     * :path      - the subpath the cookie is valid for
+     * :domain    - the domain the cookie is valid for
+     * :max-age   - the maximum age in seconds of the cookie
+     * :secure    - set to true if the cookie requires HTTPS, prevent HTTP access
+     * :http-only - set to true if the cookie is valid for HTTP and HTTPS only
+                    (ie. prevent JavaScript access)"
   ([handler]
      (wrap-session handler {}))
-  ([handler {:keys [timeout] :or {timeout (* 30 60)}}]
-     (if (in-container?)
-       (wrap-servlet-session handler timeout)
-       (wrap-undertow-session handler timeout))))
+  ([handler options]
+     (let [options (merge {:timeout (* 30 60)} options)]
+       (if (in-container?)
+         (wrap-servlet-session handler options)
+         (wrap-undertow-session handler options)))))

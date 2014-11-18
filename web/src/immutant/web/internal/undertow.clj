@@ -16,20 +16,35 @@
     (:require [immutant.web.internal.ring :as i]
               [ring.middleware.session :as ring])
     (:import [io.undertow.server HttpHandler HttpServerExchange]
-             io.undertow.server.session.Session
+             [io.undertow.server.session Session SessionConfig SessionCookieConfig]
              [io.undertow.util HeaderMap Headers HttpString Sessions]
              [io.undertow.websockets.spi WebSocketHttpExchange]))
+
+(def ^{:tag SessionCookieConfig :private true} set-cookie-config!
+  (memoize
+    (fn [^SessionCookieConfig config
+        {:keys [cookie-name]
+         {:keys [path domain max-age secure http-only]} :cookie-attrs}]
+      (cond-> config
+        cookie-name (.setCookieName cookie-name)
+        path        (.setPath path)
+        domain      (.setDomain domain)
+        max-age     (.setMaxAge max-age)
+        secure      (.setSecure secure)
+        http-only   (.setHttpOnly http-only)))))
 
 (defn wrap-undertow-session
   "Ring middleware to insert a :session entry into the request, its
   value stored in the `io.undertow.server.session.Session` from the
   associated handler"
-  [handler timeout]
+  [handler {:keys [timeout] :as options}]
   (let [expirer (i/session-expirer timeout)
-        fallback (delay (ring/wrap-session handler))]
+        fallback (delay (ring/wrap-session handler options))]
     (fn [request]
-      (if-let [^HttpServerExchange hse (:server-exchange request)]
-        (let [data (delay (-> hse Sessions/getOrCreateSession expirer i/ring-session))
+      (if-let [hse ^HttpServerExchange (:server-exchange request)]
+        (let [data (delay
+                     (set-cookie-config! (.getAttachment hse SessionConfig/ATTACHMENT_KEY) options)
+                     (-> hse Sessions/getOrCreateSession expirer i/ring-session))
               ;; we assume the request map automatically derefs delays
               response (handler (assoc request :session data))]
           (when (contains? response :session)

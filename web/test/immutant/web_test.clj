@@ -19,7 +19,7 @@
             [immutant.web          :refer :all]
             [immutant.web.internal.wunderboss :refer [create-defaults register-defaults]]
             [immutant.web.middleware :refer (wrap-session)]
-            [testing.web           :refer [get-body hello handler]]
+            [testing.web           :refer [get-body get-response hello handler]]
             [testing.app]
             [testing.hello.service :as pedestal]
             [ring.middleware.resource :refer [wrap-resource]]
@@ -249,3 +249,15 @@
     (is (= "0" (:body (testing.app/routes request))))
     (is (= "0" (:body ((-> testing.app/routes wrap-session) request))))
     (is (get-in ((-> testing.app/routes wrap-session) request) [:headers "Set-Cookie"]))))
+
+(deftest cookie-attributes
+  (run (-> (fn [r] (:session r) (hello {}))
+         (wrap-session {:cookie-name "foo"
+                        :cookie-attrs {:path "/foo" :domain "foo.com" :max-age 20 :http-only true}})))
+  (get-response url :cookies nil)
+  (let [c @testing.web/cookies]
+    (is (= 1 (count c)))
+    (is (= "foo" (-> c first :name)))
+    (is (= "/foo" (-> c first :path)))
+    (is (= "foo.com" (-> c first :domain)))
+    (is (= "20" (-> c first :Max-Age)))))

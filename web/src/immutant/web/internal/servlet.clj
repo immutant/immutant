@@ -25,7 +25,7 @@
   "Ring middleware to insert a :session entry into the request, its
   value stored in the possibly-replicated HttpSession from the
   associated servlet"
-  [handler timeout]
+  [handler {:keys [timeout]}]
   (let [expirer (i/session-expirer timeout)]
     (fn [request]
       (let [^HttpServletRequest hsr (:servlet-request request)
