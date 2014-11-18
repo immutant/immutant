@@ -14,7 +14,15 @@
 
 (ns ^:no-doc immutant.caching.options
   "Spruces up some of the option values"
-  (require [immutant.coercions :refer [as-period]]))
+  (:require [immutant.coercions :refer (as-period)])
+  (:import [org.projectodd.wunderboss.caching.notifications Handler
+            Listener$CacheEntriesEvicted Listener$CacheEntryActivated
+            Listener$CacheEntryCreated Listener$CacheEntryInvalidated
+            Listener$CacheEntryLoaded Listener$CacheEntryModified
+            Listener$CacheEntryPassivated Listener$CacheEntryRemoved
+            Listener$CacheEntryVisited Listener$DataRehashed
+            Listener$TopologyChanged Listener$TransactionCompleted
+            Listener$TransactionRegistered]))
 
 (defn period-converter [key]
   (fn [m] (if (get m key)
@@ -32,3 +40,21 @@
             (keyword-converter :mode)
             (keyword-converter :eviction)
             (keyword-converter :locking)))
+
+(defn listener
+  [f type]
+  (let [handler (reify Handler (handle [_ event] (f event)))]
+    (case type
+      :cache-entries-evicted   (Listener$CacheEntriesEvicted. handler)
+      :cache-entry-activated   (Listener$CacheEntryActivated. handler)
+      :cache-entry-created     (Listener$CacheEntryCreated. handler)
+      :cache-entry-invalidated (Listener$CacheEntryInvalidated. handler)
+      :cache-entry-loaded      (Listener$CacheEntryLoaded. handler)
+      :cache-entry-modified    (Listener$CacheEntryModified. handler)
+      :cache-entry-passivated  (Listener$CacheEntryPassivated. handler)
+      :cache-entry-removed     (Listener$CacheEntryRemoved. handler)
+      :cache-entry-visited     (Listener$CacheEntryVisited. handler)
+      :data-rehashed           (Listener$DataRehashed. handler)
+      :topology-changed        (Listener$TopologyChanged. handler)
+      :transaction-completed   (Listener$TransactionCompleted. handler)
+      :transaction-registered  (Listener$TransactionRegistered. handler))))

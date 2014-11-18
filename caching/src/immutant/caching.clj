@@ -18,7 +18,7 @@
   (:require [immutant.internal.options :refer :all]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
             [immutant.codecs           :refer [lookup-codec]]
-            [immutant.caching.options  :refer [wash]])
+            [immutant.caching.options  :refer [wash listener]])
   (:import [org.projectodd.wunderboss WunderBoss Options]
            [org.projectodd.wunderboss.caching Caching Caching$CreateOption Config]))
 
@@ -189,3 +189,39 @@
                     wash
                     (extract-options Caching$CreateOption)
                     (Options.))))
+
+(defn add-listener!
+  "Infinispan's cache notifications API is based on Java annotations,
+  which can be awkward in Clojure (and Java, for that matter).
+
+  This function provides the ability to be notified of cache events
+  via single-arity callback functions taking an
+  `org.infinispan.notifications.cachelistener.event.Event` instance.
+
+  Event types are represented as keywords corresponding to the
+  [Infinispan
+  annotations](http://docs.jboss.org/infinispan/6.0/apidocs/org/infinispan/notifications/cachelistener/annotation/package-summary.html):
+
+   * :cache-entries-evicted
+   * :cache-entry-activated
+   * :cache-entry-created
+   * :cache-entry-invalidated
+   * :cache-entry-loaded
+   * :cache-entry-modified
+   * :cache-entry-passivated
+   * :cache-entry-removed
+   * :cache-entry-visited
+   * :data-rehashed
+   * :topology-changed
+   * :transaction-completed
+   * :transaction-registered
+
+  The callbacks are synchronous, i.e. invoked on the thread acting on
+  the cache. For longer running callbacks, use a queue or
+  `core.async`.
+
+  The return value may be passed to the cache's `removeListener`
+  method to turn off notifications. Each cache provides a
+  `getListeners` method as well."
+  [^org.infinispan.Cache cache f type]
+  (.addListener cache (listener f type)))
