@@ -21,7 +21,8 @@
             [immutant.codecs.fressian :refer [register-fressian-codec]]
             [clojure.core.cache :refer [lookup miss seed]]
             immutant.caching.core-cache)
-  (:import org.infinispan.configuration.cache.CacheMode))
+  (:import org.infinispan.configuration.cache.CacheMode
+           org.infinispan.notifications.cachelistener.event.Event$Type))
 
 (set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
 
@@ -278,6 +279,53 @@
       (is (= 1 (get c :a)))
       (Thread/sleep 150)
       (is (nil? (get c :a))))))
+
+(deftest cache-listeners-add-and-remove
+  (let [c (new-cache)
+        l1 (add-listener! c prn :cache-entry-loaded)
+        l2 (add-listener! c prn :cache-entry-visited :cache-entry-removed)]
+    (is (= 1 (count l1)))
+    (is (= 2 (count l2)))
+    (is (= 3 (count (.getListeners c))))
+    (.removeListener c (first l1))
+    (is (= 2 (count (.getListeners c))))
+    (doseq [i l2] (.removeListener c i))
+    (is (= 0 (count (.getListeners c))))))
+
+(deftest cache-listeners-should-reject-bad-keyword
+  (let [c (new-cache)]
+    (is (zero? (count (.getListeners c))))
+    (is (thrown? IllegalArgumentException (add-listener! c prn :cache-entry-visited :this-should-barf)))
+    (is (zero? (count (.getListeners c))))))
+
+(deftest cache-listeners-should-fire-correct-events
+  (let [c (new-cache)
+        results (atom [])]
+    (add-listener! c (fn [e] (swap! results conj
+                              {:type (.getType e),
+                               :pre? (.isPre e),
+                               :key (.getKey e),
+                               :value (.getValue e)}))
+      :cache-entry-visited
+      :cache-entry-modified
+      :cache-entry-created)
+    (.put c :a 1)
+    (is (= [Event$Type/CACHE_ENTRY_CREATED Event$Type/CACHE_ENTRY_MODIFIED Event$Type/CACHE_ENTRY_MODIFIED Event$Type/CACHE_ENTRY_CREATED]
+          (map :type @results)))
+    (is (= [true true false false] (map :pre? @results)))
+    (is (= [nil nil 1 1] (map :value @results)))
+    (reset! results [])
+    (swap-in! c :a inc)
+    (is (= [Event$Type/CACHE_ENTRY_VISITED Event$Type/CACHE_ENTRY_VISITED Event$Type/CACHE_ENTRY_MODIFIED Event$Type/CACHE_ENTRY_MODIFIED]
+          (map :type @results)))
+    (is (= [true false true false] (map :pre? @results)))
+    (is (= [1 1 1 2] (map :value @results)))
+    (reset! results [])
+    (is (= 2 (:a c)))
+    (is (= [Event$Type/CACHE_ENTRY_VISITED Event$Type/CACHE_ENTRY_VISITED]
+          (map :type @results)))
+    (is (= [true false] (map :pre? @results)))
+    (is (= [2 2] (map :value @results)))))
 
 (when (not (in-container?))
   (deftest default-to-local "should not raise exception"

@@ -201,6 +201,33 @@ of `:lru` (Least Recently Used).
 
 ```
 
+### Event Notification
+
+Infinispan provides an API for registering callback functions to be
+notified when specific events occur during the lifecycle of a cache.
+Unfortunately, this API relies exclusively on Java annotations, which
+are awkward in Clojure (as well as Java, if we're being honest) and
+certainly work against Clojure's more dynamic nature.
+
+Therefore, Immutant provides [[add-listener!]] to map single-arity
+callback functions to one or more event types using Clojure keywords
+rather than annotations. For example, to print an event whenever an
+entry is either visited or modified in the baz cache:
+
+```clojure
+
+  (def result (add-listener! baz prn :cache-entry-visited
+                                     :cache-entry-modified))
+    
+  (= (set result) (.getListeners c))    ;=> true
+  (swap-in! baz :b inc)
+  (doseq [i result] (.removeListener c i))
+
+```
+
+Note that we still use Java interop to query/remove listeners attached
+to the cache.
+
 ### Encoding
 
 Cache entries are not encoded by default, but may be decorated with a

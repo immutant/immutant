@@ -22,7 +22,7 @@
   (:import [org.projectodd.wunderboss WunderBoss Options]
            [org.projectodd.wunderboss.caching Caching Caching$CreateOption Config]))
 
-(defn- component [] (WunderBoss/findOrCreateComponent Caching))
+(defn- ^Caching component [] (WunderBoss/findOrCreateComponent Caching))
 
 (defn cache
   "Returns an
@@ -163,7 +163,7 @@
   function."
   [cache-or-name]
   (if (instance? org.infinispan.Cache cache-or-name)
-    (.stop (component) (.getName cache-or-name))
+    (.stop (component) (.getName ^org.infinispan.Cache cache-or-name))
     (.stop (component) (name cache-or-name))))
 
 (defn builder
@@ -195,8 +195,9 @@
   which can be awkward in Clojure (and Java, for that matter).
 
   This function provides the ability to be notified of cache events
-  via single-arity callback functions taking an
-  `org.infinispan.notifications.cachelistener.event.Event` instance.
+  via single-arity callback functions taking an [Infinispan
+  Event](https://docs.jboss.org/infinispan/6.0/apidocs/org/infinispan/notifications/cachelistener/event/package-summary.html)
+  instance.
 
   Event types are represented as keywords corresponding to the
   [Infinispan
@@ -217,11 +218,15 @@
    * :transaction-registered
 
   The callbacks are synchronous, i.e. invoked on the thread acting on
-  the cache. For longer running callbacks, use a queue or
-  `core.async`.
+  the cache. For longer running callbacks, use a queue or some sort of
+  asynchronous channel.
 
-  The return value may be passed to the cache's `removeListener`
-  method to turn off notifications. Each cache provides a
-  `getListeners` method as well."
-  [^org.infinispan.Cache cache f type]
-  (.addListener cache (listener f type)))
+  The return value is a sequence of listener objects corresponding to
+  the requested event types, which will be a subset of those returned
+  from the cache's own `getListeners` method. These may be passed to the
+  cache's `removeListener` method to turn off notifications."
+  [^org.infinispan.Cache cache f type & types]
+  (let [results (doall (map (partial listener f) (conj types type)))]
+    (doseq [i results]
+      (.addListener cache i))
+    results))
