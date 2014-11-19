@@ -81,7 +81,7 @@
   (as-time [x]
     (when (< 0 x) (Date. x))))
 
-(defn- calendar
+(defn- ^Calendar calendar
   "A wrapper around Calendar/getInstance to facilitate testing"
   []
   (Calendar/getInstance))
