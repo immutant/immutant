@@ -18,18 +18,20 @@
             [immutant.internal.util      :as u]
             [immutant.util               :as pu]
             [immutant.messaging.internal :refer [broker]])
-  (:import (org.projectodd.wunderboss.messaging Destination Queue)
-           org.hornetq.api.core.SimpleString))
+  (:import [org.projectodd.wunderboss.messaging Destination Queue]
+           [org.projectodd.wunderboss.messaging.hornetq HQDestination HQMessaging]
+           org.hornetq.api.core.SimpleString
+           org.hornetq.jms.server.JMSServerManager))
 
-(defn server-manager
+(defn ^JMSServerManager server-manager
   "Retrieves the local JMS server mananger instance."
   []
-  (when-let [broker (broker nil)]
+  (when-let [^HQMessaging broker (broker nil)]
     (.jmsServerManager broker)))
 
 (defn ^:private ^String jms-name [dest]
   (if-let [wd (-> dest meta :wrapped-destination)]
-    (.jmsName wd)
+    (.jmsName ^HQDestination wd)
     dest))
 
 (defn destination-controller

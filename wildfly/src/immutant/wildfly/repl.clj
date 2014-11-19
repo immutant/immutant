@@ -37,14 +37,14 @@
     (.deleteOnExit f)))
 
 (defn ^:private nrepl-host-port [server]
-  (let [ss (-> server deref :ss)]
+  (let [^java.net.ServerSocket ss (-> server deref :ss)]
     [(-> ss .getInetAddress .getHostAddress) (.getLocalPort ss)]))
 
 (defn stop
   "Stop the REPL"
   [server]
   (iu/info (apply format "Shutting down nREPL at %s:%s" (nrepl-host-port server)))
-  (.close server))
+  (.close ^java.io.Closeable server))
 
 (defn start
   "Fire up a repl bound to host/port"
@@ -65,4 +65,5 @@
       (u/at-exit (partial stop server))
       (let [[host bound-port] (nrepl-host-port server)]
         (iu/info (format "nREPL bound to %s:%s" host bound-port))
-        (spit-nrepl-files bound-port port-file)))))
+        (spit-nrepl-files bound-port port-file))
+      server)))
