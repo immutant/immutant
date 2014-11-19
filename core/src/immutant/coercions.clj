@@ -88,7 +88,7 @@
 
 (defn- next-occurrence-of-time [hour min]
   (let [now (calendar)
-        then (doto (calendar)
+        then (doto ^Calendar (calendar)
                (.set Calendar/HOUR_OF_DAY hour)
                (.set Calendar/MINUTE      min)
                (.set Calendar/SECOND      0))]

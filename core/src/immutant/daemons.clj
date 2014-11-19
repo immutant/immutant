@@ -37,10 +37,9 @@
    If used outside of WildFly, or in a WildFly instance not in a cluster,
    it behaves as if the cluster size is 1, and starts immediatey."
   [daemon-name start-fn stop-fn]
-  (doto
-      (WunderBoss/findOrCreateComponent SingletonContext
-        (name daemon-name)
-        (o/extract-options {:daemon true, :daemon-stop-callback stop-fn}
-          SingletonContext$CreateOption))
+  (doto ^SingletonContext (WunderBoss/findOrCreateComponent SingletonContext
+          (name daemon-name)
+          (o/extract-options {:daemon true, :daemon-stop-callback stop-fn}
+            SingletonContext$CreateOption))
     (.setRunnable start-fn)
     .start))

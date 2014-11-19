@@ -25,7 +25,7 @@
 (def scheduler-name
   (partial u/hash-based-component-name create-defaults))
 
-(defn scheduler [opts]
+(defn ^Scheduling scheduler [opts]
   (WunderBoss/findOrCreateComponent Scheduling
     (scheduler-name (select-keys opts (valid-options-for scheduler)))
     (extract-options opts Scheduling$CreateOption)))

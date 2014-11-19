@@ -127,9 +127,9 @@
                   (validate-options schedule "stop"))
         ids (:ids options {(scheduler options)
                            [(:id options)]})
-        stopped? (some boolean (doall (for [[s ids] ids, id ids]
+        stopped? (some boolean (doall (for [[^Scheduling s ids] ids, id ids]
                                         (.unschedule s (name id)))))]
-    (doseq [scheduler (keys ids)]
+    (doseq [^Scheduling scheduler (keys ids)]
       (when (empty? (.scheduledJobs scheduler))
         (.stop scheduler)))
     stopped?))

@@ -121,7 +121,7 @@
   "Generates a random uuid string."
   (str (java.util.UUID/randomUUID)))
 
-(defn logger
+(defn ^org.slf4j.Logger logger
   [ns]
   (WunderBoss/logger (str ns)))
 

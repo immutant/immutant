@@ -356,5 +356,5 @@
    called outside of the container."
   [x]
   (if (instance? Destination x)
-    (.stop x)
-    (.close x)))
+    (.stop ^Destination x)
+    (.close ^java.lang.AutoCloseable x)))
