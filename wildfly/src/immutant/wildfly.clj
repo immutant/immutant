@@ -48,7 +48,7 @@
 
 (defn- vfs->file
   "Converts a vfs: url to a file: url."
-  [url]
+  [^URL url]
   (if-let [match (and url (re-find #"^vfs(:.*)" (.toExternalForm url)))]
     (URL. (str "file" (last match)))
     url))

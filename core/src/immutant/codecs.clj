@@ -113,7 +113,7 @@
 (defn codec-set
   "Returns a set of names for available codecs."
   []
-  (into #{} (map #(-> ^Codec % .name keyword) (.codecs codecs))))
+  (into #{} (map #(-> % .name keyword) (.codecs codecs))))
 
 (defn ^:internal ^:no-doc ^Codec lookup-codec
   [name-or-content-type]

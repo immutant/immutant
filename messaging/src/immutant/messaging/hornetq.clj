@@ -27,7 +27,7 @@
   (when-let [broker (broker nil)]
     (.jmsServerManager broker)))
 
-(defn ^:private jms-name [dest]
+(defn ^:private ^String jms-name [dest]
   (if-let [wd (-> dest meta :wrapped-destination)]
     (.jmsName wd)
     dest))

@@ -31,7 +31,7 @@
 
 (defn ^:private spit-nrepl-files
   [port file]
-  (doseq [f (possible-nrepl-files file)]
+  (doseq [^java.io.File f (possible-nrepl-files file)]
     (.mkdirs (.getParentFile f))
     (spit f port)
     (.deleteOnExit f)))
