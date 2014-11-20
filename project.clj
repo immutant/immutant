@@ -84,8 +84,8 @@
                         org.clojure/java.jdbc      "0.3.5"
                         h2                         "1.3.176"
 
-                        org.projectodd.wunderboss  "1.x.incremental.169"
-                        ;; org.projectodd.wunderboss  "0.3.0-SNAPSHOT"
+                        org.projectodd.wunderboss  "0.3.0"
+                        ;; org.projectodd.wunderboss  "0.4.0-SNAPSHOT"
 
                         org.immutant               :version}}
 
