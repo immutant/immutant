@@ -31,7 +31,7 @@
   :aliases {"docs-from-index" ["build-helper" "docs" "generate" "docs/guides"
                                "caching" "core" "messaging" "scheduling" "transactions" "web" "wildfly"]
             "docs" ["do" "modules" "doc-index" "," "docs-from-index"]}
-  :modules  {:subprocess false
+  :modules  {:subprocess nil
              :inherited {:repositories [["projectodd-upstream"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
                                           :snapshots false}]
