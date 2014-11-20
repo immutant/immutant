@@ -134,9 +134,10 @@
     (is (nil? (:a c)))
     (is (nil? (.putIfAbsent c :a 1)))
     (is (= 1 (:a c)))
+    (.put c :a 1)                       ; reset timer
     (is (= 1 (.putIfAbsent c :a 2)))
     (is (= 1 (:a c)))
-    (Thread/sleep 350)
+    (Thread/sleep 400)
     (is (nil? (:a c)))))
 
 (deftest test-put-all-ttl
