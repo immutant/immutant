@@ -134,46 +134,46 @@
         (.stop scheduler)))
     stopped?))
 
-(defoption ^{:arglists '([n] [kw] [n kw & n-kws])} in
+(defoption ^{:arglists '([n] [kw] [m v] [n kw & n-kws] [m n kw & n-kws])} in
   "Specifies the period after which the job will fire, in
   milliseconds, a period keyword, or multiplier/keyword pairs, e.g.
   `(in 5 :minutes 30 :seconds)`. See [[every]] for the list of valid
    period keywords. See [[schedule]].")
 
-(defoption ^{:arglists '([date] [ms] [HHmm])} at
+(defoption ^{:arglists '([date] [ms] [HHmm] [m v])} at
   "Takes a time after which the job will fire, so it will run
   immediately if the time is in the past; can be a `java.util.Date`,
   millis-since-epoch, or a String in `HH:mm` format. See
   [[schedule]].")
 
-(defoption ^{:arglists '([n] [kw] [n kw & n-kws])} every
+(defoption ^{:arglists '([n] [kw] [m v] [n kw & n-kws] [m n kw & n-kws])} every
   "Specifies a period between function calls, in milliseconds, a
   period keyword, or multiplier/keyword pairs, e.g.
   `(every 1 :hour 20 :minutes)`.  Both singular and plural versions of
   :second, :minute, :hour, :day, and :week are valid period keywords.
   See [[schedule]].")
 
-(defoption ^{:arglists '([date] [ms] [HHmm])} until
+(defoption ^{:arglists '([date] [ms] [HHmm] [m v])} until
   "When [[every]] is specified, this limits the invocations by time;
   can be a `java.util.Date`, millis-since-epoch, or a String in
   `HH:mm` format, e.g. `(-> (every :hour) (until \"17:00\"))`. When
   combined with [[limit]], whichever triggers first ends the
   iteration. See [[schedule]].")
 
-(defoption ^{:arglists '([n])} limit
+(defoption ^{:arglists '([n] [m n])} limit
   "When [[every]] is specified, this limits the invocations by count,
   including the first one, e.g. `(-> (every :hour) (limit 10))`. When
   combined with [[until]], whichever triggers first ends the
   iteration. See [[schedule]].")
 
-(defoption ^{:arglists '([str])} cron
+(defoption ^{:arglists '([str] [m str])} cron
   "Takes a Quartz-style cron spec, e.g. `(cron \"0 0 12 ? * WED\")`,
    see the [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
    for the syntax. See [[schedule]].")
 
-(defoption ^{:arglists '([boolean])} singleton
+(defoption ^{:arglists '([boolean] [m boolean])} singleton
   "If true (the default), only one instance of a given job name will
    run in a cluster. See [[schedule]].")
 
-(defoption ^{:arglists '([str])} id
+(defoption ^{:arglists '([str] [m str])} id
   "Takes a String or keyword to use as the unique id for the job. See [[schedule]].")
