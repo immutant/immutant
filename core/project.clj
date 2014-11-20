@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/core "2.0.0-SNAPSHOT"
+(defproject org.immutant/core "2.0.0-beta1"
   :description "Utilities shared by Immutant libs."
   :plugins [[lein-modules "0.3.9"]]
 
