@@ -100,7 +100,7 @@
            (onOpen [_ channel exchange]
              (if on-open (on-open channel exchange)))
            (onClose [_ channel cm]
-             (if on-close (on-close channel {:code (.getReason cm) :reason (.getString cm)})))
+             (if on-close (on-close channel {:code (.getCode cm) :reason (.getReason cm)})))
            (onError [_ channel error]
              (if on-error (on-error channel error))))
          (if handler (create-http-handler handler))))))

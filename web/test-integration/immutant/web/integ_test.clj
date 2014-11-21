@@ -76,12 +76,7 @@
         (is (= "Upgrade"   (-> handshake :headers (get "Connection") first)))
         (is (= "k"         (-> handshake :parameters (get "j") first)))
         (is (= "x=y&j=k"   (-> handshake :query)))
-
-        ;; TODO: this is a bug in undertow, fixed in next release
-        ;; https://github.com/undertow-io/undertow/pull/236
-        (if (in-container?)
-          (is (.endsWith (:uri handshake) "/?x=y&j=k"))
-          (is (= "/x=y&j=k" (:uri handshake))))))))
+        (.endsWith (:uri handshake) "/?x=y&j=k")))))
 
 (deftest request-map-entries
   (let [request (decode (get-body (str (url) "request?query=help") :headers {:content-type "text/html; charset=utf-8"}))]
