@@ -7,7 +7,7 @@ set -e
 
 BIN_DIR="${WORKSPACE}/bin"
 WF_DIR="${WORKSPACE}/wildfly-dists"
-WF8_VERSION="8.1.0.Final"
+WF8_VERSION="8.2.0.Final"
 WF9_VERSION="9.0.0.Alpha1"
 LEIN_VERSION=2.4.3
 export PATH="${BIN_DIR}:${PATH}"
