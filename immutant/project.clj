@@ -14,8 +14,8 @@
 
 (defproject org.immutant/immutant "2.0.0-SNAPSHOT"
   :description "A catch-all pom that brings in all Immutant libs."
-
-  :plugins [[lein-modules "0.3.9"]]
+  :pedantic? false
+  :plugins [[lein-modules "0.3.10"]]
   :packaging "pom"
 
   :dependencies [[org.immutant/caching _]

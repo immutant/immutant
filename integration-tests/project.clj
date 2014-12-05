@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (defproject org.immutant/integs "2.0.0-SNAPSHOT"
-  :plugins [[lein-modules "0.3.9"]
+  :pedantic? false
+  :plugins [[lein-modules "0.3.10"]
             [lein-immutant "2.0.0-SNAPSHOT"]]
   :dependencies [[org.immutant/immutant _]
                  [org.immutant/wildfly _]]

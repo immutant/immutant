@@ -14,10 +14,12 @@
 
 (defproject org.immutant/immutant-parent "2.0.0-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.3.9"]]
+  :pedantic? false
+  :plugins [[lein-modules "0.3.10"]]
   :packaging "pom"
 
-  :profiles {:provided {:dependencies [[org.clojure/clojure _]]}
+  :profiles {:pedantic {:pedantic? true}
+             :provided {:dependencies [[org.clojure/clojure _]]}
              :travis {:modules {:subprocess "lein2"}}
              :incremental {:deploy-repositories [["releases"
                                                   {:url "dav:https://repository-projectodd.forge.cloudbees.com/incremental"

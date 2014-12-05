@@ -14,8 +14,8 @@
 
 (defproject org.immutant/web "2.0.0-SNAPSHOT"
   :description "Serve web requests using Ring handlers, Servlets, or Undertow HttpHandlers."
-
-  :plugins [[lein-modules "0.3.9"]]
+  :pedantic? false
+  :plugins [[lein-modules "0.3.10"]]
 
   :dependencies [[org.immutant/core _]
                  [potemkin "0.3.4"]
