@@ -26,25 +26,28 @@
     (.get instance)))
 
 (deftest undertow-options
-  (let [v (options
-            :host "hostname"
-            :port 42
-            :io-threads 1
-            :worker-threads 2
-            :buffer-size 3
-            :buffers-per-region 4
-            :direct-buffers? false)]
-    (is (= [:configuration] (keys v)))
+  (let [m {:host "hostname"
+           :port 42
+           :io-threads 1
+           :worker-threads 2
+           :buffer-size 3
+           :buffers-per-region 4
+           :direct-buffers? false}
+        v (options m)]
+    (is (:configuration v))
+    (is (empty? (select-keys v (keys m))))
     (are [x expected] (= expected (reflect x (:configuration v)))
          "ioThreads"        1
          "workerThreads"    2
          "bufferSize"       3
          "buffersPerRegion" 4
          "directBuffers"    false))
-  ;; Make sure an explicit map and true :direct-buffers works
-  (let [v (:configuration (options {:io-threads 44 :direct-buffers? true}))]
+  ;; Make sure kwargs and true :direct-buffers works
+  (let [v (:configuration (options :io-threads 44 :direct-buffers? true))]
     (is (= 44 (reflect "ioThreads" v)))
-    (is (= true (reflect "directBuffers" v)))))
+    (is (= true (reflect "directBuffers" v))))
+  ;; Make sure only valid arguments accepted
+  (is (thrown? IllegalArgumentException (options :this-should-barf 42))))
 
 (deftest client-authentication
   (are [in out] (= out (let [c (:configuration (options :client-auth in))]

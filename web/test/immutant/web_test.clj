@@ -232,10 +232,10 @@
     (is (= "hello" (get-body url)))))
 
 (deftest https
-  (run hello (undertow/options
-               :ssl-port 8443
-               :keystore "dev-resources/keystore.jks"
-               :key-password "password"))
+  (run hello
+    :ssl-port     8443
+    :keystore     "dev-resources/keystore.jks"
+    :key-password "password")
   (let [response (http/get "https://localhost:8443" {:insecure? true})]
     (is (= (:status response) 200))
     (is (= (:body response) "hello"))))

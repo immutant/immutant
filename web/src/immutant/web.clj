@@ -17,7 +17,8 @@
   (:require [immutant.internal.options :refer [boolify opts->set set-valid-options!
                                                validate-options extract-options]]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
-            [immutant.web.internal.wunderboss :as internal])
+            [immutant.web.internal.wunderboss :as internal]
+            [immutant.web.undertow :as undertow])
   (:import [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
 (defn run
@@ -65,9 +66,11 @@
 
    The underlying web server for Immutant is Undertow, which supports
    more advanced options than the above. These can be configured by
-   passing an Undertow$Builder instance via the :configuration option,
-   and that instance is easily constructed from a Clojure map using
-   the [[immutant.web.undertow/options]] function.
+   passing an `Undertow$Builder` via the :configuration option, an
+   instance of which is easily constructed from a map of valid
+   keywords using the [[immutant.web.undertow/options]] function. For
+   convenience, all of its option keywords are valid for `run`, too:
+   if present, an `Undertow$Builder` will be returned in the result.
 
    If your handlers are compute-bound, you may be able to gain some
    performance by setting :dispatch? to false. This causes the
@@ -75,20 +78,24 @@
    switch of dispatching them to the worker thread pool, at the
    risk of refusing client requests under load.
 
-   When used inside WildFly, any calls to `run` must be within the
-   initialization function for your application (your `-main`)."
+   When used inside WildFly, all handlers are mounted as servlets, so
+   any options specific to the web server are ignored (because WildFly
+   provides its own), and all invocations of `run` must be within the
+   initialization function for your application (your `-main`)"
   [handler & options]
-  (let [options (->> options
+  (let [options (-> options
                   kwargs-or-map->map
-                  (merge internal/create-defaults internal/register-defaults))]
-    (validate-options options run)
+                  (validate-options run)
+                  (undertow/options-maybe)
+                  (->> (merge internal/create-defaults internal/register-defaults)))]
     (let [server (internal/server options)]
       (internal/mount server handler options)
       (update-in options [:contexts server] conj (internal/mounts options)))))
 
 (set-valid-options! run (-> (opts->set Web$CreateOption Web$RegisterOption)
                           (conj :contexts)
-                          (boolify :dispatch)))
+                          (boolify :dispatch)
+                          (clojure.set/union (-> #'undertow/options meta :valid-options))))
 
 (defn stop
   "Stops a running handler.

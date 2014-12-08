@@ -15,9 +15,11 @@
 (ns immutant.web.undertow
   "Advanced options specific to the Undertow web server used by Immutant"
   (:require [immutant.internal.util :refer (kwargs-or-map->map)]
+            [immutant.internal.options :refer (validate-options set-valid-options! opts->set)]
             [immutant.web.ssl :refer (keystore->ssl-context)])
   (:import [io.undertow Undertow Undertow$Builder]
-           [org.xnio Options SslClientAuthMode]))
+           [org.xnio Options SslClientAuthMode]
+           [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
 (defn tune
   "Return the passed tuning options with an Undertow$Builder instance
@@ -80,8 +82,60 @@
     (dissoc :keystore :key-password :truststore :trust-password)))
 
 (def options
-  "Takes a map of [[immutant.web/run]] options that includes a subset
-  of Undertow-specific ones and replaces them with an Undertow$Builder
-  instance associated with :configuration"
+  "Takes a map of Undertow-specific options and replaces them with an
+  `Undertow$Builder` instance associated with :configuration
+
+  The following keyword options are supported:
+
+   * :configuration - the Builder that, if passed, will be used
+
+  Listeners:
+
+   * :host - the interface listener bound to, defaults to \"localhost\"
+   * :port - a number, for which a listener is added to :configuration
+
+  SSL:
+
+   * :ssl-port - a number, requires either :ssl-context, :keystore, or :key-managers
+
+   * :keystore - the filepath (a String) to the keystore 
+   * :key-password - the password for the keystore
+   * :truststore - if separate from the keystore
+   * :trust-password - if :truststore passed
+
+   * :ssl-context - a valid javax.net.ssl.SSLContext
+   * :key-managers - a valid javax.net.ssl.KeyManager[]
+   * :trust-managers - a valid javax.net.ssl.TrustManager[]
+
+   * :client-auth - SSL client auth, may be :want or :need
+
+  Tuning:
+
+   * :io-threads - # threads handling IO, defaults to available processors
+   * :worker-threads - # threads invoking handlers, defaults to (* io-threads 8)
+   * :buffer-size - a number, defaults to 16k for modern servers
+   * :buffers-per-region - a number, defaults to 10
+   * :direct-buffers? - boolean, defaults to true"
   (comp listen ssl-context client-auth tune
+    #(validate-options % options)
     kwargs-or-map->map (fn [& x] x)))
+
+;;; take the valid options from the arglists of the composed functions
+(def ^:private valid-options
+  (->> [#'listen #'ssl-context #'client-auth #'tune]
+    (map #(-> % meta :arglists ffirst :keys))
+    flatten
+    (map keyword)
+    set))
+(set-valid-options! options valid-options)
+
+(def ^:private non-wunderboss-options
+  (clojure.set/difference
+    valid-options
+    (opts->set Web$CreateOption Web$RegisterOption)))
+
+(defn ^:no-doc ^:internal options-maybe
+  [opts]
+  (if (some non-wunderboss-options (keys opts))
+    (options opts)
+    opts))
