@@ -14,7 +14,7 @@
 
 (ns immutant.web.websocket
   "Provides for the creation of asynchronous WebSocket services"
-  (:require [immutant.web.internal.undertow :refer [create-http-handler] :as u]
+  (:require [immutant.web.internal.undertow :refer [create-http-handler]]
             [immutant.web.internal.servlet  :refer [create-servlet create-endpoint]]
             [immutant.web.internal.ring :as i]
             [immutant.util                  :refer [in-container?]])
@@ -56,7 +56,7 @@
   (parameters [ex] (.getRequestParameters ex))
   (uri [ex] (.getRequestURI ex))
   (query-string [ex] (.getQueryString ex))
-  (session [ex] (u/ring-session ex))
+  (session [ex] (-> ex .getSession i/ring-session))
   (user-principal [ex] (.getUserPrincipal ex))
   (user-in-role? [ex role] (.isUserInRole ex role))
 

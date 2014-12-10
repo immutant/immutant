@@ -17,8 +17,7 @@
               [ring.middleware.session :as ring])
     (:import [io.undertow.server HttpHandler HttpServerExchange]
              [io.undertow.server.session Session SessionConfig SessionCookieConfig]
-             [io.undertow.util HeaderMap Headers HttpString Sessions]
-             [io.undertow.websockets.spi WebSocketHttpExchange]))
+             [io.undertow.util HeaderMap Headers HttpString Sessions]))
 
 (def ^{:tag SessionCookieConfig :private true} set-cookie-config!
   (memoize
@@ -54,17 +53,6 @@
                 (.invalidate session hse))))
           response)
         (@fallback request)))))
-
-(defn ring-session
-  "Temporarily use reflection until getSession returns something
-  useful; see UNDERTOW-294"
-  [^WebSocketHttpExchange handshake]
-  (-> io.undertow.websockets.spi.AsyncWebSocketHttpServerExchange
-    (.getDeclaredField "exchange")
-    (doto (.setAccessible true))
-    (.get handshake)
-    Sessions/getSession
-    i/ring-session))
 
 (extend-type Session
   i/Session
