@@ -227,6 +227,9 @@
     (is (.isRunning srv))
     (.stop srv)
     (is (not (.isRunning srv)))
+    ;; windows is slow to release closed ports, so we pause to allow that to happen
+    (when (re-find #"(?i)^windows" (System/getProperty "os.name"))
+      (Thread/sleep 100))
     (.start srv)
     (is (.isRunning srv))
     (is (= "hello" (get-body url)))))

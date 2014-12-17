@@ -50,7 +50,10 @@
     (f)
     (finally
       (when-not (in-container?)
-        (reset)))))
+        (reset)
+        ;; windows is slow to release closed ports, so we pause to allow that to happen
+        (when (re-find #"(?i)^windows" (System/getProperty "os.name"))
+          (Thread/sleep 100))))))
 
 (defn app-root
   "Returns a file pointing to the root dir of the application."
