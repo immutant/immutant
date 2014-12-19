@@ -15,13 +15,14 @@
 (ns immutant.web.websocket
   "Provides for the creation of asynchronous WebSocket services"
   (:require [immutant.web.internal.undertow :refer [create-http-handler]]
-            [immutant.web.internal.servlet  :refer [create-servlet create-endpoint]]
-            [immutant.web.internal.ring :as i]
+            [immutant.web.internal.servlet  :as servlet]
+            [immutant.web.internal.ring     :as ring]
             [immutant.util                  :refer [in-container?]])
-  (:import [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint]
+  (:import [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint WebsocketInitHandler]
            [io.undertow.server HttpHandler]
            [javax.websocket Session]
-           [javax.websocket.server HandshakeRequest]))
+           [javax.websocket.server HandshakeRequest]
+           java.net.URI))
 
 (defprotocol Channel
   "Websocket channel interface"
@@ -56,7 +57,7 @@
   (parameters [ex] (.getRequestParameters ex))
   (uri [ex] (.getRequestURI ex))
   (query-string [ex] (.getQueryString ex))
-  (session [ex] (-> ex .getSession i/ring-session))
+  (session [ex] (-> ex .getSession ring/ring-session))
   (user-principal [ex] (.getUserPrincipal ex))
   (user-in-role? [ex role] (.isUserInRole ex role))
 
@@ -65,9 +66,64 @@
   (parameters [hs] (.getParameterMap hs))
   (uri [hs] (str (.getRequestURI hs)))
   (query-string [hs] (.getQueryString hs))
-  (session [hs] (-> hs .getHttpSession i/ring-session))
+  (session [hs] (-> hs .getHttpSession ring/ring-session))
   (user-principal [hs] (.getUserPrincipal hs))
   (user-in-role? [hs role] (.isUserInRole hs role)))
+
+
+(extend-type io.undertow.websockets.spi.WebSocketHttpExchange
+  ring/RingRequest
+  (server-port [x]    (-> x .getRequestURI .getPort))
+  (server-name [x]
+    ;; ??
+    )
+  (remote-addr [x]
+    ;; ??
+    )
+  (uri [x]            (.getRequestURI x))
+  (query-string [x]   (.getQueryString x))
+  (scheme [x]         (-> x .getRequestURI URI. .getScheme))
+  (request-method [x] :get)
+  (headers [x]        (-> x .getRequestHeaders ring/headers->map))
+  ;; FIXME: should these be the same thing? maybe so, outside of the container
+  (context [x]        (-> x .getRequestURI URI. .getPath))
+  (path-info [x]      (-> x .getRequestURI URI. .getPath))
+
+  ;; no-ops
+  (body [x])
+  (content-type [x])
+  (content-length [x])
+  (character-encoding [x])
+  (ssl-client-cert [x]))
+
+(defn create-websocket-init-handler [handler-fn downstream-handler]
+  (UndertowWebsocket/create2
+    (reify WebsocketInitHandler
+      (shouldConnect [_ exchange endpoint-wrapper]
+        (boolean
+          (when-let [ws-endpoint (::ws-endpoint
+                                  (handler-fn (ring/ring-request-map exchange
+                                                [:websocket? true])))]
+            (.setEndpoint endpoint-wrapper ws-endpoint)
+            true))))
+    downstream-handler))
+
+(defn create-wboss-endpoint [{:keys [on-message on-open on-close on-error]}]
+  (reify Endpoint
+    (onMessage [_ channel message]
+      (if on-message (on-message channel message)))
+    (onOpen [_ channel exchange]
+      (if on-open (on-open channel exchange)))
+    (onClose [_ channel cm]
+      (if on-close (on-close channel {:code (.getCode cm) :reason (.getReason cm)})))
+    (onError [_ channel error]
+      (if on-error (on-error channel error)))))
+
+(defn initialize-websocket
+  [request callbacks]
+  ;; TODO: throw if (not (:websocket? request))
+  {:status 200
+   ::ws-endpoint (create-wboss-endpoint callbacks)})
 
 (defn wrap-websocket
   "Middleware to attach websocket callbacks to a Ring handler.
@@ -81,26 +137,18 @@
   `throwable` is a Java exception, and `message` may be either a
   `String` or a `byte[]`:
 
-    * :on-message `(fn [channel message])`
-    * :on-open    `(fn [channel handshake])`
-    * :on-close   `(fn [channel {:keys [code reason]}])`
-    * :on-error   `(fn [channel throwable])`
+  * :on-message `(fn [channel message])`
+  * :on-open    `(fn [channel handshake])`
+  * :on-close   `(fn [channel {:keys [code reason]}])`
+  * :on-error   `(fn [channel throwable])`
 
   If handler is nil, 404 responses will be returned for any requests
   without `ws://` URI schemes"
   ([handler key value & key-values]
      (wrap-websocket handler (apply hash-map key value key-values)))
-  ([handler {:keys [on-message on-open on-close on-error] :as callbacks}]
+  ([handler callbacks]
      (if (in-container?)
-       (create-servlet handler (create-endpoint callbacks))
+       (servlet/create-servlet handler (servlet/create-endpoint callbacks))
        (UndertowWebsocket/create
-         (reify Endpoint
-           (onMessage [_ channel message]
-             (if on-message (on-message channel message)))
-           (onOpen [_ channel exchange]
-             (if on-open (on-open channel exchange)))
-           (onClose [_ channel cm]
-             (if on-close (on-close channel {:code (.getCode cm) :reason (.getReason cm)})))
-           (onError [_ channel error]
-             (if on-error (on-error channel error))))
+         (create-wboss-endpoint callbacks)
          (if handler (create-http-handler handler))))))

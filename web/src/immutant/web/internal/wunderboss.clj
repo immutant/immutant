@@ -18,6 +18,7 @@
               [immutant.internal.options  :refer [boolify extract-options opts->set
                                                   opts->defaults-map opts->map keywordize]]
               [immutant.internal.util     :as u]
+              [immutant.web.websocket     :as ws]
               [immutant.util              :refer [in-container? context-path http-port]]
               [immutant.web.middleware    :refer [wrap-development]]
               [clojure.java.browse        :refer [browse-url]])
@@ -44,7 +45,8 @@
         hdlr (if (fn? handler)
                (if (in-container?)
                  (create-servlet handler)
-                 (create-http-handler handler))
+                 (ws/create-websocket-init-handler
+                   handler (create-http-handler handler)))
                handler)]
     (if (instance? Servlet hdlr)
       (try

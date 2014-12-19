@@ -47,6 +47,12 @@
       (finally
         (stop {:path path})))))
 
+(defn ws-init-handler [callbacks]
+  (fn [req]
+    (if (:websocket? req)
+      (initialize-websocket req callbacks)
+      {:status 404})))
+
 ;; (deftest jsr-356-websocket
 ;;   (let [expected [:open "hello" 1000]]
 ;;     (is (= expected (test-websocket (comp (partial attach-endpoint (create-servlet hello)) create-endpoint))))))
@@ -54,6 +60,17 @@
 (deftest middleware-websocket
   (let [expected [:open "hello" 1000]]
     (is (= expected (test-websocket (partial wrap-websocket hello))))))
+
+(deftest remote-sending-to-client-using-gniazdo-and-init-ws
+  (let [result (promise)
+        server (run (ws-init-handler {:on-message (fn [c m] (send! c (upper-case m)))}))
+        socket (ws/connect "ws://localhost:8080" :on-receive #(deliver result %))]
+    (try
+      (ws/send-msg socket "hello")
+      (is (= "HELLO" (deref result 2000 "goodbye")))
+      (finally
+        (ws/close socket)
+        (stop server)))))
 
 (deftest remote-sending-to-client-using-gniazdo
   (let [result (promise)
