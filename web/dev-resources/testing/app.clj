@@ -15,6 +15,7 @@
 (ns testing.app
   (:require [immutant.web :as web]
             [immutant.web.websocket :as ws]
+            [immutant.web.async :as async]
             [immutant.web.middleware :refer (wrap-session)]
             [immutant.codecs :refer (encode)]
             [compojure.core :refer (GET defroutes)]
@@ -23,16 +24,16 @@
 (def handshakes (atom {}))
 
 (defn on-open-set-handshake [channel handshake]
-  (let [data {:headers (ws/headers handshake)
-              :parameters (ws/parameters handshake)
-              :uri (ws/uri handshake)
-              :query (ws/query-string handshake)
-              :session (ws/session handshake)
-              :user-principal (ws/user-principal handshake)}]
+  (let [data {:headers (async/headers handshake)
+              :parameters (async/parameters handshake)
+              :uri (async/uri handshake)
+              :query (async/query-string handshake)
+              :session (async/session handshake)
+              :user-principal (async/user-principal handshake)}]
     (swap! handshakes assoc channel data)))
 
 (defn on-message-send-handshake [channel message]
-  (ws/send! channel (encode (get @handshakes channel))))
+  (async/send! channel (encode (get @handshakes channel))))
 
 (defn counter [{session :session}]
   (let [count (:count session 0)
@@ -51,16 +52,55 @@
               :body body}
       cs)))
 
+(defn chunked-stream [request]
+  (async/as-channel request
+    {:on-open
+     (fn [stream]
+       (.start
+         (Thread.
+           (fn []
+             (async/send! stream "[" false)
+             (dotimes [n 10]
+               ;; we have to send a few bytes with each
+               ;; response - there is a min-bytes threshold to
+               ;; trigger data to the client
+               (async/send! stream (format "%s ;; %s\n" n (repeat 128 "1")) false))
+             ;; 2-arity send! closes the stream
+             (async/send! stream "]")))))}))
+
+(defn non-chunked-stream [request]
+  (async/as-channel request
+    {:on-open
+     (fn [stream]
+       (async/send! stream (str (repeat 128 "1"))))}))
+
+(defn ws-as-channel
+  [request]
+  (async/as-channel request
+    {:on-open (fn [ch hs]
+                #_(println "TC: open" ch hs))
+     :on-message (fn [ch message]
+                   #_(println "TC: message" message)
+                   (async/send! ch (.toUpperCase message)))
+     :on-error (fn [ch err]
+                 (println "Error on websocket")
+                 (.printStackTrace err))
+     :on-close (fn [ch reason]
+                 #_(println "TC: closed" reason))}))
+
 (defroutes routes
   (GET "/" [] counter)
   (GET "/session" {s :session} (encode s))
   (GET "/unsession" [] {:session nil})
   (GET "/request" [] dump)
-  (GET "/charset" [] with-charset))
+  (GET "/charset" [] with-charset)
+  (GET "/chunked-stream" [] chunked-stream)
+  (GET "/non-chunked-stream" [] non-chunked-stream))
 
 (defn run []
   (web/run (-> #'routes
              wrap-session
              (ws/wrap-websocket
                :on-open #'on-open-set-handshake
-               :on-message #'on-message-send-handshake))))
+               :on-message #'on-message-send-handshake)))
+  (web/run ws-as-channel :path "/ws"))

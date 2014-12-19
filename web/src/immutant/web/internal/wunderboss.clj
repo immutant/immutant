@@ -13,8 +13,9 @@
 ;; limitations under the License.
 
 (ns ^:no-doc ^:internal immutant.web.internal.wunderboss
-    (:require [immutant.web.internal.undertow :refer [create-http-handler]]
+    (:require [immutant.web.internal.undertow :refer [create-http-handler create-websocket-init-handler]]
               [immutant.web.internal.servlet  :refer [create-servlet]]
+              [immutant.web.internal.ring     :refer [ring-request-map]]
               [immutant.internal.options  :refer [boolify extract-options opts->set
                                                   opts->defaults-map opts->map keywordize]]
               [immutant.internal.util     :as u]
@@ -54,7 +55,9 @@
         hdlr (if (fn? handler)
                (if (in-container?)
                  (create-servlet handler)
-                 (create-http-handler handler))
+                 (create-websocket-init-handler
+                   handler (create-http-handler handler)
+                   ring-request-map))
                handler)]
     (if (instance? Servlet hdlr)
       (try

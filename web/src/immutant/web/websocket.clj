@@ -15,59 +15,11 @@
 (ns immutant.web.websocket
   "Provides for the creation of asynchronous WebSocket services"
   (:require [immutant.web.internal.undertow :refer [create-http-handler]]
-            [immutant.web.internal.servlet  :refer [create-servlet create-endpoint]]
-            [immutant.web.internal.ring :as i]
+            [immutant.web.internal.servlet  :as servlet]
+            [immutant.web.async             :as async]
             [immutant.util                  :refer [in-container?]])
-  (:import [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint]
-           [io.undertow.server HttpHandler]
-           [javax.websocket Session]
-           [javax.websocket.server HandshakeRequest]))
-
-(defprotocol Channel
-  "Websocket channel interface"
-  (open? [ch] "Is the channel open?")
-  (close [ch] "Gracefully close the channel")
-  (send! [ch message] "Send a message asynchronously"))
-
-(defprotocol Handshake
-  "Reflects the state of the initial websocket upgrade request"
-  (headers [hs] "Return request headers")
-  (parameters [hs] "Return map of params from request")
-  (uri [hs] "Return full request URI")
-  (query-string [hs] "Return query portion of URI")
-  (session [hs] "Return the user's session data, if any")
-  (user-principal [hs] "Return authorized `java.security.Principal`")
-  (user-in-role? [hs role] "Is user in role identified by String?"))
-
-(extend-protocol Channel
-  io.undertow.websockets.core.WebSocketChannel
-  (send! [ch message] (UndertowWebsocket/send ch message nil))
-  (open? [ch] (.isOpen ch))
-  (close [ch] (.sendClose ch))
-
-  javax.websocket.Session
-  (send! [ch message] (.sendObject (.getAsyncRemote ch) message))
-  (open? [ch] (.isOpen ch))
-  (close [ch] (.close ch)))
-
-(extend-protocol Handshake
-  io.undertow.websockets.spi.WebSocketHttpExchange
-  (headers [ex] (.getRequestHeaders ex))
-  (parameters [ex] (.getRequestParameters ex))
-  (uri [ex] (.getRequestURI ex))
-  (query-string [ex] (.getQueryString ex))
-  (session [ex] (-> ex .getSession i/ring-session))
-  (user-principal [ex] (.getUserPrincipal ex))
-  (user-in-role? [ex role] (.isUserInRole ex role))
-
-  javax.websocket.server.HandshakeRequest
-  (headers [hs] (.getHeaders hs))
-  (parameters [hs] (.getParameterMap hs))
-  (uri [hs] (str (.getRequestURI hs)))
-  (query-string [hs] (.getQueryString hs))
-  (session [hs] (-> hs .getHttpSession i/ring-session))
-  (user-principal [hs] (.getUserPrincipal hs))
-  (user-in-role? [hs role] (.isUserInRole hs role)))
+  (:import [org.projectodd.wunderboss.web.async.websocket
+            UndertowWebsocket WebsocketChannel WebsocketInitHandler]))
 
 (defn wrap-websocket
   "Middleware to attach websocket callbacks to a Ring handler.
@@ -77,30 +29,27 @@
   call in the chain.
 
   The following callbacks are supported, where `channel` is an object
-  extended to [[Channel]], `handshake` is extended to [[Handshake]],
-  `throwable` is a Java exception, and `message` may be either a
-  `String` or a `byte[]`:
+  extended to [[immutant.web.async/Channel]], `handshake` is extended
+  to [[immutant.web.async/WebsocketHandshake]], `throwable` is a Java
+  exception, and `message` may be either a `String` or a `byte[]`:
 
-    * :on-message `(fn [channel message])`
-    * :on-open    `(fn [channel handshake])`
-    * :on-close   `(fn [channel {:keys [code reason]}])`
-    * :on-error   `(fn [channel throwable])`
+  * :on-message `(fn [channel message])`
+  * :on-open    `(fn [channel handshake])`
+  * :on-close   `(fn [channel {:keys [code reason]}])`
+  * :on-error   `(fn [channel throwable])`
 
   If handler is nil, 404 responses will be returned for any requests
   without `ws://` URI schemes"
   ([handler key value & key-values]
      (wrap-websocket handler (apply hash-map key value key-values)))
-  ([handler {:keys [on-message on-open on-close on-error] :as callbacks}]
+  ([handler callbacks]
      (if (in-container?)
-       (create-servlet handler (create-endpoint callbacks))
-       (UndertowWebsocket/create
-         (reify Endpoint
-           (onMessage [_ channel message]
-             (if on-message (on-message channel message)))
-           (onOpen [_ channel exchange]
-             (if on-open (on-open channel exchange)))
-           (onClose [_ channel cm]
-             (if on-close (on-close channel {:code (.getCode cm) :reason (.getReason cm)})))
-           (onError [_ channel error]
-             (if on-error (on-error channel error))))
+       (servlet/create-servlet handler (servlet/create-endpoint callbacks))
+       (UndertowWebsocket/createHandler
+         (reify WebsocketInitHandler
+           (shouldConnect [_ exchange endpoint-wrapper]
+             (.setEndpoint endpoint-wrapper
+               (.getEndpoint ^WebsocketChannel (async/initialize-websocket {:handler-type :undertow}
+                                                 callbacks)))
+             true))
          (if handler (create-http-handler handler))))))

@@ -16,6 +16,7 @@
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
             [immutant.web.websocket :refer :all]
+            [immutant.web.async :refer :all]
             [immutant.web.middleware :refer [wrap-session]]
             [ring.util.response :refer [response]]
             [http.async.client :as http]
@@ -47,6 +48,12 @@
       (finally
         (stop {:path path})))))
 
+(defn ws-init-handler [callbacks]
+  (fn [req]
+    (if (:websocket? req)
+      (as-channel req callbacks)
+      {:status 404})))
+
 ;; (deftest jsr-356-websocket
 ;;   (let [expected [:open "hello" 1000]]
 ;;     (is (= expected (test-websocket (comp (partial attach-endpoint (create-servlet hello)) create-endpoint))))))
@@ -54,6 +61,18 @@
 (deftest middleware-websocket
   (let [expected [:open "hello" 1000]]
     (is (= expected (test-websocket (partial wrap-websocket hello))))))
+
+(deftest remote-sending-to-client-using-gniazdo-and-init-ws
+  (let [result (promise)
+        server (run (ws-init-handler {:on-message (fn [c m] (send! c (upper-case m)))
+                                      :on-error (fn [_ e] (.printStackTrace e))}))
+        socket (ws/connect "ws://localhost:8080" :on-receive #(deliver result %))]
+    (try
+      (ws/send-msg socket "hello")
+      (is (= "HELLO" (deref result 2000 :failure)))
+      (finally
+        (ws/close socket)
+        (stop server)))))
 
 (deftest remote-sending-to-client-using-gniazdo
   (let [result (promise)

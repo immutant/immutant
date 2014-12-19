@@ -79,6 +79,7 @@
         (.endsWith (:uri handshake) "/?x=y&j=k")))))
 
 (deftest request-map-entries
+  (get-body (url)) ;; ensure there's something in the session
   (let [request (decode (get-body (str (url) "request?query=help") :headers {:content-type "text/html; charset=utf-8"}))]
     (are [x expected] (= expected (x request))
          :content-type        "text/html; charset=utf-8"
@@ -108,3 +109,31 @@
       (is false)
       (catch IllegalStateException e
         (is (re-find #"^You can't call immutant.web/run outside" (.getMessage e)))))))
+
+;; async
+
+(deftest chunked-streaming
+  ;; TODO: come up with a way to make sure the data actually comes in
+  ;; as chunks - maybe with http-async-client - it seems to have
+  ;; stream support
+  (let [response (get-response (str (url) "chunked-stream"))]
+    (is (= 200 (:status response)))
+    (is (= "chunked" (-> response :headers :transfer-encoding)))
+    (is (= (range 10) (-> response :body read-string)))))
+
+(deftest non-chunked-stream
+  (let [data (str (repeat 128 "1"))]
+    (let [response (get-response (str (url) "non-chunked-stream"))]
+      (is (= 200 (:status response)))
+      (is (empty? (-> response :headers :transfer-encoding)))
+      (is (= (count data) (-> response :headers :content-length read-string)))
+      (is (= data (:body response))))))
+
+(deftest websocket-as-channel
+  (let [result (promise)]
+    (with-open [client (http/create-client)
+                socket (http/websocket client (str (url "ws") "ws")
+                         :text (fn [_ m] (deliver result m)))]
+      (http/send socket :text "hello")
+      (is (= "HELLO" (deref result 5000 :failure)))
+      (http/close client))))
