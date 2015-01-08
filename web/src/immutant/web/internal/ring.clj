@@ -13,14 +13,12 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.internal.ring
-    (:require [potemkin :refer [def-map-type]]
-              [clojure.string :as str]
-              [clojure.java.io :as io]
-              ring.util.request)
+    (:require [potemkin                      :refer [def-map-type]]
+              [clojure.java.io               :as io]
+              [immutant.web.async            :as async]
+              [immutant.web.internal.headers :as hdr])
     (:import [java.io File InputStream OutputStream]
              [clojure.lang ISeq PersistentHashMap]))
-
-(def charset-pattern (deref #'ring.util.request/charset-pattern))
 
 (defprotocol Session
   (attribute [session key])
@@ -105,37 +103,6 @@
            (.put m k v))
          m))))
 
-(defprotocol Headers
-  (get-names [x])
-  (get-values [x key])
-  (get-value [x key])
-  (set-header [x key value])
-  (add-header [x key value]))
-
-(defn headers->map [headers]
-  (persistent!
-    (reduce
-      (fn [accum ^String name]
-        (assoc! accum
-          (-> name .toLowerCase)
-          (->> name
-            (get-values headers)
-            (str/join ","))))
-      (transient {})
-      (get-names headers))))
-
-(defn write-headers
-  [output, headers]
-  (doseq [[^String k, v] headers]
-    (if (coll? v)
-      (doseq [value v]
-        (add-header output k (str value)))
-      (set-header output k (str v)))))
-
-(defn ^String get-character-encoding [headers]
-  (when-let [type (get-value headers "content-type")]
-    (second (re-find charset-pattern type))))
-
 (defprotocol BodyWriter
   "Writing different body types to output streams"
   (write-body [body stream headers]))
@@ -150,7 +117,9 @@
 
   String
   (write-body [body ^OutputStream os headers]
-    (.write os (.getBytes body (or (get-character-encoding headers) "ISO-8859-1"))))
+    (.write os (.getBytes body
+                 (or (hdr/get-character-encoding headers)
+                   hdr/default-encoding))))
 
   ISeq
   (write-body [body ^OutputStream os headers]
@@ -176,7 +145,11 @@
   [response {:keys [status headers body]}]
   (when status
     (set-status response status))
-  (let [hmap (header-map response)]
-    (write-headers hmap headers)
-    (write-body body (output-stream response) hmap)))
-
+  (let [hmap (header-map response)
+        streaming? (async/streaming-body? body)]
+    (hdr/write-headers hmap (if streaming?
+                              (async/add-streaming-headers headers)
+                              headers))
+    (if streaming?
+      (async/open-stream body hmap)
+      (write-body body (output-stream response) hmap))))

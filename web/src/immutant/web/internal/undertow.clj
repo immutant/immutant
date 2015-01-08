@@ -13,11 +13,15 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.internal.undertow
-    (:require [immutant.web.internal.ring :as i]
-              [ring.middleware.session :as ring])
-    (:import [io.undertow.server HttpHandler HttpServerExchange]
+    (:require [immutant.web.async            :as async]
+              [immutant.web.internal.ring    :as ring]
+              [immutant.web.internal.headers :as hdr]
+              [ring.middleware.session       :as ring-session])
+    (:import java.net.URI
+             [io.undertow.server HttpHandler HttpServerExchange]
              [io.undertow.server.session Session SessionConfig SessionCookieConfig]
-             [io.undertow.util HeaderMap Headers HttpString Sessions]))
+             [io.undertow.util HeaderMap Headers HttpString Sessions]
+             org.projectodd.wunderboss.websocket.UndertowWebsocket))
 
 (def ^{:tag SessionCookieConfig :private true} set-cookie-config!
   (memoize
@@ -37,25 +41,25 @@
   value stored in the `io.undertow.server.session.Session` from the
   associated handler"
   [handler {:keys [timeout] :as options}]
-  (let [expirer (i/session-expirer timeout)
-        fallback (delay (ring/wrap-session handler options))]
+  (let [expirer (ring/session-expirer timeout)
+        fallback (delay (ring-session/wrap-session handler options))]
     (fn [request]
       (if-let [hse ^HttpServerExchange (:server-exchange request)]
         (let [data (delay
                      (set-cookie-config! (.getAttachment hse SessionConfig/ATTACHMENT_KEY) options)
-                     (-> hse Sessions/getOrCreateSession expirer i/ring-session))
+                     (-> hse Sessions/getOrCreateSession expirer ring/ring-session))
               ;; we assume the request map automatically derefs delays
               response (handler (assoc request :session data))]
           (when (contains? response :session)
             (if-let [data (:session response)]
-              (i/set-ring-session! (Sessions/getOrCreateSession hse) data)
+              (ring/set-ring-session! (Sessions/getOrCreateSession hse) data)
               (when-let [session (Sessions/getSession hse)]
                 (.invalidate session hse))))
           response)
         (@fallback request)))))
 
 (extend-type Session
-  i/Session
+  ring/Session
   (attribute [session key]
     (.getAttribute session key))
   (set-attribute! [session key value]
@@ -66,7 +70,7 @@
     (.setMaxInactiveInterval session timeout)))
 
 (extend-type HeaderMap
-  i/Headers
+  hdr/Headers
   (get-names [headers] (map str (.getHeaderNames headers)))
   (get-values [headers ^String key] (.get headers key))
   (get-value [headers ^String key] (.getFirst headers key))
@@ -74,7 +78,7 @@
   (add-header [headers ^String k ^String v] (.add headers (HttpString. k) v)))
 
 (extend-type HttpServerExchange
-  i/RingRequest
+  ring/RingRequest
   (server-port [exchange]        (-> exchange .getDestinationAddress .getPort))
   (server-name [exchange]        (.getHostName exchange))
   (remote-addr [exchange]        (-> exchange .getSourceAddress .getAddress .getHostAddress))
@@ -84,24 +88,71 @@
   (request-method [exchange]     (-> exchange .getRequestMethod .toString .toLowerCase keyword))
   (content-type [exchange]       (-> exchange .getRequestHeaders (.getFirst Headers/CONTENT_TYPE)))
   (content-length [exchange]     (.getRequestContentLength exchange))
-  (character-encoding [exchange] (if-let [type (i/content-type exchange)]
+  (character-encoding [exchange] (if-let [type (ring/content-type exchange)]
                                    (Headers/extractTokenFromHeader type "charset")))
-  (headers [exchange]            (-> exchange .getRequestHeaders i/headers->map))
+  (headers [exchange]            (-> exchange .getRequestHeaders hdr/headers->map))
   (body [exchange]               (.getInputStream exchange))
   (context [exchange]            (.getResolvedPath exchange))
   (path-info [exchange]          (let [v (.getRelativePath exchange)]
                                    (if (empty? v) "/" v)))
   (ssl-client-cert [_])
 
-  i/RingResponse
+  ring/RingResponse
   (set-status [exchange status] (.setResponseCode exchange status))
   (header-map [exchange] (.getResponseHeaders exchange))
   (output-stream [exchange] (.getOutputStream exchange)))
+
+(extend-type io.undertow.websockets.spi.WebSocketHttpExchange
+  async/Handshake
+  (headers        [ex] (.getRequestHeaders ex))
+  (parameters     [ex] (.getRequestParameters ex))
+  (uri            [ex] (.getRequestURI ex))
+  (query-string   [ex] (.getQueryString ex))
+  (session        [ex] (-> ex .getSession ring/ring-session))
+  (user-principal [ex] (.getUserPrincipal ex))
+  (user-in-role?  [ex role] (.isUserInRole ex role)))
+
+(extend-type io.undertow.websockets.core.WebSocketChannel
+  async/Channel
+  (send!      [ch message] (UndertowWebsocket/send ch message nil))
+  (open? [ch] (.isOpen ch))
+  (close      [ch] (.sendClose ch)))
+
+(extend-type java.util.Collections$UnmodifiableMap
+  hdr/Headers
+  (get-names [headers] (map str (.keySet headers)))
+  (get-values [headers ^String key] (.get headers key))
+  (get-value [headers ^String key] (first (hdr/get-values headers key)))
+  (set-header [headers ^String k ^String v] (throw (Exception. "header map is read-only")))
+  (add-header [headers ^String k ^String v] (throw (Exception. "header map is read-only"))))
+
+(extend-type io.undertow.websockets.spi.WebSocketHttpExchange
+  ring/RingRequest
+  (server-port [x]    (-> x .getRequestURI .getPort))
+  (server-name [x]    (-> x .getRequestURI URI. .getHost))
+  (remote-addr [x]
+    (when-let [ws-chan (-> x .getPeerConnections first)]
+      (-> ws-chan .getSourceAddress .getHostName)))
+  (uri [x]            (.getRequestURI x))
+  (query-string [x]   (.getQueryString x))
+  (scheme [x]         (-> x .getRequestURI URI. .getScheme))
+  (request-method [x] :get)
+  (headers [x]        (-> x .getRequestHeaders hdr/headers->map))
+  ;; FIXME: should these be the same thing? maybe so, outside of the container
+  (context [x]        (-> x .getRequestURI URI. .getPath))
+  (path-info [x]      (-> x .getRequestURI URI. .getPath))
+
+  ;; no-ops
+  (body [x])
+  (content-type [x])
+  (content-length [x])
+  (character-encoding [x])
+  (ssl-client-cert [x]))
 
 (defn create-http-handler [handler]
   (reify HttpHandler
     (^void handleRequest [this ^HttpServerExchange exchange]
       (.startBlocking exchange)
-      (if-let [response (handler (i/ring-request-map exchange [:server-exchange exchange]))]
-        (i/write-response exchange response)
+      (if-let [response (handler (ring/ring-request-map exchange [:server-exchange exchange]))]
+        (ring/write-response exchange response)
         (throw (NullPointerException. "Ring handler returned nil"))))))

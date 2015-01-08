@@ -15,6 +15,7 @@
 (ns testing.app
   (:require [immutant.web :as web]
             [immutant.web.websocket :as ws]
+            [immutant.web.async :as async]
             [immutant.web.middleware :refer (wrap-session)]
             [immutant.codecs :refer (encode)]
             [compojure.core :refer (GET defroutes)]
@@ -23,16 +24,16 @@
 (def handshakes (atom {}))
 
 (defn on-open-set-handshake [channel handshake]
-  (let [data {:headers (ws/headers handshake)
-              :parameters (ws/parameters handshake)
-              :uri (ws/uri handshake)
-              :query (ws/query-string handshake)
-              :session (ws/session handshake)
-              :user-principal (ws/user-principal handshake)}]
+  (let [data {:headers (async/headers handshake)
+              :parameters (async/parameters handshake)
+              :uri (async/uri handshake)
+              :query (async/query-string handshake)
+              :session (async/session handshake)
+              :user-principal (async/user-principal handshake)}]
     (swap! handshakes assoc channel data)))
 
 (defn on-message-send-handshake [channel message]
-  (ws/send! channel (encode (get @handshakes channel))))
+  (async/send! channel (encode (get @handshakes channel))))
 
 (defn counter [{session :session}]
   (let [count (:count session 0)

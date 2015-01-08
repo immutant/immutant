@@ -13,7 +13,9 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.internal.servlet
-    (:require [immutant.web.internal.ring :as i])
+    (:require [immutant.web.internal.ring    :as ring]
+              [immutant.web.internal.headers :as hdr]
+              [immutant.web.async            :as async])
     (:import [org.projectodd.wunderboss.websocket Util]
              [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
              [javax.servlet Servlet ServletConfig ServletContext]
@@ -26,21 +28,21 @@
   value stored in the possibly-replicated HttpSession from the
   associated servlet"
   [handler {:keys [timeout]}]
-  (let [expirer (i/session-expirer timeout)]
+  (let [expirer (ring/session-expirer timeout)]
     (fn [request]
       (let [^HttpServletRequest hsr (:servlet-request request)
-            data (delay (-> hsr .getSession expirer i/ring-session))
+            data (delay (-> hsr .getSession expirer ring/ring-session))
             ;; we assume the request map automatically derefs delays
             response (handler (assoc request :session data))]
         (when (contains? response :session)
           (if-let [data (:session response)]
-            (i/set-ring-session! (.getSession hsr) data)
+            (ring/set-ring-session! (.getSession hsr) data)
             (when-let [session (.getSession hsr false)]
               (.invalidate session))))
         response))))
 
 (extend-type HttpSession
-  i/Session
+  ring/Session
   (attribute [session key]
     (.getAttribute session key))
   (set-attribute! [session key value]
@@ -51,7 +53,7 @@
     (.setMaxInactiveInterval session timeout)))
 
 (extend-type HttpServletRequest
-  i/RingRequest
+  ring/RingRequest
   (server-port [request]        (.getServerPort request))
   (server-name [request]        (.getServerName request))
   (remote-addr [request]        (.getRemoteAddr request))
@@ -62,24 +64,40 @@
   (content-type [request]       (.getContentType request))
   (content-length [request]     (.getContentLength request))
   (character-encoding [request] (.getCharacterEncoding request))
-  (headers [request]            (i/headers->map request))
+  (headers [request]            (hdr/headers->map request))
   (body [request]               (.getInputStream request))
   (context [request]            (str (.getContextPath request) (.getServletPath request)))
   (path-info [request]          (.getPathInfo request))
   (ssl-client-cert [request]    (first (.getAttribute request "javax.servlet.request.X509Certificate")))
-  i/Headers
+  hdr/Headers
   (get-names [request]      (enumeration-seq (.getHeaderNames request)))
   (get-values [request key] (enumeration-seq (.getHeaders request key))))
 
 (extend-type HttpServletResponse
-  i/RingResponse
+  ring/RingResponse
   (set-status [response status] (.setStatus response status))
   (header-map [response] response)
   (output-stream [response] (.getOutputStream response))
-  i/Headers
+  hdr/Headers
   (get-value [response key] (.getHeader response key))
   (set-header [response key value] (.setHeader response key value))
   (add-header [response key value] (.addHeader response key value)))
+
+(extend-type javax.websocket.server.HandshakeRequest
+  async/Handshake
+  (headers        [hs] (.getHeaders hs))
+  (parameters     [hs] (.getParameterMap hs))
+  (uri            [hs] (str (.getRequestURI hs)))
+  (query-string   [hs] (.getQueryString hs))
+  (session        [hs] (-> hs .getHttpSession ring/ring-session))
+  (user-principal [hs] (.getUserPrincipal hs))
+  (user-in-role?  [hs role] (.isUserInRole hs role)))
+
+(extend-type javax.websocket.Session
+  async/Channel
+  (send!      [ch message] (.sendObject (.getAsyncRemote ch) message))
+  (open? [ch] (.isOpen ch))
+  (close      [ch] (.close ch)))
 
 (defn ^Endpoint create-endpoint
   "Create a JSR-356 endpoint from one or more callback functions.
@@ -143,13 +161,13 @@
      (proxy [HttpServlet] []
        (service [^HttpServletRequest request ^HttpServletResponse response]
          (let [ring-map (-> request
-                          (i/ring-request-map
+                          (ring/ring-request-map
                             [:servlet          this]
                             [:servlet-request  request]
                             [:servlet-response response]
                             [:servlet-context  (delay (.getServletContext ^HttpServlet this))]))]
            (if-let [result (if handler (handler ring-map) {:status 404})]
-             (i/write-response response result)
+             (ring/write-response response result)
              (throw (NullPointerException. "Ring handler returned nil")))))
        (init [^ServletConfig config]
          (let [^HttpServlet this this]
