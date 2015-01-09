@@ -40,7 +40,7 @@
     (assoc opts :port
       (.getLocalPort (doto (ServerSocket.)
                        (.setReuseAddress true)
-                       (.bind (InetSocketAddress. (:host opts "") 0))
+                       (.bind (InetSocketAddress. ^String (:host opts "") 0))
                        .close)))
     opts))
 
