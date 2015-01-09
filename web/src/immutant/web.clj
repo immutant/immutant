@@ -87,6 +87,7 @@
                   kwargs-or-map->map
                   (validate-options run)
                   (undertow/options-maybe)
+                  internal/available-port
                   (->> (merge internal/create-defaults internal/register-defaults)))]
     (let [server (internal/server options)]
       (internal/mount server handler options)

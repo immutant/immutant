@@ -24,7 +24,8 @@
     (:import org.projectodd.wunderboss.WunderBoss
              io.undertow.server.HttpHandler
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]
-             javax.servlet.Servlet))
+             javax.servlet.Servlet
+             [java.net ServerSocket InetSocketAddress]))
 
 (def ^:internal register-defaults (-> (opts->defaults-map Web$RegisterOption)
                                     (boolify :dispatch)))
@@ -33,6 +34,15 @@
 
 (def ^:internal server-name
   (partial u/hash-based-component-name create-defaults))
+
+(defn ^:internal available-port [opts]
+  (if (= 0 (:port opts))
+    (assoc opts :port
+      (.getLocalPort (doto (ServerSocket.)
+                       (.setReuseAddress true)
+                       (.bind (InetSocketAddress. (:host opts "") 0))
+                       .close)))
+    opts))
 
 (defn ^:internal server [opts]
   (WunderBoss/findOrCreateComponent Web

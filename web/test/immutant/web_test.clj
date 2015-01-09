@@ -264,3 +264,13 @@
     (is (= "/foo" (-> c first :path)))
     (is (= "foo.com" (-> c first :domain)))
     (is (= "20" (-> c first :Max-Age)))))
+
+(deftest zero-for-available-port
+  (let [x1 (run (handler "one") :port 0)
+        x2 (run (handler "two") :port 0)
+        p1 (:port x1)
+        p2 (:port x2)]
+    (is (not= p1 p2))
+    (is (not-any? zero? [p1 p2]))
+    (is (= "one" (get-body (str "http://localhost:" p1))))
+    (is (= "two" (get-body (str "http://localhost:" p2))))))
