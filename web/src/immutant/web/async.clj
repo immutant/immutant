@@ -17,7 +17,8 @@
   (:import [java.io OutputStream IOException]
            java.net.URI
            java.util.concurrent.atomic.AtomicBoolean
-           [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint WebsocketInitHandler]))
+           [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint WebsocketInitHandler]
+           [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose HttpChannel UndertowHttpChannel]))
 
 (defprotocol Channel
   "Streaming channel interface"
@@ -38,41 +39,16 @@
 
      Returns nil if the channel is closed, true otherwise."))
 
-(defrecord StreamChannel [^OutputStream os on-close ^AtomicBoolean open-state encoding]
+(extend-type HttpChannel
   Channel
-  (close [this]
-    (when (open? this)
-      (.close os)
-      (.set open-state false)
-      (when on-close
-        (on-close this nil))))
-  (send! [this message]
-    (send! this message true))
-  (send! [this message close?]
-    (when (open? this)
-      (let [bytes (if (instance? String message)
-                    (.getBytes message encoding)
-                    message)]
+  (open? [ch] (.isOpen ch))
+  (close [ch] (.close ch HttpChannel/COMPLETE))
+  (send!
+    ([ch message]
         ;; TODO: throw if message isn't String or bytes[]? support codecs?
-        (try
-          (.write os bytes)
-          (if close?
-            (close this)
-            (.flush os))
-          true
-          ;; TODO: should we only deal with "Broken pipe" IOE's here?
-          ;; rethrow others?
-          (catch IOException e
-            (try
-              (close this)
-              ;; undertow throws when you close with unwritten data,
-              ;; but the data can never be written - see UNDERTOW-368
-              (catch IOException ignored))
-            nil)))))
-  (open? [_]
-    (.get open-state)))
-
-(defrecord StreamMarker [os callbacks])
+       (.send ch message))
+    ([ch message close?]
+       (.send ch message close?))))
 
 (defprotocol Handshake
   "Reflects the state of the initial websocket upgrade request"
@@ -124,30 +100,28 @@
     (->WebsocketMarker chan-promise (create-wboss-endpoint chan-promise callbacks))))
 
 (defn streaming-body? [body]
-  (instance? StreamMarker body))
+  (instance? HttpChannel body))
 
 (defn add-streaming-headers [headers]
   headers
   ;;  (assoc headers "Transfer-Encoding" "chunked" "baz" "ffs")
   )
 
-(defn open-stream [{:keys [os callbacks]} headers]
-  (when-let [on-open (:on-open callbacks)]
-    (on-open (->StreamChannel os
-               (:on-close callbacks)
-               (AtomicBoolean. true)
-               (or (hdr/get-character-encoding headers)
-                 hdr/default-encoding)))))
+(defn open-stream [^HttpChannel channel headers]
+  (.open channel nil))
 
 ;; on-open on-close
-(defn initialize-stream [request callbacks]
-  (->StreamMarker
-    (-> request
-      :server-exchange
-      (.setPersistent true)
-      .dispatch
-      .getOutputStream)
-    callbacks))
+(defn initialize-stream [request {:keys [on-open on-close]}]
+  (UndertowHttpChannel.
+    (:server-exchange request)
+    (when on-open
+      (reify Channel$OnOpen
+        (handle [_ ch _]
+          (on-open ch))))
+    (when on-close
+      (reify Channel$OnClose
+        (handle [_ ch reason]
+          (on-close ch reason))))))
 
 (defn as-channel [request callbacks]
   (let [ch (if (:websocket? request)
@@ -170,17 +144,20 @@
             {:on-open
              (fn [stream]
                (println "OPEN" stream)
-               (reset! a-stream stream)
+               ;;(reset! a-stream stream)
                (.start (Thread.
                          (fn []
                            (dotimes [n 10]
                              (Thread/sleep 1000)
+                             (println n)
                              (when (s/open? stream)
-                               (s/send! stream (format "%s\n%s\n" n data))))
+                               (println "open")
+                               (s/send! stream (format "%s\n%s\n" n data) false)
+                               (println "sent")))
                            (s/close stream)))))
              :on-close
-             (fn [stream]
-               (println "CLOSED" stream))})
+             (fn [stream reason]
+               (println "CLOSED" stream reason))})
         :headers {"foo" "bar"})))
 
   (web/run handler)
