@@ -80,7 +80,7 @@
         options (u/kwargs-or-map->map options)
         url (format "http://%s:%s%s%s"
               (:host options (:host create-defaults))
-              (http-port options)
+              (http-port result)
               (context-path)
               (:path options (:path register-defaults)))]
     (try
