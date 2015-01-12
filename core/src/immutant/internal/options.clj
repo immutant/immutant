@@ -69,6 +69,9 @@
 (defn ^java.util.Map opts->map
   "Converts an Option class into a map of name -> Option instance."
   [class]
+  ;; clojure 1.7.0 no longer initializes classes on import, so we have
+  ;; to force init here (see CLJ-1315)
+  (Class/forName (.getName class))
   (->> class
     Option/optsFor
     (map (fn [^Option o] (vector (.name o) o)))
