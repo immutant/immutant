@@ -17,6 +17,7 @@
             [clojure.test       :refer :all]
             [testing.web        :refer [get-body get-response]]
             [immutant.web       :as web]
+            [immutant.web.internal.servlet :as servlet]
             [immutant.util      :as u]))
 
 
@@ -58,6 +59,47 @@
          {:on-open
           (fn [stream]
             (send! stream data))}))
+
+    (let [response (get-response "http://localhost:8080/")]
+      (is (= 200 (:status response)))
+      (is (empty? (-> response :headers :transfer-encoding)))
+      (is (= (count data) (-> response :headers :content-length read-string)))
+      (is (= data (:body response))))))
+
+(deftest chunked-streaming-servlet
+  (let [data (rand-data 128)]
+    (web/run
+      (servlet/create-servlet
+        #(as-channel %
+           {:on-open
+            (fn [stream]
+              (println "TC:" %)
+              (.start
+                (Thread.
+                  (fn []
+                    (send! stream "[" false)
+                    (dotimes [n 10]
+                      ;; we have to send a few bytes with each
+                      ;; response - there is a min-bytes threshold to
+                      ;; trigger data to the client
+                      (send! stream (format "%s ;; %s\n" n data) false))
+                    ;; 2-arity send! closes the stream
+                    (send! stream "]")))))}))))
+
+  ;; TODO: come up with a way to make sure the data actually comes in as chunks
+  (let [response (get-response "http://localhost:8080/")]
+    (is (= 200 (:status response)))
+    (is (= "chunked" (-> response :headers :transfer-encoding)))
+    (is (= (range 10) (-> response :body read-string)))))
+
+(deftest non-chunked-stream-servlet
+  (let [data (rand-data 128)]
+    (web/run
+      (servlet/create-servlet
+        #(as-channel %
+           {:on-open
+            (fn [stream]
+              (send! stream data))})))
 
     (let [response (get-response "http://localhost:8080/")]
       (is (= 200 (:status response)))

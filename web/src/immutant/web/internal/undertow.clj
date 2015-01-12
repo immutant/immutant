@@ -21,7 +21,8 @@
              [io.undertow.server HttpHandler HttpServerExchange]
              [io.undertow.server.session Session SessionConfig SessionCookieConfig]
              [io.undertow.util HeaderMap Headers HttpString Sessions]
-             org.projectodd.wunderboss.websocket.UndertowWebsocket))
+             org.projectodd.wunderboss.websocket.UndertowWebsocket
+             [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose UndertowHttpChannel]))
 
 (def ^{:tag SessionCookieConfig :private true} set-cookie-config!
   (memoize
@@ -156,3 +157,16 @@
       (if-let [response (handler (ring/ring-request-map exchange [:server-exchange exchange]))]
         (ring/write-response exchange response)
         (throw (NullPointerException. "Ring handler returned nil"))))))
+
+(defmethod async/initialize-stream :handler
+  [request {:keys [on-open on-close]}]
+  (UndertowHttpChannel.
+    (:server-exchange request)
+    (when on-open
+      (reify Channel$OnOpen
+        (handle [_ ch _]
+          (on-open ch))))
+    (when on-close
+      (reify Channel$OnClose
+        (handle [_ ch reason]
+          (on-close ch reason))))))

@@ -17,6 +17,7 @@
               [immutant.web.internal.headers :as hdr]
               [immutant.web.async            :as async])
     (:import [org.projectodd.wunderboss.websocket Util]
+             [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose ServletHttpChannel]
              [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
              [javax.servlet Servlet ServletConfig ServletContext]
              [javax.websocket Session Endpoint EndpointConfig MessageHandler$Whole CloseReason]
@@ -177,3 +178,17 @@
                    mapping (-> context (.getServletRegistration (.getServletName this)) .getMappings first)
                    path (apply str (take (- (count mapping) 2) mapping))]
                (add-endpoint endpoint context {:path (if (empty? path) "/" path)}))))))))
+
+(defmethod async/initialize-stream :servlet
+  [request {:keys [on-open on-close]}]
+  (ServletHttpChannel.
+    (:servlet-request request)
+    (:servlet-response request)
+    (when on-open
+      (reify Channel$OnOpen
+        (handle [_ ch _]
+          (on-open ch))))
+    (when on-close
+      (reify Channel$OnClose
+        (handle [_ ch reason]
+          (on-close ch reason))))))

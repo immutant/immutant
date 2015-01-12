@@ -18,7 +18,7 @@
            java.net.URI
            java.util.concurrent.atomic.AtomicBoolean
            [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint WebsocketInitHandler]
-           [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose HttpChannel UndertowHttpChannel]))
+           [org.projectodd.wunderboss.web.async HttpChannel]))
 
 (defprotocol Channel
   "Streaming channel interface"
@@ -110,18 +110,11 @@
 (defn open-stream [^HttpChannel channel headers]
   (.open channel nil))
 
-;; on-open on-close
-(defn initialize-stream [request {:keys [on-open on-close]}]
-  (UndertowHttpChannel.
-    (:server-exchange request)
-    (when on-open
-      (reify Channel$OnOpen
-        (handle [_ ch _]
-          (on-open ch))))
-    (when on-close
-      (reify Channel$OnClose
-        (handle [_ ch reason]
-          (on-close ch reason))))))
+(defmulti initialize-stream
+  (fn [request & _]
+    (if (:servlet request)
+      :servlet
+      :handler)))
 
 (defn as-channel [request callbacks]
   (let [ch (if (:websocket? request)
