@@ -1,6 +1,6 @@
 language: clojure
-lein: lein2
-script: lein2 with-profile +travis modules all
+install: yes | sudo lein upgrade
+script: lein with-profile +travis modules all
 branches:
   only:
     - thedeuce
