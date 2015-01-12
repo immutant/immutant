@@ -70,7 +70,7 @@ been reduced to two: `immutant war` and `immutant test`. Add the
 latest version to the `:plugins` section of your `project.clj` to
 install it, e.g.
 
-    :plugins [[lein-immutant "2.0.0-alpha1"]]
+    :plugins [[lein-immutant "2.0.0-beta1"]]
 
 ### Creating a war file
 
