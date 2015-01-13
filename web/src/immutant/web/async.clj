@@ -13,11 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.web.async
-  (:require [immutant.web.internal.headers :as hdr])
-  (:import [java.io OutputStream IOException]
-           java.net.URI
-           java.util.concurrent.atomic.AtomicBoolean
-           [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint WebsocketInitHandler]
+  (:import [org.projectodd.wunderboss.websocket UndertowWebsocket WebsocketInitHandler]
            [org.projectodd.wunderboss.web.async HttpChannel WebsocketChannel]))
 
 (defprotocol Channel
@@ -34,7 +30,7 @@
      If close? is truthy, close the channel after writing. close?
      defaults to false for WebSockets, true otherwise.
 
-     The data is sent asynchronously for WebSockets, but blocks for
+     Sending is asynchronous for WebSockets, but blocking for
      HTTP channels.
 
      Returns nil if the channel is closed, true otherwise."))

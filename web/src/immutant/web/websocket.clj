@@ -18,7 +18,7 @@
             [immutant.web.internal.servlet  :as servlet]
             [immutant.web.async             :as async]
             [immutant.util                  :refer [in-container?]])
-  (:import [org.projectodd.wunderboss.websocket Endpoint UndertowWebsocket WebsocketInitHandler]
+  (:import [org.projectodd.wunderboss.websocket UndertowWebsocket WebsocketInitHandler]
            [org.projectodd.wunderboss.web.async WebsocketChannel]))
 
 (defn wrap-websocket
