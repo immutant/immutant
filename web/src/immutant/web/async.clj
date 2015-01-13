@@ -18,7 +18,7 @@
            java.net.URI
            java.util.concurrent.atomic.AtomicBoolean
            [org.projectodd.wunderboss.websocket UndertowWebsocket Endpoint WebsocketInitHandler]
-           [org.projectodd.wunderboss.web.async HttpChannel]))
+           [org.projectodd.wunderboss.web.async HttpChannel WebsocketChannel]))
 
 (defprotocol Channel
   "Streaming channel interface"
@@ -39,7 +39,7 @@
 
      Returns nil if the channel is closed, true otherwise."))
 
-(extend-type HttpChannel
+(extend-type org.projectodd.wunderboss.web.async.Channel
   Channel
   (open? [ch] (.isOpen ch))
   (close [ch] (.close ch HttpChannel/COMPLETE))
@@ -60,44 +60,17 @@
   (user-principal [hs] "Return authorized `java.security.Principal`")
   (user-in-role? [hs role] "Is user in role identified by String?"))
 
-(defrecord WebsocketMarker
-    [channel-promise endpoint])
-
 (defn create-websocket-init-handler [handler-fn downstream-handler request-map-fn]
-  (UndertowWebsocket/createConditionalUpgradeHandler
+  (UndertowWebsocket/createHandler
     (reify WebsocketInitHandler
       (shouldConnect [_ exchange endpoint-wrapper]
         (boolean
           (let [body (:body (handler-fn (request-map-fn exchange
                                           [:websocket? true])))]
-            (when (instance? WebsocketMarker body)
-              (.setEndpoint endpoint-wrapper (:endpoint body))
+            (when (instance? WebsocketChannel body)
+              (.setEndpoint endpoint-wrapper (.getEndpoint body))
               true)))))
     downstream-handler))
-
-(defn create-wboss-endpoint [chan-promise {:keys [on-message on-open on-close on-error]}]
-  (reify Endpoint
-    (onMessage [_ channel message]
-      (when on-message
-        (on-message channel message)))
-    (onOpen [_ channel exchange]
-      (when chan-promise
-        (deliver chan-promise channel))
-      (when on-open
-        (on-open channel exchange)))
-    (onClose [_ channel cm]
-      (when on-close
-        (on-close channel {:code (.getCode cm) :reason (.getReason cm)})))
-    (onError [_ channel error]
-      (when on-error
-        (on-error channel error)))))
-
-(defn initialize-websocket
-  [request callbacks]
-  (when-not (:websocket? request)
-    (throw (IllegalStateException. "The request isn't a websocket upgrade.")))
-  (let [chan-promise (promise)]
-    (->WebsocketMarker chan-promise (create-wboss-endpoint chan-promise callbacks))))
 
 (defn streaming-body? [body]
   (instance? HttpChannel body))
@@ -110,11 +83,18 @@
 (defn open-stream [^HttpChannel channel headers]
   (.open channel nil))
 
+(defn handler-type [request]
+  (if (:servlet request)
+      :servlet
+      :handler))
+
 (defmulti initialize-stream
   (fn [request & _]
-    (if (:servlet request)
-      :servlet
-      :handler)))
+    (handler-type request)))
+
+(defmulti initialize-websocket
+  (fn [request & _]
+    (handler-type request)))
 
 (defn as-channel [request callbacks]
   (let [ch (if (:websocket? request)

@@ -22,7 +22,9 @@
              [io.undertow.server.session Session SessionConfig SessionCookieConfig]
              [io.undertow.util HeaderMap Headers HttpString Sessions]
              org.projectodd.wunderboss.websocket.UndertowWebsocket
-             [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose UndertowHttpChannel]))
+             [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose
+              UndertowHttpChannel UndertowWebsocketChannel
+              WebsocketChannel$OnMessage WebsocketChannel$OnError]))
 
 (def ^{:tag SessionCookieConfig :private true} set-cookie-config!
   (memoize
@@ -113,12 +115,6 @@
   (user-principal [ex] (.getUserPrincipal ex))
   (user-in-role?  [ex role] (.isUserInRole ex role)))
 
-(extend-type io.undertow.websockets.core.WebSocketChannel
-  async/Channel
-  (send!      [ch message] (UndertowWebsocket/send ch message nil))
-  (open? [ch] (.isOpen ch))
-  (close      [ch] (.sendClose ch)))
-
 (extend-type java.util.Collections$UnmodifiableMap
   hdr/Headers
   (get-names [headers] (map str (.keySet headers)))
@@ -170,3 +166,23 @@
       (reify Channel$OnClose
         (handle [_ ch reason]
           (on-close ch reason))))))
+
+(defmethod async/initialize-websocket :handler
+  [_ {:keys [on-open on-close on-message on-error]}]
+  (UndertowWebsocketChannel.
+    (reify Channel$OnOpen
+      (handle [_ ch context]
+        (when on-open
+          (on-open ch context))))
+    (reify Channel$OnClose
+      (handle [_ ch reason]
+        (when on-close
+          (on-close ch {:code (.getCode reason) :reason (.getReason reason)}))))
+    (reify WebsocketChannel$OnMessage
+      (handle [_ ch message]
+        (when on-message
+          (on-message ch message))))
+    (reify WebsocketChannel$OnError
+      (handle [_ ch error]
+        (when on-error
+          (on-error ch error))))))

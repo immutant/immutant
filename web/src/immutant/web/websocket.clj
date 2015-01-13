@@ -18,7 +18,7 @@
             [immutant.web.internal.servlet  :as servlet]
             [immutant.web.async             :as async]
             [immutant.util                  :refer [in-container?]])
-  (:import org.projectodd.wunderboss.websocket.UndertowWebsocket))
+  (:import [org.projectodd.wunderboss.websocket Endpoint UndertowWebsocket WebsocketInitHandler]))
 
 (defn wrap-websocket
   "Middleware to attach websocket callbacks to a Ring handler.
@@ -44,6 +44,10 @@
   ([handler callbacks]
      (if (in-container?)
        (servlet/create-servlet handler (servlet/create-endpoint callbacks))
-       (UndertowWebsocket/createUpgradeHandler
-         (async/create-wboss-endpoint nil callbacks)
+       (UndertowWebsocket/createHandler
+         (reify WebsocketInitHandler
+           (shouldConnect [_ exchange endpoint-wrapper]
+             (.setEndpoint endpoint-wrapper
+               (.getEndpoint (async/initialize-websocket nil callbacks)))
+             true))
          (if handler (create-http-handler handler))))))

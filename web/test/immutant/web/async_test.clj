@@ -73,7 +73,6 @@
         #(as-channel %
            {:on-open
             (fn [stream]
-              (println "TC:" %)
               (.start
                 (Thread.
                   (fn []
