@@ -21,6 +21,7 @@
              [io.undertow.server HttpHandler HttpServerExchange]
              [io.undertow.server.session Session SessionConfig SessionCookieConfig]
              [io.undertow.util HeaderMap Headers HttpString Sessions]
+             [io.undertow.websockets.core CloseMessage WebSocketChannel]
              org.projectodd.wunderboss.websocket.UndertowWebsocket
              [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose
               UndertowHttpChannel UndertowWebsocketChannel
@@ -125,10 +126,10 @@
 
 (extend-type io.undertow.websockets.spi.WebSocketHttpExchange
   ring/RingRequest
-  (server-port [x]    (-> x .getRequestURI .getPort))
+  (server-port [x]    (-> x .getRequestURI URI. .getPort))
   (server-name [x]    (-> x .getRequestURI URI. .getHost))
   (remote-addr [x]
-    (when-let [ws-chan (-> x .getPeerConnections first)]
+    (when-let [^WebSocketChannel ws-chan (-> x .getPeerConnections first)]
       (-> ws-chan .getSourceAddress .getHostName)))
   (uri [x]            (.getRequestURI x))
   (query-string [x]   (.getQueryString x))
@@ -177,7 +178,8 @@
     (reify Channel$OnClose
       (handle [_ ch reason]
         (when on-close
-          (on-close ch {:code (.getCode reason) :reason (.getReason reason)}))))
+          (on-close ch {:code (.getCode ^CloseMessage reason)
+                        :reason (.getReason ^CloseMessage reason)}))))
     (reify WebsocketChannel$OnMessage
       (handle [_ ch message]
         (when on-message

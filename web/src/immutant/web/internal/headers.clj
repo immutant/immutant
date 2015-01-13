@@ -29,8 +29,10 @@
   (add-header [x key value]))
 
 (defn ^String get-character-encoding [headers]
-  (when-let [type (get-value headers "content-type")]
-    (second (re-find charset-pattern type))))
+  (or
+    (when-let [type (get-value headers "content-type")]
+      (second (re-find charset-pattern type)))
+    default-encoding))
 
 (defn headers->map [headers]
   (persistent!

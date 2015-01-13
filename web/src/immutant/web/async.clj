@@ -68,7 +68,8 @@
           (let [body (:body (handler-fn (request-map-fn exchange
                                           [:websocket? true])))]
             (when (instance? WebsocketChannel body)
-              (.setEndpoint endpoint-wrapper (.getEndpoint body))
+              (.setEndpoint endpoint-wrapper
+                (.getEndpoint ^WebsocketChannel body))
               true)))))
     downstream-handler))
 

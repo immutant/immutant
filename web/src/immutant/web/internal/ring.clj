@@ -117,9 +117,7 @@
 
   String
   (write-body [body ^OutputStream os headers]
-    (.write os (.getBytes body
-                 (or (hdr/get-character-encoding headers)
-                   hdr/default-encoding))))
+    (.write os (.getBytes body (hdr/get-character-encoding headers))))
 
   ISeq
   (write-body [body ^OutputStream os headers]
