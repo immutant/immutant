@@ -19,13 +19,14 @@
               [immutant.internal.options  :refer [boolify extract-options opts->set
                                                   opts->defaults-map opts->map keywordize]]
               [immutant.internal.util     :as u]
-              [immutant.web.async         :as async]
               [immutant.util              :refer [in-container? context-path http-port]]
               [immutant.web.middleware    :refer [wrap-development]]
               [clojure.java.browse        :refer [browse-url]])
     (:import org.projectodd.wunderboss.WunderBoss
              io.undertow.server.HttpHandler
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]
+             [org.projectodd.wunderboss.websocket UndertowWebsocket WebsocketInitHandler]
+             [org.projectodd.wunderboss.web.async WebsocketChannel]
              javax.servlet.Servlet))
 
 (def ^:internal register-defaults (-> (opts->defaults-map Web$RegisterOption)
@@ -41,12 +42,25 @@
     (server-name (select-keys opts (disj (opts->set Web$CreateOption) :auto-start)))
     (extract-options opts Web$CreateOption)))
 
+(defn ^:internal create-websocket-init-handler [handler-fn downstream-handler request-map-fn]
+  (UndertowWebsocket/createHandler
+    (reify WebsocketInitHandler
+      (shouldConnect [_ exchange endpoint-wrapper]
+        (boolean
+          (let [body (:body (handler-fn (request-map-fn exchange
+                                          [:websocket? true])))]
+            (when (instance? WebsocketChannel body)
+              (.setEndpoint endpoint-wrapper
+                (.getEndpoint ^WebsocketChannel body))
+              true)))))
+    downstream-handler))
+
 (defn ^:internal mount [^Web server handler opts]
   (let [opts (extract-options opts Web$RegisterOption)
         hdlr (if (fn? handler)
                (if (in-container?)
                  (create-servlet handler)
-                 (async/create-websocket-init-handler
+                 (create-websocket-init-handler
                    handler (create-http-handler handler)
                    ring-request-map))
                handler)]

@@ -143,11 +143,8 @@
   [response {:keys [status headers body]}]
   (when status
     (set-status response status))
-  (let [hmap (header-map response)
-        streaming? (async/streaming-body? body)]
-    (hdr/write-headers hmap (if streaming?
-                              (async/add-streaming-headers headers)
-                              headers))
-    (if streaming?
+  (let [hmap (header-map response)]
+    (hdr/write-headers hmap headers)
+    (if (async/streaming-body? body)
       (async/open-stream body hmap)
       (write-body body (output-stream response) hmap))))

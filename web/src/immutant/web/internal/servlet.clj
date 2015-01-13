@@ -85,7 +85,7 @@
   (add-header [response key value] (.addHeader response key value)))
 
 (extend-type javax.websocket.server.HandshakeRequest
-  async/Handshake
+  async/WebsocketHandshake
   (headers        [hs] (.getHeaders hs))
   (parameters     [hs] (.getParameterMap hs))
   (uri            [hs] (str (.getRequestURI hs)))
@@ -107,7 +107,7 @@
   instance of `javax.websocket.Session`, extended to the
   [[immutant.web.websocket/Channel]] protocol, and `handshake` is an
   instance of `javax.websocket.server.HandshakeRequest`, extended to
-  [[immutant.web.websocket/Handshake]]:
+  [[immutant.web.async/WebsocketHandshake]]:
 
     * :on-message `(fn [channel message])`
     * :on-open    `(fn [channel handshake])`

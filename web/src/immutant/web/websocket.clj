@@ -29,9 +29,9 @@
   call in the chain.
 
   The following callbacks are supported, where `channel` is an object
-  extended to [[Channel]], `handshake` is extended to [[Handshake]],
-  `throwable` is a Java exception, and `message` may be either a
-  `String` or a `byte[]`:
+  extended to [[immutant.web.async/Channel]], `handshake` is extended
+  to [[immutant.web.async/WebsocketHandshake]], `throwable` is a Java
+  exception, and `message` may be either a `String` or a `byte[]`:
 
   * :on-message `(fn [channel message])`
   * :on-open    `(fn [channel handshake])`

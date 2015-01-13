@@ -107,7 +107,7 @@
   (output-stream [exchange] (.getOutputStream exchange)))
 
 (extend-type io.undertow.websockets.spi.WebSocketHttpExchange
-  async/Handshake
+  async/WebsocketHandshake
   (headers        [ex] (.getRequestHeaders ex))
   (parameters     [ex] (.getRequestParameters ex))
   (uri            [ex] (.getRequestURI ex))

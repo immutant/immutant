@@ -21,7 +21,7 @@
             [immutant.util      :as u]))
 
 
-(u/set-log-level! (or (System/getenv "LOG_LEVEL") :INFO))
+(u/set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
 
 (use-fixtures :each u/reset-fixture)
 
