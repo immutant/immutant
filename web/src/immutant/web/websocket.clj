@@ -14,19 +14,12 @@
 
 (ns immutant.web.websocket
   "Provides for the creation of asynchronous WebSocket services"
-  (:require [immutant.web.internal.undertow :refer [create-http-handler]]
-            [immutant.web.internal.servlet  :as servlet]
+  (:require [immutant.web.internal.servlet  :as servlet]
             [immutant.web.async             :as async]
-            [immutant.util                  :refer [in-container?]])
-  (:import [org.projectodd.wunderboss.web.async.websocket
-            UndertowWebsocket WebsocketChannel WebsocketInitHandler]))
+            [immutant.util                  :refer [in-container?]]))
 
 (defn wrap-websocket
   "Middleware to attach websocket callbacks to a Ring handler.
-  Technically, it's \"endware\" since its return type is not a
-  function, but an object expected to be passed to
-  [[immutant.web/run]], so all other middleware should precede this
-  call in the chain.
 
   The following callbacks are supported, where `channel` is an object
   extended to [[immutant.web.async/Channel]], `handshake` is extended
@@ -38,18 +31,18 @@
   * :on-close   `(fn [channel {:keys [code reason]}])`
   * :on-error   `(fn [channel throwable])`
 
-  If handler is nil, 404 responses will be returned for any requests
-  without `ws://` URI schemes"
+  If handler is nil, a 404 status will be returned for any
+  non-websocket request.
+
+  If called within a servlet container, e.g. WildFly, this should be
+  the last call in your middleware chain, as its result will be a
+  servlet, not a function."
   ([handler key value & key-values]
      (wrap-websocket handler (apply hash-map key value key-values)))
   ([handler callbacks]
      (if (in-container?)
        (servlet/create-servlet handler (servlet/create-endpoint callbacks))
-       (UndertowWebsocket/createHandler
-         (reify WebsocketInitHandler
-           (shouldConnect [_ exchange endpoint-wrapper]
-             (.setEndpoint endpoint-wrapper
-               (.getEndpoint ^WebsocketChannel (async/initialize-websocket {:handler-type :undertow}
-                                                 callbacks)))
-             true))
-         (if handler (create-http-handler handler))))))
+       (fn [request]
+         (if (:websocket? request)
+           (async/as-channel request callbacks)
+           (merge {:status 404} (when handler (handler request))))))))
