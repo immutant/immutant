@@ -72,8 +72,7 @@
   "Middleware to attach websocket callbacks to a Ring handler.
 
   The following callbacks are supported, where `channel` is an object
-  extended to [[immutant.web.async/Channel]], `handshake` is extended
-  to [[immutant.web.async/WebsocketHandshake]], `throwable` is a Java
+  extended to [[immutant.web.async/Channel]], `throwable` is a Java
   exception, and `message` may be either a `String` or a `byte[]`:
 
   * :on-message `(fn [channel message])`

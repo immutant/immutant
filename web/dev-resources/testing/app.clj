@@ -81,7 +81,7 @@
   (assoc
     (async/as-channel request
       {:on-open (fn [ch]
-                  #_(println "TC: open" ch hs))
+                  #_(println "TC: open" ch))
        :on-message (fn [ch message]
                      #_(println "TC: message" message)
                      (async/send! ch (.toUpperCase message)))
