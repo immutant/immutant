@@ -82,15 +82,11 @@
   * :on-error   `(fn [channel throwable])`
 
   If handler is nil, a 404 status will be returned for any
-  non-websocket request.
-
-  If called within a servlet container, e.g. WildFly, this should be
-  the last call in your middleware chain, as its result will be a
-  servlet, not a function."
+  non-websocket request."
   ([handler key value & key-values]
-     (wrap-websocket handler (apply hash-map key value key-values)))
+   (wrap-websocket handler (apply hash-map key value key-values)))
   ([handler callbacks]
    (fn [request]
-       (if (:websocket? request)
-         (as-channel request callbacks)
-         (merge {:status 404} (when handler (handler request)))))))
+     (if (:websocket? request)
+       (as-channel request callbacks)
+       (merge {:status 404} (when handler (handler request)))))))

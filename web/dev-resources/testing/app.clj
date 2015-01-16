@@ -102,8 +102,8 @@
 
 (defn run []
   (web/run (-> #'routes
-             wrap-session
              (wrap-websocket
                :on-open #'on-open-set-handshake
-               :on-message #'on-message-send-handshake)))
+               :on-message #'on-message-send-handshake)
+             wrap-session))
   (web/run (-> ws-as-channel wrap-session) :path "/ws"))
