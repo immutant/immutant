@@ -32,7 +32,7 @@
         events (atom [])
         result (promise)
         handler (create-handler
-                  {:on-open    (fn [& _]
+                  {:on-open    (fn [_]
                                  (swap! events conj :open))
                    :on-close   (fn [_ {c :code}]
                                  (deliver result (swap! events conj c)))
@@ -98,7 +98,7 @@
 
 (deftest handshake-headers
   (let [result (promise)
-        endpoint (wrap-websocket nil :on-open (fn [ch hs] (deliver result hs)))]
+        endpoint (wrap-websocket nil :on-open (fn [ch] (deliver result (handshake ch))))]
     (run endpoint)
     (with-open [client (http/create-client)
                 socket (http/websocket client "ws://localhost:8080/?x=y&j=k")]
@@ -116,7 +116,7 @@
         handler (fn [{{:keys [id] :or {id (str (rand))}} :session}]
                   (-> id response (assoc :session {:id id})))]
     (run (wrap-websocket (wrap-session handler)
-           :on-open (fn [ch hs] (deliver result (:id (session hs))))))
+           :on-open (fn [ch] (deliver result (-> ch handshake session :id)))))
     ;; establish the id in the session with the first request
     (let [id (get-body url :cookies nil)]
       ;; make sure we get it again if we pass the returned cookie

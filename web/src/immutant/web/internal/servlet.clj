@@ -192,7 +192,7 @@
          build))))
 
 (defn handshake-ring-invoker [handler]
-  (fn [config request response]
+  (fn [^ServerEndpointConfig config request response]
     (let [body (:body (handler (ring/ring-request-map request
                                  [:handler-type :servlet]
                                  [:servlet-request request]
@@ -200,7 +200,7 @@
       (when (instance? WebsocketChannel body)
         (-> config
           .getUserProperties
-          (.put "Endpoint" (.getEndpoint body)))))))
+          (.put "Endpoint" (.endpoint ^WebsocketChannel body)))))))
 
 (defn ^Servlet create-servlet
   "Encapsulate a ring handler and an optional websocket endpoint
@@ -251,11 +251,13 @@
   [_ {:keys [on-open on-close on-message on-error]}]
   (JavaxWebsocketChannel.
     (reify Channel$OnOpen
-      (handle [_ ch config]
+      (handle [_  ch config]
+        (.setHandshake ^WebsocketChannel ch
+          (-> ^ServerEndpointConfig config
+            .getUserProperties
+            (.get "HandshakeRequest")))
         (when on-open
-          (on-open ch (-> config
-                        .getUserProperties
-                        (.get "HandshakeRequest"))))))
+          (on-open ch))))
     (reify Channel$OnClose
       (handle [_ ch code reason]
         (when on-close

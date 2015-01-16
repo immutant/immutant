@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (ns immutant.web.async
-  (:import [org.projectodd.wunderboss.web.async HttpChannel]))
+  (:import [org.projectodd.wunderboss.web.async HttpChannel]
+           [org.projectodd.wunderboss.web.async.websocket WebsocketChannel]))
 
 (defn ^:internal streaming-body? [body]
   (instance? HttpChannel body))
@@ -43,6 +44,7 @@
 
      This will trigger the on-close callback for the channel if one is
      registered.")
+  (handshake [ch] "Returns a [[WebsocketHandshake]] for `ch` if `ch` is a WebSocket channel.")
   (send! [ch message] [ch message close?]
     "Send a message to the channel.
 
@@ -54,16 +56,23 @@
 
      Returns nil if the channel is closed, true otherwise."))
 
-(extend-type org.projectodd.wunderboss.web.async.Channel
-  Channel
-  (open? [ch] (.isOpen ch))
-  (close [ch] (.close ch))
-  (send!
-    ([ch message]
-        ;; TODO: support codecs? support the same functionality as ring bodies?
-       (.send ch message))
-    ([ch message close?]
-       (.send ch message close?))))
+(let [impls
+      {:open? (fn [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
+       :close (fn [^org.projectodd.wunderboss.web.async.Channel ch] (.close ch))
+       :handshake (fn [_] nil)
+       :send! (fn ([^org.projectodd.wunderboss.web.async.Channel ch message]
+                  ;; TODO: support codecs? support the same functionality as ring bodies?
+                  (.send ch message))
+                ([^org.projectodd.wunderboss.web.async.Channel ch message close?]
+                 (.send ch message close?)))}]
+  (extend org.projectodd.wunderboss.web.async.Channel
+    Channel
+    impls)
+
+  (extend WebsocketChannel
+    Channel
+    (assoc impls
+      :handshake (fn [^WebsocketChannel ch] (.handshake ch)))))
 
 (defn as-channel
   "Converts the current ring `request` in to an asynchronous channel.
@@ -76,7 +85,7 @@
 
   The callbacks common to both channel types are:
 
-  * `:on-open` - `(fn [ch ctx] ...)`
+  * `:on-open` - `(fn [ch] ...)`
   * `:on-close` - `(fn [ch reason] ...)` - invoked after close. TODO: make reason consistent
 
   If the channel is a Websocket, the following callbacks are also used:

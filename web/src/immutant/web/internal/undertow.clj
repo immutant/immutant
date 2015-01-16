@@ -198,9 +198,10 @@
   [_ {:keys [on-open on-close on-message on-error]}]
   (UndertowWebsocketChannel.
     (reify Channel$OnOpen
-      (handle [_ ch context]
+      (handle [_ ch handshake]
+        (.setHandshake ^WebsocketChannel ch handshake)
         (when on-open
-          (on-open ch context))))
+          (on-open ch))))
     (reify Channel$OnClose
       (handle [_ ch code reason]
         (when on-close
@@ -226,6 +227,6 @@
                                           [:handler-type :undertow])))]
             (when (instance? WebsocketChannel body)
               (.setEndpoint endpoint-wrapper
-                (.getEndpoint ^WebsocketChannel body))
+                (.endpoint ^WebsocketChannel body))
               true)))))
     downstream-handler))

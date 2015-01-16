@@ -22,8 +22,9 @@
 
 (def handshakes (atom {}))
 
-(defn on-open-set-handshake [channel handshake]
-  (let [data {:headers (async/headers handshake)
+(defn on-open-set-handshake [channel]
+  (let [handshake (async/handshake channel)
+        data {:headers (async/headers handshake)
               :parameters (async/parameters handshake)
               :uri (async/uri handshake)
               :query (async/query-string handshake)
@@ -79,7 +80,7 @@
   [request]
   (assoc
     (async/as-channel request
-      {:on-open (fn [ch hs]
+      {:on-open (fn [ch]
                   #_(println "TC: open" ch hs))
        :on-message (fn [ch message]
                      #_(println "TC: message" message)

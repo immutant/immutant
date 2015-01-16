@@ -77,7 +77,7 @@
   exception, and `message` may be either a `String` or a `byte[]`:
 
   * :on-message `(fn [channel message])`
-  * :on-open    `(fn [channel handshake])`
+  * :on-open    `(fn [channel])`
   * :on-close   `(fn [channel {:keys [code reason]}])`
   * :on-error   `(fn [channel throwable])`
 
