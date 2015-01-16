@@ -119,7 +119,8 @@
   (let [response (get-response (str (url) "chunked-stream"))]
     (is (= 200 (:status response)))
     (is (= "chunked" (-> response :headers :transfer-encoding)))
-    (is (= (range 10) (-> response :body read-string)))))
+    (is (= (range 10) (-> response :body read-string)))
+    (is (= "biscuit" (-> response :headers :ham)))))
 
 (deftest non-chunked-stream
   (let [data (str (repeat 128 "1"))]
@@ -130,10 +131,13 @@
       (is (= data (:body response))))))
 
 (deftest websocket-as-channel
+  ;; initialize the session
+  (get-body (str (url)))
   (let [result (promise)]
     (with-open [client (http/create-client)
                 socket (http/websocket client (str (url "ws") "ws")
-                         :text (fn [_ m] (deliver result m)))]
+                         :text (fn [_ m] (deliver result m))
+                         :cookies @testing.web/cookies)]
       (http/send socket :text "hello")
       (is (= "HELLO" (deref result 5000 :failure)))
-      (http/close client))))
+      (is (= {:count 1 :ham :sandwich} (decode (get-body (str (url) "session"))))))))

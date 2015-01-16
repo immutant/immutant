@@ -22,6 +22,7 @@
              [io.undertow.server.session Session SessionConfig SessionCookieConfig]
              [io.undertow.util HeaderMap Headers HttpString Sessions]
              [io.undertow.websockets.core CloseMessage WebSocketChannel]
+             [io.undertow.websockets.spi WebSocketHttpExchange]
              [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose
               UndertowHttpChannel]
              [org.projectodd.wunderboss.web.async.websocket UndertowWebsocket
@@ -42,25 +43,46 @@
         secure      (.setSecure secure)
         http-only   (.setHttpOnly http-only)))))
 
+(defn- get-or-create-session
+  ([exchange]
+   (get-or-create-session exchange nil))
+  ([exchange {:keys [timeout] :as options}]
+   (condp instance? exchange
+     HttpServerExchange    (let [hse ^HttpServerExchange exchange]
+                             (when options
+                               (set-cookie-config!
+                                 (.getAttachment hse SessionConfig/ATTACHMENT_KEY)
+                                 options))
+                             (-> hse
+                               Sessions/getOrCreateSession
+                               (as-> session
+                                   (if options
+                                     (ring/set-session-expiry session timeout)
+                                     session))))
+     ;; we can't set options or create a session when handling a ws upgrade
+     WebSocketHttpExchange (.getSession ^WebSocketHttpExchange exchange))))
+
 (defn wrap-undertow-session
   "Ring middleware to insert a :session entry into the request, its
   value stored in the `io.undertow.server.session.Session` from the
   associated handler"
-  [handler {:keys [timeout] :as options}]
-  (let [expirer (ring/session-expirer timeout)
-        fallback (delay (ring-session/wrap-session handler options))]
+  [handler options]
+  (let [fallback (delay (ring-session/wrap-session handler options))]
     (fn [request]
-      (if-let [hse ^HttpServerExchange (:server-exchange request)]
-        (let [data (delay
-                     (set-cookie-config! (.getAttachment hse SessionConfig/ATTACHMENT_KEY) options)
-                     (-> hse Sessions/getOrCreateSession expirer ring/ring-session))
-              ;; we assume the request map automatically derefs delays
-              response (handler (assoc request :session data))]
+      (if-let [exchange (:server-exchange request)]
+        (let [response (handler
+                         (assoc request
+                           ;; we assume the request map automatically derefs delays
+                           :session (delay (ring/ring-session (get-or-create-session exchange options)))))]
           (when (contains? response :session)
             (if-let [data (:session response)]
-              (ring/set-ring-session! (Sessions/getOrCreateSession hse) data)
-              (when-let [session (Sessions/getSession hse)]
-                (.invalidate session hse))))
+              (when-let [session (get-or-create-session exchange)]
+                (ring/set-ring-session! session data))
+              (when [(instance? HttpServerExchange exchange)]
+                ;; we can only invalidate sessions when handling an
+                ;; http request
+                (when-let [session (Sessions/getSession ^HttpServerExchange exchange)]
+                  (.invalidate session exchange)))))
           response)
         (@fallback request)))))
 
@@ -200,6 +222,7 @@
         (boolean
           (let [body (:body (handler-fn (request-map-fn exchange
                                           [:websocket? true]
+                                          [:server-exchange exchange]
                                           [:handler-type :undertow])))]
             (when (instance? WebsocketChannel body)
               (.setEndpoint endpoint-wrapper

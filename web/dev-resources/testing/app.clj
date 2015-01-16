@@ -53,20 +53,22 @@
       cs)))
 
 (defn chunked-stream [request]
-  (async/as-channel request
-    {:on-open
-     (fn [stream]
-       (.start
-         (Thread.
-           (fn []
-             (async/send! stream "[" false)
-             (dotimes [n 10]
-               ;; we have to send a few bytes with each
-               ;; response - there is a min-bytes threshold to
-               ;; trigger data to the client
-               (async/send! stream (format "%s ;; %s\n" n (repeat 128 "1")) false))
-             ;; 2-arity send! closes the stream
-             (async/send! stream "]")))))}))
+  (update-in
+    (async/as-channel request
+      {:on-open
+       (fn [stream]
+         (.start
+           (Thread.
+             (fn []
+               (async/send! stream "[" false)
+               (dotimes [n 10]
+                 ;; we have to send a few bytes with each
+                 ;; response - there is a min-bytes threshold to
+                 ;; trigger data to the client
+                 (async/send! stream (format "%s ;; %s\n" n (repeat 128 "1")) false))
+               ;; 2-arity send! closes the stream
+               (async/send! stream "]")))))})
+    [:headers] assoc "ham" "biscuit"))
 
 (defn non-chunked-stream [request]
   (async/as-channel request
@@ -76,17 +78,19 @@
 
 (defn ws-as-channel
   [request]
-  (async/as-channel request
-    {:on-open (fn [ch hs]
-                #_(println "TC: open" ch hs))
-     :on-message (fn [ch message]
-                   #_(println "TC: message" message)
-                   (async/send! ch (.toUpperCase message)))
-     :on-error (fn [ch err]
-                 (println "Error on websocket")
-                 (.printStackTrace err))
-     :on-close (fn [ch reason]
-                 #_(println "TC: closed" reason))}))
+  (assoc
+    (async/as-channel request
+      {:on-open (fn [ch hs]
+                  #_(println "TC: open" ch hs))
+       :on-message (fn [ch message]
+                     #_(println "TC: message" message)
+                     (async/send! ch (.toUpperCase message)))
+       :on-error (fn [ch err]
+                   (println "Error on websocket")
+                   (.printStackTrace err))
+       :on-close (fn [ch reason]
+                   #_(println "TC: closed" reason))})
+    :session (assoc (:session request) :ham :sandwich)))
 
 (defroutes routes
   (GET "/" [] counter)
@@ -103,4 +107,4 @@
              (ws/wrap-websocket
                :on-open #'on-open-set-handshake
                :on-message #'on-message-send-handshake)))
-  (web/run ws-as-channel :path "/ws"))
+  (web/run (-> ws-as-channel wrap-session) :path "/ws"))

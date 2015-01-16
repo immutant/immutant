@@ -25,23 +25,38 @@
              [javax.websocket.server ServerContainer HandshakeRequest
               ServerEndpointConfig ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
+(defn- get-or-create-session
+  ([servlet-request]
+   (get-or-create-session servlet-request nil))
+  ([servlet-request timeout]
+   (condp instance? servlet-request
+     HttpServletRequest (let [session (.getSession ^HttpServletRequest servlet-request)]
+                          (if timeout
+                            (ring/set-session-expiry session timeout)
+                            session))
+     ;; we can't set options or create a session when handling a ws upgrade
+     HandshakeRequest   (.getHttpSession ^HandshakeRequest servlet-request))))
+
 (defn wrap-servlet-session
   "Ring middleware to insert a :session entry into the request, its
   value stored in the possibly-replicated HttpSession from the
   associated servlet"
   [handler {:keys [timeout]}]
-  (let [expirer (ring/session-expirer timeout)]
-    (fn [request]
-      (let [^HttpServletRequest hsr (:servlet-request request)
-            data (delay (-> hsr .getSession expirer ring/ring-session))
-            ;; we assume the request map automatically derefs delays
-            response (handler (assoc request :session data))]
-        (when (contains? response :session)
-          (if-let [data (:session response)]
-            (ring/set-ring-session! (.getSession hsr) data)
-            (when-let [session (.getSession hsr false)]
-              (.invalidate session))))
-        response))))
+  (fn [request]
+    (let [servlet-request (:servlet-request request)
+          response (handler
+                     (assoc request
+                       ;; we assume the request map automatically derefs delays
+                       :session (delay (-> servlet-request (get-or-create-session timeout) ring/ring-session))))]
+      (when (contains? response :session)
+        (if-let [data (:session response)]
+          (ring/set-ring-session! (get-or-create-session servlet-request) data)
+          (when (instance? HttpServletRequest servlet-request)
+            ;; we can only invalidate sessions when handling an
+            ;; http request
+            (when-let [session (.getSession ^HttpServletRequest servlet-request false)]
+              (.invalidate session)))))
+      response)))
 
 (extend-type HttpSession
   ring/Session
@@ -169,17 +184,18 @@
          (configurator (proxy [ServerEndpointConfig$Configurator] []
                          (getEndpointInstance [c] endpoint)
                          (modifyHandshake [^ServerEndpointConfig config request response]
-                           (if handshake
-                             (handshake config request response)
-                             (-> config
+                           (-> config
                                .getUserProperties
-                               (.put "HandshakeRequest" request))))))
+                               (.put "HandshakeRequest" request))
+                           (when handshake
+                             (handshake config request response)))))
          build))))
 
 (defn handshake-ring-invoker [handler]
   (fn [config request response]
     (let [body (:body (handler (ring/ring-request-map request
                                  [:handler-type :servlet]
+                                 [:servlet-request request]
                                  [:websocket? true])))]
       (when (instance? WebsocketChannel body)
         (-> config
@@ -235,9 +251,11 @@
   [_ {:keys [on-open on-close on-message on-error]}]
   (JavaxWebsocketChannel.
     (reify Channel$OnOpen
-      (handle [_ ch context]
+      (handle [_ ch config]
         (when on-open
-          (on-open ch context))))
+          (on-open ch (-> config
+                        .getUserProperties
+                        (.get "HandshakeRequest"))))))
     (reify Channel$OnClose
       (handle [_ ch code reason]
         (when on-close

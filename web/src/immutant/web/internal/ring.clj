@@ -33,12 +33,11 @@
 (defn set-ring-session! [session, data]
   (set-attribute! session ring-session-key data))
 
-(defn session-expirer
-  [timeout]
-  (fn [session]
-    (when (not= timeout (get-expiry session))
-      (set-expiry session timeout))
-    session))
+(defn set-session-expiry
+  [session timeout]
+  (when (not= timeout (get-expiry session))
+    (set-expiry session timeout))
+  session)
 
 (def-map-type LazyMap [^java.util.Map m]
   (get [_ k default-value]
