@@ -147,3 +147,14 @@
     (is (= "yay" (get-body url)))
     (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
     (stop)))
+
+(defmethod initialize-stream :test
+  [& _])
+
+(deftest as-channel-should-accept-kwargs-and-map
+  (as-channel {:handler-type :test} :on-open identity)
+  (as-channel {:handler-type :test} {:on-open identity}))
+
+(deftest as-channel-should-throw-with-invalid-callback
+  (is (thrown? IllegalArgumentException
+        (as-channel {:handler-type :test} {:on-fire nil}))))

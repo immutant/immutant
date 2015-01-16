@@ -13,6 +13,8 @@
 ;; limitations under the License.
 
 (ns immutant.web.async
+  (:require [immutant.internal.options :as o]
+            [immutant.internal.util    :as u])
   (:import [org.projectodd.wunderboss.web.async HttpChannel]
            [org.projectodd.wunderboss.web.async.websocket WebsocketChannel]))
 
@@ -101,9 +103,15 @@
 
   Returns a ring response map, at least the :body of which *must* be
   returned in the response map from the calling ring handler."
-  [request {:keys [on-open on-close on-message on-error] :as callbacks}]
-  (let [ch (if (:websocket? request)
-             (initialize-websocket request callbacks)
-             (initialize-stream request callbacks))]
+  [request & callbacks]
+  (let [callbacks (-> callbacks
+                    u/kwargs-or-map->map
+                    (o/validate-options as-channel))
+        ch (if (:websocket? request)
+                          (initialize-websocket request callbacks)
+                          (initialize-stream request callbacks))]
     {:status 200
      :body ch}))
+
+(o/set-valid-options! as-channel
+  #{:on-open :on-close :on-message :on-error})

@@ -132,7 +132,7 @@
 
 (deftest websocket-as-channel
   ;; initialize the session
-  (get-body (str (url)))
+  (get-body (str (url)) :cookies nil)
   (let [result (promise)]
     (with-open [client (http/create-client)
                 socket (http/websocket client (str (url "ws") "ws")
