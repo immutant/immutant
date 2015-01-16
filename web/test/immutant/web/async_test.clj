@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns immutant.web.websocket-test
+(ns immutant.web.async-test
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
             [immutant.web.async :refer :all]
