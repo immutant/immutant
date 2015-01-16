@@ -40,9 +40,7 @@
   ([handler key value & key-values]
      (wrap-websocket handler (apply hash-map key value key-values)))
   ([handler callbacks]
-     (if (in-container?)
-       (servlet/create-servlet handler (servlet/create-endpoint callbacks))
-       (fn [request]
-         (if (:websocket? request)
-           (async/as-channel request callbacks)
-           (merge {:status 404} (when handler (handler request))))))))
+   (fn [request]
+       (if (:websocket? request)
+         (async/as-channel request callbacks)
+         (merge {:status 404} (when handler (handler request)))))))
