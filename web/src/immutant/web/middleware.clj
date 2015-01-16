@@ -14,9 +14,10 @@
 
 (ns immutant.web.middleware
   "Ring middleware useful with immutant.web"
-  (:require [immutant.internal.util :refer [try-resolve]]
-            [immutant.util :refer [in-container?]]
-            [immutant.web.internal.servlet :refer [wrap-servlet-session]]
+  (:require [immutant.internal.util         :refer [try-resolve]]
+            [immutant.util                  :refer [in-container?]]
+            [immutant.web.async             :refer [as-channel]]
+            [immutant.web.internal.servlet  :refer [wrap-servlet-session]]
             [immutant.web.internal.undertow :refer [wrap-undertow-session]]))
 
 (defn wrap-development
@@ -66,3 +67,30 @@
        (if (in-container?)
          (wrap-servlet-session handler options)
          (wrap-undertow-session handler options)))))
+
+(defn wrap-websocket
+  "Middleware to attach websocket callbacks to a Ring handler.
+
+  The following callbacks are supported, where `channel` is an object
+  extended to [[immutant.web.async/Channel]], `handshake` is extended
+  to [[immutant.web.async/WebsocketHandshake]], `throwable` is a Java
+  exception, and `message` may be either a `String` or a `byte[]`:
+
+  * :on-message `(fn [channel message])`
+  * :on-open    `(fn [channel handshake])`
+  * :on-close   `(fn [channel {:keys [code reason]}])`
+  * :on-error   `(fn [channel throwable])`
+
+  If handler is nil, a 404 status will be returned for any
+  non-websocket request.
+
+  If called within a servlet container, e.g. WildFly, this should be
+  the last call in your middleware chain, as its result will be a
+  servlet, not a function."
+  ([handler key value & key-values]
+     (wrap-websocket handler (apply hash-map key value key-values)))
+  ([handler callbacks]
+   (fn [request]
+       (if (:websocket? request)
+         (as-channel request callbacks)
+         (merge {:status 404} (when handler (handler request)))))))

@@ -14,9 +14,8 @@
 
 (ns testing.app
   (:require [immutant.web :as web]
-            [immutant.web.websocket :as ws]
             [immutant.web.async :as async]
-            [immutant.web.middleware :refer (wrap-session)]
+            [immutant.web.middleware :refer (wrap-session wrap-websocket)]
             [immutant.codecs :refer (encode)]
             [compojure.core :refer (GET defroutes)]
             [ring.util.response :refer (charset redirect response)]))
@@ -104,7 +103,7 @@
 (defn run []
   (web/run (-> #'routes
              wrap-session
-             (ws/wrap-websocket
+             (wrap-websocket
                :on-open #'on-open-set-handshake
                :on-message #'on-message-send-handshake)))
   (web/run (-> ws-as-channel wrap-session) :path "/ws"))
