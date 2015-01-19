@@ -158,3 +158,13 @@
 (deftest as-channel-should-throw-with-invalid-callback
   (is (thrown? IllegalArgumentException
         (as-channel {:handler-type :test} {:on-fire nil}))))
+
+(deftest on-close-should-be-invoked-when-closing-on-server-side
+  (let [reason (promise)]
+    (run (fn [req]
+           (as-channel req
+             :on-open close
+             :on-close (fn [_ r] (deliver reason r)))))
+    (let [socket (ws/connect "ws://localhost:8080")]
+        (ws/send-msg socket "hello"))
+    (is (deref reason 5000 nil))))
