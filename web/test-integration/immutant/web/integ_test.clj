@@ -122,7 +122,8 @@
       (loop []
         (let [v (.poll stream)]
           (when (not= v :http.async.client/done)
-            (swap! body conj (read-string (.toString v "UTF-8")))
+            (when v
+              (swap! body conj (read-string (.toString v "UTF-8"))))
             (recur))))
       (is (= 200 (-> response :status deref :code)))
       (is (= "chunked" (:transfer-encoding headers)))
