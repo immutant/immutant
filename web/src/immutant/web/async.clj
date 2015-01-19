@@ -63,7 +63,6 @@
        :close (fn [^org.projectodd.wunderboss.web.async.Channel ch] (.close ch))
        :handshake (fn [_] nil)
        :send! (fn ([^org.projectodd.wunderboss.web.async.Channel ch message]
-                  ;; TODO: support codecs? support the same functionality as ring bodies?
                   (.send ch message))
                 ([^org.projectodd.wunderboss.web.async.Channel ch message close?]
                  (.send ch message close?)))}]
@@ -88,7 +87,7 @@
   The callbacks common to both channel types are:
 
   * `:on-open` - `(fn [ch] ...)`
-  * `:on-close` - `(fn [ch reason] ...)` - invoked after close. TODO: make reason consistent
+  * `:on-close` - `(fn [ch reason] ...)` - invoked after close.
 
   If the channel is a Websocket, the following callbacks are also used:
 
@@ -98,7 +97,7 @@
   The channel won't be available for writing until the `:on-open`
   callback is invoked.
 
-  discuss: sessions, headers
+  discuss: sessions, headers, ws vs http diffs (utf8, no headers)
   provide usage example
 
   Returns a ring response map, at least the :body of which *must* be

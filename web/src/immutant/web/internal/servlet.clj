@@ -251,7 +251,7 @@
   [_ {:keys [on-open on-close on-message on-error]}]
   (JavaxWebsocketChannel.
     (reify Channel$OnOpen
-      (handle [_  ch config]
+      (handle [_ ch config]
         (.setHandshake ^WebsocketChannel ch
           (-> ^ServerEndpointConfig config
             .getUserProperties
