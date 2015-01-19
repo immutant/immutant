@@ -13,14 +13,15 @@
 ;; limitations under the License.
 
 (ns immutant.web.integ-test
-  (:require [clojure.test :refer :all]
-            [testing.web :refer (get-body get-response)]
-            [testing.app :refer (run)]
-            [immutant.web :refer (stop) :as web]
+  (:require [clojure.string :as str]
+            [clojure.test :refer :all]
+            [http.async.client :as http]
             [immutant.codecs :refer (decode)]
-            [immutant.util :refer (in-container? http-port)]
             [immutant.internal.util :refer [try-resolve]]
-            [http.async.client :as http]))
+            [immutant.util :refer (in-container? http-port)]
+            [immutant.web :refer (stop) :as web]
+            [testing.app :refer (run)]
+            [testing.web :refer (get-body get-response)]))
 
 (when-not (in-container?)
   (use-fixtures :once
@@ -113,14 +114,21 @@
 ;; async
 
 (deftest chunked-streaming
-  ;; TODO: come up with a way to make sure the data actually comes in
-  ;; as chunks - maybe with http-async-client - it seems to have
-  ;; stream support
-  (let [response (get-response (str (url) "chunked-stream"))]
-    (is (= 200 (:status response)))
-    (is (= "chunked" (-> response :headers :transfer-encoding)))
-    (is (= (range 10) (-> response :body read-string)))
-    (is (= "biscuit" (-> response :headers :ham)))))
+  (with-open [client (http/create-client)]
+    (let [response (http/stream-seq client :get (str (url) "chunked-stream"))
+          stream @(:body response)
+          headers @(:headers response)
+          body (atom [])]
+      (loop []
+        (let [v (.poll stream)]
+          (when (not= v :http.async.client/done)
+            (swap! body conj (read-string (.toString v "UTF-8")))
+            (recur))))
+      (is (= 200 (-> response :status deref :code)))
+      (is (= "chunked" (:transfer-encoding headers)))
+      (is (= (range 10) @body))
+      (is (= 10 (count @body)))
+      (is (= "biscuit" (:ham headers))))))
 
 (deftest non-chunked-stream
   (let [data (str (repeat 128 "1"))]

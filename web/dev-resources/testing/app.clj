@@ -57,17 +57,9 @@
     (async/as-channel request
       {:on-open
        (fn [stream]
-         (.start
-           (Thread.
-             (fn []
-               (async/send! stream "[" false)
-               (dotimes [n 10]
-                 ;; we have to send a few bytes with each
-                 ;; response - there is a min-bytes threshold to
-                 ;; trigger data to the client
-                 (async/send! stream (format "%s ;; %s\n" n (repeat 128 "1")) false))
-               ;; 2-arity send! closes the stream
-               (async/send! stream "]")))))})
+         (future
+           (dotimes [n 10]
+             (async/send! stream (str n) (= n 9)))))})
     [:headers] assoc "ham" "biscuit"))
 
 (defn non-chunked-stream [request]
