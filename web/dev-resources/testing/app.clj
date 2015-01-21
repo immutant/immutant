@@ -59,14 +59,14 @@
        (fn [stream]
          (future
            (dotimes [n 10]
-             (async/send! stream (str n) (= n 9)))))})
+             (async/send! stream (str n) :close? (= n 9)))))})
     [:headers] assoc "ham" "biscuit"))
 
 (defn non-chunked-stream [request]
   (async/as-channel request
     {:on-open
      (fn [stream]
-       (async/send! stream (str (repeat 128 "1"))))}))
+       (async/send! stream (str (repeat 128 "1")) :close? true))}))
 
 (defn ws-as-channel
   [request]

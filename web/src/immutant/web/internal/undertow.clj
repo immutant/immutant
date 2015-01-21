@@ -24,11 +24,10 @@
              [io.undertow.websockets.core CloseMessage WebSocketChannel]
              [io.undertow.websockets.spi WebSocketHttpExchange]
              [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose
-              UndertowHttpChannel]
+              Channel$OnError UndertowHttpChannel]
              [org.projectodd.wunderboss.web.async.websocket UndertowWebsocket
               UndertowWebsocketChannel
-              WebsocketChannel WebsocketChannel$OnMessage WebsocketChannel$OnError
-              WebsocketInitHandler]))
+              WebsocketChannel WebsocketChannel$OnMessage WebsocketInitHandler]))
 
 (def ^{:tag SessionCookieConfig :private true} set-cookie-config!
   (memoize
@@ -182,26 +181,34 @@
         (throw (NullPointerException. "Ring handler returned nil"))))))
 
 (defmethod async/initialize-stream :undertow
-  [request {:keys [on-open on-close]}]
+  [request {:keys [on-open on-error on-close]}]
   (UndertowHttpChannel.
     (:server-exchange request)
     (when on-open
       (reify Channel$OnOpen
         (handle [_ ch _]
           (on-open ch))))
+    (when on-error
+      (reify Channel$OnError
+        (handle [_ ch error]
+          (on-error ch error))))
     (when on-close
       (reify Channel$OnClose
         (handle [_ ch code reason]
           (on-close ch {:code code :reason reason}))))))
 
 (defmethod async/initialize-websocket :undertow
-  [_ {:keys [on-open on-close on-message on-error]}]
+  [_ {:keys [on-open on-error on-close on-message on-error]}]
   (UndertowWebsocketChannel.
     (reify Channel$OnOpen
       (handle [_ ch handshake]
         (.setHandshake ^WebsocketChannel ch handshake)
         (when on-open
           (on-open ch))))
+    (reify Channel$OnError
+      (handle [_ ch error]
+        (when on-error
+          (on-error ch error))))
     (reify Channel$OnClose
       (handle [_ ch code reason]
         (when on-close
@@ -210,11 +217,7 @@
     (reify WebsocketChannel$OnMessage
       (handle [_ ch message]
         (when on-message
-          (on-message ch message))))
-    (reify WebsocketChannel$OnError
-      (handle [_ ch error]
-        (when on-error
-          (on-error ch error))))))
+          (on-message ch message))))))
 
 (defn ^:internal create-websocket-init-handler [handler-fn downstream-handler request-map-fn]
   (UndertowWebsocket/createHandler

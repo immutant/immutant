@@ -16,9 +16,10 @@
     (:require [immutant.web.internal.ring    :as ring]
               [immutant.web.internal.headers :as hdr]
               [immutant.web.async            :as async])
-    (:import [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose ServletHttpChannel]
+    (:import [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose Channel$OnError
+              ServletHttpChannel Util]
              [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint JavaxWebsocketChannel
-              Util WebsocketChannel WebsocketChannel$OnMessage WebsocketChannel$OnError]
+              WebsocketChannel WebsocketChannel$OnMessage]
              [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
              [javax.servlet Servlet ServletConfig ServletContext]
              [javax.websocket Session Endpoint EndpointConfig MessageHandler$Whole CloseReason]
@@ -130,9 +131,10 @@
   (character-encoding [hs])
   (ssl-client-cert    [hs]))
 
+;; TODO: fix send! or get rid of this
 (extend-type javax.websocket.Session
   async/Channel
-  (send!      [ch message] (.sendObject (.getAsyncRemote ch) message))
+  (send!      [ch message & ignored] (.sendObject (.getAsyncRemote ch) message))
   (open? [ch] (.isOpen ch))
   (close      [ch] (.close ch)))
 
@@ -233,7 +235,7 @@
                  {:path path :handshake (handshake-ring-invoker handler)}))))))))
 
 (defmethod async/initialize-stream :servlet
-  [request {:keys [on-open on-close]}]
+  [request {:keys [on-open on-error on-close]}]
   (ServletHttpChannel.
     (:servlet-request request)
     (:servlet-response request)
@@ -241,6 +243,10 @@
       (reify Channel$OnOpen
         (handle [_ ch _]
           (on-open ch))))
+    (when on-error
+      (reify Channel$OnError
+        (handle [_ ch error]
+          (on-error ch error))))
     (when on-close
       (reify Channel$OnClose
         (handle [_ ch code reason]
@@ -248,7 +254,7 @@
                         :reason reason}))))))
 
 (defmethod async/initialize-websocket :servlet
-  [_ {:keys [on-open on-close on-message on-error]}]
+  [_ {:keys [on-open on-error on-close on-message on-error]}]
   (JavaxWebsocketChannel.
     (reify Channel$OnOpen
       (handle [_ ch config]
@@ -258,6 +264,10 @@
             (.get "HandshakeRequest")))
         (when on-open
           (on-open ch))))
+        (reify Channel$OnError
+      (handle [_ ch error]
+        (when on-error
+          (on-error ch error))))
     (reify Channel$OnClose
       (handle [_ ch code reason]
         (when on-close
@@ -266,8 +276,4 @@
     (reify WebsocketChannel$OnMessage
       (handle [_ ch message]
         (when on-message
-          (on-message ch message))))
-    (reify WebsocketChannel$OnError
-      (handle [_ ch error]
-        (when on-error
-          (on-error ch error))))))
+          (on-message ch message))))))

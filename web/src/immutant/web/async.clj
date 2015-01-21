@@ -15,7 +15,7 @@
 (ns immutant.web.async
   (:require [immutant.internal.options :as o]
             [immutant.internal.util    :as u])
-  (:import [org.projectodd.wunderboss.web.async HttpChannel]
+  (:import [org.projectodd.wunderboss.web.async Channel$OnComplete HttpChannel]
            [org.projectodd.wunderboss.web.async.websocket WebsocketChannel]))
 
 (defn ^:internal streaming-body? [body]
@@ -44,28 +44,54 @@
   (close [ch]
     "Gracefully close the channel.
 
-     This will trigger the on-close callback for the channel if one is
-     registered.")
-  (handshake [ch] "Returns a [[WebsocketHandshake]] for `ch` if `ch` is a WebSocket channel.")
-  (send! [ch message] [ch message close?]
-    "Send a message to the channel.
+     This will trigger the :on-close callback if one is registered. with
+     [[as-channel]].")
+  (handshake [ch]
+    "Returns a [[WebsocketHandshake]] for `ch` if `ch` is a WebSocket channel.")
+  (send* [ch message close? on-complete]
+    "See [[send!]]."))
 
-     If close? is truthy, close the channel after writing. close?
-     defaults to false for WebSockets, true otherwise.
+(defn send!
+  "Send a message to the channel, asynchronously.
 
-     Sending is asynchronous for WebSockets, but blocking for
-     HTTP channels.
+   `message` can either be a String or byte[].
 
-     Returns nil if the channel is closed, true otherwise."))
+   The following options are supported [default]:
+
+   * :close? - if `true`, the channel will be closed when the send completes.
+     Setting this to `true` on the first send to an HTTP stream channel
+     will cause it to behave like a standard HTTP response, and *not* chunk
+     the response. [false]
+   * :on-complete - `(fn [throwable] ...)` - called when the send attempt
+     has completed. The success of the attempt is signaled by the passed
+     value. If the error requires the channel to be closed, the [[as-channel]]
+     :on-close callback will also be invoked. If this callback throws
+     an exception, it will be reported to the [[as-channel]] :on-error
+     callback [`#(when % (throw %))`]
+
+   Returns nil if the channel is closed when the send is initiated, true
+   otherwise. If the channel is already closed, :on-complete won't be
+   invoked."
+  [ch message & options]
+    (let [{:keys [close? on-complete]} (-> options
+                                              u/kwargs-or-map->map
+                                              (o/validate-options send!))]
+      (send* ch message close? on-complete)))
+
+(o/set-valid-options! send! #{:close? :on-complete})
 
 (let [impls
       {:open? (fn [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
        :close (fn [^org.projectodd.wunderboss.web.async.Channel ch] (.close ch))
        :handshake (fn [_] nil)
-       :send! (fn ([^org.projectodd.wunderboss.web.async.Channel ch message]
-                  (.send ch message))
-                ([^org.projectodd.wunderboss.web.async.Channel ch message close?]
-                 (.send ch message close?)))}]
+       :send*
+       (fn [^org.projectodd.wunderboss.web.async.Channel ch message close? on-complete]
+         (.send ch message
+           (boolean close?)
+           (when on-complete
+             (reify Channel$OnComplete
+               (handle [_ error]
+                 (on-complete error))))))}]
   (extend org.projectodd.wunderboss.web.async.Channel
     Channel
     impls)
@@ -80,24 +106,35 @@
 
   The type of channel created depends on the request - if the request
   is a Websocket upgrade request, a Websocket channel will be created.
-  Otherwise, an HTTP channel is created. You interact with both
+  Otherwise, an HTTP stream channel is created. You interact with both
   channel types through the [[Channel]] protocol, and through the
   given `callbacks`.
 
   The callbacks common to both channel types are:
 
-  * `:on-open` - `(fn [ch] ...)`
-  * `:on-close` - `(fn [ch reason] ...)` - invoked after close.
+  * :on-open - `(fn [ch] ...)` - called when the channel is
+    available for sending. Will only be invoked once.
+  * :on-error - `(fn [ch throwable] ...)` - Called for any error
+    that occurs in relation to the channel. If the error
+    requires the channel to be closed, :on-close will also be invoked.
+    To handle [[send!]] errors separately, provide it a completion
+    callback.
+  * :on-close - `(fn [ch {:keys [code reason]}] ...)` -
+    called for *any* close, including a call to [[close]], but will
+    only be invoked once. `ch` will already be closed by the time
+    this is invoked.
 
-  If the channel is a Websocket, the following callbacks are also used:
+    `code` and `reason` will be the numeric closure code and text reason,
+     respectively, if the channel is a WebSocket
+     (see http://tools.ietf.org/html/rfc6455#section-7.4). Both will be nil
+     for HTTP streams.
 
-  * `:on-message` - `(fn [ch message] ...)` - String or byte[]
-  * `:on-error` - `(fn [ch throwable] ...)`
+  If the channel is a Websocket, the following callback is also used:
 
-  The channel won't be available for writing until the `:on-open`
-  callback is invoked.
+  * :on-message - `(fn [ch message] ...)` - Called for each message
+    from the client. `message` will be a `String` or `byte[]`
 
-  discuss: sessions, headers, ws vs http diffs (utf8, no headers)
+  TODO: discuss: sessions, headers, ws vs http diffs (utf8, no headers)
   provide usage example
 
   Returns a ring response map, at least the :body of which *must* be
@@ -107,8 +144,8 @@
                     u/kwargs-or-map->map
                     (o/validate-options as-channel))
         ch (if (:websocket? request)
-                          (initialize-websocket request callbacks)
-                          (initialize-stream request callbacks))]
+             (initialize-websocket request callbacks)
+             (initialize-stream request callbacks))]
     {:status 200
      :body ch}))
 
