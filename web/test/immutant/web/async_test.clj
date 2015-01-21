@@ -107,7 +107,7 @@
         (is (= "Upgrade"   (-> handshake headers (get "Connection") first)))
         (is (= "k"         (-> handshake parameters (get "j") first)))
         (is (= "x=y&j=k"   (-> handshake query-string)))
-        ;; TODO: bug in undertow! (is (= "/?x=y&j=k" (-> handshake uri str)))
+        (is (= "/?x=y&j=k" (-> handshake uri str)))
         (is (false?        (-> handshake (user-in-role? "admin"))))))
     (stop)))
 

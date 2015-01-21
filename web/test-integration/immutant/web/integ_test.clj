@@ -92,14 +92,16 @@
 
 (deftest request-map-entries
   (get-body (url)) ;; ensure there's something in the session
-  (let [request (decode (get-body (str (url) "request?query=help") :headers {:content-type "text/html; charset=utf-8"}))]
+  (let [request (decode (get-body (str (url) "dump/request?query=help") :headers {:content-type "text/html; charset=utf-8"}))]
     (are [x expected] (= expected (x request))
          :content-type        "text/html; charset=utf-8"
          :character-encoding  "utf-8"
          :remote-addr         "127.0.0.1"
          :server-port         (http-port)
          :content-length      -1
-         :uri                 (str (:context request) "/request")
+         :uri                 (str (if (in-container?) "/integs") "/dump/request")
+         :path-info           "/request"
+         :context             (str (if (in-container?) "/integs") "/dump")
          :server-name         "localhost"
          :query-string        "query=help"
          :scheme              :http
@@ -107,6 +109,20 @@
     (is (-> request :session :count))
     (is (map? (:headers request)))
     (is (< 3 (count (:headers request))))))
+
+(deftest upgrade-request-map-entries
+  (let [request (promise)]
+    (with-open [c (http/create-client)
+                s (http/websocket c (str (url "ws") "dump")
+                    :text (fn [_ m] (deliver request (decode m))))]
+      (are [x expected] (= expected (x (deref request 5000 :failure)))
+           :websocket?          true
+           :uri                 (str (if (in-container?) "/integs") "/dump")
+           :context             (str (if (in-container?) "/integs") "/dump")
+           :path-info           "/"
+           :scheme              :http
+           :request-method      :get
+           :remote-addr         "127.0.0.1"))))
 
 (deftest response-charset-should-be-honored
   (doseq [charset ["UTF-8" "Shift_JIS" "ISO-8859-1" "UTF-16" "US-ASCII"]]

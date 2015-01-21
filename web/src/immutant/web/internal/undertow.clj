@@ -147,21 +147,25 @@
   (set-header [headers ^String k ^String v] (throw (Exception. "header map is read-only")))
   (add-header [headers ^String k ^String v] (throw (Exception. "header map is read-only"))))
 
+(defn- ^HttpServerExchange reflect-exchange
+  [^WebSocketHttpExchange wse]
+  (-> io.undertow.websockets.spi.AsyncWebSocketHttpServerExchange
+    (.getDeclaredField "exchange")
+    (doto (.setAccessible true))
+    (.get wse)))
+
 (extend-type io.undertow.websockets.spi.WebSocketHttpExchange
   ring/RingRequest
   (server-port        [x] (-> x .getRequestURI URI. .getPort))
   (server-name        [x] (-> x .getRequestURI URI. .getHost))
-  (remote-addr        [x]
-    (when-let [^WebSocketChannel ws-chan (-> x .getPeerConnections first)]
-      (-> ws-chan .getSourceAddress .getHostName)))
+  (remote-addr        [x] (ring/remote-addr (reflect-exchange x)))
   (uri                [x] (.getRequestURI x))
   (query-string       [x] (.getQueryString x))
-  (scheme             [x] (-> x .getRequestURI URI. .getScheme))
+  (scheme             [x] (-> x .getRequestScheme keyword))
   (request-method     [x] :get)
   (headers            [x] (-> x .getRequestHeaders hdr/headers->map))
-  ;; FIXME: should these be the same thing? maybe so, outside of the container
-  (context            [x] (-> x .getRequestURI URI. .getPath))
-  (path-info          [x] (-> x .getRequestURI URI. .getPath))
+  (context            [x] (ring/context (reflect-exchange x)))
+  (path-info          [x] (ring/path-info (reflect-exchange x)))
 
   ;; no-ops
   (body               [x])

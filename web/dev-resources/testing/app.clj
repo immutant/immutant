@@ -45,7 +45,11 @@
 
 (defn dump
   [request]
-  (response (encode (dissoc request :server-exchange :body :servlet :servlet-request :servlet-response :servlet-context))))
+  (let [data (encode (dissoc request :server-exchange :body :servlet
+                       :servlet-request :servlet-response :servlet-context))]
+    (if (:websocket? request)
+      (async/as-channel request :on-open (fn [ch] (async/send! ch data)))
+      (response data))))
 
 (defn with-charset [request]
   (let [[_ cs] (re-find #"charset=(.*)" (:query-string request))
@@ -105,7 +109,6 @@
   (GET "/" [] counter)
   (GET "/session" {s :session} (encode s))
   (GET "/unsession" [] {:session nil})
-  (GET "/request" [] dump)
   (GET "/charset" [] with-charset)
   (GET "/chunked-stream" [] chunked-stream)
   (GET "/non-chunked-stream" [] non-chunked-stream))
@@ -122,4 +125,5 @@
                :on-message #'on-message-send-handshake)
              wrap-session))
   (web/run (-> #'cdef-handler wrap-params) :path "/cdef")
-  (web/run (-> ws-as-channel wrap-session) :path "/ws"))
+  (web/run (-> ws-as-channel wrap-session) :path "/ws")
+  (web/run (-> dump wrap-session) :path "/dump"))

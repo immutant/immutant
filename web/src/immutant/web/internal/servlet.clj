@@ -85,7 +85,7 @@
   (headers [request]            (hdr/headers->map request))
   (body [request]               (.getInputStream request))
   (context [request]            (str (.getContextPath request) (.getServletPath request)))
-  (path-info [request]          (.getPathInfo request))
+  (path-info [request]          (or (.getPathInfo request) "/"))
   (ssl-client-cert [request]    (first (.getAttribute request "javax.servlet.request.X509Certificate")))
   hdr/Headers
   (get-names [request]      (enumeration-seq (.getHeaderNames request)))
@@ -100,6 +100,16 @@
   (get-value [response key] (.getHeader response key))
   (set-header [response key value] (.setHeader response key value))
   (add-header [response key value] (.addHeader response key value)))
+
+(defn- ^HttpServletRequest reflect-request
+  [^HandshakeRequest hsr]
+  (-> io.undertow.servlet.websockets.ServletWebSocketHttpExchange
+    (.getDeclaredField "request")
+    (doto (.setAccessible true))
+    (.get (-> io.undertow.websockets.jsr.handshake.ExchangeHandshakeRequest
+            (.getDeclaredField "exchange")
+            (doto (.setAccessible true))
+            (.get hsr)))))
 
 (extend-type javax.websocket.server.HandshakeRequest
   async/WebsocketHandshake
@@ -116,15 +126,14 @@
   (server-name        [hs] (-> hs .getRequestURI .getHost))
   (uri                [hs] (-> hs .getRequestURI .toString))
   (query-string       [hs] (.getQueryString hs))
-  (scheme             [hs] (-> hs .getRequestURI .getScheme))
+  (scheme             [hs] (ring/scheme (reflect-request hs)))
   (request-method     [hs] :get)
   (headers            [hs] (-> hs .getHeaders hdr/headers->map))
-  ;; FIXME: should these be the same thing? probably not, inside the container
-  (context            [hs] (-> hs .getRequestURI .getPath))
-  (path-info          [hs] (-> hs .getRequestURI .getPath))
-
+  (context            [hs] (ring/context (reflect-request hs)))
+  (path-info          [hs] (ring/path-info (reflect-request hs)))
+  (remote-addr        [hs] (ring/remote-addr (reflect-request hs)))
+  
   ;; no-ops
-  (remote-addr        [hs])
   (body               [hs])
   (content-type       [hs])
   (content-length     [hs])
