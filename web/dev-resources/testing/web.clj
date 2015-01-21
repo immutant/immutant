@@ -27,9 +27,9 @@
   "Return the response as a map. Any response returning a :set-cookie
   will cause subsequent requests to send them. The raw
   ByteArrayOutputStream of the body is included as :raw-body]"
-  [url & {:keys [headers cookies] :or {cookies @testing.web/cookies}}]
+  [url & {:keys [headers cookies query] :or {cookies @testing.web/cookies}}]
   (with-open [client (http/create-client)]
-    (let [response (http/GET client url :headers headers :cookies cookies)]
+    (let [response (http/GET client url :headers headers :cookies cookies :query query)]
       (http/await response)
       (when-let [error (http/error response)]
         (throw error))

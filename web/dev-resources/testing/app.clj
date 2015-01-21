@@ -15,10 +15,12 @@
 (ns testing.app
   (:require [immutant.web :as web]
             [immutant.web.async :as async]
+            [immutant.internal.util :refer [maybe-deref]]
             [immutant.web.middleware :refer (wrap-session wrap-websocket)]
             [immutant.codecs :refer (encode)]
             [compojure.core :refer (GET defroutes)]
-            [ring.util.response :refer (charset redirect response)]))
+            [ring.util.response :refer (charset redirect response)]
+            [ring.middleware.params :refer [wrap-params]]))
 
 (def handshakes (atom {}))
 
@@ -84,6 +86,21 @@
                    #_(println "TC: closed" reason))})
     :session (assoc (:session request) :ham :sandwich)))
 
+(def client-defined-handler (atom (fn [_] (throw (Exception. "no handler given")))))
+
+(def client-state (atom nil))
+
+(defn set-client-handler [new-handler]
+  (binding [*ns* (find-ns 'testing.app)]
+    (reset! client-defined-handler (eval (read-string new-handler))))
+  (response "OK"))
+
+(defn use-client-handler [request]
+  (@client-defined-handler request))
+
+(defn get-client-state [_]
+  (-> @client-state (maybe-deref 5000 :failure!) pr-str response))
+
 (defroutes routes
   (GET "/" [] counter)
   (GET "/session" {s :session} (encode s))
@@ -93,10 +110,16 @@
   (GET "/chunked-stream" [] chunked-stream)
   (GET "/non-chunked-stream" [] non-chunked-stream))
 
+(defroutes cdef-handler
+  (GET "/" [] use-client-handler)
+  (GET "/set-handler" [new-handler] (set-client-handler new-handler))
+  (GET "/state" [] get-client-state))
+
 (defn run []
   (web/run (-> #'routes
              (wrap-websocket
                :on-open #'on-open-set-handshake
                :on-message #'on-message-send-handshake)
              wrap-session))
+  (web/run (-> #'cdef-handler wrap-params) :path "/cdef")
   (web/run (-> ws-as-channel wrap-session) :path "/ws"))

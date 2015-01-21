@@ -16,6 +16,7 @@
   (:require [clojure.string :as str]
             [clojure.test :refer :all]
             [http.async.client :as http]
+            [gniazdo.core :as ws]
             [immutant.codecs :refer (decode)]
             [immutant.internal.util :refer [try-resolve]]
             [immutant.util :refer (in-container? http-port)]
@@ -36,6 +37,16 @@
      (if (in-container?)
        (str ((try-resolve 'immutant.wildfly/base-uri) "localhost" protocol) "/")
        (format "%s://localhost:8080/" protocol))))
+
+(defn cdef-url
+  ([]
+   (cdef-url "http"))
+  ([proto]
+   (str (url proto) "cdef/")))
+
+(defn replace-handler [form]
+  (get-response (str (cdef-url) "set-handler")
+    :query {:new-handler (pr-str form)}))
 
 (deftest http-session-store
   (is (= "0" (get-body (url) :cookies nil)))
@@ -150,3 +161,45 @@
       (http/send socket :text "hello")
       (is (= "HELLO" (deref result 5000 :failure)))
       (is (= {:count 1 :ham :sandwich} (decode (get-body (str (url) "session"))))))))
+
+(comment
+  ;; TODO: uncomment these tests once path-info works
+  (deftest on-close-should-be-invoked-when-closing-on-server-side
+    (replace-handler
+      '(do
+         (reset! client-state (promise))
+         (fn [request]
+           (async/as-channel request
+             :on-message (fn [ch m] (async/close ch))
+             :on-close (fn [_ r] (deliver @client-state r))))))
+    (with-open [socket (ws/connect (cdef-url "ws"))]
+      (ws/send-msg socket "hello")
+      (is (= 1000 (:code (read-string (get-body (str (cdef-url) "state"))))))))
+
+  (deftest on-complete-should-be-called-after-send
+    (replace-handler
+      '(do
+         (reset! client-state (promise))
+         (fn [request]
+           (async/as-channel request
+             :on-message (fn [ch m]
+                           (async/send! ch m
+                             :on-complete (fn [_]
+                                            (deliver @client-state :complete!))))))))
+    (with-open [socket (ws/connect (cdef-url "ws"))]
+      (ws/send-msg socket "hello")
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+
+  (deftest on-error-is-called-if-on-complete-throws
+    (replace-handler
+      '(do
+         (reset! client-state (promise))
+         (fn [request]
+           (async/as-channel request
+             :on-error (fn [_ err] (deliver @client-state (.getMessage err)))
+             :on-message (fn [ch m]
+                           (async/send! ch m
+                             :on-complete (fn [_] (throw (Exception. "BOOM")))))))))
+    (with-open [socket (ws/connect (cdef-url "ws"))]
+      (ws/send-msg socket "hello")
+      (is (= "BOOM" (read-string (get-body (str (cdef-url) "state"))))))))
