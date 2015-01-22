@@ -156,8 +156,8 @@
 
 (extend-type io.undertow.websockets.spi.WebSocketHttpExchange
   ring/RingRequest
-  (server-port        [x] (-> x .getRequestURI URI. .getPort))
-  (server-name        [x] (-> x .getRequestURI URI. .getHost))
+  (server-port        [x] (ring/server-port (reflect-exchange x)))
+  (server-name        [x] (ring/server-name (reflect-exchange x)))
   (remote-addr        [x] (ring/remote-addr (reflect-exchange x)))
   (uri                [x] (.getRequestURI x))
   (query-string       [x] (.getQueryString x))

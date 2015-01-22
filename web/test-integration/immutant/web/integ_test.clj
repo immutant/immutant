@@ -122,7 +122,8 @@
            :path-info           "/"
            :scheme              :http
            :request-method      :get
-           :remote-addr         "127.0.0.1"))))
+           :server-port         (http-port)
+           :server-name         "localhost"))))
 
 (deftest response-charset-should-be-honored
   (doseq [charset ["UTF-8" "Shift_JIS" "ISO-8859-1" "UTF-16" "US-ASCII"]]

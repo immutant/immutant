@@ -19,7 +19,7 @@
     (:import [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose Channel$OnError
               ServletHttpChannel Util]
              [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint JavaxWebsocketChannel
-              WebsocketChannel WebsocketChannel$OnMessage]
+              WebsocketChannel WebsocketChannel$OnMessage DelegatingHandshakeRequest]
              [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
              [javax.servlet Servlet ServletConfig ServletContext]
              [javax.websocket Session Endpoint EndpointConfig MessageHandler$Whole CloseReason]
@@ -101,17 +101,7 @@
   (set-header [response key value] (.setHeader response key value))
   (add-header [response key value] (.addHeader response key value)))
 
-(defn- ^HttpServletRequest reflect-request
-  [^HandshakeRequest hsr]
-  (-> io.undertow.servlet.websockets.ServletWebSocketHttpExchange
-    (.getDeclaredField "request")
-    (doto (.setAccessible true))
-    (.get (-> io.undertow.websockets.jsr.handshake.ExchangeHandshakeRequest
-            (.getDeclaredField "exchange")
-            (doto (.setAccessible true))
-            (.get hsr)))))
-
-(extend-type javax.websocket.server.HandshakeRequest
+(extend-type DelegatingHandshakeRequest
   async/WebsocketHandshake
   (headers        [hs] (.getHeaders hs))
   (parameters     [hs] (.getParameterMap hs))
@@ -122,18 +112,18 @@
   (user-in-role?  [hs role] (.isUserInRole hs role))
 
   ring/RingRequest
-  (server-port        [hs] (-> hs .getRequestURI .getPort))
-  (server-name        [hs] (-> hs .getRequestURI .getHost))
-  (uri                [hs] (-> hs .getRequestURI .toString))
+  (server-port        [hs] (.getOriginPort hs))
+  (server-name        [hs] (.getOriginHost hs))
+  (uri                [hs] (-> hs .getRequestURI .getPath))
   (query-string       [hs] (.getQueryString hs))
-  (scheme             [hs] (ring/scheme (reflect-request hs)))
+  (scheme             [hs] (keyword (.getOriginScheme hs)))
   (request-method     [hs] :get)
   (headers            [hs] (-> hs .getHeaders hdr/headers->map))
-  (context            [hs] (ring/context (reflect-request hs)))
-  (path-info          [hs] (ring/path-info (reflect-request hs)))
-  (remote-addr        [hs] (ring/remote-addr (reflect-request hs)))
+  (context            [hs] (.getContextPath hs))
+  (path-info          [hs] (.getPathInfo hs))
   
   ;; no-ops
+  (remote-addr        [hs])
   (body               [hs])
   (content-type       [hs])
   (content-length     [hs])
@@ -194,12 +184,13 @@
          (create (class endpoint) path)
          (configurator (proxy [ServerEndpointConfig$Configurator] []
                          (getEndpointInstance [c] endpoint)
-                         (modifyHandshake [^ServerEndpointConfig config request response]
-                           (-> config
+                         (modifyHandshake [^ServerEndpointConfig config ^HandshakeRequest request response]
+                           (let [delegate (DelegatingHandshakeRequest. request servlet-context path)]
+                             (-> config
                                .getUserProperties
-                               (.put "HandshakeRequest" request))
-                           (when handshake
-                             (handshake config request response)))))
+                               (.put "HandshakeRequest" delegate))
+                             (when handshake
+                               (handshake config delegate response))))))
          build))))
 
 (defn handshake-ring-invoker [handler]
