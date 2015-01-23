@@ -78,16 +78,11 @@
   [request]
   (assoc
     (async/as-channel request
-      {:on-open (fn [ch]
-                  #_(println "TC: open" ch))
-       :on-message (fn [ch message]
-                     #_(println "TC: message" message)
+      {:on-message (fn [ch message]
                      (async/send! ch (.toUpperCase message)))
        :on-error (fn [ch err]
                    (println "Error on websocket")
-                   (.printStackTrace err))
-       :on-close (fn [ch reason]
-                   #_(println "TC: closed" reason))})
+                   (.printStackTrace err))})
     :session (assoc (:session request) :ham :sandwich)))
 
 (def client-defined-handler (atom (fn [_] (throw (Exception. "no handler given")))))
@@ -118,6 +113,11 @@
   (GET "/set-handler" [new-handler] (set-client-handler new-handler))
   (GET "/state" [] get-client-state))
 
+(defroutes nested-ws-routes
+  (GET "/" [] dump)
+  (GET "/foo" [] dump)
+  (GET "/foo/bar" [] dump))
+
 (defn run []
   (web/run (-> #'routes
              (wrap-websocket
@@ -126,4 +126,5 @@
              wrap-session))
   (web/run (-> #'cdef-handler wrap-params) :path "/cdef")
   (web/run (-> ws-as-channel wrap-session) :path "/ws")
-  (web/run (-> dump wrap-session) :path "/dump"))
+  (web/run (-> dump wrap-session) :path "/dump")
+  (web/run nested-ws-routes :path "/nested-ws"))

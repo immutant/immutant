@@ -179,6 +179,16 @@
       (is (= "HELLO" (deref result 5000 :failure)))
       (is (= {:count 1 :ham :sandwich} (decode (get-body (str (url) "session"))))))))
 
+(deftest nested-ws-routes
+  (doseq [path ["" "foo" "foo/bar"]]
+    (let [result (promise)]
+      (with-open [client (http/create-client)
+                  socket (http/websocket client (format "%snested-ws/%s" (url "ws") path)
+                           :text (fn [_ m] (deliver result m)))]
+        (http/send socket :text "whatevs")
+        (is (= (str "/" path)
+              (-> result (deref 5000 "nil") read-string :path-info)))))))
+
 (deftest on-close-should-be-invoked-when-closing-on-server-side
   (replace-handler
     '(do

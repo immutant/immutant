@@ -103,6 +103,14 @@
   (set-header [response key value] (.setHeader response key value))
   (add-header [response key value] (.addHeader response key value)))
 
+(extend-type java.util.Collections$UnmodifiableMap
+  hdr/Headers
+  (get-names [headers] (map str (.keySet headers)))
+  (get-values [headers ^String key] (.get headers key))
+  (get-value [headers ^String key] (first (hdr/get-values headers key)))
+  (set-header [headers ^String k ^String v] (throw (Exception. "header map is read-only")))
+  (add-header [headers ^String k ^String v] (throw (Exception. "header map is read-only"))))
+
 (extend-type DelegatingHandshakeRequest
   async/WebsocketHandshake
   (headers        [hs] (.getHeaders hs))

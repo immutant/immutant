@@ -87,7 +87,7 @@
                         h2                         "1.3.176"
 
                         ;; org.projectodd.wunderboss  "0.3.0"
-                        org.projectodd.wunderboss  "1.x.incremental.183"
+                        org.projectodd.wunderboss  "1.x.incremental.184"
                         ;; org.projectodd.wunderboss  "0.4.0-SNAPSHOT"
 
                         org.immutant               :version}}

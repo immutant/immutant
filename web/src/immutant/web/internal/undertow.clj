@@ -45,21 +45,17 @@
 (defn- get-or-create-session
   ([exchange]
    (get-or-create-session exchange nil))
-  ([exchange {:keys [timeout] :as options}]
-   (condp instance? exchange
-     HttpServerExchange    (let [hse ^HttpServerExchange exchange]
-                             (when options
-                               (set-cookie-config!
-                                 (.getAttachment hse SessionConfig/ATTACHMENT_KEY)
-                                 options))
-                             (-> hse
-                               Sessions/getOrCreateSession
-                               (as-> session
-                                   (if options
-                                     (ring/set-session-expiry session timeout)
-                                     session))))
-     ;; we can't set options or create a session when handling a ws upgrade
-     WebSocketHttpExchange (.getSession ^WebSocketHttpExchange exchange))))
+  ([^HttpServerExchange exchange {:keys [timeout] :as options}]
+   (when options
+     (set-cookie-config!
+       (.getAttachment exchange SessionConfig/ATTACHMENT_KEY)
+       options))
+   (-> exchange
+     Sessions/getOrCreateSession
+     (as-> session
+         (if options
+           (ring/set-session-expiry session timeout)
+           session)))))
 
 (defn wrap-undertow-session
   "Ring middleware to insert a :session entry into the request, its
@@ -68,7 +64,7 @@
   [handler options]
   (let [fallback (delay (ring-session/wrap-session handler options))]
     (fn [request]
-      (if-let [exchange (:server-exchange request)]
+      (if-let [^HttpServerExchange exchange (:server-exchange request)]
         (let [response (handler
                          (assoc request
                            ;; we assume the request map automatically derefs delays
@@ -77,11 +73,8 @@
             (if-let [data (:session response)]
               (when-let [session (get-or-create-session exchange)]
                 (ring/set-ring-session! session data))
-              (when [(instance? HttpServerExchange exchange)]
-                ;; we can only invalidate sessions when handling an
-                ;; http request
-                (when-let [session (Sessions/getSession ^HttpServerExchange exchange)]
-                  (.invalidate session exchange)))))
+              (when-let [session (Sessions/getSession exchange)]
+                (.invalidate session exchange))))
           response)
         (@fallback request)))))
 
@@ -118,7 +111,7 @@
   (character-encoding [exchange] (if-let [type (ring/content-type exchange)]
                                    (Headers/extractTokenFromHeader type "charset")))
   (headers [exchange]            (-> exchange .getRequestHeaders hdr/headers->map))
-  (body [exchange]               (.getInputStream exchange))
+  (body [exchange]               (when (.isBlocking exchange) (.getInputStream exchange)))
   (context [exchange]            (.getResolvedPath exchange))
   (path-info [exchange]          (let [v (.getRelativePath exchange)]
                                    (if (empty? v) "/" v)))
@@ -138,41 +131,6 @@
   (session        [ex] (-> ex .getSession ring/ring-session))
   (user-principal [ex] (.getUserPrincipal ex))
   (user-in-role?  [ex role] (.isUserInRole ex role)))
-
-(extend-type java.util.Collections$UnmodifiableMap
-  hdr/Headers
-  (get-names [headers] (map str (.keySet headers)))
-  (get-values [headers ^String key] (.get headers key))
-  (get-value [headers ^String key] (first (hdr/get-values headers key)))
-  (set-header [headers ^String k ^String v] (throw (Exception. "header map is read-only")))
-  (add-header [headers ^String k ^String v] (throw (Exception. "header map is read-only"))))
-
-(defn- ^HttpServerExchange reflect-exchange
-  [^WebSocketHttpExchange wse]
-  (-> io.undertow.websockets.spi.AsyncWebSocketHttpServerExchange
-    (.getDeclaredField "exchange")
-    (doto (.setAccessible true))
-    (.get wse)))
-
-(extend-type io.undertow.websockets.spi.WebSocketHttpExchange
-  ring/RingRequest
-  (server-port        [x] (ring/server-port (reflect-exchange x)))
-  (server-name        [x] (ring/server-name (reflect-exchange x)))
-  (remote-addr        [x] (ring/remote-addr (reflect-exchange x)))
-  (uri                [x] (.getRequestURI x))
-  (query-string       [x] (.getQueryString x))
-  (scheme             [x] (-> x .getRequestScheme keyword))
-  (request-method     [x] :get)
-  (headers            [x] (-> x .getRequestHeaders hdr/headers->map))
-  (context            [x] (ring/context (reflect-exchange x)))
-  (path-info          [x] (ring/path-info (reflect-exchange x)))
-
-  ;; no-ops
-  (body               [x])
-  (content-type       [x])
-  (content-length     [x])
-  (character-encoding [x])
-  (ssl-client-cert    [x]))
 
 (defn create-http-handler [handler]
   (reify HttpHandler
@@ -224,16 +182,19 @@
           (on-message ch message))))))
 
 (defn ^:internal create-websocket-init-handler [handler-fn downstream-handler request-map-fn]
-  (UndertowWebsocket/createHandler
-    (reify WebsocketInitHandler
-      (shouldConnect [_ exchange endpoint-wrapper]
-        (boolean
-          (let [body (:body (handler-fn (request-map-fn exchange
-                                          [:websocket? true]
-                                          [:server-exchange exchange]
-                                          [:handler-type :undertow])))]
-            (when (instance? WebsocketChannel body)
-              (.setEndpoint endpoint-wrapper
-                (.endpoint ^WebsocketChannel body))
-              true)))))
-    downstream-handler))
+  (let [http-exchange-tl (ThreadLocal.)]
+    (UndertowWebsocket/createHandler
+      http-exchange-tl
+      (reify WebsocketInitHandler
+        (shouldConnect [_ exchange endpoint-wrapper]
+          (let [http-exchange (.get http-exchange-tl)]
+            (boolean
+              (let [body (:body (handler-fn (request-map-fn http-exchange
+                                              [:websocket? true]
+                                              [:server-exchange http-exchange]
+                                              [:handler-type :undertow])))]
+                (when (instance? WebsocketChannel body)
+                  (.setEndpoint endpoint-wrapper
+                    (.endpoint ^WebsocketChannel body))
+                  true))))))
+      downstream-handler)))
