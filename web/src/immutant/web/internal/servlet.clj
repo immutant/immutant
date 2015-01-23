@@ -19,7 +19,7 @@
     (:import [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose Channel$OnError
               ServletHttpChannel Util]
              [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint
-              JavaxWebsocketChannel PathInfoRemovingFilter DelegatingHandshakeRequest
+              JavaxWebsocketChannel WebSocketHelpyHelpersonFilter
               WebsocketChannel WebsocketChannel$OnMessage]
              [java.util LinkedHashMap]
              [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
@@ -31,14 +31,11 @@
 (defn- get-or-create-session
   ([servlet-request]
    (get-or-create-session servlet-request nil))
-  ([servlet-request timeout]
-   (condp instance? servlet-request
-     HttpServletRequest (let [session (.getSession ^HttpServletRequest servlet-request)]
-                          (if timeout
-                            (ring/set-session-expiry session timeout)
-                            session))
-     ;; we can't set options or create a session when handling a ws upgrade
-     HandshakeRequest   (.getHttpSession ^HandshakeRequest servlet-request))))
+  ([^HttpServletRequest servlet-request timeout]
+    (let [session (.getSession servlet-request)]
+      (if timeout
+        (ring/set-session-expiry session timeout)
+        session))))
 
 (defn wrap-servlet-session
   "Ring middleware to insert a :session entry into the request, its
@@ -46,7 +43,7 @@
   associated servlet"
   [handler {:keys [timeout]}]
   (fn [request]
-    (let [servlet-request (:servlet-request request)
+    (let [^HttpServletRequest servlet-request (:servlet-request request)
           response (handler
                      (assoc request
                        ;; we assume the request map automatically derefs delays
@@ -54,11 +51,8 @@
       (when (contains? response :session)
         (if-let [data (:session response)]
           (ring/set-ring-session! (get-or-create-session servlet-request) data)
-          (when (instance? HttpServletRequest servlet-request)
-            ;; we can only invalidate sessions when handling an
-            ;; http request
-            (when-let [session (.getSession ^HttpServletRequest servlet-request false)]
-              (.invalidate session)))))
+          (when-let [session (.getSession servlet-request false)]
+            (.invalidate session))))
       response)))
 
 (extend-type HttpSession
@@ -103,15 +97,7 @@
   (set-header [response key value] (.setHeader response key value))
   (add-header [response key value] (.addHeader response key value)))
 
-(extend-type java.util.Collections$UnmodifiableMap
-  hdr/Headers
-  (get-names [headers] (map str (.keySet headers)))
-  (get-values [headers ^String key] (.get headers key))
-  (get-value [headers ^String key] (first (hdr/get-values headers key)))
-  (set-header [headers ^String k ^String v] (throw (Exception. "header map is read-only")))
-  (add-header [headers ^String k ^String v] (throw (Exception. "header map is read-only"))))
-
-(extend-type DelegatingHandshakeRequest
+(extend-type HandshakeRequest
   async/WebsocketHandshake
   (headers        [hs] (.getHeaders hs))
   (parameters     [hs] (.getParameterMap hs))
@@ -119,26 +105,7 @@
   (query-string   [hs] (.getQueryString hs))
   (session        [hs] (-> hs .getHttpSession ring/ring-session))
   (user-principal [hs] (.getUserPrincipal hs))
-  (user-in-role?  [hs role] (.isUserInRole hs role))
-
-  ring/RingRequest
-  (server-port        [hs] (.getOriginPort hs))
-  (server-name        [hs] (.getOriginHost hs))
-  (uri                [hs] (-> hs .getRequestURI .getPath))
-  (query-string       [hs] (.getQueryString hs))
-  (scheme             [hs] (keyword (.getOriginScheme hs)))
-  (request-method     [hs] :get)
-  (headers            [hs] (-> hs .getHeaders hdr/headers->map))
-  (context            [hs] (.getContextPath hs))
-  (path-info          [hs] (.getPathInfo hs))
-
-  ;; no-ops
-  (remote-addr        [hs])
-  (body               [hs])
-  (content-type       [hs])
-  (content-length     [hs])
-  (character-encoding [hs])
-  (ssl-client-cert    [hs]))
+  (user-in-role?  [hs role] (.isUserInRole hs role)))
 
 ;; TODO: fix send! or get rid of this
 (extend-type javax.websocket.Session
@@ -194,13 +161,15 @@
          (create (class endpoint) path)
          (configurator (proxy [ServerEndpointConfig$Configurator] []
                          (getEndpointInstance [c] endpoint)
-                         (modifyHandshake [^ServerEndpointConfig config ^HandshakeRequest request response]
-                           (let [delegate (DelegatingHandshakeRequest. request servlet-context path)]
-                             (-> config
-                               .getUserProperties
-                               (.put "HandshakeRequest" delegate))
-                             (when handshake
-                               (handshake config delegate response))))))
+                         (modifyHandshake [^ServerEndpointConfig config
+                                           ^HandshakeRequest hs-request response]
+                           (-> config
+                             .getUserProperties
+                             (.put "HandshakeRequest" hs-request))
+                           (when handshake
+                             (handshake config
+                               (.get (WebSocketHelpyHelpersonFilter/requestTL))
+                               response)))))
          build))))
 
 (defn handshake-ring-invoker [handler]
@@ -290,4 +259,4 @@
 
 (defn websocket-servlet-filter-map []
   (doto (LinkedHashMap.)
-    (.put "nix-path-info" (PathInfoRemovingFilter.))))
+    (.put "ws-helper" (WebSocketHelpyHelpersonFilter.))))
