@@ -189,7 +189,7 @@
         (is (= (str "/" path)
               (-> result (deref 5000 "nil") read-string :path-info)))))))
 
-(deftest on-close-should-be-invoked-when-closing-on-server-side
+(deftest ws-on-close-should-be-invoked-when-closing-on-server-side
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -201,7 +201,7 @@
     (ws/send-msg socket "hello")
     (is (= 1000 (:code (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest on-complete-should-be-called-after-send
+(deftest ws-on-complete-should-be-called-after-send
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -215,7 +215,7 @@
     (ws/send-msg socket "hello")
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
 
-(deftest on-error-is-called-if-on-complete-throws
+(deftest ws-on-error-is-called-if-on-complete-throws
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -229,4 +229,41 @@
     (ws/send-msg socket "hello")
     (is (= "BOOM" (read-string (get-body (str (cdef-url) "state")))))))
 
-;; TODO: replicate the above tests for streams
+(deftest stream-on-close-should-be-invoked-when-closing-on-server-side
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-open (fn [ch] (async/close ch))
+           :on-close (fn [_ r] (deliver @client-state :closed))))))
+  (is (= nil (get-body (cdef-url))))
+  (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))
+
+(deftest stream-on-complete-should-be-called-after-send
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-open (fn [ch]
+                         (async/send! ch "ahoy"
+                           :close? true
+                           :on-complete (fn [_]
+                                          (deliver @client-state :complete!))))))))
+  (is (= "ahoy" (get-body (cdef-url))))
+  (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))
+
+(deftest stream-on-error-is-called-if-on-complete-throws
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-error (fn [_ err] (deliver @client-state (.getMessage err)))
+           :on-open (fn [ch]
+                         (async/send! ch "ahoy"
+                           :close? true
+                           :on-complete (fn [_] (throw (Exception. "BOOM")))))))))
+  (is (= "ahoy" (get-body (cdef-url))))
+  (is (= "BOOM" (read-string (get-body (str (cdef-url) "state"))))))
