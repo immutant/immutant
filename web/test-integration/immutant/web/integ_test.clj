@@ -79,10 +79,9 @@
 
 (deftest handshake-headers
   (let [result (promise)]
-    (with-open [client (http/create-client)
-                socket (http/websocket client (str (url "ws") "?x=y&j=k")
-                         :text (fn [_ s] (deliver result (decode s))))]
-      (http/send socket :text "doesn't matter")
+    (with-open [socket (ws/connect (str (url "ws") "?x=y&j=k")
+                         :on-receive (fn [s] (deliver result (decode s))))]
+      (ws/send-msg socket "doesn't matter")
       (let [handshake (deref result 5000 nil)]
         (is (not (nil? handshake)))
         (is (= "Upgrade"   (-> handshake :headers (get "Connection") first)))
@@ -112,9 +111,8 @@
 
 (deftest upgrade-request-map-entries
   (let [request (promise)]
-    (with-open [c (http/create-client)
-                s (http/websocket c (str (url "ws") "dump")
-                    :text (fn [_ m] (deliver request (decode m))))]
+    (with-open [s (ws/connect (str (url "ws") "dump")
+                    :on-receive (fn [m] (deliver request (decode m))))]
       (are [x expected] (= expected (x (deref request 5000 :failure)))
            :websocket?          true
            :uri                 (str (if (in-container?) "/integs") "/dump")
@@ -182,10 +180,9 @@
 (deftest nested-ws-routes
   (doseq [path ["" "foo" "foo/bar"]]
     (let [result (promise)]
-      (with-open [client (http/create-client)
-                  socket (http/websocket client (format "%snested-ws/%s" (url "ws") path)
-                           :text (fn [_ m] (deliver result m)))]
-        (http/send socket :text "whatevs")
+      (with-open [socket (ws/connect (format "%snested-ws/%s" (url "ws") path)
+                           :on-receive (fn [m] (deliver result m)))]
+        (ws/send-msg socket "whatevs")
         (is (= (str "/" path)
               (-> result (deref 5000 "nil") read-string :path-info)))))))
 
