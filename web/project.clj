@@ -27,6 +27,7 @@
                              [stylefruits/gniazdo _]
                              [ring/ring-devel _]
                              [compojure _]
-                             [clj-http "0.9.1"]]}}
+                             [clj-http "0.9.1"]
+                             [org.glassfish.jersey.media/jersey-media-sse "2.15"]]}}
 
   :test-paths ["test" "test-integration"])

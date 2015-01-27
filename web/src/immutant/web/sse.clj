@@ -25,6 +25,8 @@
   (event->str [x] "Formats event according to SSE spec"))
 
 (extend-protocol Event
+  nil
+  (event->str [_] "data:\n")
   Object
   (event->str [o] (str "data:" o "\n"))
   java.util.Collection
