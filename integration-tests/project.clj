@@ -33,7 +33,8 @@
                                         [org.clojars.jcrossley3/http.async.client _]
                                         [stylefruits/gniazdo _]
                                         [ring/ring-devel _]
-                                        [compojure _]]
+                                        [compojure _]
+                                        [org.glassfish.jersey.media/jersey-media-sse _]]
                          :resource-paths ["../web/dev-resources"]
                          :test-paths ["../web/test-integration"]
                          :main integs.web}

@@ -28,6 +28,6 @@
                              [ring/ring-devel _]
                              [compojure _]
                              [clj-http "0.9.1"]
-                             [org.glassfish.jersey.media/jersey-media-sse "2.15"]]}}
+                             [org.glassfish.jersey.media/jersey-media-sse _]]}}
 
   :test-paths ["test" "test-integration"])

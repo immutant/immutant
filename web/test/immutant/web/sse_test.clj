@@ -14,11 +14,10 @@
 
 (ns immutant.web.sse-test
   (:require [clojure.test :refer :all]
+            [testing.web :refer (event-source handle-events)]
             [immutant.web.sse :refer :all]
             [immutant.web :refer (run stop)]
-            [clojure.string :refer (split-lines)])
-  (:import [org.glassfish.jersey.media.sse EventSource EventListener SseFeature]
-           [javax.ws.rs.client ClientBuilder]))
+            [clojure.string :refer (split-lines)]))
 
 (deftest event-formatting
   (testing "string"
@@ -38,15 +37,6 @@
     (is (= "data:0\ndata:1\ndata:2\n"
           (event->str {:data (range 3)})))))
 
-(defn event-source
-  [url]
-  (-> (EventSource/target 
-        (-> (ClientBuilder/newBuilder)
-          (.register SseFeature)
-          .build
-          (.target url)))
-    .build))
-
 (deftest sse
   (let [closed (promise)
         result (atom [])
@@ -60,12 +50,11 @@
                              (fn [_] (swap! result conj :done)))),))
         server (run app)
         client (event-source "http://localhost:8080")]
-    (.register client (reify EventListener
-                        (onEvent [_ e]
-                          (swap! result conj (.readData e))
-                          (when (= "close" (.getName e))
-                            (.close client)
-                            (deliver closed :success)))))
+    (handle-events client (fn [e]
+                            (swap! result conj (.readData e))
+                            (when (= "close" (.getName e))
+                              (.close client)
+                              (deliver closed :success))))
     (.open client)
     (is (= :success (deref closed 5000 :fail)))
     (is (not (.isOpen client)))

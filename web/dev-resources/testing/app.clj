@@ -15,6 +15,7 @@
 (ns testing.app
   (:require [immutant.web :as web]
             [immutant.web.async :as async]
+            [immutant.web.sse :as sse]
             [immutant.internal.util :refer [maybe-deref]]
             [immutant.web.middleware :refer (wrap-session wrap-websocket)]
             [immutant.codecs :refer (encode)]
@@ -74,6 +75,14 @@
      (fn [stream]
        (async/send! stream (str (repeat 128 "1")) :close? true))}))
 
+(defn sse
+  [request]
+  (sse/as-channel request
+    {:on-open (fn [ch]
+                (doseq [x (range 5 0 -1)]
+                  (sse/send! ch x))
+                (sse/send! ch {:event "close", :data "bye!"}))}))
+
 (defn ws-as-channel
   [request]
   (assoc
@@ -106,7 +115,8 @@
   (GET "/unsession" [] {:session nil})
   (GET "/charset" [] with-charset)
   (GET "/chunked-stream" [] chunked-stream)
-  (GET "/non-chunked-stream" [] non-chunked-stream))
+  (GET "/non-chunked-stream" [] non-chunked-stream)
+  (GET "/sse" [] sse))
 
 (defroutes cdef-handler
   (GET "/" [] use-client-handler)

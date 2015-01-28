@@ -85,6 +85,7 @@
                         compojure                  "1.1.8"
                         org.clojure/java.jdbc      "0.3.5"
                         h2                         "1.3.176"
+                        jersey-media-sse           "2.15"
 
                         ;; org.projectodd.wunderboss  "0.3.0"
                         org.projectodd.wunderboss  "1.x.incremental.190"

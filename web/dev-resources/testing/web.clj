@@ -14,7 +14,9 @@
 
 (ns testing.web
   (:require [http.async.client :as http]
-            [ring.util.response :refer [response]]))
+            [ring.util.response :refer [response]])
+  (:import [org.glassfish.jersey.media.sse EventSource EventListener]
+           [javax.ws.rs.client ClientBuilder]))
 
 (def cookies (atom nil))
 
@@ -50,3 +52,20 @@
       (if (= 200 (:status response))
           (:body response)
           (:status response)))))
+
+(defn event-source
+  "Returns an SSE EventSource client"
+  [url]
+  (-> (EventSource/target 
+        (-> (ClientBuilder/newBuilder)
+          .build
+          (.target url)))
+    .build))
+
+(defn handle-events
+  "Register the event handler with an EventSource"
+  [source f]
+  (doto source
+    (.register (reify EventListener
+                 (onEvent [_ e]
+                   (f e))))))

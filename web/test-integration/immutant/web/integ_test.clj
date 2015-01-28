@@ -22,7 +22,7 @@
             [immutant.util :refer (in-container? http-port)]
             [immutant.web :refer (stop) :as web]
             [testing.app :refer (run)]
-            [testing.web :refer (get-body get-response)]))
+            [testing.web :refer (get-body get-response event-source handle-events)]))
 
 (when-not (in-container?)
   (use-fixtures :once
@@ -264,3 +264,20 @@
                            :on-complete (fn [_] (throw (Exception. "BOOM")))))))))
   (is (= "ahoy" (get-body (cdef-url))))
   (is (= "BOOM" (read-string (get-body (str (cdef-url) "state"))))))
+
+(when (not (in-container?))
+  ;; TODO: Run this in-container. The only thing stopping us is our
+  ;; jersey sse client seems to be incompatible with resteasy
+  (deftest server-sent-events
+    (let [closed (promise)
+          result (atom [])
+          client (as-> (event-source (str (url) "sse")) c
+                   (handle-events c (fn [e]
+                                      (swap! result conj (.readData e))
+                                      (when (= "close" (.getName e))
+                                        (.close c)
+                                        (deliver closed :success)))))]
+      (.open client)
+      (is (= :success (deref closed 5000 :fail)))
+      (is (= ["5" "4" "3" "2" "1" "bye!"] @result))
+      (is (not (.isOpen client))))))
