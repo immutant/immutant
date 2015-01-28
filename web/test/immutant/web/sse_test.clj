@@ -51,7 +51,7 @@
   (let [closed (promise)
         result (atom [])
         app (fn [req] 
-              (as-sse-channel req
+              (as-channel req
                 :on-open (fn [ch]
                            (doseq [x (range 5 0 -1)]
                              (send! ch x))

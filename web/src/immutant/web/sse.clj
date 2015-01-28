@@ -16,10 +16,8 @@
   "Provides Server-Sent Events via [[immutant.web.async/as-channel]]"
   (:require [immutant.web.async :as async]))
 
-(defn with-event-type [m]
+(defn ^:no-doc ^:internal with-event-type [m]
   (update-in m [:headers] assoc "Content-Type" "text/event-stream; charset=utf-8"))
-
-(def as-sse-channel (comp with-event-type async/as-channel))
 
 (defprotocol Event
   (event->str [x] "Formats event according to SSE spec"))
@@ -37,6 +35,16 @@
                       (format "%s:%s\n" (name k) v))
                   (conj (event->str (:data m)))))))
 
+(def as-channel
+  "Decorates the result of [[immutant.web.async/as-channel]] with the
+  proper SSE header"
+  (comp with-event-type async/as-channel))
+
 (defn send!
-  [ch event]
-  (async/send! ch (str (event->str event) "\n")))
+  "Formats an event according to the SSE spec and sends it
+  via [[immutant.web.async/send!]] with an optional on-complete
+  callback"
+  ([ch event]
+   (async/send! ch (str (event->str event) "\n")))
+  ([ch event on-complete]
+   (async/send! ch (str (event->str event) "\n") :on-complete on-complete)))

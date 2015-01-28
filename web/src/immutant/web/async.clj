@@ -62,12 +62,12 @@
      Setting this to `true` on the first send to an HTTP stream channel
      will cause it to behave like a standard HTTP response, and *not* chunk
      the response. [false]
-   * :on-complete - `(fn [throwable] ...)` - called when the send attempt
-     has completed. The success of the attempt is signaled by the passed
-     value. If the error requires the channel to be closed, the [[as-channel]]
-     :on-close callback will also be invoked. If this callback throws
-     an exception, it will be reported to the [[as-channel]] :on-error
-     callback [`#(when % (throw %))`]
+   * :on-complete - `(fn [throwable] ...)` - called when the send
+     attempt has completed. The success of the attempt is signaled by the
+     passed value, i.e. if throwable is nil. If the error requires the
+     channel to be closed, the [[as-channel]] :on-close callback will
+     also be invoked. If this callback throws an exception, it will be
+     reported to the [[as-channel]] :on-error callback [`#(when % (throw %))`]
 
    Returns nil if the channel is closed when the send is initiated, true
    otherwise. If the channel is already closed, :on-complete won't be
