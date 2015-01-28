@@ -55,6 +55,13 @@
     (is (subset? (-> (merge register-defaults create-defaults) keys set)
           (-> opts keys set)))))
 
+(deftest run-accepts-a-var
+  (run #'hello)
+  (is (= "hello" (get-body url))))
+
+(deftest run-accepts-an-http-handler
+  (run (immutant.web.internal.undertow/create-http-handler hello))
+  (is (= "hello" (get-body url))))
 
 (deftest run-returns-passed-opts-with-defaults
   (let [opts (run hello {:path "/abc"})]

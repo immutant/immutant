@@ -51,7 +51,8 @@
     (extract-options opts Web$CreateOption)))
 
 (defn ^:internal mount [^Web server handler opts]
-  (let [hdlr (if (fn? handler)
+  (let [hdlr (if (or (fn? handler)
+                   (var? handler))
                (if (in-container?)
                  (create-servlet handler)
                  (create-websocket-init-handler
