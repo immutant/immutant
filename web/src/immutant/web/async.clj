@@ -18,15 +18,15 @@
   (:import [org.projectodd.wunderboss.web.async Channel$OnComplete HttpChannel]
            [org.projectodd.wunderboss.web.async.websocket WebsocketChannel]))
 
-(defn ^:internal streaming-body? [body]
+(defn ^:internal ^:no-doc streaming-body? [body]
   (instance? HttpChannel body))
 
-(defn ^:internal open-stream [^HttpChannel channel headers]
+(defn ^:internal ^:no-doc open-stream [^HttpChannel channel headers]
   (.notifyOpen channel nil))
 
-(defmulti ^:internal initialize-stream :handler-type)
+(defmulti ^:internal ^:no-doc initialize-stream :handler-type)
 
-(defmulti ^:internal initialize-websocket :handler-type)
+(defmulti ^:internal ^:no-doc initialize-websocket :handler-type)
 
 (defprotocol WebsocketHandshake
   "Reflects the state of the initial websocket upgrade request"
@@ -49,7 +49,7 @@
   (handshake [ch]
     "Returns a [[WebsocketHandshake]] for `ch` if `ch` is a WebSocket channel.")
   (send* [ch message close? on-complete]
-    "See [[send!]]."))
+    "Implementation detail. See [[send!]]."))
 
 (defn send!
   "Send a message to the channel, asynchronously.
