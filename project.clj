@@ -72,7 +72,7 @@
 
              :versions {clojure                    "1.6.0"
                         java.classpath             "0.2.2"
-                        tools.nrepl                "0.2.3"
+                        tools.nrepl                "0.2.7"
                         tools.reader               "0.8.4"
                         ring                       "1.3.0"
                         clj-time                   "0.7.0"
