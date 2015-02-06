@@ -58,5 +58,6 @@
     (.open client)
     (is (= :success (deref closed 5000 :fail)))
     (is (not (.isOpen client)))
-    (is (= ["5" "4" "3" "2" "1" :done "bye!"] @result))
+    (is (= ["5" "4" "3" "2" "1"] (take 5 @result)))
+    (is (= #{:done "bye!"} (set (drop 5 @result))))
     (stop server)))

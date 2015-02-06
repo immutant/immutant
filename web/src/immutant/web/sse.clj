@@ -42,8 +42,7 @@
 
 (defn send!
   "Formats an event according to the SSE spec and sends it
-  via [[immutant.web.async/send!]] with an optional on-complete
-  callback"
+  via [[immutant.web.async/send!]]"
   ([ch event]
    (send! ch event nil))
   ([ch event options]
