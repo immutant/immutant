@@ -15,7 +15,8 @@
 (ns ^{:no-doc true} immutant.web.internal.servlet
     (:require [immutant.web.internal.ring    :as ring]
               [immutant.web.internal.headers :as hdr]
-              [immutant.web.async            :as async])
+              [immutant.web.async            :as async]
+              [immutant.web.websocket        :as ws])
     (:import [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose Channel$OnError
               ServletHttpChannel Util]
              [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint
@@ -98,7 +99,7 @@
   (add-header [response key value] (.addHeader response key value)))
 
 (extend-type HandshakeRequest
-  async/WebsocketHandshake
+  ws/WebsocketHandshake
   (headers        [hs] (.getHeaders hs))
   (parameters     [hs] (.getParameterMap hs))
   (uri            [hs] (str (.getRequestURI hs)))

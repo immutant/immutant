@@ -13,6 +13,7 @@
 ;; limitations under the License.
 
 (ns immutant.web.async
+  "Provides a common interface for WebSockets and HTTP streaming."
   (:require [immutant.internal.options :as o]
             [immutant.internal.util    :as u])
   (:import [org.projectodd.wunderboss.web.async Channel$OnComplete HttpChannel]
@@ -28,16 +29,6 @@
 
 (defmulti ^:internal ^:no-doc initialize-websocket :handler-type)
 
-(defprotocol WebsocketHandshake
-  "Reflects the state of the initial websocket upgrade request"
-  (headers [hs] "Return request headers")
-  (parameters [hs] "Return map of params from request")
-  (uri [hs] "Return full request URI")
-  (query-string [hs] "Return query portion of URI")
-  (session [hs] "Return the user's session data, if any")
-  (user-principal [hs] "Return authorized `java.security.Principal`")
-  (user-in-role? [hs role] "Is user in role identified by String?"))
-
 (defprotocol Channel
   "Streaming channel interface"
   (open? [ch] "Is the channel open?")
@@ -47,7 +38,7 @@
      This will trigger the :on-close callback if one is registered. with
      [[as-channel]].")
   (handshake [ch]
-    "Returns a [[WebsocketHandshake]] for `ch` if `ch` is a WebSocket channel.")
+    "Returns a [[immutant.web.websocket/WebsocketHandshake]] for `ch` if `ch` is a WebSocket channel.")
   (send! [ch message] [ch message options]
   "Send a message to the channel, asynchronously.
 

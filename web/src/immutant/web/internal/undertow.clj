@@ -16,6 +16,7 @@
     (:require [immutant.web.async            :as async]
               [immutant.web.internal.ring    :as ring]
               [immutant.web.internal.headers :as hdr]
+              [immutant.web.websocket        :as ws]
               [ring.middleware.session       :as ring-session])
     (:import java.net.URI
              [io.undertow.server HttpHandler HttpServerExchange]
@@ -123,7 +124,7 @@
   (output-stream [exchange] (.getOutputStream exchange)))
 
 (extend-type io.undertow.websockets.spi.WebSocketHttpExchange
-  async/WebsocketHandshake
+  ws/WebsocketHandshake
   (headers        [ex] (.getRequestHeaders ex))
   (parameters     [ex] (.getRequestParameters ex))
   (uri            [ex] (.getRequestURI ex))

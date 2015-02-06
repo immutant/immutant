@@ -16,6 +16,7 @@
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
             [immutant.web.async :refer :all]
+            [immutant.web.websocket :refer :all]
             [immutant.web.middleware :refer [wrap-session wrap-websocket]]
             [ring.util.response :refer [response]]
             [http.async.client :as http]
