@@ -47,9 +47,12 @@
 
    Options that apply to both local and remote contexts are [default]:
 
-   * :subscription-name - identifies the context for use with a durable topic subscriber [nil]
-   * :xa?               - if true, returns an XA context for use in a distributed transaction [false]
-   * :mode              - one of: :auto-ack, :client-ack, :transacted. Ignored if :xa? is true. [:auto-ack]
+   * :subscription-name - identifies the context for use with a durable topic
+                          subscriber (see [[subscribe]]) [nil]
+   * :xa?               - if true, returns an XA context for use in a
+                          distributed transaction [false]
+   * :mode              - one of: :auto-ack, :client-ack, :transacted. Ignored
+                          if :xa? is true. [:auto-ack]
 
    Options that apply to only remote contexts are [default]:
 
@@ -292,9 +295,12 @@
 (defn subscribe
   "Sets up a durable subscription to `topic`, and registers a listener with `f`.
 
-   `subscription-name` is used to identify the subscription, allowing
-   you to stop the listener and resubscribe with the same name in the
-   future without losing messages sent in the interim.
+   `subscription-name` is used to identify the subscription, allowing you to
+   stop the listener and resubscribe with the same name in the future without
+   losing messages sent in the interim. If no :context is provided, the
+   subscription name is used to identify the internally-created context as
+   well. If a :context is provided, it's subscription-name need not match the
+   one passed here.
 
    If a :selector is provided, then only messages having
    metadata/properties matching that expression may be received.
