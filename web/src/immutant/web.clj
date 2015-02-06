@@ -37,8 +37,7 @@
      * :virtual-host  Virtual host name[s] (a String or a List of Strings) [nil]
      * :dispatch?     Invoke handlers in worker thread pool [true]
      * :servlet-name  The name to register the servlet under (gets passed to
-                      ServletInfo, valid for servlets only)
-                      [The simple class name of the servlet]
+                      ServletInfo, valid for servlets only) [the :path]
 
    Note the web server only binds to the loopback interface, by
    default. To expose your handler to the network, set :host to an
