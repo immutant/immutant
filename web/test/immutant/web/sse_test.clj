@@ -47,7 +47,7 @@
                              (send! ch x)
                              (Thread/sleep 10))
                            (send! ch {:event "close", :data "bye!"}
-                             (fn [_] (swap! result conj :done)))),))
+                             :on-complete (fn [_] (swap! result conj :done)))),))
         server (run app)
         client (event-source "http://localhost:8080")]
     (handle-events client (fn [e]
