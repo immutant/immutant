@@ -107,70 +107,27 @@
   (user-principal [hs] (.getUserPrincipal hs))
   (user-in-role?  [hs role] (.isUserInRole hs role)))
 
-;; TODO: fix send! or get rid of this
-(extend-type javax.websocket.Session
-  async/Channel
-  (send!      [ch message & ignored] (.sendObject (.getAsyncRemote ch) message))
-  (open? [ch] (.isOpen ch))
-  (close      [ch] (.close ch)))
-
-(defn ^Endpoint create-endpoint
-  "Create a JSR-356 endpoint from one or more callback functions.
-
-  The following callbacks are supported, where `channel` is an
-  instance of `javax.websocket.Session`, extended to the
-  [[immutant.web.websocket/Channel]] protocol, and `handshake` is an
-  instance of `javax.websocket.server.HandshakeRequest`, extended to
-  [[immutant.web.async/WebsocketHandshake]]:
-
-    * :on-message `(fn [channel message])`
-    * :on-open    `(fn [channel handshake])`
-    * :on-close   `(fn [channel {:keys [code reason]}])`
-    * :on-error   `(fn [channel throwable])`"
-  ([key value & key-values]
-     (create-endpoint (apply hash-map key value key-values)))
-  ([{:keys [on-message on-open on-close on-error]}]
-     (proxy [Endpoint] []
-       (onOpen [^Session session ^EndpointConfig config]
-         (when on-open (on-open session
-                         ^HandshakeRequest (-> config
-                                             .getUserProperties
-                                             (get "HandshakeRequest"))))
-         (when on-message
-           (let [handler (reify MessageHandler$Whole
-                           (onMessage [_ message] (on-message session message)))]
-             (.addMessageHandler session (Util/createTextHandler handler))
-             (.addMessageHandler session (Util/createBinaryHandler handler)))))
-       (onClose [session ^CloseReason reason]
-         (when on-close (on-close session
-                          {:code (.. reason getCloseCode getCode)
-                           :reason (.getReasonPhrase reason)})))
-       (onError [session error]
-         (when on-error (on-error session error))))))
-
 (defn ^ServerContainer server-container [^ServletContext context]
   (.getAttribute context "javax.websocket.server.ServerContainer"))
 
 (defn add-endpoint
   "Adds an endpoint to a container obtained from the servlet-context"
-  ([^Endpoint endpoint ^ServletContext servlet-context]
-     (add-endpoint endpoint servlet-context {}))
-  ([^Endpoint endpoint ^ServletContext servlet-context {:keys [path handshake] :or {path "/"}}]
-     (.addEndpoint (server-container servlet-context)
-       (.. ServerEndpointConfig$Builder
-         (create (class endpoint) path)
-         (configurator (proxy [ServerEndpointConfig$Configurator] []
-                         (getEndpointInstance [c] endpoint)
-                         (modifyHandshake [^ServerEndpointConfig config
-                                           ^HandshakeRequest hs-request response]
-                           (-> config
-                             .getUserProperties
-                             (.put "HandshakeRequest" hs-request))
-                           (when handshake
-                             (handshake config
-                               (.get (WebSocketHelpyHelpersonFilter/requestTL))
-                               response)))))
-         build))))
+  [^Endpoint endpoint ^ServletContext servlet-context {:keys [path handshake] :or {path "/"}}]
+  (.addEndpoint (server-container servlet-context)
+    (.. ServerEndpointConfig$Builder
+      (create (class endpoint) path)
+      (configurator (proxy [ServerEndpointConfig$Configurator] []
+                      (getEndpointInstance [c] endpoint)
+                      (modifyHandshake [^ServerEndpointConfig config
+                                        ^HandshakeRequest hs-request response]
+                        (-> config
+                          .getUserProperties
+                          (.put "HandshakeRequest" hs-request))
+                        (when handshake
+                          (handshake config
+                            (.get (WebSocketHelpyHelpersonFilter/requestTL))
+                            response)))))
+      build)))
 
 (defn handshake-ring-invoker [handler]
   (fn [^ServerEndpointConfig config request response]
@@ -184,34 +141,29 @@
           (.put "Endpoint" (.endpoint ^WebsocketChannel body)))))))
 
 (defn ^Servlet create-servlet
-  "Encapsulate a ring handler and an optional websocket endpoint
-  within a servlet"
-  ([handler]
-     (create-servlet handler nil))
-  ([handler endpoint]
-     (proxy [HttpServlet] []
-       (service [^HttpServletRequest request ^HttpServletResponse response]
-         (let [ring-map (-> request
-                          (ring/ring-request-map
-                            [:handler-type     :servlet]
-                            [:servlet          this]
-                            [:servlet-request  request]
-                            [:servlet-response response]
-                            [:servlet-context  (delay (.getServletContext ^HttpServlet this))]))]
-           (if-let [result (if handler (handler ring-map) {:status 404})]
-             (ring/write-response response result)
-             (throw (NullPointerException. "Ring handler returned nil")))))
-       (init [^ServletConfig config]
-         (let [^HttpServlet this this]
-           (proxy-super init config)
-           (let [context (.getServletContext config)
-                 mapping (-> context (.getServletRegistration (.getServletName this)) .getMappings first)
-                 path (apply str (take (- (count mapping) 2) mapping))
-                 path (if (empty? path) "/" path)]
-             (if endpoint
-               (add-endpoint endpoint context {:path path})
-               (add-endpoint (DelegatingJavaxEndpoint.) context
-                 {:path path :handshake (handshake-ring-invoker handler)}))))))))
+  "Encapsulate a ring handler within a servlet"
+  [handler]
+  (proxy [HttpServlet] []
+    (service [^HttpServletRequest request ^HttpServletResponse response]
+      (let [ring-map (-> request
+                       (ring/ring-request-map
+                         [:handler-type     :servlet]
+                         [:servlet          this]
+                         [:servlet-request  request]
+                         [:servlet-response response]
+                         [:servlet-context  (delay (.getServletContext ^HttpServlet this))]))]
+        (if-let [result (if handler (handler ring-map) {:status 404})]
+          (ring/write-response response result)
+          (throw (NullPointerException. "Ring handler returned nil")))))
+    (init [^ServletConfig config]
+      (let [^HttpServlet this this]
+        (proxy-super init config)
+        (let [context (.getServletContext config)
+              mapping (-> context (.getServletRegistration (.getServletName this)) .getMappings first)
+              path (apply str (take (- (count mapping) 2) mapping))
+              path (if (empty? path) "/" path)]
+          (add-endpoint (DelegatingJavaxEndpoint.) context
+            {:path path :handshake (handshake-ring-invoker handler)}))))))
 
 (defmethod async/initialize-stream :servlet
   [request {:keys [on-open on-error on-close]}]

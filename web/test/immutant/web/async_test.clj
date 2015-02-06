@@ -53,10 +53,6 @@
       (as-channel req callbacks)
       {:status 404})))
 
-;; (deftest jsr-356-websocket
-;;   (let [expected [:open "hello" 1000]]
-;;     (is (= expected (test-websocket (comp (partial attach-endpoint (create-servlet hello)) create-endpoint))))))
-
 (deftest middleware-websocket
   (let [expected [:open "hello" 1000]]
     (is (= expected (test-websocket (partial wrap-websocket hello))))))
