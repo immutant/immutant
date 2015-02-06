@@ -87,9 +87,9 @@
                         h2                         "1.3.176"
                         jersey-media-sse           "2.15"
 
-                        ;; org.projectodd.wunderboss  "0.3.0"
-                        org.projectodd.wunderboss  "1.x.incremental.190"
-                        ;; org.projectodd.wunderboss  "0.4.0-SNAPSHOT"
+                        org.projectodd.wunderboss  "0.4.0"
+                        ;; org.projectodd.wunderboss  "1.x.incremental.190"
+                        ;; org.projectodd.wunderboss  "0.5.0-SNAPSHOT"
 
                         org.immutant               :version}}
 
