@@ -44,5 +44,7 @@
   "Formats an event according to the SSE spec and sends it
   via [[immutant.web.async/send!]] with an optional on-complete
   callback"
-  [ch event & options]
-  (apply async/send! ch (str (event->str event) "\n") options))
+  ([ch event]
+   (send! ch event nil))
+  ([ch event options]
+   (async/send! ch (str (event->str event) "\n") options)))

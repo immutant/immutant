@@ -206,8 +206,8 @@
          (async/as-channel request
            :on-message (fn [ch m]
                          (async/send! ch m
-                           :on-complete (fn [_]
-                                          (deliver @client-state :complete!))))))))
+                           {:on-complete (fn [_]
+                                           (deliver @client-state :complete!))}))))))
   (with-open [socket (ws/connect (cdef-url "ws"))]
     (ws/send-msg socket "hello")
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
@@ -221,7 +221,7 @@
            :on-error (fn [_ err] (deliver @client-state (.getMessage err)))
            :on-message (fn [ch m]
                          (async/send! ch m
-                           :on-complete (fn [_] (throw (Exception. "BOOM")))))))))
+                           {:on-complete (fn [_] (throw (Exception. "BOOM")))}))))))
   (with-open [socket (ws/connect (cdef-url "ws"))]
     (ws/send-msg socket "hello")
     (is (= "BOOM" (read-string (get-body (str (cdef-url) "state")))))))
@@ -245,9 +245,9 @@
          (async/as-channel request
            :on-open (fn [ch]
                          (async/send! ch "ahoy"
-                           :close? true
-                           :on-complete (fn [_]
-                                          (deliver @client-state :complete!))))))))
+                           {:close? true
+                            :on-complete (fn [_]
+                                           (deliver @client-state :complete!))}))))))
   (is (= "ahoy" (get-body (cdef-url))))
   (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))
 
@@ -260,8 +260,8 @@
            :on-error (fn [_ err] (deliver @client-state (.getMessage err)))
            :on-open (fn [ch]
                          (async/send! ch "ahoy"
-                           :close? true
-                           :on-complete (fn [_] (throw (Exception. "BOOM")))))))))
+                           {:close? true
+                            :on-complete (fn [_] (throw (Exception. "BOOM")))}))))))
   (is (= "ahoy" (get-body (cdef-url))))
   (is (= "BOOM" (read-string (get-body (str (cdef-url) "state"))))))
 

@@ -48,10 +48,7 @@
      [[as-channel]].")
   (handshake [ch]
     "Returns a [[WebsocketHandshake]] for `ch` if `ch` is a WebSocket channel.")
-  (send* [ch message close? on-complete]
-    "Implementation detail. See [[send!]]."))
-
-(defn send!
+  (send! [ch message] [ch message options]
   "Send a message to the channel, asynchronously.
 
    `message` can either be a String or byte[].
@@ -71,27 +68,27 @@
 
    Returns nil if the channel is closed when the send is initiated, true
    otherwise. If the channel is already closed, :on-complete won't be
-   invoked."
-  [ch message & options]
-    (let [{:keys [close? on-complete]} (-> options
-                                              u/kwargs-or-map->map
-                                              (o/validate-options send!))]
-      (send* ch message close? on-complete)))
-
-(o/set-valid-options! send! #{:close? :on-complete})
+   invoked."))
 
 (let [impls
       {:open? (fn [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
        :close (fn [^org.projectodd.wunderboss.web.async.Channel ch] (.close ch))
        :handshake (fn [_] nil)
-       :send*
-       (fn [^org.projectodd.wunderboss.web.async.Channel ch message close? on-complete]
-         (.send ch message
-           (boolean close?)
-           (when on-complete
-             (reify Channel$OnComplete
-               (handle [_ error]
-                 (on-complete error))))))}]
+       :send!
+       (fn send*
+         ([ch message]
+          (send* ch message nil))
+         ([^org.projectodd.wunderboss.web.async.Channel ch message options]
+          (let [{:keys [close? on-complete]} (o/validate-options*
+                                               options
+                                               #{:close? :on-complete}
+                                               'send!)]
+            (.send ch message
+              (boolean close?)
+              (when on-complete
+                (reify Channel$OnComplete
+                  (handle [_ error]
+                    (on-complete error))))))))}]
   (extend org.projectodd.wunderboss.web.async.Channel
     Channel
     impls)

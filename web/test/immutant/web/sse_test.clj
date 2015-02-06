@@ -40,14 +40,14 @@
 (deftest sse
   (let [closed (promise)
         result (atom [])
-        app (fn [req] 
+        app (fn [req]
               (as-channel req
                 :on-open (fn [ch]
                            (doseq [x (range 5 0 -1)]
                              (send! ch x)
                              (Thread/sleep 10))
                            (send! ch {:event "close", :data "bye!"}
-                             :on-complete (fn [_] (swap! result conj :done)))),))
+                             {:on-complete (fn [_] (swap! result conj :done))}))))
         server (run app)
         client (event-source "http://localhost:8080")]
     (handle-events client (fn [e]
