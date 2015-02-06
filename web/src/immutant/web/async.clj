@@ -42,7 +42,9 @@
   (send! [ch message] [ch message options]
   "Send a message to the channel, asynchronously.
 
-   `message` can either be a String or byte[].
+   `message` can either be a String or byte[]. If it is a String, it will be
+    encoded to the character set of the response for HTTP streams, and as UTF-8
+    for WebSockets.
 
    The following options are supported [default]:
 
@@ -122,8 +124,9 @@
   * :on-message - `(fn [ch message] ...)` - Called for each message
     from the client. `message` will be a `String` or `byte[]`
 
-  TODO: discuss: sessions, headers, ws vs http diffs (utf8, no headers)
-  provide usage example
+  When the ring handler is called during a WebSocket upgrade request,
+  any headers returned in the response map are ignored, but any changes to
+  the session are applied.
 
   Returns a ring response map, at least the :body of which *must* be
   returned in the response map from the calling ring handler."
