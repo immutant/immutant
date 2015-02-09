@@ -187,8 +187,12 @@
          (async/as-channel request
            :on-message (fn [ch _] (deliver @client-state
                                    (dissoc (async/originating-request ch)
+                                     :body
                                      :server-exchange
-                                     :body)))))))
+                                     :servlet
+                                     :servlet-context
+                                     :servlet-request
+                                     :servlet-response)))))))
   (with-open [socket (ws/connect (cdef-url "ws"))]
     (ws/send-msg socket "hello")
     (let [request (read-string (get-body (str (cdef-url) "state")))]
@@ -245,8 +249,12 @@
            :on-open (fn [ch]
                       (deliver @client-state
                         (dissoc (async/originating-request ch)
+                          :body
                           :server-exchange
-                          :body))
+                          :servlet
+                          :servlet-context
+                          :servlet-request
+                          :servlet-response))
                       (async/send! ch "done" {:close? true}))))))
   (is (= "done" (get-body (cdef-url))))
   (let [request (read-string (get-body (str (cdef-url) "state")))]
