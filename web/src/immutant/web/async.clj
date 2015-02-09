@@ -37,6 +37,8 @@
 
      This will trigger the :on-close callback if one is registered. with
      [[as-channel]].")
+  (originating-request [ch]
+    "Returns the request map for the request that initiated the channel.")
   (send! [ch message] [ch message options]
   "Send a message to the channel, asynchronously.
 
@@ -65,6 +67,8 @@
   Channel
   (open? [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
   (close [^org.projectodd.wunderboss.web.async.Channel ch] (.close ch))
+  (originating-request [^org.projectodd.wunderboss.web.async.Channel ch]
+    (.originatingRequest ch))
   (send!
     ([ch message]
      (send! ch message nil))

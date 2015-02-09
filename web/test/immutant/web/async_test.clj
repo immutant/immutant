@@ -94,17 +94,19 @@
         (stop server)))))
 
 (deftest upgrade-headers
-  (let [result (promise)]
-    (run (wrap-params (fn [req] (deliver result req) (as-channel req))))
+  (let [requestp (promise)]
+    (run (wrap-params
+           (wrap-websocket nil
+             :on-open (fn [ch] (deliver requestp (originating-request ch))))))
     (with-open [client (http/create-client)
                 socket (http/websocket client "ws://localhost:8080/?x=y&j=k")]
-      (let [upgrade (deref result 1000 nil)]
-        (is (not (nil? upgrade)))
-        (is (= "Upgrade"   (get-in upgrade [:headers "connection"])))
-        (is (= "k"         (get-in upgrade [:params "j"])))
-        (is (= "x=y&j=k"   (:query-string upgrade)))
-        (is (= "/"         (:uri upgrade))) ;TODO: include query string?
-        ;; (is (false?        (-> upgrade (user-in-role? "admin"))))
+      (let [request (deref requestp 1000 nil)]
+        (is (not (nil? request)))
+        (is (= "Upgrade"   (get-in request [:headers "connection"])))
+        (is (= "k"         (get-in request [:params "j"])))
+        (is (= "x=y&j=k"   (:query-string request)))
+        (is (= "/"         (:uri request))) ;TODO: include query string?
+        ;; (is (false?        (-> request (user-in-role? "admin"))))
         ))
     (stop)))
 

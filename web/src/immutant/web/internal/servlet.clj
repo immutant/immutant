@@ -16,7 +16,8 @@
     (:require [immutant.web.internal.ring    :as ring]
               [immutant.web.internal.headers :as hdr]
               [immutant.web.async            :as async])
-    (:import [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose Channel$OnError
+    (:import [org.projectodd.wunderboss.web.async Channel
+              Channel$OnOpen Channel$OnClose Channel$OnError
               ServletHttpChannel Util]
              [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint
               JavaxWebsocketChannel WebSocketHelpyHelpersonFilter
@@ -156,9 +157,10 @@
   (ServletHttpChannel.
     (:servlet-request request)
     (:servlet-response request)
-    (when on-open
-      (reify Channel$OnOpen
-        (handle [_ ch _]
+    (reify Channel$OnOpen
+      (handle [_ ch _]
+        (.setOriginatingRequest ^Channel ch request)
+        (when on-open
           (on-open ch))))
     (when on-error
       (reify Channel$OnError
@@ -171,10 +173,11 @@
                         :reason reason}))))))
 
 (defmethod async/initialize-websocket :servlet
-  [_ {:keys [on-open on-error on-close on-message on-error]}]
+  [request {:keys [on-open on-error on-close on-message on-error]}]
   (JavaxWebsocketChannel.
     (reify Channel$OnOpen
       (handle [_ ch config]
+        (.setOriginatingRequest ^Channel ch request)
         (when on-open
           (on-open ch))))
     (reify Channel$OnError

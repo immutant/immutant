@@ -29,7 +29,7 @@
   (:import clojure.lang.ExceptionInfo
            java.net.ConnectException))
 
-(u/set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
+(u/set-log-level! (or (System/getenv "LOG_LEVEL") :ERROR))
 
 (use-fixtures :each u/reset-fixture)
 

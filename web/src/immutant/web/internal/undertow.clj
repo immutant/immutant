@@ -23,8 +23,9 @@
              [io.undertow.util HeaderMap Headers HttpString Sessions]
              [io.undertow.websockets.core CloseMessage WebSocketChannel]
              [io.undertow.websockets.spi WebSocketHttpExchange]
-             [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose
-              Channel$OnError UndertowHttpChannel]
+             [org.projectodd.wunderboss.web.async Channel
+              Channel$OnOpen Channel$OnClose Channel$OnError
+              UndertowHttpChannel]
              [org.projectodd.wunderboss.web.async.websocket UndertowWebsocket
               UndertowWebsocketChannel
               WebsocketChannel WebsocketChannel$OnMessage WebsocketInitHandler]))
@@ -139,6 +140,7 @@
     (when on-open
       (reify Channel$OnOpen
         (handle [_ ch _]
+          (.setOriginatingRequest ^Channel ch request)
           (on-open ch))))
     (when on-error
       (reify Channel$OnError
@@ -150,10 +152,11 @@
           (on-close ch {:code code :reason reason}))))))
 
 (defmethod async/initialize-websocket :undertow
-  [_ {:keys [on-open on-error on-close on-message on-error]}]
+  [request {:keys [on-open on-error on-close on-message on-error]}]
   (UndertowWebsocketChannel.
     (reify Channel$OnOpen
-      (handle [_ ch handshake]
+      (handle [_ ch _]
+        (.setOriginatingRequest ^Channel ch request)
         (when on-open
           (on-open ch))))
     (reify Channel$OnError

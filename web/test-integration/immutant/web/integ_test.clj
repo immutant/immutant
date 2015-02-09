@@ -178,6 +178,24 @@
         (is (= (str "/" path)
               (-> result (deref 5000 "nil") read-string :path-info)))))))
 
+
+(deftest request-should-be-attached-to-channel-for-ws
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-message (fn [ch _] (deliver @client-state
+                                   (dissoc (async/originating-request ch)
+                                     :server-exchange
+                                     :body)))))))
+  (with-open [socket (ws/connect (cdef-url "ws"))]
+    (ws/send-msg socket "hello")
+    (let [request (read-string (get-body (str (cdef-url) "state")))]
+      (is request)
+      (is (= "/" (:path-info request)))
+      (is (= "Upgrade" (get-in request [:headers "connection"]))))))
+
 (deftest ws-on-close-should-be-invoked-when-closing-on-server-side
   (replace-handler
     '(do
@@ -217,6 +235,23 @@
   (with-open [socket (ws/connect (cdef-url "ws"))]
     (ws/send-msg socket "hello")
     (is (= "BOOM" (read-string (get-body (str (cdef-url) "state")))))))
+
+(deftest request-should-be-attached-to-channel-for-stream
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-open (fn [ch]
+                      (deliver @client-state
+                        (dissoc (async/originating-request ch)
+                          :server-exchange
+                          :body))
+                      (async/send! ch "done" {:close? true}))))))
+  (is (= "done" (get-body (cdef-url))))
+  (let [request (read-string (get-body (str (cdef-url) "state")))]
+    (is request)
+    (is (= "/" (:path-info request)))))
 
 (deftest stream-on-close-should-be-invoked-when-closing-on-server-side
   (replace-handler
