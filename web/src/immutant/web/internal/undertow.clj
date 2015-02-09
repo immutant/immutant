@@ -16,7 +16,6 @@
     (:require [immutant.web.async            :as async]
               [immutant.web.internal.ring    :as ring]
               [immutant.web.internal.headers :as hdr]
-              [immutant.web.websocket        :as ws]
               [ring.middleware.session       :as ring-session])
     (:import java.net.URI
              [io.undertow.server HttpHandler HttpServerExchange]
@@ -123,16 +122,6 @@
   (header-map [exchange] (.getResponseHeaders exchange))
   (output-stream [exchange] (.getOutputStream exchange)))
 
-(extend-type io.undertow.websockets.spi.WebSocketHttpExchange
-  ws/WebsocketHandshake
-  (headers        [ex] (.getRequestHeaders ex))
-  (parameters     [ex] (.getRequestParameters ex))
-  (uri            [ex] (.getRequestURI ex))
-  (query-string   [ex] (.getQueryString ex))
-  (session        [ex] (-> ex .getSession ring/ring-session))
-  (user-principal [ex] (.getUserPrincipal ex))
-  (user-in-role?  [ex role] (.isUserInRole ex role)))
-
 (defn create-http-handler [handler]
   (reify HttpHandler
     (^void handleRequest [this ^HttpServerExchange exchange]
@@ -165,7 +154,6 @@
   (UndertowWebsocketChannel.
     (reify Channel$OnOpen
       (handle [_ ch handshake]
-        (.setHandshake ^WebsocketChannel ch handshake)
         (when on-open
           (on-open ch))))
     (reify Channel$OnError

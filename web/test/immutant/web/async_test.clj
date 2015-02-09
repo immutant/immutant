@@ -16,8 +16,8 @@
   (:require [clojure.test :refer :all]
             [immutant.web :refer :all]
             [immutant.web.async :refer :all]
-            [immutant.web.websocket :refer :all]
             [immutant.web.middleware :refer [wrap-session wrap-websocket]]
+            [ring.middleware.params :refer [wrap-params]]
             [ring.util.response :refer [response]]
             [http.async.client :as http]
             [testing.web :refer [hello get-body]]
@@ -93,27 +93,28 @@
       (finally
         (stop server)))))
 
-(deftest handshake-headers
-  (let [result (promise)
-        endpoint (wrap-websocket nil :on-open (fn [ch] (deliver result (handshake ch))))]
-    (run endpoint)
+(deftest upgrade-headers
+  (let [result (promise)]
+    (run (wrap-params (fn [req] (deliver result req) (as-channel req))))
     (with-open [client (http/create-client)
                 socket (http/websocket client "ws://localhost:8080/?x=y&j=k")]
-      (let [handshake (deref result 1000 nil)]
-        (is (not (nil? handshake)))
-        (is (= "Upgrade"   (-> handshake headers (get "Connection") first)))
-        (is (= "k"         (-> handshake parameters (get "j") first)))
-        (is (= "x=y&j=k"   (-> handshake query-string)))
-        (is (= "/?x=y&j=k" (-> handshake uri str)))
-        (is (false?        (-> handshake (user-in-role? "admin"))))))
+      (let [upgrade (deref result 1000 nil)]
+        (is (not (nil? upgrade)))
+        (is (= "Upgrade"   (get-in upgrade [:headers "connection"])))
+        (is (= "k"         (get-in upgrade [:params "j"])))
+        (is (= "x=y&j=k"   (:query-string upgrade)))
+        (is (= "/"         (:uri upgrade))) ;TODO: include query string?
+        ;; (is (false?        (-> upgrade (user-in-role? "admin"))))
+        ))
     (stop)))
 
 (deftest share-session-with-websocket
   (let [result (promise)
-        handler (fn [{{:keys [id] :or {id (str (rand))}} :session}]
-                  (-> id response (assoc :session {:id id})))]
-    (run (wrap-websocket (wrap-session handler)
-           :on-open (fn [ch] (deliver result (-> ch handshake session :id)))))
+        handler (fn [{{:keys [id] :or {id (str (rand))}} :session :as req}]
+                  (if (:websocket? req)
+                    (as-channel req {:on-open (fn [ch] (deliver result id))})
+                    (-> id response (assoc :session {:id id}))))]
+    (run (wrap-session handler))
     ;; establish the id in the session with the first request
     (let [id (get-body url :cookies nil)]
       ;; make sure we get it again if we pass the returned cookie

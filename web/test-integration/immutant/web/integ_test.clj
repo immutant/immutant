@@ -69,25 +69,13 @@
   (is (= "1" (get-body (url))))
   (let [result (promise)]
     (with-open [client (http/create-client)
-                socket (http/websocket client (url "ws")
+                socket (http/websocket client (str (url "ws") "dump")
                          :text (fn [_ s] (deliver result (decode s)))
                          :cookies @testing.web/cookies)]
       (http/send socket :text "doesn't matter")
-      (let [handshake (deref result 5000 {})]
-        (is (= {:count 2} (:session handshake))))))
+      (let [upgrade (deref result 5000 {})]
+        (is (= {:count 2} (:session upgrade))))))
   (is (= "2" (get-body (url)))))
-
-(deftest handshake-headers
-  (let [result (promise)]
-    (with-open [socket (ws/connect (str (url "ws") "?x=y&j=k")
-                         :on-receive (fn [s] (deliver result (decode s))))]
-      (ws/send-msg socket "doesn't matter")
-      (let [handshake (deref result 5000 nil)]
-        (is (not (nil? handshake)))
-        (is (= "Upgrade"   (-> handshake :headers (get "Connection") first)))
-        (is (= "k"         (-> handshake :parameters (get "j") first)))
-        (is (= "x=y&j=k"   (-> handshake :query)))
-        (.endsWith (:uri handshake) "/?x=y&j=k")))))
 
 (deftest request-map-entries
   (get-body (url)) ;; ensure there's something in the session
@@ -111,17 +99,21 @@
 
 (deftest upgrade-request-map-entries
   (let [request (promise)]
-    (with-open [s (ws/connect (str (url "ws") "dump")
+    (with-open [s (ws/connect (str (url "ws") "dump?x=y&j=k")
                     :on-receive (fn [m] (deliver request (decode m))))]
-      (are [x expected] (= expected (x (deref request 5000 :failure)))
-           :websocket?          true
-           :uri                 (str (if (in-container?) "/integs") "/dump")
-           :context             (str (if (in-container?) "/integs") "/dump")
-           :path-info           "/"
-           :scheme              :http
-           :request-method      :get
-           :server-port         (http-port)
-           :server-name         "localhost"))))
+      (let [m (deref request 5000 :failure)]
+        (are [x expected] (= expected (x m))
+             :websocket?          true
+             :uri                 (str (if (in-container?) "/integs") "/dump")
+             :context             (str (if (in-container?) "/integs") "/dump")
+             :path-info           "/"
+             :query-string        "x=y&j=k"
+             :scheme              :http
+             :request-method      :get
+             :server-port         (http-port)
+             :server-name         "localhost")
+        (is (= "Upgrade" (get-in m [:headers "connection"])))
+        (is (= "k" (get-in m [:params "j"])))))))
 
 (deftest response-charset-should-be-honored
   (doseq [charset ["UTF-8" "Shift_JIS" "ISO-8859-1" "UTF-16" "US-ASCII"]]

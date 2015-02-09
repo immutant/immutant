@@ -15,7 +15,6 @@
 (ns testing.app
   (:require [immutant.web :as web]
             [immutant.web.async :as async]
-            [immutant.web.websocket :as ws]
             [immutant.web.sse :as sse]
             [immutant.internal.util :refer [maybe-deref]]
             [immutant.web.middleware :refer (wrap-session wrap-websocket)]
@@ -23,21 +22,6 @@
             [compojure.core :refer (GET defroutes)]
             [ring.util.response :refer (charset redirect response)]
             [ring.middleware.params :refer [wrap-params]]))
-
-(def handshakes (atom {}))
-
-(defn on-open-set-handshake [channel]
-  (let [handshake (async/handshake channel)
-        data {:headers (ws/headers handshake)
-              :parameters (ws/parameters handshake)
-              :uri (ws/uri handshake)
-              :query (ws/query-string handshake)
-              :session (ws/session handshake)
-              :user-principal (ws/user-principal handshake)}]
-    (swap! handshakes assoc channel data)))
-
-(defn on-message-send-handshake [channel message]
-  (async/send! channel (encode (get @handshakes channel))))
 
 (defn counter [{session :session}]
   (let [count (:count session 0)
@@ -130,12 +114,8 @@
   (GET "/foo/bar" [] dump))
 
 (defn run []
-  (web/run (-> #'routes
-             (wrap-websocket
-               :on-open #'on-open-set-handshake
-               :on-message #'on-message-send-handshake)
-             wrap-session))
+  (web/run (-> #'routes wrap-session))
   (web/run (-> #'cdef-handler wrap-params) :path "/cdef")
   (web/run (-> ws-as-channel wrap-session) :path "/ws")
-  (web/run (-> dump wrap-session) :path "/dump")
+  (web/run (-> dump wrap-session wrap-params) :path "/dump")
   (web/run nested-ws-routes :path "/nested-ws"))

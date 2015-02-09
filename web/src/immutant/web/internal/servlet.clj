@@ -15,8 +15,7 @@
 (ns ^{:no-doc true} immutant.web.internal.servlet
     (:require [immutant.web.internal.ring    :as ring]
               [immutant.web.internal.headers :as hdr]
-              [immutant.web.async            :as async]
-              [immutant.web.websocket        :as ws])
+              [immutant.web.async            :as async])
     (:import [org.projectodd.wunderboss.web.async Channel$OnOpen Channel$OnClose Channel$OnError
               ServletHttpChannel Util]
              [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint
@@ -26,7 +25,7 @@
              [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
              [javax.servlet Servlet ServletConfig ServletContext]
              [javax.websocket Session Endpoint EndpointConfig MessageHandler$Whole CloseReason]
-             [javax.websocket.server ServerContainer HandshakeRequest
+             [javax.websocket.server ServerContainer
               ServerEndpointConfig ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
 (defn- get-or-create-session
@@ -98,16 +97,6 @@
   (set-header [response key value] (.setHeader response key value))
   (add-header [response key value] (.addHeader response key value)))
 
-(extend-type HandshakeRequest
-  ws/WebsocketHandshake
-  (headers        [hs] (.getHeaders hs))
-  (parameters     [hs] (.getParameterMap hs))
-  (uri            [hs] (str (.getRequestURI hs)))
-  (query-string   [hs] (.getQueryString hs))
-  (session        [hs] (-> hs .getHttpSession ring/ring-session))
-  (user-principal [hs] (.getUserPrincipal hs))
-  (user-in-role?  [hs role] (.isUserInRole hs role)))
-
 (defn ^ServerContainer server-container [^ServletContext context]
   (.getAttribute context "javax.websocket.server.ServerContainer"))
 
@@ -119,11 +108,7 @@
       (create (class endpoint) path)
       (configurator (proxy [ServerEndpointConfig$Configurator] []
                       (getEndpointInstance [c] endpoint)
-                      (modifyHandshake [^ServerEndpointConfig config
-                                        ^HandshakeRequest hs-request response]
-                        (-> config
-                          .getUserProperties
-                          (.put "HandshakeRequest" hs-request))
+                      (modifyHandshake [^ServerEndpointConfig config _ response]
                         (when handshake
                           (handshake config
                             (.get (WebSocketHelpyHelpersonFilter/requestTL))
@@ -190,13 +175,9 @@
   (JavaxWebsocketChannel.
     (reify Channel$OnOpen
       (handle [_ ch config]
-        (.setHandshake ^WebsocketChannel ch
-          (-> ^ServerEndpointConfig config
-            .getUserProperties
-            (.get "HandshakeRequest")))
         (when on-open
           (on-open ch))))
-        (reify Channel$OnError
+    (reify Channel$OnError
       (handle [_ ch error]
         (when on-error
           (on-error ch error))))

@@ -37,8 +37,6 @@
 
      This will trigger the :on-close callback if one is registered. with
      [[as-channel]].")
-  (handshake [ch]
-    "Returns a [[immutant.web.websocket/WebsocketHandshake]] for `ch` if `ch` is a WebSocket channel.")
   (send! [ch message] [ch message options]
   "Send a message to the channel, asynchronously.
 
@@ -63,33 +61,24 @@
    otherwise. If the channel is already closed, :on-complete won't be
    invoked."))
 
-(let [impls
-      {:open? (fn [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
-       :close (fn [^org.projectodd.wunderboss.web.async.Channel ch] (.close ch))
-       :handshake (fn [_] nil)
-       :send!
-       (fn send*
-         ([ch message]
-          (send* ch message nil))
-         ([^org.projectodd.wunderboss.web.async.Channel ch message options]
-          (let [{:keys [close? on-complete]} (o/validate-options*
-                                               options
-                                               #{:close? :on-complete}
-                                               'send!)]
-            (.send ch message
-              (boolean close?)
-              (when on-complete
-                (reify Channel$OnComplete
-                  (handle [_ error]
-                    (on-complete error))))))))}]
-  (extend org.projectodd.wunderboss.web.async.Channel
-    Channel
-    impls)
-
-  (extend WebsocketChannel
-    Channel
-    (assoc impls
-      :handshake (fn [^WebsocketChannel ch] (.handshake ch)))))
+(extend-type org.projectodd.wunderboss.web.async.Channel
+  Channel
+  (open? [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
+  (close [^org.projectodd.wunderboss.web.async.Channel ch] (.close ch))
+  (send!
+    ([ch message]
+     (send! ch message nil))
+    ([^org.projectodd.wunderboss.web.async.Channel ch message options]
+     (let [{:keys [close? on-complete]} (o/validate-options*
+                                          options
+                                          #{:close? :on-complete}
+                                          'send!)]
+       (.send ch message
+         (boolean close?)
+         (when on-complete
+           (reify Channel$OnComplete
+             (handle [_ error]
+               (on-complete error)))))))))
 
 (defn as-channel
   "Converts the current ring `request` in to an asynchronous channel.
