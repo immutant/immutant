@@ -44,10 +44,10 @@
 
   `event` can be one of:
 
-  * a map with one or more of the following keys: :event, :data, :id, and :retry,
-    where the :data entry can be an object or collection
-  * an object that will be treated as data (sent as `(str \"data:\" the-object)`)
-  * a collecton of either of the above, which will be sent as events in order"
+  * a Map, with one or more of the following keys: :event, :data, :id, and :retry,
+    where the :data entry can be an Object or Collection
+  * an Object, treated as a simple data field (sent as `(str \"data:\" the-object \"\\n\")`)
+  * a Collecton, treated as a multi-line data field"
   ([ch event]
    (send! ch event nil))
   ([ch event options]

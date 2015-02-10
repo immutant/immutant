@@ -40,9 +40,8 @@ middleware:
   aggregates some middleware handy during development.
 
 The [[immutant.web.async]] namespace enables the creation of
-[WebSockets], [HTTP streams], and [Server-Sent Events]
-streams. Features specific to Server-Sent Events are provided in the
-[[immutant.web.sse]] namespace.
+[WebSockets] and [HTTP streams]. And support for [Server-Sent Events]
+is provided by [[immutant.web.sse]].
 
 The [[immutant.web.undertow]] namespace exposes tuning options for
 Undertow, the ability to open additional listeners, and flexible SSL
@@ -273,11 +272,11 @@ them within a single threaded call.
 
 ## Asynchrony
 
-[HTTP streams], [WebSockets], and [Server-Sent Events] streams are
-created with the [[immutant.web.async/as-channel]] function, which
-should be called from your Ring handler, as it takes a request map and
-some callbacks and returns a valid response map. Its polymorphic
-design enables graceful degradation from bidirectional WebSockets to
+[WebSockets], [HTTP streams], and [Server-Sent Events] are all enabled
+by the [[immutant.web.async/as-channel]] function, which should be
+called from your Ring handler, as it takes a request map and some
+callbacks and returns a valid response map. Its polymorphic design
+enables graceful degradation from bidirectional WebSockets to
 unidirectional chunked responses, e.g. streams. In either case, data
 is sent from the server using [[immutant.web.async/send!]].
 
@@ -335,10 +334,10 @@ supported, `:on-message`, for bidirectional communication.
   {:on-message (fn [ch msg]
                  (async/send! ch (.toUpperCase msg)))})
 
-(defn my-ws [request]
+(defn app [request]
   (async/as-channel request callbacks))
 
-(run my-ws)
+(run app)
 ```
 
 You can identify a WebSocket upgrade request by the presence of
@@ -349,7 +348,7 @@ as well as WebSockets.
 ```clojure
 (defn app [request]
   (if (:websocket? request)
-    (my-ws request)
+    (async/as-channel request callbacks)
     (-> request
       (get-in [:params "msg"])
       .toUpperCase
@@ -367,24 +366,28 @@ encapsulates the check for the upgrade request:
            (wrap-websocket callbacks)))
 ```
 
-Using `wrap-websocket` means giving up the request closure in your
-Ring handler, but the upgrade request is always available to your
-callbacks via [[immutant.web.async/originating-request]].
+But using `wrap-websocket` means losing the `request` closure in your
+Ring handler, representing the original WebSocket upgrade request from
+the client. You can still access it, however, with
+[[immutant.web.async/originating-request]].
 
 Note the `:path` argument to [[immutant.web/run]] applies to both the
 Ring handler and the WebSocket, distinguished only by the request
-protocol, e.g. `http://host.com/foo` vs `ws://host.com/foo`.
+protocol. Given a `:path` of "/foo", for example, you'd have both
+`http://your.host.com/foo` and `ws://your.host.com/foo`.
 
-### Server-Sent Events
+### Server-Sent Events (SSE)
 
 [Server-Sent Events] are a stream of specially-formatted chunked
 responses with a `Content-Type` header of `text/event-stream`. The
 [[immutant.web.sse]] namespace provides its own `send!` and
 `as-channel` functions that are composed from their
-[[immutant.web.async]] counterparts. *Events* are represented as
-either strings (for *data* fields), collections (for multi-line *data*
-fields), or maps, which are expected to contain at least one of the
-following keys: `:event`, `:data`, `:id`, and `:retry`.
+[[immutant.web.async]] counterparts. *Events* are polymorphic: any
+`Object` other than a `Collection` or `Map` is considered a simple
+data field that will be string-ified, prefixed with "data:", and
+suffixed with "\n". A `Collection` represents a multi-line data field.
+And a `Map` is expected to contain at least one of the following keys:
+`:event`, `:data`, `:id`, and `:retry`.
 
 Let's modify the HTTP streaming example to use SSE:
 
@@ -394,10 +397,10 @@ Let's modify the HTTP streaming example to use SSE:
 (defn app [request]
   (sse/as-channel request
     {:on-open (fn [stream]
-                (dotimes [msg 10]
-                  (sse/send! stream msg)
+                (dotimes [e 10]
+                  (sse/send! stream e)
                   (Thread/sleep 1000))
-                (sse/send! stream {:event "close"}))}))
+                (sse/send! stream {:event "close", :data "bye!"}))}))
 
 (run app)
 ```
@@ -417,6 +420,7 @@ data: 8
 data: 9
 
 event: close
+data: bye!
 
 ```
 
