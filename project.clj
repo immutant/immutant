@@ -96,8 +96,8 @@
                         org.immutant               :version}}
 
   :release-tasks  [["vcs" "assert-committed"]
-                   ["change"           "version" "set" "\"2.0.0-beta1\""]
-                   ["modules" "change" "version" "set" "\"2.0.0-beta1\""]
+                   ["change"           "version" "set" "\"2.0.0-beta2\""]
+                   ["modules" "change" "version" "set" "\"2.0.0-beta2\""]
                    ["vcs" "commit"]
                    ["vcs" "tag"]
                    ["modules" "deploy"]
