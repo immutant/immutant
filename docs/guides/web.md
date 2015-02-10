@@ -42,13 +42,12 @@ middleware:
 The [[immutant.web.async]] namespace enables the creation of
 [WebSockets], [HTTP streams], and [Server-Sent Events].
 
-* `Channel` - a protocol for asynchronous coordination
+* `Channel` - a protocol for asynchronous communication
 * `as-channel` - takes a Ring request map and returns a response map
   with an asynchronous channel mapped to :body
 
-Features specific to WebSockets and Server-Sent Events are included in
-the [[immutant.web.websocket]] and [[immutant.web.sse]] namespaces,
-respectively.
+Features specific to Server-Sent Events are provided in the
+[[immutant.web.sse]] namespace.
 
 The [[immutant.web.undertow]] namespace exposes tuning options for
 Undertow, the ability to open additional listeners, and flexible SSL
@@ -342,10 +341,10 @@ supported, :on-message, for bidirectional communication.
   {:on-message (fn [ch msg]
                  (async/send! ch (.toUpperCase msg)))})
                  
-(defn ws [request]
+(defn my-ws [request]
   (async/as-channel request callbacks))
 
-(run ws)
+(run my-ws)
 ```
 
 You can identify a WebSocket upgrade request by the presence of the
@@ -356,7 +355,7 @@ WebSockets.
 ```clojure
 (defn app [request]
   (if (:websocket? request)
-    (ws request)
+    (my-ws request)
     (-> request
       (get-in [:params "msg"])
       .toUpperCase
@@ -374,8 +373,9 @@ encapsulates the check for the upgrade request:
            (wrap-websocket callbacks)))
 ```
 
-If you need access to the upgrade request in your callbacks, you can
-use [[immutant.web.async/originating-request]].
+Using `wrap-websocket` means giving up the request closure in your
+Ring handler, but the upgrade request is always available to your
+callbacks via [[immutant.web.async/originating-request]].
 
 Note the `:path` argument to [[immutant.web/run]] applies to both the
 Ring handler and the WebSocket, distinguished only by the request
@@ -412,7 +412,7 @@ Because we're using `sse/send!` the client will receive
 newline-delimited messages formatted with field names, e.g. `data: 0`.
 And note that most EventSource clients will attempt to reconnect if
 the server closes the connection, so instead we send a special "close"
-event that will trigger our client to close the connection.
+event that our client can dispatch on to initiate the close.
 
 ## Feature Demo
 
