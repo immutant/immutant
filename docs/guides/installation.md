@@ -28,7 +28,7 @@ project's classpath:
                  [org.immutant/caching "{{version}}"]
                  [org.immutant/messaging "{{version}}"]
                  [org.immutant/scheduling "{{version}}"]
-                 [org.immutant/transactions "{{version}}]])
+                 [org.immutant/transactions "{{version}}"]])
 ```
 
 You would of course only include the libs you need, but if you really

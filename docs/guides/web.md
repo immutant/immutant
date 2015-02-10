@@ -302,7 +302,7 @@ HTTP streams.
 
 ### HTTP Streams
 
-Creating chunked responses are straightforward, as the following Ring
+Creating chunked responses is straightforward, as the following Ring
 handler demonstrates:
 
 ```clojure
