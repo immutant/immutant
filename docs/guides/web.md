@@ -44,7 +44,7 @@ The [[immutant.web.async]] namespace enables the creation of
 
 * `Channel` - a protocol for asynchronous communication
 * `as-channel` - takes a Ring request map and returns a response map
-  with an asynchronous channel mapped to :body
+  with an asynchronous channel mapped to `:body`
 
 Features specific to Server-Sent Events are provided in the
 [[immutant.web.sse]] namespace.
@@ -289,8 +289,8 @@ is sent from the server using [[immutant.web.async/send!]].
 It's important to note that `as-channel` returns a normal Ring
 response map, so it's completely compatible with Ring middleware that
 might affect other entries in the response. The only requirement is
-that the :body entry needs to be ultimately returned by any downstream
-middleware.
+that the `:body` entry needs to be ultimately returned by any
+downstream middleware.
 
 The signatures of the callback functions supported by `as-channel` are
 as follows:
@@ -302,9 +302,9 @@ as follows:
   :on-message (fn [channel message])
 ```
 
-The :on-message handler is only relevant to WebSockets, as are the
-:code and :reason keys passed to :on-close: they will be nil for HTTP
-streams.
+The `:on-message` handler is only relevant to WebSockets, as are the
+`:code` and `:reason` keys passed to `:on-close`: they will be nil for
+HTTP streams.
 
 ### HTTP Streams
 
@@ -320,21 +320,20 @@ handler demonstrates:
                 (dotimes [msg 10]
                   (async/send! stream msg {:close? (= msg 9)})
                   (Thread/sleep 1000))})))
-
 (run app)
 ```
 
-When a client connects to our app, the :on-open handler is
+When a client connects to our app, the `:on-open` handler is
 asynchronously called with the appropriate channel. Our contrived
 callback sends a number to the client every second. On the 10th time
-it sets the :close? option to true. Its default value is false,
+it sets the `:close?` option to true. Its default value is false,
 causing the channel to remain open after the data is sent.
 
 ### WebSockets
 
 To support graceful client degradation, WebSockets are coded exactly
 like HTTP Streams, except that an additional callback option is
-supported, :on-message, for bidirectional communication.
+supported, `:on-message`, for bidirectional communication.
 
 ```clojure
 (def callbacks
@@ -348,7 +347,7 @@ supported, :on-message, for bidirectional communication.
 ```
 
 You can identify a WebSocket upgrade request by the presence of the
-:websocket? key. This enables you to construct your handlers so that
+`:websocket?` key. This enables you to construct your handlers so that
 they correctly respond to both normal HTTP requests as well as
 WebSockets.
 
@@ -388,9 +387,9 @@ responses with a `Content-Type` header of `text/event-stream`. The
 [[immutant.web.sse]] namespace provides its own `send!` and
 `as-channel` functions that are composed from their
 [[immutant.web.async]] counterparts. *Events* are represented as
-either strings (*data* fields), collections (multi-line *data*
+either strings (for *data* fields), collections (for multi-line *data*
 fields), or maps, which are expected to contain at least one of the
-following keys: :event, :data, :id, and :retry.
+following keys: `:event`, `:data`, `:id`, and `:retry`.
 
 Let's modify the HTTP streaming example to use SSE:
 
@@ -409,10 +408,26 @@ Let's modify the HTTP streaming example to use SSE:
 ```
 
 Because we're using `sse/send!` the client will receive
-newline-delimited messages formatted with field names, e.g. `data: 0`.
+newline-delimited messages formatted with field names, e.g.
+
+```
+data: 0
+
+data: 1
+
+ ...
+ 
+data: 8
+
+data: 9
+
+event: close
+
+```
+
 And note that most EventSource clients will attempt to reconnect if
 the server closes the connection, so instead we send a special "close"
-event that our client can dispatch on to initiate the close.
+event on which our client can dispatch to initiate the close.
 
 ## Feature Demo
 
@@ -420,8 +435,6 @@ We maintain a Leiningen project called the [Immutant Feature Demo]
 demonstrating all the Immutant namespaces, including examples of
 simple
 [Web](https://github.com/immutant/feature-demo/blob/thedeuce/src/demo/web.clj)
-and
-[WebSocket](https://github.com/immutant/feature-demo/blob/thedeuce/src/demo/websocket.clj)
 apps.
 
 You should be able to clone it somewhere, cd there, and `lein run`.

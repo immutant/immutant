@@ -141,12 +141,12 @@
     (is (nil? (:a c)))))
 
 (deftest test-put-all-ttl
-  (let [c (new-cache :ttl 300)]
+  (let [c (new-cache :ttl 500)]
     (is (= 0 (count c)))
     (.putAll c {:a 1 :b 2})
     (is (= 1 (:a c)))
     (is (= 2 (:b c)))
-    (Thread/sleep 400)
+    (Thread/sleep 600)
     (is (nil? (:a c)))
     (is (nil? (:b c)))))
 
