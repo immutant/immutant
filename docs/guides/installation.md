@@ -1,7 +1,6 @@
 ---
 {:title "Installation"
  :sequence 0.5
- :toc false
  :description "Using the Immutant libraries in your application"}
 ---
 
