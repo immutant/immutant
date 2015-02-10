@@ -11,8 +11,7 @@ for [The Deuce].
 
 ## project.clj
 
-You need two things in your `project.clj`, as you would for any other
-Clojure library:
+You need two things in your `project.clj`:
 
 * Immutant lib[s] in your `:dependencies`
 * a `:main` function
@@ -65,9 +64,7 @@ is where you should invoke the Immutant services. For example:
   {:status 200
    :body "Hello world!"})
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
+(defn -main [& args]
   (web/run app))
 ```
 
@@ -76,7 +73,7 @@ created your app with a popular Ring-based template like [Compojure]
 or [Luminus], it won't:
 
     lein new compojure my-app
-    
+
 Instead, you'll have a `:ring` map with a `:handler` called
 `my-app.handler/app`. So you'll need to manually add a `:main` entry
 referencing a namespace in your project with a `-main` function. You
@@ -87,11 +84,10 @@ can easily add one to `src/my_app/handler.clj`:
   ...
   (:require [immutant.web :as web])
   ... )
-  
+
 (def app ... )
 
-(defn -main
-  [& args]
+(defn -main [& args]
   (web/run app))
 ```
 
