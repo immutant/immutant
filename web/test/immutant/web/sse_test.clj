@@ -14,7 +14,7 @@
 
 (ns immutant.web.sse-test
   (:require [clojure.test :refer :all]
-            [testing.web :refer (event-source handle-events)]
+            [testing.web :refer (event-source handle-events get-response)]
             [immutant.web.sse :refer :all]
             [immutant.web :refer (run stop)]
             [clojure.string :refer (split-lines)]))
@@ -60,4 +60,15 @@
     (is (not (.isOpen client)))
     (is (= ["5" "4" "3" "2" "1"] (take 5 @result)))
     (is (= #{:done "bye!"} (set (drop 5 @result))))
+    (stop server)))
+
+(deftest sse-encoding-should-be-utf8
+  (let [app (fn [req]
+              (as-channel req
+                :on-open (fn [ch] (send! ch "foo" {:close? true}))))
+        server (run app)
+        body-stream (:raw-body (get-response "http://localhost:8080"))]
+    (is body-stream)
+    (is (= "data:foo\n\n"
+          (String. (.toByteArray body-stream) "UTF-8")))
     (stop server)))
