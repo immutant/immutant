@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/immutant-parent "2.0.0-SNAPSHOT"
+(defproject org.immutant/immutant-parent "2.0.0-beta2"
   :description "Parent for all that is Immutant"
   :pedantic? false
   :plugins [[lein-modules "0.3.10"]]
