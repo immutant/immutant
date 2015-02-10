@@ -150,7 +150,7 @@
       (is (= "biscuit" (:ham headers))))))
 
 (deftest non-chunked-stream
-  (let [data (str (repeat 128 "1"))]
+  (let [data (apply str (repeat 128 1))]
     (let [response (get-response (str (url) "non-chunked-stream"))]
       (is (= 200 (:status response)))
       (is (empty? (-> response :headers :transfer-encoding)))
@@ -299,6 +299,20 @@
                             :on-complete (fn [_] (throw (Exception. "BOOM")))}))))))
   (is (= "ahoy" (get-body (cdef-url))))
   (is (= "BOOM" (read-string (get-body (str (cdef-url) "state"))))))
+
+(deftest send!-with-bytes
+  (replace-handler
+    '(fn [request]
+       (async/as-channel request
+         :on-message (fn [ch m]
+                       (async/send! ch m)))))
+  (let [result (promise)]
+    (with-open [socket (ws/connect (cdef-url "ws")
+                         :on-binary (fn [m _ _]
+                                      (deliver result m)))]
+      (ws/send-msg socket (.getBytes "ham"))
+      (is (= (into [] (.getBytes "ham"))
+             (into [] (deref result 5000 nil)))))))
 
 (when (not (in-container?))
   ;; TODO: Run this in-container. The only thing stopping us is our

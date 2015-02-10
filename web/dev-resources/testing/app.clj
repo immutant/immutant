@@ -57,7 +57,7 @@
   (async/as-channel request
     {:on-open
      (fn [stream]
-       (async/send! stream (str (repeat 128 "1")) {:close? true}))}))
+       (async/send! stream (apply str (repeat 128 1)) {:close? true}))}))
 
 (defn sse
   [request]
