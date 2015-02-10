@@ -109,7 +109,7 @@
 
     `code` and `reason` will be the numeric closure code and text reason,
      respectively, if the channel is a WebSocket
-     (see http://tools.ietf.org/html/rfc6455#section-7.4). Both will be nil
+     (see <http://tools.ietf.org/html/rfc6455#section-7.4>). Both will be nil
      for HTTP streams.
 
   If the channel is a Websocket, the following callback is also used:

@@ -10,8 +10,7 @@ eventually be a more thorough migration guide.
 
 Structure: each section covers a namespace. If the namespace has been
 renamed, that will be reflected by old namespace -> new namespace. If
-the namespace has yet to be ported (but probably will, it's marked
-with "-> ?". If it is now gone, it's marked with "REMOVED".
+a namespace has been removed, it's marked with a ~~strikethrough~~.
 
 This list includes all of the Immutant namespaces, some of which
 were/are for internal use only.
@@ -59,9 +58,9 @@ Some option keys and values have changed:
   - `:seed` is gone
   - `:config` is now `:configuration`
 
-### immutant.cache.config REMOVED
-### immutant.cache.core REMOVED
-### immutant.cache.wrapper REMOVED
+### ~~immutant.cache.config~~
+### ~~immutant.cache.core~~
+### ~~immutant.cache.wrapper~~
 
 ## [[immutant.codecs]]
 
@@ -75,7 +74,7 @@ Now resides in
 [org.immutant/core](https://clojars.org/org.immutant/core), with a
 slightly simpler interface.
 
-## immutant.dev REMOVED
+## ~~immutant.dev~~
 
 Used for dev inside the container, but you can get all these same
 facilities with standard tools outside of the container with 2.x, and
@@ -100,7 +99,7 @@ restore `internal-scheduler`?)
 
 ### immutant.jobs.internal -> immutant.scheduling.internal
 
-## immutant.logging REMOVED
+## ~~immutant.logging~~
 
 ## [[immutant.messaging]]
 
@@ -116,7 +115,7 @@ no more.
 
 Brought over with few changes.
 
-### immutant.messaging.core REMOVED
+### ~~immutant.messaging.core~~
 
 Merged with `immutant.messaging.internal`.
 
@@ -132,20 +131,20 @@ Brought over, but with a drastically different API.
 
 The API is unchanged, other than renaming the namespace.
 
-## immutant.registry REMOVED
+## ~~immutant.registry~~
 
 ## immutant.repl -> immutant.wildfly.repl
 
 Still there, but with a different API. It's now only used inside the
 container.
 
-## immutant.resource-util REMOVED
+## ~~immutant.resource-util~~
 
-## immutant.runtime REMOVED
+## ~~immutant.runtime~~
 
-### immutant.runtime.bootstrap REMOVED
+### ~~immutant.runtime.bootstrap~~
 
-## immutant.runtime-util REMOVED
+## ~~immutant.runtime-util~~
 
 ## immutant.util
 
@@ -161,13 +160,16 @@ Split across three namespaces:
 * `start-servlet` is also now `run`
 * `current-servlet-request` currently has no analogue
 
-### immutant.web.session -> obviated by wrap-session
-### immutant.web.servlet -> REMOVED
-### immutant.web.session.internal -> REMOVED
+### ~~immutant.web.session~~
+
+Obviated by [[immutant.web.middleware/wrap-session]].
+
+### ~~immutant.web.servlet~~
+### ~~immutant.web.session.internal~~
 
 ### [[immutant.web.middleware]]
 
-Contains only `wrap-development` and `wrap-session`
+Contains only `wrap-development`, `wrap-session`, and `wrap-websocket`.
 
 ## immutant.xa -> [[immutant.transactions]]
 

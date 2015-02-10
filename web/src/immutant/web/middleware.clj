@@ -81,7 +81,7 @@
   * :on-error   `(fn [channel throwable])`
 
   If handler is nil, a 404 status will be returned for any
-  non-websocket request."
+  non-websocket request. Also see [[immutant.web.async/as-channel]]."
   ([handler key value & key-values]
    (wrap-websocket handler (apply hash-map key value key-values)))
   ([handler callbacks]

@@ -54,11 +54,6 @@ something other than `logback.xml`.
 When defining a custom configuration, it may be useful to use the
 [default configuration] as a starting point.
 
-**Note**: If you're using 2.0.0-alpha1 and provide your own configuration,
-you'll see warnings from Logback about finding multiple `logback.xml`
-files. You can ignore the warning, or update to the latest [incremental
-build] to make it go away.
-
 ### Replacing Logback
 
 If you want to use a logging implementation other than Logback, you'll
