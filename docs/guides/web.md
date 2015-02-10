@@ -2,7 +2,7 @@
 {:title "Web"
  :sequence 1.5
  :base-ns 'immutant.web
- :description "Running Clojure web applications and WebSockets"}
+ :description "Running Clojure web applications"}
 ---
 
 The `org.immutant/web` library changed quite a bit from Immutant 1.x
@@ -10,7 +10,7 @@ to 2.x, both its API and its foundation: the [Undertow] web server.
 Among other things, this resulted in
 [much better performance](https://github.com/ptaoussanis/clojure-web-server-benchmarks)
 (~35% more throughput than v1.1.1) and built-in support for
-websockets.
+WebSockets.
 
 ## The Namespaces
 
@@ -29,23 +29,26 @@ Also included:
 * `server` - provides finer-grained control over the embedded web
   server hosting your handler[s].
 
-The [[immutant.web.middleware]] namespace includes two Ring middleware
-functions:
+The [[immutant.web.middleware]] namespace provides some Ring
+middleware:
 
+* `wrap-websocket` - attach websocket callbacks to your Ring handler
 * `wrap-session` - enables session sharing among your Ring handler and
-  its websockets, as well as automatic session replication when your
+  its WebSockets, as well as automatic session replication when your
   app is deployed to a WildFly or EAP cluster.
 * `wrap-development` - included automatically by `run-dmc`, this
   aggregates some middleware handy during development.
 
-[WebSockets] are created using the [[immutant.web.websocket]] namespace,
-which includes the following:
+The [[immutant.web.async]] namespace enables the creation of
+[WebSockets], [HTTP streams], and [Server-Sent Events].
 
-* `Channel` - a protocol for WebSocket interaction.
-* `Handshake` - a protocol for obtaining attributes of the initial
-  upgrade request
-* `wrap-websocket` - middleware to attach websocket callback functions
-  to a Ring handler
+* `Channel` - a protocol for asynchronous coordination
+* `as-channel` - takes a Ring request map and returns a response map
+  with an asynchronous channel mapped to :body
+
+Features specific to WebSockets and Server-Sent Events are included in
+the [[immutant.web.websocket]] and [[immutant.web.sse]] namespaces,
+respectively.
 
 The [[immutant.web.undertow]] namespace exposes tuning options for
 Undertow, the ability to open additional listeners, and flexible SSL
@@ -274,92 +277,142 @@ your app in a browser.
 Both `run` and `run-dmc` accept the same options. You can even mix
 them within a single threaded call.
 
-## WebSockets
+## Asynchrony
 
-Also included in the `org.immutant/web` library is the
-[[immutant.web.websocket]] namespace, which includes the
-`wrap-websocket` function that attaches a map of callback functions to
-your Ring handler. Though it looks like Ring middleware, it actually
-returns an `HttpHandler` instead of a function, so it must come last
-in your middleware chain.
+[HTTP streams], [WebSockets], and [Server-Sent Events] are created
+with the [[immutant.web.async/as-channel]] function, which should be
+called from your Ring handler, as it takes a request map and some
+callbacks and returns a valid response map. Its polymorphic design
+enables graceful degradation from bidirectional WebSockets to
+unidirectional chunked responses, e.g. streams. In either case, data
+is sent from the server using [[immutant.web.async/send!]].
 
-The valid websocket event keywords and their corresponding callback
-signatures are as follows, where channel is an instance of the
-`Channel` protocol, and handshake is an instance of `Handshake`:
+It's important to note that `as-channel` returns a normal Ring
+response map, so it's completely compatible with Ring middleware that
+might affect other entries in the response. The only requirement is
+that the :body entry needs to be ultimately returned by any downstream
+middleware.
+
+The signatures of the callback functions supported by `as-channel` are
+as follows:
 
 ```clojure
-  :on-message (fn [channel message])
-  :on-open    (fn [channel handshake])
+  :on-open    (fn [channel])
   :on-close   (fn [channel {:keys [code reason]}])
   :on-error   (fn [channel throwable])
+  :on-message (fn [channel message])
 ```
 
-To create your websocket endpoint, pass the result from
-`wrap-websocket` to `immutant.web/run`. Here's an example that
-asynchronously returns the upper-cased equivalent of whatever message
-it receives:
+The :on-message handler is only relevant to WebSockets, as are the
+:code and :reason keys passed to :on-close: they will be nil for HTTP
+streams.
+
+### HTTP Streams
+
+Creating chunked responses are straightforward, as the following Ring
+handler demonstrates:
 
 ```clojure
-(ns whatever
-  (:require [immutant.web             :as web]
-            [immutant.web.websocket   :as ws]
-            [ring.middleware.resource :refer [wrap-resource]]
-            [ring.util.response       :refer [redirect]]
-            [clojure.string           :refer [upper-case]]))
+(require '[immutant.web.async :as async])
 
-(defn create-websocket []
-  (web/run
-    (-> (fn [{c :context}] (redirect (str c "/index.html")))
-      (wrap-resource "public")
-      (ws/wrap-websocket {:on-message (fn [c m] (ws/send! c (upper-case m)))}))
-    {:path "/ws"}))
+(defn app [request]
+  (async/as-channel request
+    {:on-open (fn [stream]
+                (dotimes [msg 10]
+                  (async/send! stream msg {:close? (= msg 9)})
+                  (Thread/sleep 1000))})))
+
+(run app)
 ```
 
-After running the above, a request to <http://localhost:8080/ws>
-should return a 302 redirect to <http://localhost:8080/ws/index.html>.
-Assuming the `wrap-resource` middleware can find `public/index.html`
-in your classpath (typically in your project's `resources/` dir), a
-`<script>` that attempts to open a WebSocket connection to
-<ws://localhost:8080/ws> should work, and an upper-cased version of
-any text the browser sends should be returned to it through that
-WebSocket.
+When a client connects to our app, the :on-open handler is
+asynchronously called with the appropriate channel. Our contrived
+callback sends a number to the client every second. On the 10th time
+it sets the :close? option to true. Its default value is false,
+causing the channel to remain open after the data is sent.
 
-Note the `:path` argument applies to both the Ring handler and the
-WebSocket, distinguished only by the request protocol, e.g. `http://`
-vs `ws://`.
+### WebSockets
 
-### The WebSocket Handshake
-
-Often, applications require access to data in the original upgrade
-request associated with a WebSocket connection, perhaps for user
-authentication or some such. That data is made available via the
-[[immutant.web.websocket/Handshake]] protocol, an instance of which is
-passed to the `:on-open` callback.
-
-In particular, you can access all the headers sent in the upgrade
-request, and if you're using the `wrap-session` middleware, you can
-even access any session data stored on behalf of the user by the Ring
-handler. Here's a contrived example in which the Ring handler stores a
-random id in the session that is then sent back to the user when he
-opens a WebSocket:
+To support graceful client degradation, WebSockets are coded exactly
+like HTTP Streams, except that an additional callback option is
+supported, :on-message, for bidirectional communication.
 
 ```clojure
-(ns whatever
-  (:require [immutant.web             :as web]
-            [immutant.web.websocket   :as ws]
-            [immutant.web.middleware  :refer [wrap-session]]
-            [ring.util.response       :refer [response]]))
+(def callbacks
+  {:on-message (fn [ch msg]
+                 (async/send! ch (.toUpperCase msg)))})
+                 
+(defn ws [request]
+  (async/as-channel request callbacks))
 
-(def callbacks {:on-open (fn [c h] (ws/send! c (:id (ws/session h))))}
-
-(defn share-session-with-websocket []
-  (web/run
-    (-> (fn [{{:keys [id] :or {id (str (rand))}} :session}]
-          (-> id response (assoc :session {:id id})))
-      (wrap-session)
-      (ws/wrap-websocket callbacks))
-    {:path "/ws"}))
+(run ws)
 ```
+
+You can identify a WebSocket upgrade request by the presence of the
+:websocket? key. This enables you to construct your handlers so that
+they correctly respond to both normal HTTP requests as well as
+WebSockets.
+
+```clojure
+(defn app [request]
+  (if (:websocket? request)
+    (ws request)
+    (-> request
+      (get-in [:params "msg"])
+      .toUpperCase
+      ring.util.response/response)))
+
+(run app)
+```
+
+Immutant provides a convenient Ring middleware function that
+encapsulates the check for the upgrade request:
+[[immutant.web.middleware/wrap-websocket]].
+
+```clojure
+(web/run (-> my-app
+           (wrap-websocket callbacks)))
+```
+
+If you need access to the upgrade request in your callbacks, you can
+use [[immutant.web.async/originating-request]].
+
+Note the `:path` argument to [[immutant.web/run]] applies to both the
+Ring handler and the WebSocket, distinguished only by the request
+protocol, e.g. `http://host.com/foo` vs `ws://host.com/foo`.
+
+### Server-Sent Events
+
+[Server-Sent Events] are a stream of specially-formatted chunked
+responses with a `Content-Type` header of `text/event-stream`. The
+[[immutant.web.sse]] namespace provides its own `send!` and
+`as-channel` functions that are composed from their
+[[immutant.web.async]] counterparts. *Events* are represented as
+either strings (*data* fields), collections (multi-line *data*
+fields), or maps, which are expected to contain at least one of the
+following keys: :event, :data, :id, and :retry.
+
+Let's modify the HTTP streaming example to use SSE:
+
+```clojure
+(require '[immutant.web.sse :as sse])
+
+(defn app [request]
+  (sse/as-channel request
+    {:on-open (fn [stream]
+                (dotimes [msg 10]
+                  (sse/send! stream msg)
+                  (Thread/sleep 1000))
+                (sse/send! stream {:event "close"}))}))
+
+(run app)
+```
+
+Because we're using `sse/send!` the client will receive
+newline-delimited messages formatted with field names, e.g. `data: 0`.
+And note that most EventSource clients will attempt to reconnect if
+the server closes the connection, so instead we send a special "close"
+event that will trigger our client to close the connection.
 
 ## Feature Demo
 
@@ -385,3 +438,5 @@ Have fun!
 [WebSockets]: http://en.wikipedia.org/wiki/WebSocket
 [Immutant Feature Demo]: https://github.com/immutant/feature-demo
 [less-awful-ssl]: https://github.com/aphyr/less-awful-ssl
+[Server-Sent Events]: http://www.w3.org/TR/eventsource/
+[HTTP streams]: http://en.wikipedia.org/wiki/Chunked_transfer_encoding
