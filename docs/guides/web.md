@@ -40,13 +40,8 @@ middleware:
   aggregates some middleware handy during development.
 
 The [[immutant.web.async]] namespace enables the creation of
-[WebSockets], [HTTP streams], and [Server-Sent Events].
-
-* `Channel` - a protocol for asynchronous communication
-* `as-channel` - takes a Ring request map and returns a response map
-  with an asynchronous channel mapped to `:body`
-
-Features specific to Server-Sent Events are provided in the
+[WebSockets], [HTTP streams], and [Server-Sent Events]
+streams. Features specific to Server-Sent Events are provided in the
 [[immutant.web.sse]] namespace.
 
 The [[immutant.web.undertow]] namespace exposes tuning options for
@@ -278,11 +273,11 @@ them within a single threaded call.
 
 ## Asynchrony
 
-[HTTP streams], [WebSockets], and [Server-Sent Events] are created
-with the [[immutant.web.async/as-channel]] function, which should be
-called from your Ring handler, as it takes a request map and some
-callbacks and returns a valid response map. Its polymorphic design
-enables graceful degradation from bidirectional WebSockets to
+[HTTP streams], [WebSockets], and [Server-Sent Events] streams are
+created with the [[immutant.web.async/as-channel]] function, which
+should be called from your Ring handler, as it takes a request map and
+some callbacks and returns a valid response map. Its polymorphic
+design enables graceful degradation from bidirectional WebSockets to
 unidirectional chunked responses, e.g. streams. In either case, data
 is sent from the server using [[immutant.web.async/send!]].
 
@@ -318,7 +313,7 @@ handler demonstrates:
   (async/as-channel request
     {:on-open (fn [stream]
                 (dotimes [msg 10]
-                  (async/send! stream msg {:close? (= msg 9)})
+                  (async/send! stream (str msg) {:close? (= msg 9)})
                   (Thread/sleep 1000))})))
 (run app)
 ```
@@ -339,16 +334,16 @@ supported, `:on-message`, for bidirectional communication.
 (def callbacks
   {:on-message (fn [ch msg]
                  (async/send! ch (.toUpperCase msg)))})
-                 
+
 (defn my-ws [request]
   (async/as-channel request callbacks))
 
 (run my-ws)
 ```
 
-You can identify a WebSocket upgrade request by the presence of the
-`:websocket?` key. This enables you to construct your handlers so that
-they correctly respond to both normal HTTP requests as well as
+You can identify a WebSocket upgrade request by the presence of
+`:websocket?` request map. This enables you to construct your handlers
+so that they correctly respond to both normal HTTP requests as well as
 WebSockets.
 
 ```clojure
@@ -416,7 +411,7 @@ data: 0
 data: 1
 
  ...
- 
+
 data: 8
 
 data: 9
