@@ -130,14 +130,14 @@
     (is (nil? (get c :a)))))
 
 (deftest test-put-if-absent-ttl
-  (let [c (new-cache :ttl 300)]
+  (let [c (new-cache :ttl 500)]
     (is (nil? (:a c)))
     (is (nil? (.putIfAbsent c :a 1)))
     (is (= 1 (:a c)))
     (.put c :a 1)                       ; reset timer
     (is (= 1 (.putIfAbsent c :a 2)))
     (is (= 1 (:a c)))
-    (Thread/sleep 400)
+    (Thread/sleep 600)
     (is (nil? (:a c)))))
 
 (deftest test-put-all-ttl
