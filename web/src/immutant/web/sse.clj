@@ -31,18 +31,23 @@
   (event->str [c] (apply str (map event->str c)))
   java.util.Map
   (event->str [m] (apply str
-                (-> (for [[k v] (dissoc m :data)]
-                      (format "%s:%s\n" (name k) v))
-                  (conj (event->str (:data m)))))))
+                    (-> (for [[k v] (dissoc m :data)]
+                          (format "%s:%s\n" (name k) v))
+                      (conj (event->str (:data m)))))))
 
 (def as-channel
-  "Decorates the result of [[immutant.web.async/as-channel]] with the
-  proper SSE header"
+  "Decorates the result of [[immutant.web.async/as-channel]] with the proper SSE Content-Type."
   (comp with-event-type async/as-channel))
 
 (defn send!
-  "Formats an event according to the SSE spec and sends it
-  via [[immutant.web.async/send!]]"
+  "Formats an event according to the SSE spec and sends it via [[immutant.web.async/send!]].
+
+  `event` can be one of:
+
+  * a map with one or more of the following keys: :event, :data, :id, and :retry,
+    where the :data entry can be an object or collection
+  * an object that will be treated as data (sent as `(str \"data:\" the-object)`)
+  * a collecton of either of the above, which will be sent as events in order"
   ([ch event]
    (send! ch event nil))
   ([ch event options]
