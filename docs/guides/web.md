@@ -342,9 +342,9 @@ supported, `:on-message`, for bidirectional communication.
 ```
 
 You can identify a WebSocket upgrade request by the presence of
-`:websocket?` request map. This enables you to construct your handlers
-so that they correctly respond to both normal HTTP requests as well as
-WebSockets.
+`:websocket?` in the request map. This enables you to construct your
+handlers so that they correctly respond to both normal HTTP requests
+as well as WebSockets.
 
 ```clojure
 (defn app [request]
