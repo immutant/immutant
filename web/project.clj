@@ -18,8 +18,9 @@
   :plugins [[lein-modules "0.3.10"]]
 
   :dependencies [[org.immutant/core _]
-                 [potemkin "0.3.4"]
-                 [org.projectodd.wunderboss/wunderboss-web _]]
+                 [potemkin _]
+                 [org.projectodd.wunderboss/wunderboss-web _]
+                 [ring/ring-core _]]
 
   :profiles {:dev
              {:dependencies [[io.pedestal/pedestal.service _]
@@ -27,7 +28,7 @@
                              [stylefruits/gniazdo _]
                              [ring/ring-devel _]
                              [compojure _]
-                             [clj-http "0.9.1"]
+                             [clj-http _]
                              [org.glassfish.jersey.media/jersey-media-sse _]]}}
 
   :test-paths ["test" "test-integration"])
