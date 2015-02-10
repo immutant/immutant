@@ -62,12 +62,15 @@
     (is (= #{:done "bye!"} (set (drop 5 @result))))
     (stop server)))
 
-(deftest sse-encoding-should-be-utf8
+(deftest sse-should-be-utf8-and-have-proper-content-type
   (let [app (fn [req]
               (as-channel req
                 :on-open (fn [ch] (send! ch "foo" {:close? true}))))
         server (run app)
-        body-stream (:raw-body (get-response "http://localhost:8080"))]
+        response (get-response "http://localhost:8080")
+        body-stream (:raw-body response)]
+    (is (= "text/event-stream; charset=utf-8"
+          (get-in response [:headers :content-type])))
     (is body-stream)
     (is (= "data:foo\n\n"
           (String. (.toByteArray body-stream) "UTF-8")))
