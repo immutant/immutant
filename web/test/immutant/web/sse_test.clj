@@ -38,7 +38,8 @@
           (event->str {:data (range 3)})))))
 
 (deftest sse
-  (let [closed (promise)
+  (let [complete (promise)
+        closed (promise)
         result (atom [])
         app (fn [req]
               (as-channel req
@@ -47,7 +48,7 @@
                              (send! ch x)
                              (Thread/sleep 10))
                            (send! ch {:event "close", :data "bye!"}
-                             {:on-complete (fn [_] (swap! result conj :done))}))))
+                             {:on-complete (fn [_] (deliver complete :success))}))))
         server (run app)
         client (event-source "http://localhost:8080")]
     (handle-events client (fn [e]
@@ -56,10 +57,10 @@
                               (.close client)
                               (deliver closed :success))))
     (.open client)
-    (is (= :success (deref closed 5000 :fail)))
+    (is (= :success (deref complete 2000 :fail)))
+    (is (= :success (deref closed 2000 :fail)))
     (is (not (.isOpen client)))
-    (is (= ["5" "4" "3" "2" "1"] (take 5 @result)))
-    (is (= #{:done "bye!"} (set (drop 5 @result))))
+    (is (= ["5" "4" "3" "2" "1" "bye!"] @result))
     (stop server)))
 
 (deftest sse-should-be-utf8-and-have-proper-content-type
