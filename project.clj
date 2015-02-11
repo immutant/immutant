@@ -64,7 +64,8 @@
                          :license {:name "Apache Software License - v 2.0"
                                    :url "http://www.apache.org/licenses/LICENSE-2.0"
                                    :distribution :repo}
-                         :plugins [[org.immutant/build-helper "0.2.8"]]
+                         :plugins [[org.immutant/build-helper "0.2.8"]
+                                   [lein-file-replace "0.1.0"]]
                          :hooks [build-helper.plugin.pom/hooks]
 
                          :signing {:gpg-key "BFC757F9"}
@@ -98,6 +99,10 @@
   :release-tasks  [["vcs" "assert-committed"]
                    ["change"           "version" "set" "\"2.0.0-beta2\""]
                    ["modules" "change" "version" "set" "\"2.0.0-beta2\""]
+
+                   ["modules" ":dirs" ".,web,messaging,transactions,scheduling,caching" 
+                    "file-replace" "README.md" "(<version>| \")" "(\"]|</version>)" "version"]
+
                    ["vcs" "commit"]
                    ["vcs" "tag"]
                    ["modules" "deploy"]
