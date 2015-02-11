@@ -6,13 +6,27 @@ Immutant. For usage and more details, see http://immutant.org/.
 
 To file an issue, see https://issues.jboss.org/browse/IMMUTANT
 
+## Latest Release
 
-## Requirements
+Leiningen:
 
-* Leiningen 2.3.4+
+``` clj
+[org.immutant/immutant "2.0.0-beta2"]
+```
 
+Maven:
+
+``` xml
+<dependency>
+  <groupId>org.immutant</groupId>
+  <artifactId>immutant</artifactId>
+  <version>2.0.0-beta2</version>
+</dependency>
+```
 
 ## Building
+
+Requires Leiningen 2.3.4+
 
 From the root of the project, run:
 
