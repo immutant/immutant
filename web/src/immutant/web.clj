@@ -77,11 +77,11 @@
    switch of dispatching them to the worker thread pool, at the
    risk of refusing client requests under load.
 
-   Inside WildFly, the :host, :port, and :dispatch? options are
-   ignored, since all handlers are mounted as servlets contained within
-   WildFly's own Undertow instance. Further, all invocations of `run`
-   must be within the initialization function for your application,
-   i.e. your `-main`."
+   Inside WildFly, the :host, :port, :configuration, and :dispatch?
+   options are ignored, since all handlers are mounted as servlets
+   contained within WildFly's own Undertow instance. Further, all
+   invocations of `run` must be within the initialization function for
+   your application, i.e. your `-main`."
   [handler & options]
   (let [options (-> options
                   kwargs-or-map->map
