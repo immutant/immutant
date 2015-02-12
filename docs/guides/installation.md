@@ -91,7 +91,8 @@ can easily add one to `src/my_app/handler.clj`:
   (web/run app))
 ```
 
-With `:main` configured, you can now start your app like so:
+With `:main` set to `my-app.handler` in `project.clj`, you can then
+start your app like so:
 
     lein run
 
