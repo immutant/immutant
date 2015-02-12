@@ -431,10 +431,9 @@ event on which our client can dispatch to initiate the close.
 ## Feature Demo
 
 We maintain a Leiningen project called the [Immutant Feature Demo]
-demonstrating all the Immutant namespaces, including examples of
-simple
-[Web](https://github.com/immutant/feature-demo/blob/thedeuce/src/demo/web.clj)
-apps.
+demonstrating all the Immutant namespaces, including simple examples
+of
+[the features described herein](https://github.com/immutant/feature-demo/blob/master/src/demo/web.clj).
 
 You should be able to clone it somewhere, cd there, and `lein run`.
 
