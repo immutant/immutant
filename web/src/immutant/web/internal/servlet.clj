@@ -125,7 +125,8 @@
       (when (instance? WebsocketChannel body)
         (-> config
           .getUserProperties
-          (.put "Endpoint" (.endpoint ^WebsocketChannel body)))))))
+          (.put DelegatingJavaxEndpoint/ENDPOINT_KEY
+            (.endpoint ^WebsocketChannel body)))))))
 
 (defn ^Servlet create-servlet
   "Encapsulate a ring handler within a servlet"

@@ -212,6 +212,30 @@
     (ws/send-msg socket "hello")
     (is (= 1000 (:code (read-string (get-body (str (cdef-url) "state"))))))))
 
+(deftest ws-on-close-should-be-invoked-when-closing-on-client
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-close (fn [_ r] (deliver @client-state r))))))
+  (let [socket (ws/connect (cdef-url "ws"))]
+    (ws/close socket)
+    (is (= 1000 (:code (read-string (get-body (str (cdef-url) "state"))))))))
+
+(deftest ws-on-close-should-be-invoked-for-every-connection
+  (replace-handler
+    '(do
+       (reset! client-state #{})
+       (fn [request]
+         (async/as-channel request
+           :on-close (fn [ch r] (swap! client-state conj (str ch)))))))
+  (let [socket1 (ws/connect (cdef-url "ws"))
+        socket2 (ws/connect (cdef-url "ws"))]
+    (ws/close socket1)
+    (ws/close socket2)
+    (is (= 2 (-> (str (cdef-url) "state") get-body read-string count)))))
+
 (deftest ws-on-complete-should-be-called-after-send
   (replace-handler
     '(do

@@ -90,8 +90,8 @@
                         potemkin                   "0.3.11"
                         clj-http                   "1.0.1"
 
-                        org.projectodd.wunderboss  "0.4.1"
-                        ;; org.projectodd.wunderboss  "1.x.incremental.193"
+                        ;; org.projectodd.wunderboss  "0.4.1"
+                        org.projectodd.wunderboss  "1.x.incremental.195"
                         ;; org.projectodd.wunderboss  "0.5.0-SNAPSHOT"
 
                         org.immutant               :version}}
@@ -100,7 +100,7 @@
                    ["change"           "version" "set" "\"2.0.0-beta2\""]
                    ["modules" "change" "version" "set" "\"2.0.0-beta2\""]
 
-                   ["modules" ":dirs" ".,web,messaging,transactions,scheduling,caching" 
+                   ["modules" ":dirs" ".,web,messaging,transactions,scheduling,caching"
                     "file-replace" "README.md" "(<version>| \")" "(\"]|</version>)" "version"]
 
                    ["vcs" "commit"]
