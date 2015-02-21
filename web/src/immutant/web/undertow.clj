@@ -42,19 +42,22 @@
   instance set accordingly, mapped to :configuration in the return
   value. If :ssl-port is non-nil, either :ssl-context or :key-managers
   should be set, too"
-  [{:keys [configuration host port ssl-port ssl-context key-managers trust-managers]
+  [{:keys [configuration host port ssl-port ssl-context key-managers trust-managers ajp?]
     :or {host "localhost"}
     :as options}]
+  (when (and ajp? (not-every? nil? [ssl-port ssl-context key-managers]))
+    (throw (IllegalArgumentException. "Don't use SSL options(:ssl-port :ssl-context :key-managers) with Ajp")))
   (when (and ssl-port (every? nil? [ssl-context key-managers]))
     (throw (IllegalArgumentException. "Either :ssl-context or :key-managers is required for SSL")))
   (let [^Undertow$Builder builder (or configuration (Undertow/builder))]
     (-> options
       (assoc :configuration
         (cond-> builder
+          (and port ajp?) (.addAjpListener port host)
           (and ssl-port ssl-context)  (.addHttpsListener ssl-port host ssl-context)
           (and ssl-port key-managers) (.addHttpsListener ssl-port host key-managers trust-managers)
-          port (.addHttpListener port host)))
-      (dissoc :host :port :ssl-port :ssl-context :key-managers :trust-managers))))
+          (and port (not ajp?)) (.addHttpListener port host)))
+      (dissoc :host :port :ssl-port :ssl-context :key-managers :trust-managers :ajp?))))
 
 (defn client-auth
   "Possible values are :want or :need (:requested and :required are
