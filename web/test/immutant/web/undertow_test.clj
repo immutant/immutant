@@ -43,11 +43,11 @@
          "bufferSize"       3
          "buffersPerRegion" 4
          "directBuffers"    false)
-    (is #{"AJP" "HTTP"} (->> v
-                          :configuration
-                          (reflect "listeners")
-                          (map (comp str (partial reflect "type")))
-                          set)))
+    (is (= #{"AJP" "HTTP"} (->> v
+                             :configuration
+                             (reflect "listeners")
+                             (map (comp str (partial reflect "type")))
+                             set))))
   ;; Make sure kwargs and true :direct-buffers works
   (let [v (:configuration (options :io-threads 44 :direct-buffers? true))]
     (is (= 44 (reflect "ioThreads" v)))
