@@ -42,22 +42,20 @@
   instance set accordingly, mapped to :configuration in the return
   value. If :ssl-port is non-nil, either :ssl-context or :key-managers
   should be set, too"
-  [{:keys [configuration host port ssl-port ssl-context key-managers trust-managers ajp?]
+  [{:keys [configuration host port ssl-port ssl-context key-managers trust-managers ajp-port]
     :or {host "localhost"}
     :as options}]
-  (when (and ajp? (not-every? nil? [ssl-port ssl-context key-managers]))
-    (throw (IllegalArgumentException. "Don't use SSL options(:ssl-port :ssl-context :key-managers) with Ajp")))
   (when (and ssl-port (every? nil? [ssl-context key-managers]))
     (throw (IllegalArgumentException. "Either :ssl-context or :key-managers is required for SSL")))
   (let [^Undertow$Builder builder (or configuration (Undertow/builder))]
     (-> options
       (assoc :configuration
         (cond-> builder
-          (and port ajp?) (.addAjpListener port host)
           (and ssl-port ssl-context)  (.addHttpsListener ssl-port host ssl-context)
           (and ssl-port key-managers) (.addHttpsListener ssl-port host key-managers trust-managers)
-          (and port (not ajp?)) (.addHttpListener port host)))
-      (dissoc :host :port :ssl-port :ssl-context :key-managers :trust-managers :ajp?))))
+          (and ajp-port)              (.addAjpListener ajp-port host)
+          (and port)                  (.addHttpListener port host)))
+      (dissoc :host :port :ssl-port :ssl-context :key-managers :trust-managers :ajp-port))))
 
 (defn client-auth
   "Possible values are :want or :need (:requested and :required are
@@ -86,18 +84,27 @@
 
 (def options
   "Takes a map of Undertow-specific options and replaces them with an
-  `Undertow$Builder` instance associated with :configuration
+  `Undertow$Builder` instance associated with :configuration. Three
+  types of listeners are supported: :port (HTTP), :ssl-port (HTTPS), and
+  :ajp-port (AJP)
 
   The following keyword options are supported:
 
    * :configuration - the Builder that, if passed, will be used
 
-  Listeners:
+  Common to all listeners:
 
    * :host - the interface listener bound to, defaults to \"localhost\"
-   * :port - a number, for which a listener is added to :configuration
 
-  SSL:
+  HTTP:
+
+   * :port - a number, for a standard HTTP listener
+
+  AJP:
+
+   * :ajp-port - a number, for an Apache JServ Protocol listener
+
+  HTTPS:
 
    * :ssl-port - a number, requires either :ssl-context, :keystore, or :key-managers
 

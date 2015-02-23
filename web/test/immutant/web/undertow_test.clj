@@ -20,7 +20,7 @@
 
 (defn reflect
   [field-name instance]
-  (-> Undertow$Builder
+  (-> (class instance)
     (.getDeclaredField field-name)
     (doto (.setAccessible true))
     (.get instance)))
@@ -28,6 +28,7 @@
 (deftest undertow-options
   (let [m {:host "hostname"
            :port 42
+           :ajp-port 9999
            :io-threads 1
            :worker-threads 2
            :buffer-size 3
@@ -41,7 +42,12 @@
          "workerThreads"    2
          "bufferSize"       3
          "buffersPerRegion" 4
-         "directBuffers"    false))
+         "directBuffers"    false)
+    (is #{"AJP" "HTTP"} (->> v
+                          :configuration
+                          (reflect "listeners")
+                          (map (comp str (partial reflect "type")))
+                          set)))
   ;; Make sure kwargs and true :direct-buffers works
   (let [v (:configuration (options :io-threads 44 :direct-buffers? true))]
     (is (= 44 (reflect "ioThreads" v)))
