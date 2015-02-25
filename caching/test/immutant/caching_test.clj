@@ -122,10 +122,9 @@
 (deftest test-put-idle
   (let [c (new-cache :idle 200)]
     (.put c :a 1)
-    (Thread/sleep 100)
-    (is (= 1 (get c :a)))
-    (Thread/sleep 100)
-    (is (= 1 (get c :a)))
+    (dotimes [_ 4]
+      (Thread/sleep 50)
+      (is (= 1 (get c :a))))
     (Thread/sleep 250)
     (is (nil? (get c :a)))))
 
