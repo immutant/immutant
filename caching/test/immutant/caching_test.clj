@@ -33,7 +33,9 @@
 
 (defn new-cache [& options]
   (stop "test")
-  (apply cache "test" options))
+  (let [result (apply cache "test" options)]
+    (doseq [i (.getListeners result)] (.removeListener result i))
+    result))
 
 (deftest test-lookup-by-list
   (is (= :foo (lookup (miss (new-cache) '(bar) :foo) '(bar)))))
@@ -232,6 +234,17 @@
     (is (nil? (:a c)))
     (is (= 2 (count c)))))
 
+(deftest test-iteration
+  (doseq [codec (-> (immutant.codecs/codec-set) (conj nil) (disj :json))]
+    (let [c (if codec
+              (with-codec (new-cache) codec)
+              (new-cache))]
+      (.putAll c {:a 1, :b 2, :c 3})
+      (testing (str "codec -> " codec)
+        (is (= #{:a :b :c} (.keySet c)))
+        (is (= [1 2 3] (sort (.values c))))
+        (is (= {:a 1, :b 2, :c 3} (into {} (.entrySet c))))))))
+
 (deftest test-seqable
   (let [seed {:a 1, :b {:c 42}}
         c (seed (new-cache) seed)]
@@ -310,10 +323,10 @@
       :cache-entry-modified
       :cache-entry-created)
     (.put c :a 1)
-    (is (= [Event$Type/CACHE_ENTRY_CREATED Event$Type/CACHE_ENTRY_MODIFIED Event$Type/CACHE_ENTRY_MODIFIED Event$Type/CACHE_ENTRY_CREATED]
-          (map :type @results)))
-    (is (= [true true false false] (map :pre? @results)))
-    (is (= [nil nil 1 1] (map :value @results)))
+    (is (= (first @results) {:type Event$Type/CACHE_ENTRY_CREATED, :key :a
+                             :pre? true,  :value nil}))
+    (is (= (last  @results) {:type Event$Type/CACHE_ENTRY_CREATED, :key :a
+                             :pre? false, :value 1}))
     (reset! results [])
     (swap-in! c :a inc)
     (is (= [Event$Type/CACHE_ENTRY_VISITED Event$Type/CACHE_ENTRY_VISITED Event$Type/CACHE_ENTRY_MODIFIED Event$Type/CACHE_ENTRY_MODIFIED]

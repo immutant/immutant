@@ -21,5 +21,5 @@
                  [org.clojure/tools.reader _]]
 
   :profiles {:dev
-             {:dependencies [[cheshire "5.3.1"]
-                             [org.clojure/data.fressian "0.2.0"]]}})
+             {:dependencies [[cheshire _]
+                             [org.clojure/data.fressian _]]}})
