@@ -28,6 +28,7 @@
 (deftest undertow-options
   (let [m {:host "hostname"
            :port 42
+           :ssl-port 443
            :ajp-port 9999
            :io-threads 1
            :worker-threads 2
@@ -43,17 +44,48 @@
          "bufferSize"       3
          "buffersPerRegion" 4
          "directBuffers"    false)
-    (is (= #{"AJP" "HTTP"} (->> v
-                             :configuration
-                             (reflect "listeners")
-                             (map (comp str (partial reflect "type")))
-                             set))))
+    (is (= #{"AJP" "HTTP" "HTTPS"}
+          (->> v
+            :configuration
+            (reflect "listeners")
+            (map (comp str (partial reflect "type")))
+            set))))
   ;; Make sure kwargs and true :direct-buffers works
   (let [v (:configuration (options :io-threads 44 :direct-buffers? true))]
     (is (= 44 (reflect "ioThreads" v)))
     (is (= true (reflect "directBuffers" v))))
   ;; Make sure only valid arguments accepted
   (is (thrown? IllegalArgumentException (options :this-should-barf 42))))
+
+(deftest undertow-options-as-strings
+  (let [m {"host" "hostname"
+           ":port" "42"
+           "--ssl-port" "443"
+           "-ajp-port" "9999"
+           "--io-threads" "1"
+           "+worker-threads" "2"
+           "++buffer-size" "3"
+           "-buffers-per-region" "4"
+           "--direct-buffers?" "true"}
+        v (options m)]
+    (is (:configuration v))
+    (is (empty? (select-keys v (keys m))))
+    (are [x expected] (= expected (reflect x (:configuration v)))
+         "ioThreads"        1
+         "workerThreads"    2
+         "bufferSize"       3
+         "buffersPerRegion" 4
+         "directBuffers"    true)
+    (is (= #{"AJP" "HTTP" "HTTPS"}
+          (->> v
+            :configuration
+            (reflect "listeners")
+            (map (comp str (partial reflect "type")))
+            set))))
+  (let [v (:configuration (options "--io-threads" "44" ":direct-buffers?" "false"))]
+    (is (= 44 (reflect "ioThreads" v)))
+    (is (= false (reflect "directBuffers" v))))
+  (is (thrown? IllegalArgumentException (options "--this-should-barf" "42"))))
 
 (deftest client-authentication
   (are [in out] (= out (let [c (:configuration (options :client-auth in))]

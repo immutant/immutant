@@ -34,11 +34,19 @@
       (if (map? m) m (apply hash-map m)))
     (apply hash-map vals)))
 
+(defn scrub-keys
+  "Strip any non-alpha prefix off all keys that are strings"
+  [m]
+  (reduce
+    (fn [m [k v]] (assoc m (if (string? k) (.replaceFirst ^String k "^[^a-z]+" "") k) v))
+    {}
+    m))
+
 (def kwargs-or-map->map
   "If vals contains one value, return it. Otherwise, treat as kwargs and coerce to a map.
 
    In either case, turn the keys into keywords"
-  (comp keywordize-keys kwargs-or-map->raw-map))
+  (comp keywordize-keys scrub-keys kwargs-or-map->raw-map))
 
 (defn require-resolve
   "Requires and resolves the given namespace-qualified symbol."

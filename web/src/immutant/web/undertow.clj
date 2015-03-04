@@ -15,7 +15,7 @@
 (ns immutant.web.undertow
   "Advanced options specific to the Undertow web server used by Immutant"
   (:require [immutant.internal.util :refer (kwargs-or-map->map)]
-            [immutant.internal.options :refer (validate-options set-valid-options! opts->set)]
+            [immutant.internal.options :refer (validate-options set-valid-options! opts->set coerce)]
             [immutant.web.ssl :refer (keystore->ssl-context)])
   (:import [io.undertow Undertow Undertow$Builder]
            [org.xnio Options SslClientAuthMode]
@@ -45,16 +45,14 @@
   [{:keys [configuration host port ssl-port ssl-context key-managers trust-managers ajp-port]
     :or {host "localhost"}
     :as options}]
-  (when (and ssl-port (every? nil? [ssl-context key-managers]))
-    (throw (IllegalArgumentException. "Either :ssl-context or :key-managers is required for SSL")))
   (let [^Undertow$Builder builder (or configuration (Undertow/builder))]
     (-> options
       (assoc :configuration
         (cond-> builder
-          (and ssl-port ssl-context)  (.addHttpsListener ssl-port host ssl-context)
-          (and ssl-port key-managers) (.addHttpsListener ssl-port host key-managers trust-managers)
-          (and ajp-port)              (.addAjpListener ajp-port host)
-          (and port)                  (.addHttpListener port host)))
+          (and ssl-port ssl-context)       (.addHttpsListener ssl-port host ssl-context)
+          (and ssl-port (not ssl-context)) (.addHttpsListener ssl-port host key-managers trust-managers)
+          (and ajp-port)                   (.addAjpListener ajp-port host)
+          (and port)                       (.addHttpListener port host)))
       (dissoc :host :port :ssl-port :ssl-context :key-managers :trust-managers :ajp-port))))
 
 (defn client-auth
@@ -127,6 +125,8 @@
    * :buffers-per-region - a number, defaults to 10
    * :direct-buffers? - boolean, defaults to true"
   (comp listen ssl-context client-auth tune
+    (partial coerce [:port :ajp-port :ssl-port :io-threads :worker-threads
+                     :buffer-size :buffers-per-region :direct-buffers?])
     #(validate-options % options)
     kwargs-or-map->map (fn [& x] x)))
 

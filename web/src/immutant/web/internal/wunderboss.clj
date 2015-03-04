@@ -37,7 +37,7 @@
   (partial u/hash-based-component-name create-defaults))
 
 (defn ^:internal available-port [opts]
-  (if (= 0 (:port opts))
+  (if (= "0" (str (:port opts)))
     (assoc opts :port
       (.getLocalPort (doto (ServerSocket.)
                        (.setReuseAddress true)

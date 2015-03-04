@@ -125,3 +125,13 @@
               (add-? kw) currval))))
       coll
       keywords)))
+
+(defn coerce
+  "Handy when values might come in as strings, e.g. via `lein run`,
+  but shouldn't be. Takes a sequence of keys and the map"
+  [ks m]
+  (merge m 
+    (reduce
+      (fn [m [k v]] (assoc m k (if (string? v) (read-string v) v)))
+      {}
+      (select-keys m ks))))
