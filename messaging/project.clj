@@ -15,7 +15,7 @@
 (defproject org.immutant/messaging "2.0.0-SNAPSHOT"
   :description "Easily publish and receive messages containing any type of nested data structure to dynamically-created queues and topics."
   :pedantic? false
-  :plugins [[lein-modules "0.3.10"]]
+  :plugins [[lein-modules "0.3.11"]]
 
   :dependencies [[org.immutant/core _]
                  [org.projectodd.wunderboss/wunderboss-messaging _]]

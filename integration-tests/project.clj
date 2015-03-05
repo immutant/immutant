@@ -14,7 +14,7 @@
 
 (defproject org.immutant/integs "2.0.0-SNAPSHOT"
   :pedantic? false
-  :plugins [[lein-modules "0.3.10"]
+  :plugins [[lein-modules "0.3.11"]
             [lein-immutant "2.0.0-beta1"]]
   :dependencies [[org.immutant/immutant _]
                  [org.immutant/wildfly _]]

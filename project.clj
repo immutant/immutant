@@ -15,7 +15,7 @@
 (defproject org.immutant/immutant-parent "2.0.0-SNAPSHOT"
   :description "Parent for all that is Immutant"
   :pedantic? false
-  :plugins [[lein-modules "0.3.10"]]
+  :plugins [[lein-modules "0.3.11"]]
   :packaging "pom"
 
   :profiles {:pedantic {:pedantic? true}

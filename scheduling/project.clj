@@ -15,7 +15,7 @@
 (defproject org.immutant/scheduling "2.0.0-SNAPSHOT"
   :description "Schedule jobs for execution in the future."
   :pedantic? false
-  :plugins [[lein-modules "0.3.10"]]
+  :plugins [[lein-modules "0.3.11"]]
 
   :dependencies [[org.immutant/core _]
                  [org.projectodd.wunderboss/wunderboss-scheduling _]]
