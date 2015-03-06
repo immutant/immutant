@@ -87,7 +87,7 @@
                         org.clojure/java.jdbc      "0.3.6"
                         h2                         "1.3.176"
                         jersey-media-sse           "2.15"
-                        potemkin                   "0.3.11"
+                        potemkin                   "0.3.12"
                         clj-http                   "1.0.1"
 
                         ;; org.projectodd.wunderboss  "0.4.1"

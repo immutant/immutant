@@ -200,6 +200,11 @@
     (is (map? (:headers @request)))
     (is (< 3 (count (:headers @request))))))
 
+;; IMMUTANT-533
+(deftest find-should-work-on-request-map
+  (run (fn [req] {:status 200 :body (pr-str (find req :scheme))}))
+  (is (= [:scheme :http] (read-string (get-body url)))))
+
 (deftest virtual-hosts
   (let [all (-> (run hello :virtual-host ["integ-app1.torquebox.org" "integ-app2.torquebox.org"])
               (assoc :virtual-host "integ-app3.torquebox.org")
