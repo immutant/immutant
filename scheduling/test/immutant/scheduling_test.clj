@@ -62,26 +62,24 @@
                   (limit 5)))]
       (is (deref started? 5000 false))
       (is (stop env))
-      (is (not (stop env)))
-      (reset! should-run? false)))
+      (is (not (stop env)))))
 
 (deftest stop-should-take-kwargs
-    (let [started? (promise)
-          should-run? (atom true)]
-      (schedule
-        (fn []
-          (is @should-run?)
-          (deliver started? true))
-        (-> (id :foo)
-          (every 1)
-          (limit 5)))
-      (is (deref started? 5000 false))
-      (is (stop :id :foo))
-      (reset! should-run? false)))
+  (let [started? (promise)
+        should-run? (atom true)]
+    (schedule
+      (fn []
+        (is @should-run?)
+        (deliver started? true))
+      (-> (id :foo)
+        (every 10)
+        (limit 5000)))
+    (is (deref started? 5000 false))
+    (is (stop :id :foo))))
 
 (deftest stop-should-stop-the-scheduler-when-no-jobs-remain
-  (let [job1 (schedule #())
-        job2 (schedule #())
+  (let [job1 (schedule #() :every :second)
+        job2 (schedule #() :every :second)
         scheduler (.scheduler (scheduler {}))]
     (is (not (.isShutdown scheduler)))
     (stop job1)
@@ -90,7 +88,7 @@
     (is (.isShutdown scheduler))))
 
 (deftest stop-should-stop-all-threaded-jobs
-  (let [everything (-> (schedule #())
+  (let [everything (-> (schedule #() :every :second)
                      (dissoc :id)
                      (->> (schedule #()))
                      (dissoc :id)
