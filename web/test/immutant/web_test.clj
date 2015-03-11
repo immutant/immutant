@@ -36,6 +36,11 @@
 (def url "http://localhost:8080/")
 (def url2 "http://localhost:8081/")
 
+(defn pause-on-windows []
+  ;; windows is slow to release closed ports, so we pause to allow that to happen
+  (when (re-find #"(?i)^windows" (System/getProperty "os.name"))
+    (Thread/sleep 100)))
+
 (deftest mount-and-remount-pedestal-service
   (run pedestal/servlet)
   (is (= "Hello World!" (get-body url)))
@@ -226,6 +231,7 @@
   (run (-> hello (wrap-resource "public")))
   (is (= "foo" (get-body (str url "foo.html"))))
   (stop)
+  (pause-on-windows)
   (run (-> hello (wrap-resource "public")) :path "/foo")
   (is (= "foo" (get-body (str url "foo/foo.html"))))
   (is (= "hello" (get-body (str url "foo")))))
@@ -239,9 +245,7 @@
     (is (.isRunning srv))
     (.stop srv)
     (is (not (.isRunning srv)))
-    ;; windows is slow to release closed ports, so we pause to allow that to happen
-    (when (re-find #"(?i)^windows" (System/getProperty "os.name"))
-      (Thread/sleep 100))
+    (pause-on-windows)
     (.start srv)
     (is (.isRunning srv))
     (is (= "hello" (get-body url)))))
