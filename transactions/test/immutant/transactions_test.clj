@@ -63,9 +63,9 @@
     int))
 
 (defn work [m]
+  (csh/swap-in! cache :a (constantly 1))
   (msg/publish queue "kiwi")
   (msg/publish remote-queue "starfruit")
-  (csh/swap-in! cache :a (constantly 1))
   (not-supported
     (csh/swap-in! cache :deliveries (fnil inc 0)))
   (sql/with-db-transaction [t spec]
