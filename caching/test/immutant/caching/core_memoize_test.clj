@@ -25,7 +25,7 @@
   (stop "test")
   (let [f (fn [] (Thread/sleep 500) "boo")
         m (memo f "test")]
-    (is (> (timeit (m)) 0.5))
+    (is (> (timeit (m)) 0.48))
     (is (< (timeit (m)) 0.5))
     (is (= (m) "boo"))))
 
@@ -42,5 +42,4 @@
         f1 (future (timeit (m 42)))]
     (Thread/sleep 500)
     (is (< (timeit (m 42)) 0.5))
-    (is (> @f1 0.5))))
-  
+    (is (> @f1 0.48))))
