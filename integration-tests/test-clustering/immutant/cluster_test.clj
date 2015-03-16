@@ -67,10 +67,10 @@
 ;;     ;; across restarts
 ;;     (is (apply < (map :count @responses)))))
 
-;; (deftest publish-here-receive-there
-;;   (let [q1 (msg/queue "/queue/cluster" :context @ctx1)
-;;         q2 (msg/queue "/queue/cluster" :context @ctx2)]
-;;     (dotimes [i 10]
-;;       (msg/publish q1 i))
-;;     (is (= (range 10) (sort (repeatedly 10 #(msg/receive q2)))))))
+(deftest publish-here-receive-there
+  (let [q1 (msg/queue "/queue/cluster" :context (msg/context (assoc opts :port (messaging-port "server-one"))))
+        q2 (msg/queue "/queue/cluster" :context (msg/context (assoc opts :port (messaging-port "server-two"))))]
+    (dotimes [i 10]
+      (msg/publish q1 i))
+    (is (= (range 10) (sort (repeatedly 10 #(msg/receive q2)))))))
 
