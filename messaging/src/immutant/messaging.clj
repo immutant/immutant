@@ -88,7 +88,7 @@
     (disj :client-id)
     (o/boolify :xa)))
 
-(defn queue
+(defn ^Queue queue
   "Establishes a handle to a messaging queue.
 
    If given a :context, the context must be remote, and is remembered and
@@ -118,7 +118,7 @@
 (o/set-valid-options! queue
   (o/boolify (o/opts->set Messaging$CreateQueueOption) :durable))
 
-(defn topic
+(defn ^Topic topic
   "Establishes a handle to a messaging topic.
 
    If given a :context, the context must be remote, and the context is
