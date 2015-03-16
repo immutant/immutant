@@ -101,18 +101,6 @@
     (apply deref v args)
     v))
 
-(defmacro backoff
-  "A simple backoff strategy that retries body in the event of error.
-   The first retry occurs after sleeping start milliseconds, the next
-   after start*2 ms, and so on, until the sleep time exceeds end ms,
-   at which point the caught error is tossed."
-  [start end & body]
-  `(loop [x# ~start]
-     (let [result# (try
-                    ~@body
-                    (catch Exception e# (if (> x# ~end) (throw e#))))]
-       (or result# (do (Thread/sleep x#) (recur (* 2 x#)))))))
-
 (defmacro with-tccl
   "Evaluates `body` with the tccl set to `cl`, restoring the original
    tccl when done."
