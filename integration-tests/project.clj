@@ -14,13 +14,13 @@
 
 (defproject org.immutant/integs "2.0.0-SNAPSHOT"
   :pedantic? false
-  :plugins [[lein-modules "0.3.11"]
-            [lein-immutant "2.0.0-beta1"]]
+  :plugins [[lein-modules "0.3.11"]]
   :dependencies [[org.immutant/immutant _]
                  [org.immutant/wildfly _]]
   :aliases {"all" ^:replace ["do" "clean," "test"]}
   :modules {:parent nil}
-  :profiles {:integ-base {:aliases {"test" ^:displace ["immutant" "test"]}
+  :profiles {:integ-base {:plugins [[lein-immutant "2.0.0-beta1"]]
+                          :aliases {"test" ^:displace ["immutant" "test"]}
                           :modules {:parent ".."}}
              :integ-messaging {:test-paths ["../messaging/test"]}
              :integ-scheduling {:dependencies [[clj-time _]]
@@ -48,4 +48,11 @@
              :caching [:integ-base :integ-caching]
              :transactions [:integ-base :integ-transactions]
 
-             :integs [:web :messaging :caching :scheduling :transactions]})
+             :integs [:web :messaging :caching :scheduling :transactions]
+
+             :cluster {:eval-in :leiningen ; because prj/read, lein-modules, hooks, etc
+                       :modules {:parent ".."}
+                       :main integs.cluster
+                       :dependencies [[org.immutant/fntest _]
+                                      [clj-http _]]
+                       :test-paths ^:replace ["test-clustering"]}})

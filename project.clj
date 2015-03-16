@@ -94,7 +94,8 @@
                         org.projectodd.wunderboss  "1.x.incremental.201"
                         ;; org.projectodd.wunderboss  "0.5.0-SNAPSHOT"
 
-                        org.immutant               :version}}
+                        org.immutant               :version
+                        fntest                     "2.0.1"}}
 
   :release-tasks  [["vcs" "assert-committed"]
                    ["change"           "version" "set" "\"2.0.0-beta2\""]
