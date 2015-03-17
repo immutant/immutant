@@ -24,6 +24,9 @@ function mark {
     echo
 }
 
+echo "Java version:"
+java -version
+
 rm -rf ${WORKSPACE}/target ${BIN_DIR}
 
 mark "Installing leiningen ${LEIN_VERSION}"
