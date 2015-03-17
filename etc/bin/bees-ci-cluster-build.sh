@@ -14,6 +14,9 @@ install-lein
 setup-lein-profiles
 install-wildfly
 
+mark "Building SNAPSHOT without tests"
+lein modules install
+
 mark "Starting cluster tests with ${WF8_VERSION}"
 export JBOSS_HOME="${WF_DIR}/wildfly-${WF8_VERSION}"
 cd integration-tests
