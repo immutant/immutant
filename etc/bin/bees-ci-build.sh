@@ -52,10 +52,15 @@ mark "Starting build + integ run against ${WF8_VERSION}"
 export JBOSS_HOME="${WF_DIR}/wildfly-${WF8_VERSION}"
 lein with-profile +integs modules all
 
+mark "Starting cluster tests with ${WF8_VERSION}"
+cd integration-tests
+lein with-profile +cluster all
+
 mark "Starting integs with ${WF9_VERSION}"
 export JBOSS_HOME="${WF_DIR}/wildfly-${WF9_VERSION}"
-cd integration-tests
 lein with-profile +integs all
+mark "Starting cluster tests with ${WF9_VERSION}"
+lein with-profile +cluster all
 cd -
 
 mark "Starting deploy build"
