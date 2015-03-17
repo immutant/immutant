@@ -180,6 +180,30 @@
         (is (= 100 (deref r2 2000 :fail)))
         (is (= 25 (deref r3 2000 :fail)))))))
 
+(deftest remote-request-respond-should-work
+  (queue "remote-req-resp" :durable? false)
+  (let [extra-connect-opts
+        (when (u/in-container?)
+          [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
+    (with-open [c (apply context :host "localhost" :port (u/messaging-remoting-port)
+                    extra-connect-opts)]
+      (let [q (queue "remote-req-resp" :context c)]
+        (with-open [listener (respond q keyword)]
+          (is (= :hi (deref (request q "hi") 10000 :fail))))))))
+
+(deftest remote-listen-should-work
+  (queue "remote-listen" :durable? false)
+  (let [extra-connect-opts
+        (when (u/in-container?)
+          [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
+    (with-open [c (apply context :host "localhost" :port (u/messaging-remoting-port)
+                    extra-connect-opts)]
+      (let [q (queue "remote-listen" :context c)
+            p (promise)]
+        (with-open [listener (listen q (partial deliver p))]
+          (publish q :hi)
+          (is (= :hi (deref p 10000 :fail))))))))
+
 (deftest transactional-context-should-work
   (let [q (queue "tx-queue" :durable? false)]
     (with-open [s (context :mode :transacted)]
