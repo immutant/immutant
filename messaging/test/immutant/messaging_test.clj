@@ -189,7 +189,7 @@
                     extra-connect-opts)]
       (let [q (queue "remote-req-resp" :context c)]
         (with-open [listener (respond q keyword)]
-          (is (= :hi (deref (request q "hi") 10000 :fail))))))))
+          (is (= :hi (deref (request q "hi") 60000 :fail))))))))
 
 (deftest remote-listen-should-work
   (queue "remote-listen" :durable? false)
@@ -202,7 +202,7 @@
             p (promise)]
         (with-open [listener (listen q (partial deliver p))]
           (publish q :hi)
-          (is (= :hi (deref p 10000 :fail))))))))
+          (is (= :hi (deref p 60000 :fail))))))))
 
 (deftest transactional-context-should-work
   (let [q (queue "tx-queue" :durable? false)]
