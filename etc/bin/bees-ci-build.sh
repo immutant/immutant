@@ -45,6 +45,9 @@ etc/bin/ci-prep-wildfly.sh ${WF_DIR} ${WF8_VERSION}
 mark "Installing WildFly ${WF9_VERSION}"
 etc/bin/ci-prep-wildfly.sh ${WF_DIR} ${WF9_VERSION}
 
+mark "Forcing NIO to avoid AIO failures"
+perl -p -i -e "s:(<hornetq-server>)$:\1<journal-type>NIO</journal-type>:" $(ls ${WF_DIR}/*/{standalone,domain}/configuration/*)
+
 mark "Reversioning"
 etc/bin/reversion.sh 2.x.incremental.${BUILD_NUMBER}
 
