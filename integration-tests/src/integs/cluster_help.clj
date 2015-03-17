@@ -22,7 +22,7 @@
 
 (def http-port (partial offset-port :http))
 (def messaging-port (partial offset-port :messaging))
-(def cookies (clj-http.cookies/cookie-store))
+(def ^:dynamic *cookies* (clj-http.cookies/cookie-store))
 
 (defn base-url [host]
   (str "http://localhost:" (http-port host)))
@@ -31,7 +31,7 @@
   (let [result (client/request
                 {:method method
                  :url (str (base-url host) path)
-                 :cookie-store cookies})]
+                 :cookie-store *cookies*})]
     ;; (println "RESPONSE" result)
     {:result result
      :body (if (seq (:body result))
@@ -42,7 +42,7 @@
 
 (defn wait-for
   [pred]
-  (loop [i 100]
+  (loop [i 3000]
     (Thread/sleep 100)
     (if-let [result (pred)]
       result
@@ -53,16 +53,29 @@
     (.format (java.text.SimpleDateFormat. "HH:mm:ss,SSS")
       (java.util.Date.)) msg))
 
+(defn wait-for-ready [f path server]
+  (if (wait-for
+        #(try
+           (f (binding [*cookies* nil]
+                (get-as-data path server)))
+           (catch Exception e
+             (let [data (ex-data e)]
+               (when-not (or (instance? java.net.ConnectException e)
+                           (and
+                             data
+                             (= 404 (get-in data [:object :status]))))
+                 (throw e))))))
+    (mark server "ready")
+    (mark "gave up waiting for" server "to be ready")))
+
 (defn stop [host]
   (mark "stopping" host)
   (api/stop-server (.uri *server*) host)
   (wait-for #(= "STOPPED" (api/server-status (.uri *server*) host)))
-  (Thread/sleep 1000)
   (mark host "stopped"))
 
 (defn start [host]
   (mark "starting" host)
   (api/start-server (.uri *server*) host)
   (wait-for #(= "STARTED" (api/server-status (.uri *server*) host)))
-  (Thread/sleep 1000)
   (mark host "started"))

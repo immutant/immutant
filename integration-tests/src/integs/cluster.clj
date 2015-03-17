@@ -43,4 +43,5 @@
   (s/schedule update-cache :id "cache-updater" :every :second)
   (m/queue "/queue/cluster", :durable? false)
   (w/run (-> #'counter wrap-session) :path "/counter")
-  (w/run (fn [_] (response ":pong")) :path "/ping"))
+  (w/run (fn [_] (response ":pong")) :path "/ping")
+  (w/run (constantly (response ":ready")) :path "/ready"))
