@@ -29,36 +29,24 @@
     (partial with-jboss #{:isolated :offset :domain})
     (with-deployment "ROOT.war" "." :profiles [:cluster :dev :test])))
 
-(def wait-for-ready (partial integs.cluster-help/wait-for-ready #(= :ready %) "/ready"))
-
 (deftest bouncing-basic-web
-  (wait-for-ready "server-one")
-  (wait-for-ready "server-two")
   (is (= :pong (get-as-data "/ping" "server-one")))
   (is (= :pong (get-as-data "/ping" "server-two")))
   (stop "server-one")
   (is (thrown? java.net.ConnectException (get-as-data "/ping" "server-one")))
   (start "server-one")
-  (wait-for-ready "server-one")
   (is (= :pong (get-as-data "/ping" "server-one"))))
 
 (deftest session-replication
-  ;; waiting here sometimes causes this test to fail, even though
-  ;; wait-for-ready doesn't use cookies
-  #_(wait-for-ready "server-one")
-  #_(wait-for-ready "server-two")
   (is (= 0 (get-as-data "/counter" "server-one")))
   (is (= 1 (get-as-data "/counter" "server-two")))
   (is (= 2 (get-as-data "/counter" "server-one")))
   (stop "server-one")
   (is (= 3 (get-as-data "/counter" "server-two")))
   (start "server-one")
-  (wait-for-ready "server-one")
   (is (= 4 (get-as-data "/counter" "server-one"))))
 
 (deftest failover
-  (wait-for-ready "server-one")
-  (wait-for-ready "server-two")
   (let [responses (atom [])
         response (fn [s]
                    (with-open [c (msg/context (assoc opts :port (http-port s)))]
@@ -69,21 +57,17 @@
     (mark (swap! responses conj (response "server-two")))
     (is (= "master:server-two" (:node (last @responses))))
     (start "server-one")
-    (wait-for-ready "server-one")
     (mark (swap! responses conj (response "server-two")))
     (is (= "master:server-two" (:node (last @responses))))
     (stop "server-two")
     (mark (swap! responses conj (response "server-one")))
     (is (= "master:server-one" (:node (last @responses))))
     (start "server-two")
-    (wait-for-ready "server-two")
     ;; assert the job and distributed cache kept the count ascending
     ;; across restarts
     (is (apply < (map :count @responses)))))
 
 (deftest publish-here-receive-there
-  (wait-for-ready "server-one")
-  (wait-for-ready "server-two")
   (with-open [ctx1 (msg/context (assoc opts :port (http-port "server-one")))
               ctx2 (msg/context (assoc opts :port (http-port "server-two")))]
     (let [q1 (msg/queue "/queue/cluster" :context ctx1)
