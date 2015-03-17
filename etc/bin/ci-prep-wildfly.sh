@@ -21,7 +21,7 @@ fi
 conf="${jboss_home}/standalone/configuration/standalone-full.xml"
 if [ $(grep -c NIO ${conf}) -eq 0 ]; then
   echo "Enabling NIO journal to avoid AIO failures"
-  perl -p -i -e "s:(<hornetq-server>)$:\1<journal-type>NIO</journal-type>:" $(ls ${jboss_home}/*/{standalone,domain}/configuration/*)
+  perl -p -i -e "s:(<hornetq-server>)$:\1<journal-type>NIO</journal-type>:" $(ls ${jboss_home}/{standalone,domain}/configuration/*)
   #echo "Enabling TRACE logging"
   #sed -i.bak '/<root-logger>/{N; s/<root-logger>.*<level name="INFO"/<root-logger><level name="TRACE"/g}' ${conf}
   echo "Adding application user testuser:testuser"
