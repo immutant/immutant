@@ -15,10 +15,10 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.cluster-test
+(ns integs.cluster-test
   (:require [fntest.core :refer :all]
             [clojure.test :refer :all]
-            [immutant.cluster-help :refer (get-as-data stop start messaging-port)]
+            [integs.cluster-help :refer (get-as-data stop start http-port)]
             [immutant.messaging :as msg]))
 
 (def opts {:host "localhost", :remote-type :hornetq-wildfly,
@@ -49,7 +49,7 @@
 ;; (deftest failover
 ;;   (let [responses (atom [])
 ;;         response (fn [s]
-;;                    (with-open [c (msg/context (assoc opts :port (messaging-port s)))]
+;;                    (with-open [c (msg/context (assoc opts :port (http-port s)))]
 ;;                      (deref (msg/request (msg/queue "/queue/cache" :context c) :remote)
 ;;                        10000 {:node :timeout, :count 0})))]
 ;;     (println (swap! responses conj (response "server-one")))
@@ -68,9 +68,11 @@
 ;;     (is (apply < (map :count @responses)))))
 
 (deftest publish-here-receive-there
-  (let [q1 (msg/queue "/queue/cluster" :context (msg/context (assoc opts :port (messaging-port "server-one"))))
-        q2 (msg/queue "/queue/cluster" :context (msg/context (assoc opts :port (messaging-port "server-two"))))]
+  (let [q1 (msg/queue "/queue/cluster" :context
+             (msg/context (assoc opts :port (http-port "server-one"))))
+        q2 (msg/queue "/queue/cluster" :context
+             (msg/context (assoc opts :port (http-port "server-two"))))]
     (dotimes [i 10]
       (msg/publish q1 i))
-    (is (= (range 10) (sort (repeatedly 10 #(msg/receive q2)))))))
+    (is (= (range 10) (repeatedly 10 #(msg/receive q2))))))
 

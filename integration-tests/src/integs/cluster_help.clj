@@ -15,13 +15,13 @@
 ;; Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ;; 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-(ns immutant.cluster-help
+(ns integs.cluster-help
   (:require [clj-http.client :as client]
             [jboss-as.api :as api]
             [fntest.core :refer (offset-port *server*)]))
 
 (def http-port (partial offset-port :http))
-(def messaging-port (partial offset-port :http))
+(def messaging-port (partial offset-port :messaging))
 (def cookies (clj-http.cookies/cookie-store))
 
 (defn base-url [host]
