@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is the bees CI cluster integ build. Any changes to the build
+# This is the bees CI integ build. Any changes to the build
 # script should be here instead if in the bees config.
 
 set -e
@@ -17,16 +17,24 @@ install-wildfly
 mark "Building SNAPSHOT without tests"
 lein modules install
 
-mark "Starting cluster tests with ${WF8_VERSION}"
-export JBOSS_HOME="${WF_DIR}/wildfly-${WF8_VERSION}"
 cd integration-tests
+
+export JBOSS_HOME="${WF_DIR}/wildfly-${WF8_VERSION}"
+
+mark "Starting integs with ${WF8_VERSION}"
+lein with-profile +integs all
+
+mark "Starting cluster tests with ${WF8_VERSION}"
 lein with-profile +cluster all
-cd -
+
+export JBOSS_HOME="${WF_DIR}/wildfly-${WF9_VERSION}"
+
+mark "Starting integs with ${WF9_VERSION}"
+lein with-profile +integs all
 
 mark "Starting cluster tests with ${WF9_VERSION}"
-export JBOSS_HOME="${WF_DIR}/wildfly-${WF9_VERSION}"
-cd integration-tests
 lein with-profile +cluster all
+
 cd -
 
 mark "Done"
