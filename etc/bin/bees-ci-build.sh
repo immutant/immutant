@@ -5,48 +5,16 @@
 
 set -e
 
-BIN_DIR="${WORKSPACE}/bin"
-WF_DIR="${WORKSPACE}/wildfly-dists"
-WF8_VERSION="8.2.0.Final"
-WF9_VERSION="9.0.0.Alpha1"
-LEIN_VERSION=2.5.1
-export PATH="${BIN_DIR}:${PATH}"
-export WORKSPACE_HOME="${WORKSPACE}/home"
-export LEIN_HOME="${WORKSPACE_HOME}/.lein"
-export JVM_OPTS="-Dprogress.monitor=false"
+DIR=$( cd "$( dirname "$0" )" && pwd )
 
-function mark {
-    echo
-    echo "=============================================="
-    echo $1
-    date
-    echo "=============================================="
-    echo
-}
+. ${DIR}/common-build.sh
 
-echo "Java version:"
 java -version
 
-rm -rf ${WORKSPACE}/target ${BIN_DIR}
-
-mark "Installing leiningen ${LEIN_VERSION}"
-mkdir -p ${BIN_DIR}
-cd ${BIN_DIR}
-wget --no-check-certificate https://raw.github.com/technomancy/leiningen/${LEIN_VERSION}/bin/lein
-chmod +x lein
-cd -
-
-mark "Setting up lein profiles"
-mkdir -p ${LEIN_HOME}
-cp -f /private/projectodd/auth_profile.clj ${LEIN_HOME}/profiles.clj
-
-rm -rf ${WF_DIR}
-
-mark "Installing WildFly ${WF8_VERSION}"
-etc/bin/ci-prep-wildfly.sh ${WF_DIR} ${WF8_VERSION}
-
-mark "Installing WildFly ${WF9_VERSION}"
-etc/bin/ci-prep-wildfly.sh ${WF_DIR} ${WF9_VERSION}
+cleanup
+install-lein
+setup-lein-profiles
+install-wildfly
 
 mark "Reversioning"
 etc/bin/reversion.sh 2.x.incremental.${BUILD_NUMBER}
@@ -55,15 +23,10 @@ mark "Starting build + integ run against ${WF8_VERSION}"
 export JBOSS_HOME="${WF_DIR}/wildfly-${WF8_VERSION}"
 lein with-profile +integs modules all
 
-mark "Starting cluster tests with ${WF8_VERSION}"
-cd integration-tests
-lein with-profile +cluster all
-
 mark "Starting integs with ${WF9_VERSION}"
 export JBOSS_HOME="${WF_DIR}/wildfly-${WF9_VERSION}"
+cd integration-tests
 lein with-profile +integs all
-mark "Starting cluster tests with ${WF9_VERSION}"
-lein with-profile +cluster all
 cd -
 
 mark "Starting deploy build"
