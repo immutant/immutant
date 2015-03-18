@@ -16,7 +16,8 @@
     (:require [potemkin                      :refer [def-map-type]]
               [clojure.java.io               :as io]
               [immutant.web.async            :as async]
-              [immutant.web.internal.headers :as hdr])
+              [immutant.web.internal.headers :as hdr]
+              [immutant.internal.util        :refer [try-resolve]])
     (:import [java.io File InputStream OutputStream]
              [clojure.lang ISeq PersistentHashMap]))
 
@@ -147,3 +148,21 @@
     (if (async/streaming-body? body)
       (async/open-stream body hmap)
       (write-body body (output-stream response) hmap))))
+
+;; ring 1.3.2 introduced a change that causes wrap-resource to break
+;; in-container because it doesn't know how to handle vfs: urls. ring
+;; 1.4.0 will include a multi-method that allows us to provide the
+;; correct data for vfs: urls, so we provide an implementation here
+;; see IMMUTANT-525 for more details
+(when (try-resolve 'ring.util.response/resource-data)
+  (eval
+    '(defmethod ring.util.response/resource-data :vfs
+       [url]
+       (let [conn (.openConnection url)
+             vfile (.getContent conn)]
+         (when-not (.isDirectory vfile)
+           {:content (.getInputStream conn)
+            :content-length (.getContentLength conn)
+            :last-modified (-> vfile
+                             .getPhysicalFile
+                             ring.util.io/last-modified-date)})))))
