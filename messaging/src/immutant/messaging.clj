@@ -215,7 +215,8 @@
     (o/boolify :decode)))
 
 (defn listen
-  "Registers `f` to receive each message sent to `destination`.
+  "Registers a single-arity function `f` to handle messages published
+   to `destination`.
 
    If a :selector is provided, then only messages having
    metadata/properties matching that expression will be received.
