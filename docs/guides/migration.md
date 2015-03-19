@@ -93,9 +93,8 @@ The `set-scheduler-options` is now handled by passing additional
 options to `schedule`. If different scheduler options are given on
 different schedule calls, new schedulers are created.
 
-If you need access to the raw quartz scheduler, use `(.scheduler
-(immutant.scheduling.internal/scheduler opts)`. (Maybe we should
-restore `internal-scheduler`?)
+If you need access to the raw quartz scheduler, use
+[[immutant.scheduling.quartz/quartz-scheduler]].
 
 ### immutant.jobs.internal -> immutant.scheduling.internal
 

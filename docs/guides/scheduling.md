@@ -195,8 +195,16 @@ One very cool thing about the sequence is that I can test it without
 actually scheduling it. On the other hand, my cron spec test is going
 to take more than a week to run! ;)
 
+## Accessing the internal Quartz scheduler
+
+If you need access to the internal Quartz scheduler instance (maybe to
+pass to another scheduling library like [Quartzite]), use
+[[immutant.scheduling.quartz/quartz-scheduler]]. You just need to pass
+it the same scheduler options you can pass to
+[[immutant.scheduling/schedule]].
 
 [Quartz-style]: http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06
 [installation]: guide-installation.html
 [clj-time]: https://github.com/clj-time/clj-time
 [chime-at]: https://github.com/james-henderson/chime#chime-at
+[Quartzite]: http://clojurequartz.info/
