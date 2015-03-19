@@ -5,20 +5,38 @@
  :description "Immutant 1.1 -> 2.0 migration guide"}
 ---
 
-This currently tracks changes between the 1.1 and 2.0 API, and will
-eventually be a more thorough migration guide.
+This guide aims to ease the transition from Immutant 1.x to 2.x.
 
-Structure: each section covers a namespace. If the namespace has been
-renamed, that will be reflected by old namespace -> new namespace. If
-a namespace has been removed, it's marked with a ~~strikethrough~~.
+## General Changes
 
-This list includes all of the Immutant namespaces, some of which
+The biggest changes in 2.x are the ability to use Immutant libraries
+embedded in a standard Clojure application, and the ability to deploy
+an application to an unmodified [WildFly](http://wildfly.org)
+container if you need container/cluster functionality.
+
+For details, see the [Installation Guide](guide-installation.html), and
+pay close attention to the way Immutant applications are now
+initialized (via a standard `-main` function instead of the
+Immutant-specific initialization process from 1.x). Also note that the
+[lein-immutant](https://github.com/immutant/lein-immutant) plugin is
+now only needed if you need to
+[create a WAR file to deploy to WildFly](guide-wildfly.html).
+
+
+## API Changes
+
+**Structure:** each section covers a namespace. If the namespace has been
+renamed, that will be reflected by *old namespace -> new
+namespace*. If a namespace has been removed, it's marked with a
+~~strikethrough~~.
+
+This list includes all of the Immutant 1.1 namespaces, some of which
 were/are for internal use only.
 
 
-## immutant.cache -> [[immutant.caching]]
+### immutant.cache -> [[immutant.caching]]
 
-The `Mutable` interface is gone. To put something in an immutant
+The `Mutable` interface is gone. To put something in an Immutant
 cache, you can use either the new `immutant.caching/swap-in!`
 or java interop (`org.infinispan.Cache` extends `ConcurrentMap` and
 therefore `Map`). To insert entries with various ttl/idle values, use
@@ -58,30 +76,30 @@ Some option keys and values have changed:
   - `:seed` is gone
   - `:config` is now `:configuration`
 
-### ~~immutant.cache.config~~
-### ~~immutant.cache.core~~
-### ~~immutant.cache.wrapper~~
+#### ~~immutant.cache.config~~
+#### ~~immutant.cache.core~~
+#### ~~immutant.cache.wrapper~~
 
-## [[immutant.codecs]]
+### [[immutant.codecs]]
 
-`:text` codec was removed. The default supplied codecs in 2.x are:
+The `:text` codec was removed. The default supplied codecs in 2.x are:
 `:none`, `:edn`, and `:json`. `:fressian` can be enabled by calling
 `immutant.codecs.fressian/register-fressian-codec`.
 
-## [[immutant.daemons]]
+### [[immutant.daemons]]
 
 Now resides in
 [org.immutant/core](https://clojars.org/org.immutant/core), with a
 slightly simpler interface.
 
-## ~~immutant.dev~~
+### ~~immutant.dev~~
 
 Used for dev inside the container, but you can get all these same
 facilities with standard tools outside of the container with 2.x, and
 we're no longer exposing the project map, so this wouldn't be very
 useful inside the container with 2.x.
 
-## immutant.jobs -> [[immutant.scheduling]]
+### immutant.jobs -> [[immutant.scheduling]]
 
 The API is similar. `schedule` now takes a map or kwargs, and there
 are now helpers for each option that help you generate that map. A
@@ -96,11 +114,11 @@ different schedule calls, new schedulers are created.
 If you need access to the raw quartz scheduler, use
 [[immutant.scheduling.quartz/quartz-scheduler]].
 
-### immutant.jobs.internal -> immutant.scheduling.internal
+#### immutant.jobs.internal -> immutant.scheduling.internal
 
-## ~~immutant.logging~~
+### ~~immutant.logging~~
 
-## [[immutant.messaging]]
+### [[immutant.messaging]]
 
 Has a similar API, except around destination creation and passing. Fns
 now take destination objects instead of strings, and the destination
@@ -110,42 +128,49 @@ sessions have been replaced with contexts, available from `context`.
 `unlisten` and `stop` have been merged in to `stop`. `message-seq` is
 no more.
 
-### immutant.messaging.codecs
+#### immutant.messaging.codecs
 
 Brought over with few changes.
 
-### ~~immutant.messaging.core~~
+#### ~~immutant.messaging.core~~
 
 Merged with `immutant.messaging.internal`.
 
-### [[immutant.messaging.hornetq]]
+#### [[immutant.messaging.hornetq]]
 
 Brought over with a few changes.
 
-### immutant.messaging.internal
+#### immutant.messaging.internal
 
 Brought over, but with a drastically different API.
 
-## immutant.pipeline -> [[immutant.messaging.pipeline]]
+### immutant.pipeline -> [[immutant.messaging.pipeline]]
 
 The API is unchanged, other than renaming the namespace.
 
-## ~~immutant.registry~~
+### ~~immutant.registry~~
 
-## immutant.repl -> immutant.wildfly.repl
+The registry was used to store application config and the parsed lein
+project map. We no longer provide those inside Immutant, so the
+registry is no longer needed for that. You could also use the registry
+to look up items in the application server's internal registry. That
+functionality is still available via
+[[immutant.wildfly/get-from-service-registry]].
+
+### immutant.repl -> immutant.wildfly.repl
 
 Still there, but with a different API. It's now only used inside the
 container.
 
-## ~~immutant.resource-util~~
+### ~~immutant.resource-util~~
 
-## ~~immutant.runtime~~
+### ~~immutant.runtime~~
 
-### ~~immutant.runtime.bootstrap~~
+#### ~~immutant.runtime.bootstrap~~
 
-## ~~immutant.runtime-util~~
+### ~~immutant.runtime-util~~
 
-## immutant.util
+### immutant.util
 
 Split across three namespaces:
 
@@ -153,24 +178,24 @@ Split across three namespaces:
 * immutant.internal.util - fns used by Immutant itself, and not intended for app use
 * [[immutant.wildfly]] - in-container specific functions
 
-## [[immutant.web]]
+### [[immutant.web]]
 
 * `start` is now `run`
 * `start-servlet` is also now `run`
 * `current-servlet-request` currently has no analogue
 
-### ~~immutant.web.session~~
+#### ~~immutant.web.session~~
 
 Obviated by [[immutant.web.middleware/wrap-session]].
 
-### ~~immutant.web.servlet~~
-### ~~immutant.web.session.internal~~
+#### ~~immutant.web.servlet~~
+#### ~~immutant.web.session.internal~~
 
-### [[immutant.web.middleware]]
+#### [[immutant.web.middleware]]
 
 Contains only `wrap-development`, `wrap-session`, and `wrap-websocket`.
 
-## immutant.xa -> [[immutant.transactions]]
+### immutant.xa -> [[immutant.transactions]]
 
 Listeners are no longer automatically enlisted participants in an XA
 transaction. Within the handler fn, you must now explicitly define a
@@ -196,7 +221,7 @@ operated on last. This "trick" relies on an exception being thrown if
 the datasource operation fails, hence causing the other XA
 participants, e.g. messaging destinations or caches, to roll back.
 
-## immutant.xa.transaction -> immutant.transactions.scope
+### immutant.xa.transaction -> immutant.transactions.scope
 
 All the scope macros, analogous to the JEE Transaction attribute
 annotations, have been moved to [[immutant.transactions.scope]]. The

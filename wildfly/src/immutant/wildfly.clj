@@ -89,7 +89,9 @@
   (when-let [nrepl (:nrepl opts)]
     ((u/require-resolve 'immutant.wildfly.repl/start) nrepl)))
 
-(defn get-from-service-registry [k]
+(defn get-from-service-registry
+  "Looks up a service in the WildFly internal service registry."
+  [k]
   (when-let [registry (wu/service-registry)]
     (when-let [servicename-class (u/try-import 'org.jboss.msc.service.ServiceName)]
       (when-let [service (.getService registry

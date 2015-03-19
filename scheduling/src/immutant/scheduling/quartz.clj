@@ -21,7 +21,7 @@
   "Returns the internal Quartz scheduler instance for the given options.
 
   `opts` should be the same scheduler options passed
-  to [immutant.scheduling/schedule] (currently just :num-threads)."
+  to [[immutant.scheduling/schedule]] (currently just :num-threads)."
   [opts]
   (let [^QuartzScheduling quartz-scheduler (-> (merge int/create-defaults opts)
                                              int/scheduler
