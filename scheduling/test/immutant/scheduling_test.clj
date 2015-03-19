@@ -98,3 +98,9 @@
     (is (empty? (.scheduledJobs scheduler)))
     (is (.isShutdown (.scheduler scheduler)))
     (is (not (stop everything)))))
+
+(deftest multiple-schedulers
+  (let [default (doto (scheduler {}) .start)
+        other-scheduler (doto (scheduler {:num-threads 1}) .start)]
+    (is (not= other-scheduler default))
+    (is (not= (.scheduler other-scheduler) (.scheduler default)))))

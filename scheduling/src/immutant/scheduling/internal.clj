@@ -29,3 +29,5 @@
   (WunderBoss/findOrCreateComponent Scheduling
     (scheduler-name (select-keys opts (valid-options-for scheduler)))
     (extract-options opts Scheduling$CreateOption)))
+
+(set-valid-options! scheduler (opts->set Scheduling$CreateOption))
