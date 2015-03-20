@@ -128,9 +128,7 @@ sessions have been replaced with contexts, available from `context`.
 `unlisten` and `stop` have been merged in to `stop`. `message-seq` is
 no more.
 
-#### immutant.messaging.codecs
-
-Brought over with few changes.
+#### ~~immutant.messaging.codecs~~
 
 #### ~~immutant.messaging.core~~
 
