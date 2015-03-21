@@ -12,14 +12,15 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns ^{:no-doc true}
-  immutant.web.internal.headers
-  (:require [clojure.string :as str]
-            ring.util.request))
+(ns ^:no-doc ^:internal
+    immutant.web.internal.headers
+  (:require [clojure.string :as str]))
 
-(def charset-pattern (deref #'ring.util.request/charset-pattern))
+;; borrowed from ring.util.request/charset-pattern, which appeared in ring 1.3.0.
+(def ^:private charset-pattern
+  #";(?:.*\s)?(?i:charset)=([!#$%&'*\-+.0-9A-Z\^_`a-z\|~]+|\"(\\\"|[^\"])*\")\s*(?:;|$)")
 
-(def default-encoding "ISO-8859-1")
+(def ^:private default-encoding "ISO-8859-1")
 
 (defprotocol Headers
   (get-names [x])
@@ -28,13 +29,13 @@
   (set-header [x key value])
   (add-header [x key value]))
 
-(defn ^String get-character-encoding [headers]
+(defn ^:internal ^String get-character-encoding [headers]
   (or
     (when-let [type (get-value headers "content-type")]
       (second (re-find charset-pattern type)))
     default-encoding))
 
-(defn headers->map [headers]
+(defn ^:internal headers->map [headers]
   (persistent!
     (reduce
       (fn [accum ^String name]
@@ -46,7 +47,7 @@
       (transient {})
       (get-names headers))))
 
-(defn write-headers
+(defn ^:internal write-headers
   [output, headers]
   (doseq [[^String k, v] headers]
     (if (coll? v)
