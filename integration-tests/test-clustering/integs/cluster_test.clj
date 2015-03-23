@@ -29,7 +29,14 @@
     (partial with-jboss #{:isolated :offset :domain})
     (with-deployment "ROOT.war" "." :profiles [:cluster :dev :test])))
 
-(deftest bouncing-basic-web
+(defmacro marktest [t & body]
+  `(deftest ~t
+     (let [v# (-> ~t var meta :name)]
+       (mark "START" v#)
+       ~@body
+       (mark "FINISH" v#))))
+
+(marktest bouncing-basic-web
   (is (= :pong (get-as-data "/ping" "server-one")))
   (is (= :pong (get-as-data "/ping" "server-two")))
   (stop "server-one")
@@ -37,7 +44,7 @@
   (start "server-one")
   (is (= :pong (get-as-data "/ping" "server-one"))))
 
-(deftest session-replication
+(marktest session-replication
   (is (= 0 (get-as-data "/counter" "server-one")))
   (is (= 1 (get-as-data "/counter" "server-two")))
   (is (= 2 (get-as-data "/counter" "server-one")))
@@ -46,7 +53,7 @@
   (start "server-one")
   (is (= 4 (get-as-data "/counter" "server-one"))))
 
-(deftest failover
+(marktest failover
   (let [responses (atom [])
         response (fn [s]
                    (with-open [c (msg/context (assoc opts :port (http-port s)))]
@@ -67,7 +74,7 @@
     ;; across restarts
     (is (apply < (map :count @responses)))))
 
-(deftest publish-here-receive-there
+(marktest publish-here-receive-there
   (with-open [ctx1 (msg/context (assoc opts :port (http-port "server-one")))
               ctx2 (msg/context (assoc opts :port (http-port "server-two")))]
     (let [q1 (msg/queue "/queue/cluster" :context ctx1)
