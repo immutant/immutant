@@ -37,12 +37,12 @@
        (mark "FINISH" v#))))
 
 (marktest bouncing-basic-web
-  (is (= :pong (get-as-data "/ping" "server-one")))
-  (is (= :pong (get-as-data "/ping" "server-two")))
+  (is (-> (get-as-data "/cache" "server-one") :count number?))
+  (is (-> (get-as-data "/cache" "server-two") :count number?))
   (stop "server-one")
-  (is (thrown? java.net.ConnectException (get-as-data "/ping" "server-one")))
+  (is (thrown? java.net.ConnectException (get-as-data "/cache" "server-one")))
   (start "server-one")
-  (is (= :pong (get-as-data "/ping" "server-one"))))
+  (is (-> (get-as-data "/cache" "server-one") :count number? )))
 
 (marktest session-replication
   (is (= 0 (get-as-data "/counter" "server-one")))
@@ -55,22 +55,22 @@
 
 (marktest failover
   (let [responses (atom [])
-        response (fn [s]
-                   (with-open [c (msg/context (assoc opts :port (http-port s)))]
-                     (deref (msg/request (msg/queue "/queue/cache" :context c) :remote)
-                       60000 {:node :timeout, :count 0})))]
-    (mark (swap! responses conj (response "server-one")))
-    (stop "server-one")
-    (mark (swap! responses conj (response "server-two")))
-    (is (= "master:server-two" (:node (last @responses))))
-    (start "server-one")
-    (mark (swap! responses conj (response "server-two")))
-    (is (= "master:server-two" (:node (last @responses))))
-    (stop "server-two")
-    (Thread/sleep 1000) ; to allow singleton job to start up
-    (mark (swap! responses conj (response "server-one")))
-    (is (= "master:server-one" (:node (last @responses))))
-    (start "server-two")
+        host1 (with-open [c (msg/context (assoc opts :port (http-port "server-one")))]
+                (deref (msg/request (msg/queue "/queue/cache" :context c) :whatever)
+                  60000 nil))
+        host2 (-> #{"server-one" "server-two"} (disj host1) first)
+        response (fn [s] (get-as-data "/cache" s))]
+    (mark (swap! responses conj (response host1)))
+    (stop host1)
+    (mark (swap! responses conj (response host2)))
+    (is (= host2 (:node (last @responses))))
+    (start host1)
+    (mark (swap! responses conj (response host2)))
+    (is (= host2 (:node (last @responses))))
+    (stop host2)
+    (mark (swap! responses conj (response host1)))
+    (is (= host1 (:node (last @responses))))
+    (start host2)
     ;; assert the job and distributed cache kept the count ascending
     ;; across restarts
     (is (apply < (map :count @responses)))))
