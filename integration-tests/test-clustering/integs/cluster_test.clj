@@ -67,6 +67,7 @@
     (mark (swap! responses conj (response "server-two")))
     (is (= "master:server-two" (:node (last @responses))))
     (stop "server-two")
+    (Thread/sleep 1000) ; to allow singleton job to start up
     (mark (swap! responses conj (response "server-one")))
     (is (= "master:server-one" (:node (last @responses))))
     (start "server-two")
@@ -78,7 +79,8 @@
   (with-open [ctx1 (msg/context (assoc opts :port (http-port "server-one")))
               ctx2 (msg/context (assoc opts :port (http-port "server-two")))]
     (let [q1 (msg/queue "/queue/cluster" :context ctx1)
-          q2 (msg/queue "/queue/cluster" :context ctx2)]
-      (dotimes [i 10]
+          q2 (msg/queue "/queue/cluster" :context ctx2)
+          c 3]
+      (dotimes [i c]
         (msg/publish q1 i))
-      (is (= (range 10) (repeatedly 10 #(msg/receive q2)))))))
+      (is (= (range c) (repeatedly c (partial msg/receive q2)))))))
