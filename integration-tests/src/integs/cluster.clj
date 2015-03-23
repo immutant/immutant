@@ -25,6 +25,7 @@
 (def cache (c/cache "cluster-test", :transactional? true, :locking :pessimistic))
 
 (defn update-cache []
+  (println "UPDATE:" (into {} cache))
   (.put cache :node nodename)
   (c/swap-in! cache :count (fnil inc -1)))
 
@@ -37,7 +38,10 @@
 (defn -main [& _]
   (let [q (m/queue "/queue/cache", :durable? false)
         resp  (atom nil)
-        start #(reset! resp (m/respond q (fn [_] (into {} cache))))
+        start #(reset! resp (m/respond q (fn [_]
+                                           (let [c (into {} cache)]
+                                             (println "RESPONSE:" c)
+                                             c))))
         stop  #(m/stop @resp)]
     (singleton-daemon "cache-status" start stop))
   (s/schedule update-cache :id "cache-updater" :every :second)
