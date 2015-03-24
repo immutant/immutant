@@ -80,7 +80,13 @@
               ctx2 (msg/context (assoc opts :port (http-port "server-two")))]
     (let [q1 (msg/queue "/queue/cluster" :context ctx1)
           q2 (msg/queue "/queue/cluster" :context ctx2)
-          c 3]
+          p (promise)
+          c 10]
+      (msg/listen q2 (let [v (atom [])]
+                       (fn [m]
+                         (swap! v conj m)
+                         (when (= c (count @v))
+                           (deliver p @v)))))
       (dotimes [i c]
         (msg/publish q1 i))
-      (is (= (range c) (repeatedly c (partial msg/receive q2)))))))
+      (is (= (range c) (deref p 10000 nil))))))
