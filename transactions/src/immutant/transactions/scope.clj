@@ -14,7 +14,7 @@
 
 (ns immutant.transactions.scope
   "Macros that control transaction scope, analagous to
-  [JEE transaction attributes](http://docs.oracle.com/javaee/7/tutorial/doc/transactions003.htm)"
+  [JEE transaction attributes](https://docs.oracle.com/javaee/7/tutorial/transactions003.htm)"
   (:require [immutant.transactions :refer (tx)]))
 
 (defmacro required
