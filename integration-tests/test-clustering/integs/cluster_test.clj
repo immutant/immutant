@@ -80,10 +80,15 @@
               ctx2 (msg/context (assoc opts :port (http-port "server-two")))]
     (let [q1 (msg/queue "/queue/cluster" :context ctx1)
           q2 (msg/queue "/queue/cluster" :context ctx2)
-          c 10]
+          received (atom [])
+          p (promise)
+          c 100]
+      (msg/listen q2 (fn [m]
+                       (mark "GOT:" m)
+                       (swap! received conj m)
+                       (when (= c (count @received))
+                         (deliver p :done))))
       (dotimes [i c]
         (msg/publish q1 i))
-      (is (= (range c)
-            (repeatedly c
-              (comp (fn [m] (mark "GOT:" m) m)
-                (partial msg/receive q2))))))))
+      (deref p 60000 nil)
+      (is (= (range c) @received)))))
