@@ -64,7 +64,7 @@ can modify your `:dependencies` like so:
 ```clojure
 
   :dependencies [...
-                 [org.immutant/immutant "2.x.incremental.284"
+                 [org.immutant/immutant "{{version}}"
                    :exclusions [ch.qos.logback/logback-classic]]
                  [org.apache.logging.log4j/log4j-core "2.0.2"]
                  [org.apache.logging.log4j/log4j-slf4j-impl "2.0.2"]]
@@ -82,7 +82,7 @@ above, and it is written to the console and to
 `$WILDFLY_HOME/standalone/log/server.log`. Any log messages that
 Immutant itself generates will be handled by jboss-logging, as will
 anything your app logs via [clojure.tools.logging] \(or [Timbre], if
-you configure it to delegate to clojure.tools.logging) or writes to
+you configure it to delegate to clojure.tools.logging), or writes to
 stdout/stderr.
 
 If you need to alter the default logging configuration, you have three options:
@@ -132,12 +132,12 @@ file, you'll need to add the following to your `project.clj`:
 Once you disable the logging subsystem, you can now provide a custom
 `logback.xml` as we discussed above, with one important difference -
 the `logback.xml` must reside in the war file instead of simply on the
-application's classpath. Therefore, you'll also need to put your
+application's classpath. Therefore, you'll need to put your
 `logback.xml` in `war-resources/WEB-INF/lib/`.
 
 You can also still provide an alternate SLF4J implementation as we did
 above, but any configuration for it (`log4j.xml`, etc.), will need to
-be in `WEB-INF/lib` as well.
+be in `war-resources/WEB-INF/lib` as well.
 
 Now, regenerate your war file, and you should be good to go. For more
 information on running your application in WildFly, see our

@@ -138,7 +138,6 @@ see our [WildFly guide].
 
 [builds]: http://immutant.org/builds/2x/
 [latest-api]: https://projectodd.ci.cloudbees.com/job/immutant2-incremental/lastSuccessfulBuild/artifact/target/apidocs/index.html
-[The Deuce]: http://immutant.org/news/2014/04/02/the-deuce/
 [Compojure]: https://github.com/weavejester/compojure
 [Luminus]: http://www.luminusweb.net/
 [WildFly]: http://wildfly.org/

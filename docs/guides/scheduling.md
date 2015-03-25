@@ -4,11 +4,11 @@
  :description "Schedule asynchronous jobs"}
 ---
 
-If you're coming from Immutant 1.x, you'll notice that the namespace
-and artifact have been renamed (what used to be `immutant.jobs` and
-`org.immutant/immutant-jobs` is now `immutant.scheduling` and
-`org.immutant/scheduling`), and the API has changed a bit.  It's still
-based on Quartz 2.2, though.
+If you're coming from Immutant 1.x, you'll notice that the scheduling
+namespace and artifact have been renamed (what used to be
+`immutant.jobs` and `org.immutant/immutant-jobs` is now
+`immutant.scheduling` and `org.immutant/scheduling`), and the API has
+changed a bit.  It's still based on Quartz 2.2, though.
 
 ## The API
 

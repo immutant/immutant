@@ -5,8 +5,8 @@
  :description "Simple creation and usage of distributed queues and topics"}
 ---
 
-If you're coming from Immutant 1.x, you may notice that the artifact
-has been renamed (`org.immutant/immutant-messaging` is now
+If you're coming from Immutant 1.x, you may notice that the messaging
+artifact has been renamed (`org.immutant/immutant-messaging` is now
 `org.immutant/messaging`), and the API has changed a bit. We'll point
 out the notable API changes as we go.
 

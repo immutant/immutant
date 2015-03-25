@@ -4,7 +4,7 @@
  :description "Deploying your app to WildFly"}
 ---
 
-One of [the primary goals for The Deuce](/news/2014/04/02/the-deuce/)
+One of [the primary goals for Immutant 2.x](/news/2014/04/02/the-deuce/)
 was the removal of the ancient AS7 fork we lugged around in
 Immutant 1.x. This eliminates the need to install and deploy your apps
 into a "container" to use the Immutant libraries.
@@ -27,9 +27,9 @@ container requires some "glue code" that must be aware of the
 container's implementation.
 
 For this reason, Immutant intentionally uses the same services as
-[WildFly], the community-supported upstream project for the
-commercially-supported [JBoss EAP] product. And these are the
-containers we'll initially support.
+[WildFly], the community-supported upstream project for the next
+version of the commercially-supported [JBoss EAP] product. And these
+are the containers we'll initially support.
 
 ## WildFly
 
@@ -39,13 +39,13 @@ write them ourselves. :)
 
 Thankfully, installing WildFly is trivial:
 
-    $ wget http://download.jboss.org/wildfly/8.1.0.Final/wildfly-8.1.0.Final.zip
-    $ unzip wildfly-8.1.0.Final.zip
+    $ wget http://download.jboss.org/wildfly/8.2.0.Final/wildfly-8.2.0.Final.zip
+    $ unzip wildfly-8.2.0.Final.zip
 
 Downloading and unpacking it somewhere are all there is to it. Running
 it is easy, too:
 
-    $ wildfly-8.1.0.Final/bin/standalone.sh
+    $ wildfly-8.2.0.Final/bin/standalone.sh
 
 Pass it `-h` to see what options it supports. The main one you'll use
 is `-c` which refers to one of its config files beneath
@@ -53,24 +53,24 @@ is `-c` which refers to one of its config files beneath
 HornetQ, for example, so to use `immutant.messaging`, you'll need to
 start WildFly as follows:
 
-    $ wildfly-8.1.0.Final/bin/standalone.sh -c standalone-full.xml
+    $ wildfly-8.2.0.Final/bin/standalone.sh -c standalone-full.xml
 
 And if you want clustering...
 
-    $ wildfly-8.1.0.Final/bin/standalone.sh -c standalone-full-ha.xml
+    $ wildfly-8.2.0.Final/bin/standalone.sh -c standalone-full-ha.xml
 
 You can create your own, of course, too.
 
 ## The lein-immutant plugin
 
 The [lein-immutant] plugin was fundamental to developing apps for
-Immutant 1.x. In *The Deuce*, it's only required if you wish to deploy
+Immutant 1.x. In 2.x, it's only required if you wish to deploy
 your Clojure apps to WildFly, and its formerly numerous tasks have
 been reduced to two: `immutant war` and `immutant test`. Add the
 latest version to the `:plugins` section of your `project.clj` to
 install it, e.g.
 
-    :plugins [[lein-immutant "2.0.0-beta1"]]
+    :plugins [[lein-immutant "2.0.0"]]
 
 ### Creating a war file
 
