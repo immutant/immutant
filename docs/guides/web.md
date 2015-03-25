@@ -35,7 +35,7 @@ middleware:
 * `wrap-websocket` - attach websocket callbacks to your Ring handler
 * `wrap-session` - enables session sharing among your Ring handler and
   its WebSockets, as well as automatic session replication when your
-  app is deployed to a WildFly or EAP cluster.
+  app is deployed to a WildFly cluster.
 * `wrap-development` - included automatically by `run-dmc`, this
   aggregates some middleware handy during development.
 
@@ -140,16 +140,16 @@ it, so you can thread `run` calls together, useful when your
 application runs multiple handlers. For example,
 
 ```clojure
-(def everything (-> (run ello)
-                  (assoc :path "/owdy")
-                  (->> (run owdy))
+(def everything (-> (run hello)
+                  (assoc :path "/howdy")
+                  (->> (run howdy))
                   (merge {:path "/" :port 8081})
-                  (->> (run ola))))
+                  (->> (run hola))))
 ```
 
 The above actually creates two Undertow web server instances: one
-serving requests for the `ello` and `owdy` handlers on port 8080,
-and one serving `ola` responses on port 8081.
+serving requests for the `hello` and `howdy` handlers on port 8080,
+and one serving `hola` responses on port 8081.
 
 You can stop all three apps (and shutdown the two web servers) like
 so:
@@ -158,15 +158,15 @@ so:
 (stop everything)
 ```
 
-Alternatively, you could stop only the `ola` app like so:
+Alternatively, you could stop only the `hola` app like so:
 
 ```clojure
 (stop {:path "/" :port 8081})
 ```
 
-You could even omit `:path` since "/" is the default. And because ola
-was the only app running on the web server listening on port 8081, it
-will be shutdown automatically.
+You could even omit `:path` since "/" is the default. And because
+`hola` was the only app running on the web server listening on port
+8081, it will be shutdown automatically.
 
 ## Virtual Hosts
 
@@ -263,7 +263,7 @@ The [[run-dmc]] macro resulted from a desire to provide a no-fuss way to
 enjoy all the benefits of REPL-based development. Before calling
 `run`, `run-dmc` will first ensure that your Ring handler is
 var-quoted and wrapped in the `reload` and `stacktrace` middleware
-from the `ring-devel` library (which must be included among your
+from the [ring-devel] library (which must be included among your
 `[:profiles :dev :dependencies]` in `project.clj`). It'll then open
 your app in a browser.
 
@@ -446,6 +446,7 @@ Have fun!
 [Compojure]: https://github.com/weavejester/compojure
 [Luminus]: http://www.luminusweb.net/
 [Caribou]: http://let-caribou.in/
+[ring-devel]: https://github.com/ring-clojure/ring/tree/master/ring-devel
 [WebSockets]: http://en.wikipedia.org/wiki/WebSocket
 [Immutant Feature Demo]: https://github.com/immutant/feature-demo
 [less-awful-ssl]: https://github.com/aphyr/less-awful-ssl
