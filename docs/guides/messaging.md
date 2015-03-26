@@ -163,13 +163,46 @@ a reference to the destination:
 
 A few things to note about the above example:
 
-* We're using `with-open` because you need to close any contexts you make
-* We're passing the context to `queue`, which causes `queue` to
-  just return a reference to the remote queue, *without* asking
-  HornetQ to create it. You'll need to make sure it already exists.
-* We don't need to pass the context to `publish`, since it will
-  reuse the context that was used to create the destination
-  reference.
+* We're using `with-open` because you need to close any contexts you
+  make.
+* We don't need to pass the context to [[publish]], since it will
+  reuse the context that was used to create the queue reference.
+
+Most importantly, since we're passing the context to [[queue]], a
+queue with that name must already exist on the remote host. When
+[[queue]] is passed a remote context, it will return a reference to
+the remote queue *without asking HornetQ to create it*.
+
+To create the queue (or topic) either have some server-side code call
+[[queue]] (or [[topic]]) without a remote context, or you can
+configure destinations directly in the WildFly config file, e.g.
+`standalone-full.xml`. For example,
+
+```xml
+...
+  <hornetq-server>
+    ...
+    <jms-destinations>
+
+      <!-- (queue "foo") -->
+      <jms-queue name="foo">
+        <entry name="java:/jms/queue/foo"/>
+      </jms-queue>
+       
+      <!-- (topic "/foo/bar") -->
+      <jms-topic name="/foo/bar">
+        <entry name="java:/jms/topic/anything/really/foo/bar"/>
+      </jms-topic>
+
+    </jms-destinations>
+  </hornetq-server>
+</subsystem>
+```
+
+Note that while WildFly does require an `<entry>` element for each
+destination, the Immutant client ignores it: the name you pass to
+[[queue]] or [[topic]] directly corresponds to the `name` attribute of
+`<jms-queue>` or `<jms-topic>`, respectively.
 
 ## Reusing contexts
 
