@@ -1,11 +1,12 @@
 ---
 {:title "Transactions"
  :sequence 4.5
+ :base-ns 'immutant.transactions
  :description "Providing support for distributed (XA) transactions"}
 ---
 
 Immutant encapsulates the distributed transaction support provided by
-[Narayana] within the [immutant.transactions] namespace. This allows
+[Narayana] within the [[immutant.transactions]] namespace. This allows
 you to define XA (2PC) transactions involving Immutant components
 either inside the WildFly application server or embedded within your
 standalone apps.
@@ -19,23 +20,22 @@ of the [XA protocol], and any resource that does may participate in an
 Immutant transaction.
 
 This allows your application to say, tie the success of a SQL
-database update or the storage of an entry on a replicated data grid
+database update or the storage of an entry on a replicated cache
 to the delivery of a message to a remote queue, i.e. the message is
-only sent if the database and data grid update successfully. If any
+only sent if the database and cache update successfully. If any
 single component of an XA transaction fails, all of them rollback.
 
 ## Defining a transaction
 
 If you're familiar with [JTA], we make a `TransactionManager`
-available via the [[immutant.transactions/manager]] var, and
-everything else provided by the library is mostly a syntactic sugary
-glaze around that instance. For example, the
-[[immutant.transactions/transaction]] macro will query the manager to
-see if a transaction is active. If so, it'll simply invoke its body,
-relying on the transactional components within to automatically enlist
-themselves as XA resources. Otherwise, it'll start a new transaction,
-execute its body, and commit the transaction unless an exception is
-caught, in which case the transaction is rolled back. For example,
+available via the [[manager]] var, and everything else provided by the
+library is mostly a syntactic sugary glaze around that instance. For
+example, the [[transaction]] macro will query the manager to see if a
+transaction is active. If so, it'll simply invoke its body, relying on
+the transactional components within to automatically enlist themselves
+as XA resources. Otherwise, it'll start a new transaction, execute its
+body, and commit the transaction unless an exception is caught, in
+which case the transaction is rolled back. For example,
 
 ```clojure
 (def queue (msg/queue "/queue/test"))
@@ -66,10 +66,10 @@ persistence, a developer answers these questions using the
 But annotations are gross, my friend!
 
 So in Immutant, [JEE transaction attributes] are represented as
-Clojure macros. In fact, the [[immutant.transactions/transaction]]
+Clojure macros. In fact, the [[transaction]]
 macro is merely an alias for [[immutant.transactions.scope/required]],
 which is the implicit attribute used in JEE. There are a total of 6
-macros:
+macros in the [[immutant.transactions.scope]] namespace:
 
 * `required`- Execute within current transaction, if any, otherwise
   start a new one, execute, commit or rollback
@@ -145,7 +145,7 @@ turn those calls into no-ops. This means the database spec you pass to
 [Infinispan]: http://infinispan.org
 [HornetQ]: http://www.jboss.org/hornetq
 [XA protocol]: http://en.wikipedia.org/wiki/X/Open_XA
-[JEE transaction attributes]: http://docs.oracle.com/javaee/7/tutorial/doc/transactions003.htm
+[JEE transaction attributes]: https://docs.oracle.com/javaee/7/tutorial/transactions003.htm
 [JTA]: http://www.oracle.com/technetwork/java/javaee/jta/index.html
 [pseudo transaction]: http://www.theserverside.com/news/1363664/Java-Pseudo-Transactions-With-Non-Transactional-Resources
 [java.jdbc]: https://github.com/clojure/java.jdbc
