@@ -1,6 +1,7 @@
 ---
 {:title "Scheduling"
  :sequence 3
+ :base-ns 'immutant.scheduling
  :description "Schedule asynchronous jobs"}
 ---
 
@@ -15,8 +16,8 @@ changed a bit.  It's still based on Quartz 2.2, though.
 At first glance, the API for [[immutant.scheduling]] appears bigger than
 it really is, but there are only two essential functions:
 
-* `schedule` - for scheduling your jobs
-* `stop` - for canceling them
+* [[schedule]] - for scheduling your jobs
+* [[stop]] - for canceling them
 
 The remainder of the namespace is syntactic sugar: functions that can
 be composed to create the specification for when your job should run.
@@ -49,7 +50,7 @@ the currently active timezone.
 Two additional options may be passed in the spec map:
 
 * `:id` - a unique identifier for the scheduled job
-* `:singleton` - a boolean denoting the job's behavior in a cluster [true]
+* `:singleton` - a boolean denoting the job's behavior in a cluster
 
 In Immutant 1.x, a name for the job was required. In Immutant 2, the
 `:id` is optional, and if not provided, a UUID will be generated. If
@@ -83,8 +84,8 @@ Let's schedule it:
 (schedule job)
 ```
 
-That was pretty useless. Without a spec, the job will be immediately
-called asynchronously on one of the Quartz scheduler's threads.
+That was pretty useless. Without a spec, the job will immediately be
+called once asynchronously on one of the Quartz scheduler's threads.
 Instead, let's have it run in 5 minutes:
 
 ```clojure
@@ -160,8 +161,8 @@ arguments to `at` and `until`, e.g.
       (until (plus t (hours 8))))))
 ```
 
-It also provides the function,
-[[immutant.scheduling.joda/schedule-seq]]. Inspired by [chime-at], it
+The `immutant.scheduling.joda` namespace also provides
+[[immutant.scheduling.joda/schedule-seq]].  Inspired by [chime-at], it
 takes not a specification map but a sequence of times, as might be
 returned from `clj-time.periodic/periodic-seq`, subject to the
 application of any of Clojure's core sequence-manipulating functions.
@@ -198,7 +199,7 @@ to take more than a week to run! ;)
 ## Accessing the internal Quartz scheduler
 
 If you need access to the internal Quartz scheduler instance (maybe to
-pass to another scheduling library like [Quartzite]), use
+pass to another Quartz-based scheduling library like [Quartzite]), use
 [[immutant.scheduling.quartz/quartz-scheduler]]. You just need to pass
 it the same scheduler options you can pass to
 [[immutant.scheduling/schedule]].
