@@ -106,9 +106,9 @@
   cache that applies that codec as entries are written/read to/from
   the passed cache. This is typically necessary only when non-clojure
   clients are sharing the cache. It's required if you wish to store
-  nil keys or values. The following codecs are supported by
-  default: :edn, and :json, The latter requires an additional
-  dependency on `cheshire`."
+  nil keys or values. The provided codecs are `:edn` and `:json` (the
+  latter requires you to depend on `cheshire`), and you can also use
+  any other codecs you may have registered."
   [cache codec]
   (.withCodec (component)
     cache

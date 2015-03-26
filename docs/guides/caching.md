@@ -231,11 +231,11 @@ to the cache.
 ### Encoding
 
 Cache entries are not encoded by default, but may be decorated with a
-codec using the [[with-codec]] function. Provided codecs include
-`:edn`, `:json`, and `:fressian`, but the latter two require
-additional dependencies: `cheshire` and `org.clojure/data.fressian`,
-respectively. The codec will be automatically applied anytime an entry
-is written/read to/from the cache.
+codec using the [[with-codec]] function. The provided codecs are
+`:edn` and `:json` (the latter requires you to depend on [cheshire]),
+and you can also use any other codecs you may have registered.  The
+codec will be automatically applied anytime an entry is written/read
+to/from the cache.
 
 Encoding entries is typically necessary only when non-clojure clients
 are sharing your cache. And if you wish to store nil keys or values, a
@@ -330,3 +330,4 @@ capabilities is to deploy your app to a [WildFly] cluster.
 [core.memoize]: https://github.com/clojure/core.memoize
 [memoization]: http://en.wikipedia.org/wiki/Memoization
 [WildFly]: guide-wildfly.html
+[cheshire]: https://github.com/dakrone/cheshire
