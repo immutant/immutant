@@ -25,13 +25,14 @@
 (defn- ^Caching component [] (WunderBoss/findOrCreateComponent Caching))
 
 (defn cache
-  "Returns an
+  "Returns a reference to the cache named by `name`, creating it if necessary.
+
+   `name` is the only required argument. If a cache by that name
+   already exists, it will be returned, and any options passed to this
+   function will be ignored. To force reconfiguration, call [[stop]]
+   before calling [[cache]]. The return value is a
    [org.infinispan.Cache](https://docs.jboss.org/infinispan/6.0/apidocs/org/infinispan/Cache.html),
-   an extension of `java.util.concurrent.ConcurrentMap`. A name is the
-   only required argument. If a cache by that name already exists, it
-   will be returned, and any options passed to this function will be
-   ignored. To force reconfiguration, call [[stop]] before calling
-   [[cache]].
+   an extension of `java.util.concurrent.ConcurrentMap`.
 
    The following groups of options are supported, each listed with its
    [default] value. A negative value for any numeric option means
@@ -99,20 +100,25 @@
 (set-valid-options! cache (boolify (opts->set Caching$CreateOption) :transactional))
 
 (defn with-codec
-  "Takes a cache and a keyword denoting a codec, and returns a new
-  cache that applies that codec as entries are accessed in the passed
-  cache. This is typically necessary only when non-clojure clients are
-  sharing the cache. It's required if you wish to store nil keys or
-  values. The following codecs are supported by default: :edn, and :json,
-  The latter requires an additional dependency on `cheshire`."
+  "Decorates `cache` with the codec named by `codec`.
+
+  Takes a cache and a keyword denoting a codec, and returns a new
+  cache that applies that codec as entries are written/read to/from
+  the passed cache. This is typically necessary only when non-clojure
+  clients are sharing the cache. It's required if you wish to store
+  nil keys or values. The following codecs are supported by
+  default: :edn, and :json, The latter requires an additional
+  dependency on `cheshire`."
   [cache codec]
   (.withCodec (component)
     cache
     (lookup-codec codec)))
 
 (defn with-expiration
-  "Returns a cache that will delegate any writes to the passed cache
-  according to these options:
+  "Decorates `cache` with the given expiration options.
+
+  The return value is a cache that will delegate any writes to the
+  passed cache according to these options:
 
    * :ttl - the max time the entry will live before expiry [-1]
    * :idle - the time after which an entry will expire if not accessed [-1]
@@ -159,8 +165,7 @@
   (boolean (.find (component) name)))
 
 (defn stop
-  "Removes a cache, allowing it to be reconfigured by the [[cache]]
-  function."
+  "Removes a cache, allowing it to be reconfigured by the [[cache]] function."
   [cache-or-name]
   (if (instance? org.infinispan.Cache cache-or-name)
     (.stop (component) (.getName ^org.infinispan.Cache cache-or-name))
@@ -191,7 +196,9 @@
                     (Options.))))
 
 (defn add-listener!
-  "Infinispan's cache notifications API is based on Java annotations,
+  "Attaches a listener fn to `cache` to be notified on certain events.
+
+  Infinispan's cache notifications API is based on Java annotations,
   which can be awkward in Clojure (and Java, for that matter).
 
   This function provides the ability to be notified of cache events

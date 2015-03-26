@@ -5,17 +5,17 @@
  :description "Flexible caching and memoization using a linearly-scalable data grid"}
 ---
 
-Immutant caching is provided by the [Infinispan] data grid, the
-distributed features of which are available when deployed to a WildFly
-or EAP cluster. But even in "local mode", i.e. not in a cluster but
-locally embedded within your app, Infinispan caches offer features
-such as eviction, expiration, persistence, and transactions that
-aren't available in typical [ConcurrentMap] implementations.
+Immutant caching is provided by [Infinispan], the distributed features
+of which are available when deployed to a WildFly cluster. But
+even in "local mode", i.e. not in a cluster but locally embedded
+within your app, Infinispan caches offer features such as eviction,
+expiration, persistence, and transactions that aren't available in
+typical [ConcurrentMap] implementations.
 
 This guide will explore the [[immutant.caching]] namespace, which
 provides access to Infinispan, whether your app is deployed to a
-WildFly/EAP cluster or not. The API has changed quite a bit in "The
-Deuce" from 1.x, which we'll point out as we go along.
+WildFly cluster or not. The API has changed quite a bit from 1.x,
+which we'll point out as we go along.
 
 ## Creation and Configuration
 
@@ -52,9 +52,9 @@ REPL if you're a "follow along" type.
 
 Caches are inherently mutable. In 1.x, we provided a `Mutable`
 protocol, the functions of which merely invoked the corresponding
-[ConcurrentMap] methods implemented by the Infinispan caches. In *The
-Deuce*, `Mutable` has been removed, as we felt it offered little value
-over the simple Java interop Clojure provides anyway.
+[ConcurrentMap] methods implemented by the Infinispan caches. In 2.x,
+`Mutable` has been removed, as we felt it offered little value over
+the simple Java interop Clojure provides anyway.
 
 ### Reading
 
@@ -218,7 +218,7 @@ entry is either visited or modified in the baz cache:
 
   (def result (add-listener! baz prn :cache-entry-visited
                                      :cache-entry-modified))
-    
+
   (= (set result) (.getListeners c))    ;=> true
   (swap-in! baz :b inc)
   (doseq [i result] (.removeListener c i))
@@ -231,10 +231,11 @@ to the cache.
 ### Encoding
 
 Cache entries are not encoded by default, but may be decorated with a
-codec using the [[with-codec]] function. Provided codecs include `:edn`,
-`:json`, and `:fressian`, but the latter two require additional
-dependencies: `cheshire` and `org.clojure/data.fressian`,
-respectively.
+codec using the [[with-codec]] function. Provided codecs include
+`:edn`, `:json`, and `:fressian`, but the latter two require
+additional dependencies: `cheshire` and `org.clojure/data.fressian`,
+respectively. The codec will be automatically applied anytime an entry
+is written/read to/from the cache.
 
 Encoding entries is typically necessary only when non-clojure clients
 are sharing your cache. And if you wish to store nil keys or values, a
@@ -261,10 +262,11 @@ enabled [memoization] backed by an Infinispan cache. This forced a
 transitive dependency on specific versions of [core.memoize] and
 [core.cache] that occasionally conflicted with other libraries.
 
-In *The Deuce*, we moved `memo` to its own namespace,
+In 2.x, we moved `memo` to its own namespace,
 [[immutant.caching.core-memoize]], along with a corresponding
-[[immutant.caching.core-cache]]. So if you wish to call `memo`, your app
-must declare a dependency on [core.memoize].
+[[immutant.caching.core-cache]], with no dependencies on
+`core.memoize` and `core.cache`. So if you wish to call `memo`, your
+app must declare a dependency on `core.memoize`.
 
 Here's a contrived example showing how memoization incurs the expense
 of calling a slow function only once:
@@ -297,20 +299,20 @@ collaboration occurs asynchronous to the write.
 
 In Immutant 1.x, there were two options, `:mode` and `:sync`, so to
 configure asynchronous distributed mode, for example, you would set
-`:mode :distributed, :sync false`. In *The Deuce*, we've eliminated the
+`:mode :distributed, :sync false`. In 2.x, we've eliminated the
 `:sync` option, so instead you'd set `:mode :dist-async`.
 
-* `:local` This is the only supported mode outside of a cluster
-* `:dist-sync` `:dist-async` This mode enables Infinispan caches to
+* `:local` - This is the only supported mode outside of a cluster
+* `:dist-sync`, `:dist-async` - This mode enables Infinispan caches to
   achieve "linear scalability". Cache entries are copied to a fixed
   number of peers (2, by default) regardless of the cluster size.
   Distribution uses a consistent hashing algorithm to determine which
   nodes will store a given entry.
-* `:invalidation-sync` `:invalidation-async` No data is actually
+* `:invalidation-sync`, `:invalidation-async` - No data is actually
   shared among the cluster peers in this mode. Instead, notifications
   are sent to all nodes when data changes, causing them to evict their
   stale copies of the updated entry.
-* `:repl-sync` `:repl-async` In this mode, entries added to any peer
+* `:repl-sync`, `:repl-async` - In this mode, entries added to any peer
   will be copied to all other peers in the cluster, and can then be
   retrieved locally from any instance. This mode is probably
   impractical for clusters of any significant size. Infinispan
