@@ -339,8 +339,7 @@
 
    If no context is provided, a new context is created for this
    action. If a context is provided, it must have its :subscription-name
-   set to the same value used when creating the subscription. See
-   [[subscribe]].
+   set to the same value given to the context passed to [[subscribe]].
 
    The following options are supported [default]:
 
