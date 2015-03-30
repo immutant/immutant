@@ -36,23 +36,26 @@
    A context represents a remote or local connection to the messaging
    broker.
 
-   There are two reasons you would create a context rather than
-   rely on the messaging functions to lazily create them as needed:
+   There are three reasons you would create a context rather
+   than rely on the messaging functions to lazily create them as
+   needed:
 
    1) for communicating with a remote HornetQ instance
    2) for sharing a context among a batch of messaging operations
+   3) for decoupling the client-id from the subscription name for
+      durable topic subscriptions (see [[subscribe]])
 
    You are responsible for closing any contexts created via this
    function.
 
    Options that apply to both local and remote contexts are [default]:
 
-   * :subscription-name - identifies the context for use with a durable topic
-                          subscriber (see [[subscribe]]) [nil]
-   * :xa?               - if true, returns an XA context for use in a
-                          distributed transaction [false]
-   * :mode              - one of: :auto-ack, :client-ack, :transacted. Ignored
-                          if :xa? is true. [:auto-ack]
+   * :client-id - identifies the context for use with a durable topic
+                  subscriber (see [[subscribe]]) [nil]
+   * :xa?       - if true, returns an XA context for use in a
+                  distributed transaction [false]
+   * :mode      - one of: :auto-ack, :client-ack, :transacted. Ignored
+                  if :xa? is true. [:auto-ack]
 
    Options that apply to only remote contexts are [default]:
 
@@ -76,16 +79,12 @@
                   u/kwargs-or-map->map
                   coerce-context-mode
                   (o/validate-options context)
-                  (as-> % (assoc % :client-id (:subscription-name %)))
-                  (dissoc :subscription-name)
                   (update-in [:remote-type] o/->underscored-string))]
     (.createContext (broker nil)
       (o/extract-options options Messaging$CreateContextOption))))
 
 (o/set-valid-options! context
   (-> (o/opts->set Messaging$CreateContextOption)
-    (conj :subscription-name)
-    (disj :client-id)
     (o/boolify :xa)))
 
 (defn ^Queue queue
@@ -296,19 +295,17 @@
 (defn subscribe
   "Sets up a durable subscription to `topic`, and registers a listener with `f`.
 
-   `subscription-name` is used to identify the subscription, allowing you to
-   stop the listener and resubscribe with the same name in the future without
-   losing messages sent in the interim. If no :context is provided, the
-   subscription name is used to identify the internally-created context as
-   well. If a :context is provided, it's subscription-name need not match the
-   one passed here.
+   `subscription-name` is used to identify the subscription, allowing
+   you to stop the listener and resubscribe with the same name in the
+   future without losing messages sent in the interim. The subscription
+   is uniquely identified by the context's :client-id paired with the
+   subscription name. If no :context is provided, a new context is
+   created for this subscriber and the subscription name is used as
+   the :client-id of the internally-created context. If a context is
+   provided, it *must* have its :client-id set.
 
    If a :selector is provided, then only messages having
    metadata/properties matching that expression may be received.
-
-   If no context is provided, a new context is created for this
-   subscriber. If a context is provided, it must have
-   its :subscription-name set as well.
 
    The following options are supported [default]:
 
@@ -334,12 +331,16 @@
 (o/set-valid-options! subscribe
   (o/boolify (o/opts->set Topic$SubscribeOption) :decode))
 
-(defn unsubscribe
+ (defn unsubscribe
   "Tears down the durable topic subscription on `topic` named `subscription-name`.
 
-   If no context is provided, a new context is created for this
-   action. If a context is provided, it must have its :subscription-name
-   set to the same value given to the context passed to [[subscribe]].
+
+   The subscription is uniquely identified by the context's :client-id
+   paired with the subscription name. If no :context is provided, a new
+   context is created for this subscriber and the subscription name is
+   used as the :client-id of the internally-created context. If a
+   context is provided, it *must* have its :client-id set to the same
+   value given to the context passed to [[subscribe]].
 
    The following options are supported [default]:
 

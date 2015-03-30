@@ -117,7 +117,7 @@
       (is (= :success (deref @called 1000 :success))))))
 
 (deftest durable-subscriber-with-context
-  (with-open [context (context :subscription-name "my-sub")]
+  (with-open [context (context :client-id "my-sub")]
     (let [called (atom (promise))
           t (topic "subscribe")
           listener (subscribe t "my-sub" #(deliver @called %) :context context)]
