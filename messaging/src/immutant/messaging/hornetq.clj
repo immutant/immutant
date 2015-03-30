@@ -26,8 +26,10 @@
 (defn ^JMSServerManager server-manager
   "Retrieves the local JMS server mananger instance."
   []
-  (when-let [^HQMessaging broker (broker nil)]
-    (.jmsServerManager broker)))
+  (if (pu/in-container?)
+    (throw (IllegalStateException. "immutant.messaging.hornetq functions can't be used in-container"))
+    (when-let [^HQMessaging broker (broker nil)]
+      (.jmsServerManager broker))))
 
 (defn ^:private ^String jms-name [dest]
   (if-let [wd (-> dest meta :wrapped-destination)]
