@@ -175,7 +175,7 @@ and then disposed of. This is fine for most use cases, but some will
 require you to manage the lifecycle of one or more `Contexts`
 yourself. Two cases, in particular:
 
-* Remote destinations, discussed in the next session
+* Remote destinations, discussed in the next section
 * Publishing or receiving a batch of messages
 
 When publishing a batch of messages, it's more efficient to create a
