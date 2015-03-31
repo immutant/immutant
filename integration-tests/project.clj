@@ -19,7 +19,7 @@
                  [org.immutant/wildfly _]]
   :aliases {"all" ^:replace ["do" "clean," "test"]}
   :modules {:parent nil}
-  :profiles {:integ-base {:plugins [[lein-immutant "2.0.0-beta1"]]
+  :profiles {:integ-base {:plugins [[lein-immutant "2.0.0"]]
                           :aliases {"test" ^:displace ["immutant" "test"]}
                           :modules {:parent ".."}}
              :integ-messaging {:test-paths ["../messaging/test"]}
