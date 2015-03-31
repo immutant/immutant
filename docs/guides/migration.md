@@ -204,7 +204,7 @@ redelivery. But the rollback of the tx has no relationship to
 redelivery, which is only triggered by the exception.
 
 Messaging connections, now called contexts, are no longer XA by
-default, so you must set the :xa option to true when you create your
+default, so you must set the :xa? option to true when you create your
 own contexts to pass to the messaging functions. If you don't pass
 your own contexts, those functions will create an XA capable context
 only if within an active transaction as defined by the scoping macros.

@@ -12,10 +12,10 @@ out the notable API changes as we go.
 
 ## The API
 
-The messaging [API] is backed by
-[HornetQ], which is an implementation of [JMS]. JMS provides two
-primary destination types: *queues* and *topics*. Queues represent
-point-to-point destinations, and topics publish/subscribe.
+The messaging [API] is backed by [HornetQ], which is an implementation
+of [JMS]. JMS provides two primary destination types: *queues* and
+*topics*. Queues represent point-to-point destinations, and topics
+publish/subscribe.
 
 To use a destination, we need to get a reference to one via the
 [[queue]] or [[topic]] functions, depending on the type required. This
@@ -148,7 +148,56 @@ dereference:
 The responder is just a fancy listener, and can be deregistered the
 same way as a listener.
 
-## Remote contexts
+## Durable Topic Subscriptions
+
+Typically, messages published to a topic are only delivered to
+listeners connected to the topic at that time. But it's possible to
+[[subscribe]] to a topic with a unique name, so that the broker will
+accumulate messages for that client when it's disconnected and deliver
+them in the proper order when the client reconnects.
+
+Use the [[subscribe]] function to create a "durable topic subscriber".
+Like [[listen]] it expects a callback function. Unlike [[listen]], the
+destination *must* be a topic, and a unique `subscription-name` is
+required. If the resulting client gets disconnected for any reason,
+simply call [[subscribe]] again with the same `subscription-name` and
+any messages published to the topic in the client's absence will be
+mapped to the callback function.
+
+## Contexts
+
+Immutant borrows the `Context` abstraction introduced in [JMS] 2.0,
+which is essentially a mashup of `Connection` and `Session`.
+
+Most of the messaging functions accept a `:context` option. If
+omitted, one is automatically created on the caller's behalf, used,
+and then disposed of. This is fine for most use cases, but some will
+require you to manage the lifecycle of one or more `Contexts`
+yourself. Two cases, in particular:
+
+* Remote destinations, discussed in the next session
+* Publishing or receiving a batch of messages
+
+When publishing a batch of messages, it's more efficient to create a
+single [[context]] and pass it to each [[publish]] or [[request]]
+call. Otherwise, a new one is created and torn down for every message
+in the batch. Of course, you're responsible for closing any `Context`
+you create so `with-open` is your friend:
+
+```clojure
+(with-open [ctx (context)]
+  (let [q (queue "foo")]
+    (dotimes [n 10000]
+      (publish q n :context ctx))))
+```
+
+This is not a problem for [[listen]], [[subscribe]] or [[respond]]
+since each only requires a single `Context` no matter how many times
+their callback function is invoked. It is potentially an issue for
+[[receive]], but if you're receiving a batch of messages, you should
+consider using [[listen]] instead.
+
+## Remote Destinations
 
 To connect to a remote HornetQ instance, you'll need to create a
 remote context (via the [[context]] function), and use it when getting
@@ -204,21 +253,6 @@ destination, the Immutant client ignores it: the name you pass to
 [[queue]] or [[topic]] directly corresponds to the `name` attribute of
 `<jms-queue>` or `<jms-topic>`, respectively.
 
-## Reusing contexts
-
-By default, Immutant creates a new context object for each `publish`,
-`request` or `receive` call. Creating a context isn't free, and incurs
-some performance overhead. If you plan on calling any of those
-functions in a tight loop, you can gain some performance by creating
-the context yourself (via the [[context]] function):
-
-```clojure
-(with-open [context (context)]
-  (let [q (queue "foo")]
-    (dotimes [n 10000]
-      (publish q n :context context))))
-```
-
 ## Context modes
 
 When creating a context, you can pass a `:mode` option that controls
@@ -226,10 +260,10 @@ how messages will be acknowledged and delivered.
 
 Immutant provides three modes:
 
-* `:auto-ack` - when this mode is active, receipt of a message is
-  automatically acknowledged when a `receive` call completes. This
-  mode doesn't affect publication - `publish` calls will complete
-  immediately. This is the default mode for contexts.
+* `:auto-ack` - *the default for contexts*, when this mode is active,
+  receipt of a message is automatically acknowledged when a `receive`
+  call completes. This mode doesn't affect publication - `publish`
+  calls will complete immediately.
 
 * `:client-ack` - when this mode is active, you are responsible for
   acknowledging the message manually by calling `.acknowledge` on the
@@ -237,12 +271,11 @@ Immutant provides three modes:
   passing `:decode? false` to `receive`). This mode doesn't affect
   publication - `publish` calls will complete immediately.
 
-* `:transacted` - when this mode is active, you are responsible for
-  committing or rolling back (by calling `.commit` or `.rollback` on
-  the context, respectively) any actions performed on the
-  context. This applies to publishes *and* receives.
-
-:auto-ack is the default for contexts, :transacted for listeners.
+* `:transacted` - *the default for listeners*, when this mode is
+  active, you are responsible for committing or rolling back (by
+  calling `.commit` or `.rollback` on the context, respectively) any
+  actions performed on the context. This applies to publishes *and*
+  receives.
 
 If a context is created with `:xa? true`, the `:mode` option is
 ignored. See the [Transactions Guide] for more details.
@@ -300,11 +333,43 @@ Note that any custom xml or system properties will be ignored when
 running inside WildFly - you'll need to make adjustments to the
 WildFly configuration to achieve similar effects.
 
-## More to come
+In addition, it is possible to override many HornetQ configuration
+settings at runtime using
+[[immutant.messaging.hornetq/set-address-settings]].
 
-That was just a brief introduction to the messaging API. There are
-features we've yet to cover (durable topic subscriptions,
-transactional sessions)...
+## Transactions
+
+When the messaging operations are left to create their own `Context`,
+they check to see whether an XA transaction is active. If so, an XA
+context is created and automatically enlisted as a resource in the
+active transaction. Otherwise, a more efficient non-XA `Context` is
+used.
+
+So you only pay for transactions if you need them.
+
+However, the default value for the [[context]] function's `:xa?`
+option is `false`, so if you're managing `Context` instances yourself,
+you must set `:xa?` to true if you need that `Context` to be part of a
+distributed XA transaction.
+
+### Listeners
+
+In Immutant 1.x, message listeners were automatically enlisted
+participants in an XA transaction, but that is not the case with
+Immutant 2.x. Within the listener function, you must now explicitly
+define a transaction using one of the macros in
+[[immutant.transactions]]. If an exception escapes its body, the
+transaction will be rolled back, and if the exception bubbles out of
+the listener function, the message will be queued for redelivery.
+
+But the rollback of the transaction has no relationship to message
+redelivery, which is only triggered by the exception. The transaction
+*could* be rolled back as a result of calling
+[[immutant.transactions/set-rollback-only]], in which case no
+exception would be thrown. Hence, rollback would occur, but not
+redelivery.
+
+See the [Transactions Guide] for more details.
 
 [HornetQ]: http://hornetq.jboss.org/
 [API]: immutant.messaging.html

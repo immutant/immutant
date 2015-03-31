@@ -24,7 +24,7 @@
            org.hornetq.jms.server.JMSServerManager))
 
 (defn ^JMSServerManager server-manager
-  "Retrieves the local JMS server mananger instance."
+  "Retrieves the local JMS server manager instance."
   []
   (if (pu/in-container?)
     (throw (IllegalStateException. "immutant.messaging.hornetq functions can't be used in-container"))

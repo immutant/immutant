@@ -29,13 +29,15 @@ single component of an XA transaction fails, all of them rollback.
 
 If you're familiar with [JTA], we make a `TransactionManager`
 available via the [[manager]] var, and everything else provided by the
-library is mostly a syntactic sugary glaze around that instance. For
-example, the [[transaction]] macro will query the manager to see if a
-transaction is active. If so, it'll simply invoke its body, relying on
-the transactional components within to automatically enlist themselves
-as XA resources. Otherwise, it'll start a new transaction, execute its
-body, and commit the transaction unless an exception is caught, in
-which case the transaction is rolled back. For example,
+library is mostly a syntactic sugary glaze slathered on that instance.
+For example, the [[transaction]] macro will query the manager to see
+if a transaction is active. If so, it'll simply invoke its body.
+Otherwise, it'll start a new transaction, execute its body, and commit
+the transaction unless either an exception is caught or
+[[set-rollback-only]] is called, in which case the transaction is
+rolled back. Either way, it relies on the transactional components
+within the body to automatically enlist themselves as XA resources.
+For example,
 
 ```clojure
 (def queue (msg/queue "/queue/test"))
@@ -51,7 +53,7 @@ single, atomic operation. Either both succeed or neither succeeds.
 Note that the cache had to be created with its `:transactional` flag
 set. The publish function will detect an active transaction and create
 an XA-capable context with which to send the message. If you pass a
-context for publish to use, be sure its `:xa` flag is set if you
+context for publish to use, be sure its `:xa?` flag is set if you
 intend to publish within a transaction.
 
 ## Transaction Scope
