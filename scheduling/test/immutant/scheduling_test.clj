@@ -87,6 +87,13 @@
     (stop job2)
     (is (.isShutdown scheduler))))
 
+(deftest stop-should-stop-all-jobs-and-the-scheduler-when-given-no-args
+  (let [job (schedule #() :every :second)
+        scheduler (.scheduler (scheduler {}))]
+    (is (not (.isShutdown scheduler)))
+    (stop)
+    (is (.isShutdown scheduler))))
+
 (deftest stop-should-stop-all-threaded-jobs
   (let [everything (-> (schedule #() :every :second)
                      (dissoc :id)

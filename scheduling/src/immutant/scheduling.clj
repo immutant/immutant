@@ -117,18 +117,25 @@
 (defn stop
   "Unschedule a scheduled job.
 
-  Options can be passed as either a map or kwargs, but is typically the
-  map returned from a [[schedule]] call. If there are no jobs remaining on
-  the scheduler the scheduler itself is stopped. Returns true if a job
-  was actually removed."
+  Options can be passed as either a map or kwargs, but is typically
+  the map returned from a [[schedule]] call. If no options are passed,
+  all jobs for the default scheduler are stopped. If there are no jobs
+  remaining on the scheduler the scheduler itself is stopped. Returns
+  true if a job was actually removed."
   [& options]
   (let [options (-> options
                   iu/kwargs-or-map->map
                   (validate-options schedule "stop"))
-        ids (:ids options {(scheduler options)
-                           [(:id options)]})
-        stopped? (some boolean (doall (for [[^Scheduling s ids] ids, id ids]
-                                        (.unschedule s (name id)))))]
+        ids (if-let [ids (:ids options)]
+              ids
+              (let [s (scheduler options)]
+                {s (if-let [id (:id options)]
+                     [id]
+                     (.scheduledJobs s))}))
+        stopped? (some boolean
+                   (doall (for [[^Scheduling s ids] ids
+                                id ids]
+                            (.unschedule s (name id)))))]
     (doseq [^Scheduling scheduler (keys ids)]
       (when (empty? (.scheduledJobs scheduler))
         (.stop scheduler)))
