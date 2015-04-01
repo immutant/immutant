@@ -331,7 +331,7 @@
 (o/set-valid-options! subscribe
   (o/boolify (o/opts->set Topic$SubscribeOption) :decode))
 
- (defn unsubscribe
+(defn unsubscribe
   "Tears down the durable topic subscription on `topic` named `subscription-name`.
 
 

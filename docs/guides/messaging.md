@@ -164,6 +164,10 @@ simply call [[subscribe]] again with the same `subscription-name` and
 any messages published to the topic in the client's absence will be
 mapped to the callback function.
 
+Some additional server-side resources are required to track each
+subscriber, of course, so [[unsubscribe]] is provided to tear down a
+durable topic subscription when no longer needed.
+
 ## Contexts
 
 Immutant borrows the `Context` abstraction introduced in [JMS] 2.0,
