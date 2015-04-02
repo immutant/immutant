@@ -22,8 +22,13 @@
 (defn ^:internal ^:no-doc streaming-body? [body]
   (instance? HttpChannel body))
 
-(defn ^:internal ^:no-doc open-stream [^HttpChannel channel headers]
-  (.notifyOpen channel nil))
+(defn ^:internal ^:no-doc open-stream [^HttpChannel channel response-map
+                                       set-status-fn set-headers-fn]
+  (doto channel
+    (.attach :response-map response-map)
+    (.attach :set-status-fn set-status-fn)
+    (.attach :set-headers-fn set-headers-fn)
+    (.notifyOpen nil)))
 
 (defmulti ^:internal ^:no-doc initialize-stream :handler-type)
 
@@ -39,19 +44,25 @@
      [[as-channel]].")
   (originating-request [ch]
     "Returns the request map for the request that initiated the channel.")
-  (send! [ch message] [ch message options]
+  (send! [ch message] [ch message options-map]
   "Send a message to the channel, asynchronously.
 
    `message` can either be a String or byte[]. If it is a String, it will be
     encoded to the character set of the response for HTTP streams, and as UTF-8
     for WebSockets.
 
-   The following options are supported [default]:
+   The following options are supported in `options-map` [default]:
 
    * :close? - if `true`, the channel will be closed when the send completes.
      Setting this to `true` on the first send to an HTTP stream channel
      will cause it to behave like a standard HTTP response, and *not* chunk
      the response. [false]
+   * :status - the HTTP status of the response. Used to override the status
+     returned from the handler that called `as-channel` for HTTP streams.
+     Ignored if this is not the first send to the channel. [nil]
+   * :headers - the HTTP headers of the response. Used to override the headers
+     returned from the handler that called `as-channel` for HTTP streams.
+     Ignored if this is not the first send to the channel. [nil]
    * :on-complete - `(fn [throwable] ...)` - called when the send
      attempt has completed. The success of the attempt is signaled by the
      passed value, i.e. if throwable is nil. If the error requires the
@@ -62,27 +73,35 @@
    Returns nil if the channel is closed when the send is initiated, true
    otherwise. If the channel is already closed, :on-complete won't be
    invoked."))
-
-(extend-type org.projectodd.wunderboss.web.async.Channel
-  Channel
-  (open? [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
-  (close [^org.projectodd.wunderboss.web.async.Channel ch] (.close ch))
-  (originating-request [^org.projectodd.wunderboss.web.async.Channel ch]
-    (.originatingRequest ch))
-  (send!
-    ([ch message]
-     (send! ch message nil))
-    ([^org.projectodd.wunderboss.web.async.Channel ch message options]
-     (let [{:keys [close? on-complete]} (o/validate-options*
-                                          options
-                                          #{:close? :on-complete}
-                                          'send!)]
-       (.send ch message
-         (boolean close?)
-         (when on-complete
-           (reify Channel$OnComplete
-             (handle [_ error]
-               (on-complete error)))))))))
+(letfn [(finalize-channel-response
+          [^org.projectodd.wunderboss.web.async.Channel ch status headers]
+          (when (and (instance? HttpChannel ch)
+                 (not (.headersSent ^HttpChannel ch)))
+            (let [orig-response (.get ch :response-map)]
+              ((.get ch :set-status-fn) (or status (:status orig-response)))
+              ((.get ch :set-headers-fn) (or headers (:headers orig-response))))))]
+  (extend-type org.projectodd.wunderboss.web.async.Channel
+    Channel
+    (open? [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
+    (close [^org.projectodd.wunderboss.web.async.Channel ch]
+      (finalize-channel-response ch nil nil)
+      (.close ch))
+    (originating-request [^org.projectodd.wunderboss.web.async.Channel ch]
+      (.get ch :originating-request))
+    (send!
+      ([ch message]
+       (send! ch message nil))
+      ([^org.projectodd.wunderboss.web.async.Channel ch message options]
+       (let [{:keys [close? on-complete status headers]}
+             (o/validate-options* options
+               #{:close? :on-complete :status :headers} 'send!)]
+         (finalize-channel-response ch status headers)
+         (.send ch message
+           (boolean close?)
+           (when on-complete
+             (reify Channel$OnComplete
+               (handle [_ error]
+                 (on-complete error))))))))))
 
 (defn as-channel
   "Converts the current ring `request` in to an asynchronous channel.

@@ -47,7 +47,7 @@
       (transient {})
       (get-names headers))))
 
-(defn ^:internal write-headers
+(defn ^:internal set-headers
   [output, headers]
   (doseq [[^String k, v] headers]
     (if (coll? v)

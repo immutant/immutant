@@ -285,6 +285,31 @@
     (is request)
     (is (= "/" (:path-info request)))))
 
+(deftest send!-to-stream-with-status-header-overrides
+  (replace-handler
+    '(fn [request]
+       (async/as-channel request
+         :on-open (fn [ch]
+                    (async/send! ch "ahoy"
+                      {:close? true
+                       :status 201
+                       :headers {"foo" "bar"}})))))
+  (let [{:keys [body headers status]} (get-response (cdef-url))]
+    (is (= "ahoy" body))
+    (is (= 201 status))
+    (is (= "bar" (:foo headers)))))
+
+(deftest closing-a-stream-with-no-send-should-honor-original-response
+  (replace-handler
+    '(fn [request]
+       (assoc (async/as-channel request
+                :on-open async/close)
+         :status 201
+         :headers {"ham" "biscuit"})))
+  (let [{:keys [status headers]} (get-response (cdef-url))]
+    (is (= 201 status))
+    (is (= "biscuit" (:ham headers)))))
+
 (deftest stream-on-close-should-be-invoked-when-closing-on-server-side
   (replace-handler
     '(do

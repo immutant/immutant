@@ -160,7 +160,7 @@
     (:servlet-response request)
     (reify Channel$OnOpen
       (handle [_ ch _]
-        (.setOriginatingRequest ^Channel ch request)
+        (.attach ^Channel ch :originating-request request)
         (when on-open
           (on-open ch))))
     (when on-error
@@ -178,7 +178,7 @@
   (JavaxWebsocketChannel.
     (reify Channel$OnOpen
       (handle [_ ch config]
-        (.setOriginatingRequest ^Channel ch request)
+        (.attach ^Channel ch :originating-request request)
         (when on-open
           (on-open ch))))
     (reify Channel$OnError
