@@ -40,7 +40,7 @@
     (.clear cache)
     (try
       (sql/db-do-commands spec
-        (try (sql/drop-table-ddl :things) (catch Exception _))
+        (sql/drop-table-ddl :things)
         (sql/create-table-ddl :things [:name "varchar(50)"]))
       (catch Exception _))
     (f)))
