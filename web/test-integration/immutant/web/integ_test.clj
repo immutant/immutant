@@ -13,10 +13,11 @@
 ;; limitations under the License.
 
 (ns immutant.web.integ-test
-  (:require [clojure.string :as str]
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]
             [clojure.test :refer :all]
-            [http.async.client :as http]
             [gniazdo.core :as ws]
+            [http.async.client :as http]
             [immutant.codecs :refer (decode)]
             [immutant.internal.util :refer [try-resolve]]
             [immutant.util :refer (in-container? http-port)]
@@ -32,11 +33,11 @@
 
 (defn url
   ([]
-     (url "http"))
+   (url "http"))
   ([protocol]
-     (if (in-container?)
-       (str ((try-resolve 'immutant.wildfly/base-uri) "localhost" protocol) "/")
-       (format "%s://localhost:8080/" protocol))))
+   (if (in-container?)
+     (str ((try-resolve 'immutant.wildfly/base-uri) "localhost" protocol) "/")
+     (format "%s://localhost:8080/" protocol))))
 
 (defn cdef-url
   ([]
@@ -264,6 +265,20 @@
     (ws/send-msg socket "hello")
     (is (= "BOOM" (read-string (get-body (str (cdef-url) "state")))))))
 
+(deftest ws-send!-nil-should-work
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-message (fn [ch _]
+                         (async/send! ch nil
+                           {:on-complete (fn [err]
+                                           (deliver @client-state (or err :complete!)))}))))))
+  (with-open [socket (ws/connect (cdef-url "ws"))]
+    (ws/send-msg socket "hello")
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+
 (deftest request-should-be-attached-to-channel-for-stream
   (replace-handler
     '(do
@@ -321,6 +336,21 @@
   (is (= nil (get-body (cdef-url))))
   (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))
 
+(deftest nil-send!-to-stream-should-work
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-open (fn [ch]
+                      (async/send! ch nil
+                        {:close? true}))
+           :on-close (fn [_ r] (deliver @client-state :closed))))))
+  (let [{:keys [status body]} (get-response (cdef-url))]
+    (is (= 200 status))
+    (is (nil? body))
+    (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
+
 (deftest stream-on-complete-should-be-called-after-send
   (replace-handler
     '(do
@@ -328,10 +358,10 @@
        (fn [request]
          (async/as-channel request
            :on-open (fn [ch]
-                         (async/send! ch "ahoy"
-                           {:close? true
-                            :on-complete (fn [_]
-                                           (deliver @client-state :complete!))}))))))
+                      (async/send! ch "ahoy"
+                        {:close? true
+                         :on-complete (fn [_]
+                                        (deliver @client-state :complete!))}))))))
   (is (= "ahoy" (get-body (cdef-url))))
   (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))
 
@@ -343,25 +373,159 @@
          (async/as-channel request
            :on-error (fn [_ err] (deliver @client-state (.getMessage err)))
            :on-open (fn [ch]
-                         (async/send! ch "ahoy"
-                           {:close? true
-                            :on-complete (fn [_] (throw (Exception. "BOOM")))}))))))
+                      (async/send! ch "ahoy"
+                        {:close? true
+                         :on-complete (fn [_] (throw (Exception. "BOOM")))}))))))
   (is (= "ahoy" (get-body (cdef-url))))
   (is (= "BOOM" (read-string (get-body (str (cdef-url) "state"))))))
 
-(deftest send!-with-bytes
-  (replace-handler
-    '(fn [request]
-       (async/as-channel request
-         :on-message (fn [ch m]
-                       (async/send! ch m)))))
-  (let [result (promise)]
-    (with-open [socket (ws/connect (cdef-url "ws")
-                         :on-binary (fn [m _ _]
-                                      (deliver result m)))]
-      (ws/send-msg socket (.getBytes "ham"))
-      (is (= (into [] (.getBytes "ham"))
-             (into [] (deref result 5000 nil)))))))
+(deftest send!-a-string
+  (let [handler
+        '(do
+           (reset! client-state (promise))
+           (fn [request]
+             (async/as-channel request
+               :on-open (fn [ch]
+                          (async/send! ch "biscuit"
+                            {:close? true
+                             :on-complete #(deliver @client-state (or % :complete!))})))))]
+    (replace-handler handler)
+    (is (= "biscuit" (get-body (cdef-url))))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+
+    (replace-handler handler)
+    (let [result (promise)]
+      (with-open [socket (ws/connect (cdef-url "ws")
+                           :on-receive (fn [m]
+                                         (deliver result m)))]
+        (is (= "biscuit" (deref result 5000 nil)))))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+
+(deftest send!-a-byte-array
+  (let [handler
+        '(do
+           (reset! client-state (promise))
+           (fn [request]
+             (async/as-channel request
+               :on-open (fn [ch]
+                          (async/send! ch (.getBytes "biscuit")
+                            {:close? true
+                             :on-complete #(deliver @client-state (or % :complete!))})))))]
+    (replace-handler handler)
+    (is (= "biscuit" (String. (get-body (cdef-url)))))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+
+    (replace-handler handler)
+    (let [result (promise)]
+      (with-open [socket (ws/connect (cdef-url "ws")
+                           :on-binary (fn [m _ _]
+                                        (deliver result m)))]
+        (is (= (into [] (.getBytes "biscuit"))
+              (into [] (deref result 5000 nil))))))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+
+(deftest send!-a-sequence
+  (let [handler
+        '(do
+           (reset! client-state (promise))
+           (fn [request]
+             (async/as-channel request
+               :on-open (fn [ch]
+                          (async/send! ch (list "ham" (.getBytes "biscuit"))
+                            {:close? true
+                             :on-complete #(deliver @client-state (or % :complete!))})))))]
+    (replace-handler handler)
+    (is (= "hambiscuit" (String. (get-body (cdef-url)))))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+
+    (replace-handler handler)
+    (let [done? (promise)
+          results (atom [])]
+      (with-open [socket (ws/connect (cdef-url "ws")
+                           :on-receive (partial swap! results conj)
+                           :on-binary (fn [m _ _]
+                                        (swap! results conj m)
+                                        (deliver done? true)))]
+        (is (deref done? 5000 nil))
+        (is (= ["ham" (into [] (.getBytes "biscuit"))]
+              [(first @results) (into [] (last @results))]))))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+
+(deftest send!-an-empty-sequence
+  (let [handler
+        '(do
+           (reset! client-state (promise))
+           (fn [request]
+             (async/as-channel request
+               :on-open (fn [ch]
+                          (async/send! ch '()
+                            {:close? true}))
+               :on-close (fn [_ _] (deliver @client-state :complete!)))))]
+    (replace-handler handler)
+    (get-body (cdef-url))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+
+    (replace-handler handler)
+    (with-open [socket (ws/connect (cdef-url "ws"))]
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))))
+
+(deftest send!-a-file
+  (let [handler
+        '(do
+           (reset! client-state (promise))
+           (fn [request]
+             (async/as-channel request
+               :on-error (fn [_ e] (.printStackTrace e))
+               :on-open (fn [ch]
+                          (async/send! ch (io/file (io/resource "public/foo.html"))
+                            {:close? true
+                             :on-complete #(deliver @client-state (or % :complete!))})))))]
+    (replace-handler handler)
+    (is (= (slurp (io/file (io/resource "public/foo.html")))
+          (String. (get-body (cdef-url)))))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+
+    (replace-handler handler)
+    (let [result (promise)]
+      (with-open [socket (ws/connect (cdef-url "ws")
+                           :on-binary (fn [m _ _]
+                                        (deliver result m)))]
+        (is (= (into [] (-> (io/resource "public/foo.html")
+                          io/file slurp .getBytes))
+              (into [] (deref result 5000 nil))))))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+
+(deftest send!-with-input-stream-larger-than-size-hint
+  (let [handler
+        '(do
+           (reset! client-state (promise))
+           (fn [request]
+             (async/as-channel request
+               :on-error (fn [_ e] (.printStackTrace e))
+               :on-open (fn [ch]
+                          (async/send! ch (-> "data"
+                                            io/resource io/file)
+                            {:close? true
+                             :on-complete #(deliver @client-state (or % :complete!))})))))
+        data (->> "data"
+               io/resource io/file slurp)]
+    (replace-handler handler)
+    (is (= data (get-body (cdef-url))))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+
+    (replace-handler handler)
+    (let [done? (promise)
+          rcvd (atom "")]
+      (with-open [socket (ws/connect (cdef-url "ws")
+                           :on-binary (fn [m _ _]
+                                        (when (= (+ 2 (* 16 1024))
+                                                (count (swap! rcvd #(str % (String. m)))))
+                                          (deliver done? true))))]
+        (is (deref done? 5000 nil))
+        (is (= data @rcvd))))
+    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+
+;; TODO: build a long-running random test
 
 (when (not (in-container?))
   ;; TODO: Run this in-container. The only thing stopping us is our

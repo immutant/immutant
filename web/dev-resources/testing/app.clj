@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (ns testing.app
-  (:require [immutant.web :as web]
+  (:require [clojure.java.io :as io]
+            [immutant.web :as web]
             [immutant.web.async :as async]
             [immutant.web.sse :as sse]
             [immutant.internal.util :refer [maybe-deref]]

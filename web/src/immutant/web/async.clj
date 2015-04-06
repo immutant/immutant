@@ -17,7 +17,10 @@
   (:require [immutant.internal.options :as o]
             [immutant.internal.util    :as u])
   (:import [org.projectodd.wunderboss.web.async Channel$OnComplete HttpChannel]
-           [org.projectodd.wunderboss.web.async.websocket WebsocketChannel]))
+           [org.projectodd.wunderboss.web.async.websocket WebsocketChannel]
+           [java.io File FileInputStream InputStream]
+           java.util.Arrays
+           clojure.lang.ISeq))
 
 (defn ^:internal ^:no-doc streaming-body? [body]
   (instance? HttpChannel body))
@@ -45,11 +48,15 @@
   (originating-request [ch]
     "Returns the request map for the request that initiated the channel.")
   (send! [ch message] [ch message options-map]
-  "Send a message to the channel, asynchronously.
+    "Send a message to the channel, asynchronously.
 
-   `message` can either be a String or byte[]. If it is a String, it will be
-    encoded to the character set of the response for HTTP streams, and as UTF-8
-    for WebSockets.
+   `message` can either be a String, File, InputStream, ISeq, or
+    byte[]. If it is a String, it will be encoded to the character set
+    of the response for HTTP streams, and as UTF-8 for
+    WebSockets. Files and InputStreams will be sent as up to 16k
+    chunks (each chunk being a byte[] message for WebSockets). Each
+    item in an ISeq will pass through `send!`, and can be any of the
+    valid message types.
 
    The following options are supported in `options-map` [default]:
 
@@ -73,35 +80,144 @@
    Returns nil if the channel is closed when the send is initiated, true
    otherwise. If the channel is already closed, :on-complete won't be
    invoked."))
-(letfn [(finalize-channel-response
-          [^org.projectodd.wunderboss.web.async.Channel ch status headers]
-          (when (and (instance? HttpChannel ch)
-                 (not (.headersSent ^HttpChannel ch)))
-            (let [orig-response (.get ch :response-map)]
-              ((.get ch :set-status-fn) (or status (:status orig-response)))
-              ((.get ch :set-headers-fn) (or headers (:headers orig-response))))))]
-  (extend-type org.projectodd.wunderboss.web.async.Channel
-    Channel
-    (open? [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
-    (close [^org.projectodd.wunderboss.web.async.Channel ch]
-      (finalize-channel-response ch nil nil)
-      (.close ch))
-    (originating-request [^org.projectodd.wunderboss.web.async.Channel ch]
-      (.get ch :originating-request))
-    (send!
-      ([ch message]
-       (send! ch message nil))
-      ([^org.projectodd.wunderboss.web.async.Channel ch message options]
-       (let [{:keys [close? on-complete status headers]}
-             (o/validate-options* options
-               #{:close? :on-complete :status :headers} 'send!)]
-         (finalize-channel-response ch status headers)
-         (.send ch message
-           (boolean close?)
-           (when on-complete
-             (reify Channel$OnComplete
-               (handle [_ error]
-                 (on-complete error))))))))))
+
+(defprotocol ^:private MessageDispatch
+  (dispatch-message [from ch options-map]))
+
+(defn ^:private notify-complete
+  [^org.projectodd.wunderboss.web.async.Channel ch f e]
+  (if f
+    ;; catch the case where the callback itself throws,
+    ;; and notify the channel callback instead of letting it
+    ;; bubble up, since that may trigger the same callback
+    ;; being called again
+    (try
+      (f e)
+      (catch Throwable e'
+        (.notifyError ch e')))
+    (when e (.notifyError ch e)))
+  ::notified)
+
+(defmacro ^:private catch-and-notify [ch f & body]
+  `(try
+     ~@body
+     (catch Throwable e#
+       (.printStackTrace e#)
+       (notify-complete ~ch ~f e#))))
+
+(def ^:dynamic ^:private *dispatched?* nil)
+
+(defmacro ^:private maybe-dispatch [& body]
+  `(if *dispatched?*
+     (do ~@body)
+     (binding [*dispatched?* true]
+       (do ~@body))))
+
+(defn ^:private finalize-channel-response
+  [^org.projectodd.wunderboss.web.async.Channel ch status headers]
+  (when (and (instance? HttpChannel ch)
+          (not (.headersSent ^HttpChannel ch)))
+    (let [orig-response (.get ch :response-map)]
+      ((.get ch :set-status-fn) (or status (:status orig-response)))
+      ((.get ch :set-headers-fn) (or headers (:headers orig-response))))))
+
+(defn ^:private wboss-send [^org.projectodd.wunderboss.web.async.Channel ch message options]
+  (let [{:keys [close? on-complete status headers]} options]
+    (finalize-channel-response ch status headers)
+    (.send ch message
+      (boolean close?)
+      (when on-complete
+        (reify Channel$OnComplete
+          (handle [_ error]
+            (on-complete error)))))))
+
+(extend-protocol MessageDispatch
+  Object
+  (dispatch-message [message _ _]
+    (throw (IllegalStateException. (str "Can't pump source of type " (class message)))))
+
+  nil
+  (dispatch-message [_ ch options]
+    (wboss-send ch nil options))
+
+  String
+  (dispatch-message [message ch options]
+    (wboss-send ch message options))
+
+  ISeq
+  (dispatch-message [message ch {:keys [on-complete close?] :as options}]
+    (maybe-dispatch
+      (let [result (catch-and-notify ch on-complete
+                     (loop [item (first message)
+                            items (rest message)]
+                       (let [latch (promise)]
+                         (dispatch-message item ch
+                           (assoc options
+                             :close? false
+                             :on-complete (partial deliver latch)))
+                         (if-let [err @latch]
+                           (notify-complete ch on-complete err)
+                           (when (seq items)
+                             (recur (first items) (rest items)))))))]
+        (when-not (= ::notified result)
+          (notify-complete ch on-complete nil)))
+      (when close?
+        (close ch))))
+
+  File
+  (dispatch-message [message ch options]
+    (dispatch-message (FileInputStream. message) ch options))
+
+  InputStream
+  (dispatch-message [message ch {:keys [on-complete close?] :as options}]
+    (maybe-dispatch
+      (let [buf-size (* 1024 16) ;; 16k is the undertow default if > 128M RAM is available
+            buffer (byte-array buf-size)
+            result (catch-and-notify ch on-complete
+                     (with-open [message message]
+                       (loop []
+                         (let [read-bytes (.read message buffer)]
+                           (if (pos? read-bytes)
+                             (let [latch (promise)]
+                               (dispatch-message
+                                 (if (< read-bytes buf-size)
+                                   (Arrays/copyOfRange buffer 0 read-bytes)
+                                   buffer)
+                                 ch
+                                 (assoc options
+                                   :on-complete (partial deliver latch)
+                                   :close? false))
+                               (if-let [err @latch]
+                                 (notify-complete ch on-complete err)
+                                 (recur))))))))]
+        (when-not (= ::notified result)
+          (notify-complete ch on-complete nil)))
+      (when close?
+        (close ch)))))
+
+;; this has to be in a separate extend-protocol because we need to
+;; extend Object first, and type looked up via Class/forName has to be
+;; first in extend-protocol (see CLJ-1381)
+(extend-protocol MessageDispatch
+  (Class/forName "[B")
+  (dispatch-message [message ch options]
+    (wboss-send ch message options)))
+
+(extend-type org.projectodd.wunderboss.web.async.Channel
+  Channel
+  (open? [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
+  (close [^org.projectodd.wunderboss.web.async.Channel ch]
+    (finalize-channel-response ch nil nil)
+    (.close ch))
+  (originating-request [^org.projectodd.wunderboss.web.async.Channel ch]
+    (.get ch :originating-request))
+  (send!
+    ([ch message]
+     (send! ch message nil))
+    ([^org.projectodd.wunderboss.web.async.Channel ch message options]
+     (o/validate-options* options
+       #{:close? :on-complete :status :headers} 'send!)
+     (dispatch-message message ch options))))
 
 (defn as-channel
   "Converts the current ring `request` in to an asynchronous channel.
@@ -115,26 +231,26 @@
   The callbacks common to both channel types are:
 
   * :on-open - `(fn [ch] ...)` - called when the channel is
-    available for sending. Will only be invoked once.
+  available for sending. Will only be invoked once.
   * :on-error - `(fn [ch throwable] ...)` - Called for any error
-    that occurs in relation to the channel. If the error
-    requires the channel to be closed, :on-close will also be invoked.
-    To handle [[send!]] errors separately, provide it a completion
-    callback.
+  that occurs in relation to the channel. If the error
+  requires the channel to be closed, :on-close will also be invoked.
+  To handle [[send!]] errors separately, provide it a completion
+  callback.
   * :on-close - `(fn [ch {:keys [code reason]}] ...)` -
-    called for *any* close, including a call to [[close]], but will
-    only be invoked once. `ch` will already be closed by the time
-    this is invoked.
+  called for *any* close, including a call to [[close]], but will
+  only be invoked once. `ch` will already be closed by the time
+  this is invoked.
 
-    `code` and `reason` will be the numeric closure code and text reason,
-     respectively, if the channel is a WebSocket
-     (see <http://tools.ietf.org/html/rfc6455#section-7.4>). Both will be nil
-     for HTTP streams.
+  `code` and `reason` will be the numeric closure code and text reason,
+  respectively, if the channel is a WebSocket
+  (see <http://tools.ietf.org/html/rfc6455#section-7.4>). Both will be nil
+  for HTTP streams.
 
   If the channel is a Websocket, the following callback is also used:
 
   * :on-message - `(fn [ch message] ...)` - Called for each message
-    from the client. `message` will be a `String` or `byte[]`
+  from the client. `message` will be a `String` or `byte[]`
 
   When the ring handler is called during a WebSocket upgrade request,
   any headers returned in the response map are ignored, but any changes to
