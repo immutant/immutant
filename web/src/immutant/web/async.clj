@@ -109,7 +109,7 @@
 (extend-protocol MessageDispatch
   Object
   (dispatch-message [message _ _]
-    (throw (IllegalStateException. (str "Can't pump source of type " (class message)))))
+    (throw (IllegalStateException. (str "Can't send message of type " (class message)))))
 
   nil
   (dispatch-message [_ ch options]
