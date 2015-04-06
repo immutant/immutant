@@ -91,8 +91,8 @@
                         clj-http                   "1.0.1"
 
                         ;; org.projectodd.wunderboss  "0.4.1"
-                        org.projectodd.wunderboss  "1.x.incremental.216"
-                        ;; org.projectodd.wunderboss  "0.5.0-SNAPSHOT"
+                        org.projectodd.wunderboss  "1.x.incremental.218"
+                        ;; org.projectodd.wunderboss  "0.5.1-SNAPSHOT"
 
                         org.immutant               :version
                         fntest                     "2.0.3"}}
