@@ -16,7 +16,7 @@
   "Provides a common interface for WebSockets and HTTP streaming."
   (:require [immutant.internal.options :as o]
             [immutant.internal.util    :as u])
-  (:import [org.projectodd.wunderboss.web.async Channel$OnComplete HttpChannel]
+  (:import [org.projectodd.wunderboss.web.async Channel Channel$OnComplete HttpChannel]
            [org.projectodd.wunderboss.web.async.websocket WebsocketChannel]
            [java.io File FileInputStream InputStream]
            java.util.Arrays
@@ -37,55 +37,11 @@
 
 (defmulti ^:internal ^:no-doc initialize-websocket :handler-type)
 
-(defprotocol Channel
-  "Streaming channel interface"
-  (open? [ch] "Is the channel open?")
-  (close [ch]
-    "Gracefully close the channel.
-
-     This will trigger the :on-close callback if one is registered. with
-     [[as-channel]].")
-  (originating-request [ch]
-    "Returns the request map for the request that initiated the channel.")
-  (send! [ch message] [ch message options-map]
-    "Send a message to the channel, asynchronously.
-
-   `message` can either be a String, File, InputStream, ISeq, or
-    byte[]. If it is a String, it will be encoded to the character set
-    of the response for HTTP streams, and as UTF-8 for
-    WebSockets. Files and InputStreams will be sent as up to 16k
-    chunks (each chunk being a byte[] message for WebSockets). Each
-    item in an ISeq will pass through `send!`, and can be any of the
-    valid message types.
-
-   The following options are supported in `options-map` [default]:
-
-   * :close? - if `true`, the channel will be closed when the send completes.
-     Setting this to `true` on the first send to an HTTP stream channel
-     will cause it to behave like a standard HTTP response, and *not* chunk
-     the response. [false]
-   * :status - the HTTP status of the response. Used to override the status
-     returned from the handler that called `as-channel` for HTTP streams.
-     Ignored if this is not the first send to the channel. [nil]
-   * :headers - the HTTP headers of the response. Used to override the headers
-     returned from the handler that called `as-channel` for HTTP streams.
-     Ignored if this is not the first send to the channel. [nil]
-   * :on-complete - `(fn [throwable] ...)` - called when the send
-     attempt has completed. The success of the attempt is signaled by the
-     passed value, i.e. if throwable is nil. If the error requires the
-     channel to be closed, the [[as-channel]] :on-close callback will
-     also be invoked. If this callback throws an exception, it will be
-     reported to the [[as-channel]] :on-error callback [`#(when % (throw %))`]
-
-   Returns nil if the channel is closed when the send is initiated, true
-   otherwise. If the channel is already closed, :on-complete won't be
-   invoked."))
-
 (defprotocol ^:private MessageDispatch
   (dispatch-message [from ch options-map]))
 
 (defn ^:private notify-complete
-  [^org.projectodd.wunderboss.web.async.Channel ch f e]
+  [^Channel ch f e]
   (if f
     ;; catch the case where the callback itself throws,
     ;; and notify the channel callback instead of letting it
@@ -114,14 +70,14 @@
        (do ~@body))))
 
 (defn ^:private finalize-channel-response
-  [^org.projectodd.wunderboss.web.async.Channel ch status headers]
+  [^Channel ch status headers]
   (when (and (instance? HttpChannel ch)
           (not (.headersSent ^HttpChannel ch)))
     (let [orig-response (.get ch :response-map)]
       ((.get ch :set-status-fn) (or status (:status orig-response)))
       ((.get ch :set-headers-fn) (or headers (:headers orig-response))))))
 
-(defn ^:private wboss-send [^org.projectodd.wunderboss.web.async.Channel ch message options]
+(defn ^:private wboss-send [^Channel ch message options]
   (let [{:keys [close? on-complete status headers]} options]
     (finalize-channel-response ch status headers)
     (.send ch message
@@ -130,6 +86,25 @@
         (reify Channel$OnComplete
           (handle [_ error]
             (on-complete error)))))))
+
+(defn originating-request
+  "Returns the request map for the request that initiated the channel."
+  [^Channel ch]
+  (.get ch :originating-request))
+
+(defn open?
+  "Is the channel open?"
+  [^Channel ch]
+  (.isOpen ch))
+
+(defn close
+  "Gracefully close the channel.
+
+   This will trigger the :on-close callback if one is registered. with
+   [[as-channel]]."
+  [^Channel ch]
+  (finalize-channel-response ch nil nil)
+  (.close ch))
 
 (extend-protocol MessageDispatch
   Object
@@ -203,21 +178,47 @@
   (dispatch-message [message ch options]
     (wboss-send ch message options)))
 
-(extend-type org.projectodd.wunderboss.web.async.Channel
-  Channel
-  (open? [^org.projectodd.wunderboss.web.async.Channel ch] (.isOpen ch))
-  (close [^org.projectodd.wunderboss.web.async.Channel ch]
-    (finalize-channel-response ch nil nil)
-    (.close ch))
-  (originating-request [^org.projectodd.wunderboss.web.async.Channel ch]
-    (.get ch :originating-request))
-  (send!
-    ([ch message]
-     (send! ch message nil))
-    ([^org.projectodd.wunderboss.web.async.Channel ch message options]
-     (o/validate-options* options
-       #{:close? :on-complete :status :headers} 'send!)
-     (dispatch-message message ch options))))
+(defn send!
+  "Send a message to the channel, asynchronously.
+
+   `message` can either be a String, File, InputStream, ISeq, or
+    byte[]. If it is a String, it will be encoded to the character set
+    of the response for HTTP streams, and as UTF-8 for
+    WebSockets. Files and InputStreams will be sent as up to 16k
+    chunks (each chunk being a byte[] message for WebSockets). Each
+    item in an ISeq will pass through `send!`, and can be any of the
+    valid message types.
+
+   The following options are supported in `options-map` [default]:
+
+   * :close? - if `true`, the channel will be closed when the send completes.
+     Setting this to `true` on the first send to an HTTP stream channel
+     will cause it to behave like a standard HTTP response, and *not* chunk
+     the response. [false]
+   * :status - the HTTP status of the response. Used to override the status
+     returned from the handler that called `as-channel` for HTTP streams.
+     Ignored if this is not the first send to the channel. [nil]
+   * :headers - the HTTP headers of the response. Used to override the headers
+     returned from the handler that called `as-channel` for HTTP streams.
+     Ignored if this is not the first send to the channel. [nil]
+   * :on-complete - `(fn [throwable] ...)` - called when the send
+     attempt has completed. The success of the attempt is signaled by the
+     passed value, i.e. if throwable is nil. If the error requires the
+     channel to be closed, the [[as-channel]] :on-close callback will
+     also be invoked. If this callback throws an exception, it will be
+     reported to the [[as-channel]] :on-error callback [`#(when % (throw %))`]
+
+   Returns nil if the channel is closed when the send is initiated, true
+   otherwise. If the channel is already closed, :on-complete won't be
+   invoked."
+  [^Channel ch message & options]
+  (dispatch-message message ch
+    (-> options
+      u/kwargs-or-map->raw-map
+      (o/validate-options send!))))
+
+(o/set-valid-options! send!
+  #{:close? :on-complete :status :headers})
 
 (defn as-channel
   "Converts the current ring `request` in to an asynchronous channel.

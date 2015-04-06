@@ -54,6 +54,10 @@
       (as-channel req callbacks)
       {:status 404})))
 
+(deftest send!-should-throw-with-invalid-options
+  (is (thrown? IllegalArgumentException
+        (send! :whatever :whatever {:bad :option}))))
+
 (deftest middleware-websocket
   (let [expected [:open "hello" 1000]]
     (is (= expected (test-websocket (partial wrap-websocket hello))))))

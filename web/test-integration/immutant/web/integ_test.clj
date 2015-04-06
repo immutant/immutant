@@ -294,7 +294,7 @@
                           :servlet-context
                           :servlet-request
                           :servlet-response))
-                      (async/send! ch "done" {:close? true}))))))
+                      (async/send! ch "done" :close? true))))))
   (is (= "done" (get-body (cdef-url))))
   (let [request (read-string (get-body (str (cdef-url) "state")))]
     (is request)
