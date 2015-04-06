@@ -232,16 +232,16 @@
   The callbacks common to both channel types are:
 
   * :on-open - `(fn [ch] ...)` - called when the channel is
-  available for sending. Will only be invoked once.
+    available for sending. Will only be invoked once.
   * :on-error - `(fn [ch throwable] ...)` - Called for any error
-  that occurs in relation to the channel. If the error
-  requires the channel to be closed, :on-close will also be invoked.
-  To handle [[send!]] errors separately, provide it a completion
-  callback.
+    that occurs in relation to the channel. If the error
+    requires the channel to be closed, :on-close will also be invoked.
+    To handle [[send!]] errors separately, provide it a completion
+    callback.
   * :on-close - `(fn [ch {:keys [code reason]}] ...)` -
-  called for *any* close, including a call to [[close]], but will
-  only be invoked once. `ch` will already be closed by the time
-  this is invoked.
+    called for *any* close, including a call to [[close]], but will
+    only be invoked once. `ch` will already be closed by the time
+    this is invoked.
 
   `code` and `reason` will be the numeric closure code and text reason,
   respectively, if the channel is a WebSocket
@@ -251,7 +251,7 @@
   If the channel is a Websocket, the following callback is also used:
 
   * :on-message - `(fn [ch message] ...)` - Called for each message
-  from the client. `message` will be a `String` or `byte[]`
+    from the client. `message` will be a `String` or `byte[]`
 
   When the ring handler is called during a WebSocket upgrade request,
   any headers returned in the response map are ignored, but any changes to
