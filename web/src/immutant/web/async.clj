@@ -213,7 +213,7 @@
   is thrown if it is passed on a subsequent send or passed to a
   WebSocket channel.
 
-  The following options are supported in `options-map` [default]:
+  The following options are supported [default]:
 
    * :close? - if `true`, the channel will be closed when the send completes.
      Setting this to `true` on the first send to an HTTP stream channel

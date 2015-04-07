@@ -14,7 +14,9 @@
 
 (ns immutant.web.sse
   "Provides Server-Sent Events via [[immutant.web.async/as-channel]]"
-  (:require [immutant.web.async :as async]))
+  (:require [immutant.web.async        :as async]
+            [immutant.internal.options :as o]
+            [immutant.internal.util    :as u]))
 
 (defn ^:no-doc ^:internal with-event-type [m]
   (update-in m [:headers] assoc "Content-Type" "text/event-stream; charset=utf-8"))
@@ -50,9 +52,15 @@
     `(str \"data:\" the-object \"\\n\")`)
   * a Collecton, treated as a multi-line data field
 
+  The options for this function are the same as the options
+  for [[immutant.web.async/send!]].
+
   If you need different behavior for a particular type, extend it with
   the [[Event]] protocol."
-  ([ch event]
-   (send! ch event nil))
-  ([ch event options]
-   (async/send! ch (str (event->str event) "\n") options)))
+  ([ch event & options]
+   (async/send! ch (str (event->str event) "\n")
+     (-> options
+      u/kwargs-or-map->raw-map
+      (o/validate-options send!)))))
+
+(o/set-valid-options! send! (o/valid-options-for async/send!))
