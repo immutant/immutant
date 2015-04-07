@@ -19,7 +19,7 @@
   (:import [org.projectodd.wunderboss.web.async Channel Channel$OnComplete HttpChannel]
            [org.projectodd.wunderboss.web.async.websocket WebsocketChannel]
            [java.io File FileInputStream InputStream]
-           java.util.Arrays
+           [java.util Arrays Map]
            clojure.lang.ISeq))
 
 (defn ^:internal ^:no-doc streaming-body? [body]
@@ -72,7 +72,7 @@
 (defn ^:private finalize-channel-response
   [^Channel ch status headers]
   (when (and (instance? HttpChannel ch)
-          (not (.headersSent ^HttpChannel ch)))
+          (not (.sendStarted ^HttpChannel ch)))
     (let [orig-response (.get ch :response-map)]
       ((.get ch :set-status-fn) (or status (:status orig-response)))
       ((.get ch :set-headers-fn) (or headers (:headers orig-response))))))
@@ -114,6 +114,15 @@
   nil
   (dispatch-message [_ ch options]
     (wboss-send ch nil options))
+
+  Map
+  (dispatch-message [message ch options]
+    (when (not (instance? HttpChannel ch))
+      (throw (IllegalArgumentException. "Can't send map: channel is not an HTTP stream channel")))
+    (when (.sendStarted ^HttpChannel ch)
+      (throw (IllegalArgumentException. "Can't send map: this is not the first send to the channel")))
+    (dispatch-message (:body message) ch
+      (merge options (select-keys message [:status :headers]))))
 
   String
   (dispatch-message [message ch options]
@@ -181,26 +190,28 @@
 (defn send!
   "Send a message to the channel, asynchronously.
 
-   `message` can either be a `String`, `File`, `InputStream`, `ISeq`,
-   or `byte[]`. If it is a `String`, it will be encoded to the character
-   set of the response for HTTP streams, and as UTF-8 for
-   WebSockets. `File`s and `InputStream`s will be sent as up to 16k
-   chunks (each chunk being a `byte[]` message for WebSockets). Each item
-   in an `ISeq` will pass through `send!`, and can be any of the valid
-   message types.
+  `message` can either be a `String`, `File`, `InputStream`, `ISeq`,
+  `byte[]`, or map. If it is a `String`, it will be encoded to the
+  character set of the response for HTTP streams, and as UTF-8 for
+  WebSockets. `File`s and `InputStream`s will be sent as up to 16k
+  chunks (each chunk being a `byte[]` message for WebSockets). Each
+  item in an `ISeq` will pass through `send!`, and can be any of the
+  valid message types.
 
-   The following options are supported in `options-map` [default]:
+  If `message` is a map, its :body entry must be one of the other
+  valid message types, and its :status and :headers entries will be
+  used to override the status or headers returned from the handler
+  that called `as-channel` for HTTP streams. A map is *only* a valid
+  message on the first send to an HTTP stream channel - an exception
+  is thrown if it is passed on a subsequent send or passed to a
+  WebSocket channel.
+
+  The following options are supported in `options-map` [default]:
 
    * :close? - if `true`, the channel will be closed when the send completes.
      Setting this to `true` on the first send to an HTTP stream channel
      will cause it to behave like a standard HTTP response, and *not* chunk
      the response. [false]
-   * :status - the HTTP status of the response. Used to override the status
-     returned from the handler that called `as-channel` for HTTP streams.
-     Ignored if this is not the first send to the channel. [nil]
-   * :headers - the HTTP headers of the response. Used to override the headers
-     returned from the handler that called `as-channel` for HTTP streams.
-     Ignored if this is not the first send to the channel. [nil]
    * :on-complete - `(fn [throwable] ...)` - called when the send
      attempt has completed. The success of the attempt is signaled by the
      passed value, i.e. if throwable is nil. If the error requires the
@@ -217,8 +228,7 @@
       u/kwargs-or-map->raw-map
       (o/validate-options send!))))
 
-(o/set-valid-options! send!
-  #{:close? :on-complete :status :headers})
+(o/set-valid-options! send! #{:close? :on-complete})
 
 (defn as-channel
   "Converts the current ring `request` in to an asynchronous channel.

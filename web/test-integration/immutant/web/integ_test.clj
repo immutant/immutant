@@ -300,19 +300,51 @@
     (is request)
     (is (= "/" (:path-info request)))))
 
-(deftest send!-to-stream-with-status-header-overrides
+(deftest send!-to-stream-with-map-overrides-status-headers
   (replace-handler
     '(fn [request]
        (async/as-channel request
          :on-open (fn [ch]
-                    (async/send! ch "ahoy"
-                      {:close? true
-                       :status 201
-                       :headers {"foo" "bar"}})))))
+                    (async/send! ch {:body "ahoy"
+                                     :status 201
+                                     :headers {"foo" "bar"}}
+                      :close? true)))))
   (let [{:keys [body headers status]} (get-response (cdef-url))]
     (is (= "ahoy" body))
     (is (= 201 status))
     (is (= "bar" (:foo headers)))))
+
+(deftest send!-to-stream-with-map-after-send-has-started-throws
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-open (fn [ch]
+                      (async/send! ch "opening-")
+                      (try
+                        (async/send! ch {:body "ahoy"})
+                        (catch Exception e
+                          (deliver @client-state (.getMessage e))))
+                      (async/send! ch "closing" :close? true))))))
+  (is (= "opening-closing" (get-body (cdef-url))))
+  (is (re-find #"this is not the first send"
+        (read-string (get-body (str (cdef-url) "state"))))))
+
+(deftest send!-to-ws-with-map-throws
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-open (fn [ch]
+                      (try
+                        (async/send! ch {:body "ahoy"})
+                        (catch Exception e
+                          (deliver @client-state (.getMessage e)))))))))
+  (.close (ws/connect (cdef-url "ws")))
+  (is (re-find #"channel is not an HTTP stream channel"
+        (read-string (get-body (str (cdef-url) "state"))))))
 
 (deftest closing-a-stream-with-no-send-should-honor-original-response
   (replace-handler
