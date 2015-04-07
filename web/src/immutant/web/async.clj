@@ -225,7 +225,7 @@
    * :on-error - `(fn [throwable] ...)` - Called when an error occurs on the send.
      If the error requires the channel to be closed, the [[as-channel]] :on-close
      callback will also be invoked. If this callback throws an exception, it will be
-     reported to the [[as-channel]] :on-error callback [`#(when % (throw %))`]
+     reported to the [[as-channel]] :on-error callback [`#(throw %)`]
 
    Returns nil if the channel is closed when the send is initiated, true
    otherwise. If the channel is already closed, :on-success won't be
