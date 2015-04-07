@@ -40,26 +40,29 @@
 (defprotocol ^:private MessageDispatch
   (dispatch-message [from ch options-map]))
 
-(defn ^:private notify-complete
-  [^Channel ch f e]
-  (if f
-    ;; catch the case where the callback itself throws,
-    ;; and notify the channel callback instead of letting it
-    ;; bubble up, since that may trigger the same callback
-    ;; being called again
-    (try
-      (f e)
-      (catch Throwable e'
-        (.notifyError ch e')))
-    (when e (.notifyError ch e)))
-  ::notified)
+(defn ^:private notify
+  ([ch callback]
+   (notify ch callback nil))
+  ([^Channel ch callback e]
+   (if callback
+     ;; catch the case where the callback itself throws,
+     ;; and notify the channel callback instead of letting it
+     ;; bubble up, since that may trigger the same callback
+     ;; being called again
+     (try
+       (if e
+         (callback e)
+         (callback))
+       (catch Throwable e'
+         (.notifyError ch e')))
+     (when e (.notifyError ch e)))
+   ::notified))
 
-(defmacro ^:private catch-and-notify [ch f & body]
+(defmacro ^:private catch-and-notify [ch on-error & body]
   `(try
      ~@body
      (catch Throwable e#
-       (.printStackTrace e#)
-       (notify-complete ~ch ~f e#))))
+       (notify ~ch ~on-error e#))))
 
 (def ^:dynamic ^:private *dispatched?* nil)
 
@@ -78,14 +81,16 @@
       ((.get ch :set-headers-fn) (or headers (:headers orig-response))))))
 
 (defn ^:private wboss-send [^Channel ch message options]
-  (let [{:keys [close? on-complete status headers]} options]
+  (let [{:keys [close? on-success on-error status headers]} options]
     (finalize-channel-response ch status headers)
     (.send ch message
       (boolean close?)
-      (when on-complete
+      (when (or on-success on-error)
         (reify Channel$OnComplete
           (handle [_ error]
-            (on-complete error)))))))
+            (if (and error on-error)
+              (on-error error)
+              (when on-success (on-success)))))))))
 
 (defn originating-request
   "Returns the request map for the request that initiated the channel."
@@ -129,22 +134,23 @@
     (wboss-send ch message options))
 
   ISeq
-  (dispatch-message [message ch {:keys [on-complete close?] :as options}]
+  (dispatch-message [message ch {:keys [on-success on-error close?] :as options}]
     (maybe-dispatch
-      (let [result (catch-and-notify ch on-complete
+      (let [result (catch-and-notify ch on-error
                      (loop [item (first message)
                             items (rest message)]
                        (let [latch (promise)]
                          (dispatch-message item ch
                            (assoc options
-                             :close? false
-                             :on-complete (partial deliver latch)))
+                             :on-success #(deliver latch nil)
+                             :on-error   (partial deliver latch)
+                             :close?     false))
                          (if-let [err @latch]
-                           (notify-complete ch on-complete err)
+                           (notify ch on-error err)
                            (when (seq items)
                              (recur (first items) (rest items)))))))]
         (when-not (= ::notified result)
-          (notify-complete ch on-complete nil)))
+          (notify ch on-success)))
       (when close?
         (close ch))))
 
@@ -153,11 +159,11 @@
     (dispatch-message (FileInputStream. message) ch options))
 
   InputStream
-  (dispatch-message [message ch {:keys [on-complete close?] :as options}]
+  (dispatch-message [message ch {:keys [on-success on-error close?] :as options}]
     (maybe-dispatch
       (let [buf-size (* 1024 16) ;; 16k is the undertow default if > 128M RAM is available
             buffer (byte-array buf-size)
-            result (catch-and-notify ch on-complete
+            result (catch-and-notify ch on-error
                      (with-open [message message]
                        (loop []
                          (let [read-bytes (.read message buffer)]
@@ -169,13 +175,14 @@
                                    buffer)
                                  ch
                                  (assoc options
-                                   :on-complete (partial deliver latch)
-                                   :close? false))
+                                   :on-success #(deliver latch nil)
+                                   :on-error   (partial deliver latch)
+                                   :close?     false))
                                (if-let [err @latch]
-                                 (notify-complete ch on-complete err)
+                                 (notify ch on-error err)
                                  (recur))))))))]
         (when-not (= ::notified result)
-          (notify-complete ch on-complete nil)))
+          (notify ch on-success)))
       (when close?
         (close ch)))))
 
@@ -212,15 +219,16 @@
      Setting this to `true` on the first send to an HTTP stream channel
      will cause it to behave like a standard HTTP response, and *not* chunk
      the response. [false]
-   * :on-complete - `(fn [throwable] ...)` - called when the send
-     attempt has completed. The success of the attempt is signaled by the
-     passed value, i.e. if throwable is nil. If the error requires the
-     channel to be closed, the [[as-channel]] :on-close callback will
-     also be invoked. If this callback throws an exception, it will be
+   * :on-success - `(fn [] ...)` - called when the send attempt has completed
+     successfully. If this callback throws an exception, it will be
+     reported to the [[as-channel]] :on-error callback [nil]
+   * :on-error - `(fn [throwable] ...)` - Called when an error occurs on the send.
+     If the error requires the channel to be closed, the [[as-channel]] :on-close
+     callback will also be invoked. If this callback throws an exception, it will be
      reported to the [[as-channel]] :on-error callback [`#(when % (throw %))`]
 
    Returns nil if the channel is closed when the send is initiated, true
-   otherwise. If the channel is already closed, :on-complete won't be
+   otherwise. If the channel is already closed, :on-success won't be
    invoked."
   [^Channel ch message & options]
   (dispatch-message message ch
@@ -228,7 +236,7 @@
       u/kwargs-or-map->raw-map
       (o/validate-options send!))))
 
-(o/set-valid-options! send! #{:close? :on-complete})
+(o/set-valid-options! send! #{:close? :on-success :on-error})
 
 (defn as-channel
   "Converts the current ring `request` in to an asynchronous channel.

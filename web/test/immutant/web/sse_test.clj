@@ -48,7 +48,7 @@
                              (send! ch x)
                              (Thread/sleep 10))
                            (send! ch {:event "close", :data "bye!"}
-                             {:on-complete (fn [_] (deliver complete :success))}))))
+                             {:on-success #(deliver complete :success)}))))
         server (run app)
         client (event-source "http://localhost:8080")]
     (handle-events client (fn [e]

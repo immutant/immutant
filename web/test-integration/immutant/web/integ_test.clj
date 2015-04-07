@@ -237,7 +237,7 @@
     (ws/close socket2)
     (is (= 2 (-> (str (cdef-url) "state") get-body read-string count)))))
 
-(deftest ws-on-complete-should-be-called-after-send
+(deftest ws-on-success-should-be-called-after-send
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -245,13 +245,13 @@
          (async/as-channel request
            :on-message (fn [ch m]
                          (async/send! ch m
-                           {:on-complete (fn [_]
+                           {:on-success (fn []
                                            (deliver @client-state :complete!))}))))))
   (with-open [socket (ws/connect (cdef-url "ws"))]
     (ws/send-msg socket "hello")
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
 
-(deftest ws-on-error-is-called-if-on-complete-throws
+(deftest ws-on-error-is-called-if-on-success-throws
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -260,7 +260,7 @@
            :on-error (fn [_ err] (deliver @client-state (.getMessage err)))
            :on-message (fn [ch m]
                          (async/send! ch m
-                           {:on-complete (fn [_] (throw (Exception. "BOOM")))}))))))
+                           {:on-success (fn [] (throw (Exception. "BOOM")))}))))))
   (with-open [socket (ws/connect (cdef-url "ws"))]
     (ws/send-msg socket "hello")
     (is (= "BOOM" (read-string (get-body (str (cdef-url) "state")))))))
@@ -273,8 +273,8 @@
          (async/as-channel request
            :on-message (fn [ch _]
                          (async/send! ch nil
-                           {:on-complete (fn [err]
-                                           (deliver @client-state (or err :complete!)))}))))))
+                           {:on-success #(deliver @client-state :complete!)
+                            :on-error (partial deliver @client-state)}))))))
   (with-open [socket (ws/connect (cdef-url "ws"))]
     (ws/send-msg socket "hello")
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
@@ -383,7 +383,7 @@
     (is (nil? body))
     (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
 
-(deftest stream-on-complete-should-be-called-after-send
+(deftest stream-on-success-should-be-called-after-send
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -392,12 +392,11 @@
            :on-open (fn [ch]
                       (async/send! ch "ahoy"
                         {:close? true
-                         :on-complete (fn [_]
-                                        (deliver @client-state :complete!))}))))))
+                         :on-success #(deliver @client-state :complete!)}))))))
   (is (= "ahoy" (get-body (cdef-url))))
   (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))
 
-(deftest stream-on-error-is-called-if-on-complete-throws
+(deftest stream-on-error-is-called-if-on-success-throws
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -407,7 +406,7 @@
            :on-open (fn [ch]
                       (async/send! ch "ahoy"
                         {:close? true
-                         :on-complete (fn [_] (throw (Exception. "BOOM")))}))))))
+                         :on-success #(throw (Exception. "BOOM"))}))))))
   (is (= "ahoy" (get-body (cdef-url))))
   (is (= "BOOM" (read-string (get-body (str (cdef-url) "state"))))))
 
@@ -420,7 +419,8 @@
                :on-open (fn [ch]
                           (async/send! ch "biscuit"
                             {:close? true
-                             :on-complete #(deliver @client-state (or % :complete!))})))))]
+                             :on-success #(deliver @client-state :complete!)
+                             :on-error #(deliver @client-state %)})))))]
     (replace-handler handler)
     (is (= "biscuit" (get-body (cdef-url))))
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
@@ -442,7 +442,8 @@
                :on-open (fn [ch]
                           (async/send! ch (.getBytes "biscuit")
                             {:close? true
-                             :on-complete #(deliver @client-state (or % :complete!))})))))]
+                             :on-success #(deliver @client-state :complete!)
+                             :on-error #(deliver @client-state %)})))))]
     (replace-handler handler)
     (is (= "biscuit" (String. (get-body (cdef-url)))))
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
@@ -465,7 +466,8 @@
                :on-open (fn [ch]
                           (async/send! ch (list "ham" (.getBytes "biscuit") (list "gravy"))
                             {:close? true
-                             :on-complete #(deliver @client-state (or % :complete!))})))))]
+                             :on-success #(deliver @client-state :complete!)
+                             :on-error #(deliver @client-state %)})))))]
     (replace-handler handler)
     (is (= "hambiscuitgravy" (String. (get-body (cdef-url)))))
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
@@ -512,7 +514,8 @@
                :on-open (fn [ch]
                           (async/send! ch (io/file (io/resource "public/foo.html"))
                             {:close? true
-                             :on-complete #(deliver @client-state (or % :complete!))})))))]
+                             :on-success #(deliver @client-state :complete!)
+                             :on-error #(deliver @client-state %)})))))]
     (replace-handler handler)
     (is (= (slurp (io/file (io/resource "public/foo.html")))
           (String. (get-body (cdef-url)))))
@@ -539,7 +542,8 @@
                           (async/send! ch (-> "data"
                                             io/resource io/file)
                             {:close? true
-                             :on-complete #(deliver @client-state (or % :complete!))})))))
+                             :on-success #(deliver @client-state :complete!)
+                             :on-error #(deliver @client-state %)})))))
         data (->> "data"
                io/resource io/file slurp)]
     (replace-handler handler)
