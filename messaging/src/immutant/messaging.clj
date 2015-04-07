@@ -227,7 +227,7 @@
 
    The following options are supported [default]:
 
-     * :concurrency  - the number of threads handling messages [1]
+     * :concurrency  - the number of threads handling messages [1 for topics, #cores for queues]
      * :selector     - A JMS (SQL 92) expression matching message metadata/properties [nil]
      * :decode?      - if true, the decoded message body is passed to `f`. Otherwise, the
                        base message object is passed [true]

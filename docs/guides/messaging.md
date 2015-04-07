@@ -148,6 +148,16 @@ dereference:
 The responder is just a fancy listener, and can be deregistered the
 same way as a listener.
 
+## Concurrency
+
+Listeners can have multiple threads invoking their handler as messages
+are consumed. You control how many with the `:concurrency` option
+provided by [[listen]] and [[respond]]. By default, it is set to 1 for
+topics and the number of available processors for queues, but for
+IO-bound handlers, you may see better performance as you increase the
+number. It very much depends on what your handler is doing and how
+many messages it needs to process concurrently.
+
 ## Durable Topic Subscriptions
 
 Typically, messages published to a topic are only delivered to

@@ -258,7 +258,7 @@
 
    * :name                a name to use for the step [the current index of the fn]
    * :concurrency         the number of threads to use, overriding the pipeline
-                          setting [1]
+                          setting [#cores]
    * :decode?             if false, the raw message object will be passed to
                           this step [true]
    * :error-handler       an error handler function that can override the
@@ -301,7 +301,7 @@
 
    * :concurrency        the number of threads to use for *each* step. Can be
                          overridden on a per-step basis - see the 'step'
-                         function. [1]
+                         function. [#cores]
    * :error-handler      a function that will be called when any step raises
                          an exception. It will be passed the exception and
                          the argument to the step. Without an error-handler,
