@@ -463,11 +463,11 @@
            (fn [request]
              (async/as-channel request
                :on-open (fn [ch]
-                          (async/send! ch (list "ham" (.getBytes "biscuit"))
+                          (async/send! ch (list "ham" (.getBytes "biscuit") (list "gravy"))
                             {:close? true
                              :on-complete #(deliver @client-state (or % :complete!))})))))]
     (replace-handler handler)
-    (is (= "hambiscuit" (String. (get-body (cdef-url)))))
+    (is (= "hambiscuitgravy" (String. (get-body (cdef-url)))))
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
 
     (replace-handler handler)
@@ -479,8 +479,9 @@
                                         (swap! results conj m)
                                         (deliver done? true)))]
         (is (deref done? 5000 nil))
-        (is (= ["ham" (into [] (.getBytes "biscuit"))]
-              [(first @results) (into [] (last @results))]))))
+        (let [[h b g] @results]
+          (is (= ["ham" (into [] (.getBytes "biscuit")) "gravy"]
+                [h (into [] b) g])))))
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
 
 (deftest send!-an-empty-sequence
