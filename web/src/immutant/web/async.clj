@@ -67,7 +67,7 @@
   `(if *dispatched?*
      (do ~@body)
      (binding [*dispatched?* true]
-       (do ~@body))))
+       (future ~@body))))
 
 (defn ^:private finalize-channel-response
   [^Channel ch status headers]
