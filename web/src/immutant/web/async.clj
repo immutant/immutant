@@ -181,13 +181,13 @@
 (defn send!
   "Send a message to the channel, asynchronously.
 
-   `message` can either be a String, File, InputStream, ISeq, or
-    byte[]. If it is a String, it will be encoded to the character set
-    of the response for HTTP streams, and as UTF-8 for
-    WebSockets. Files and InputStreams will be sent as up to 16k
-    chunks (each chunk being a byte[] message for WebSockets). Each
-    item in an ISeq will pass through `send!`, and can be any of the
-    valid message types.
+   `message` can either be a `String`, `File`, `InputStream`, `ISeq`,
+   or `byte[]`. If it is a `String`, it will be encoded to the character
+   set of the response for HTTP streams, and as UTF-8 for
+   WebSockets. `File`s and `InputStream`s will be sent as up to 16k
+   chunks (each chunk being a `byte[]` message for WebSockets). Each item
+   in an `ISeq` will pass through `send!`, and can be any of the valid
+   message types.
 
    The following options are supported in `options-map` [default]:
 
@@ -226,8 +226,8 @@
   The type of channel created depends on the request - if the request
   is a Websocket upgrade request, a Websocket channel will be created.
   Otherwise, an HTTP stream channel is created. You interact with both
-  channel types through the [[Channel]] protocol, and through the
-  given `callbacks`.
+  channel types using the other functions in this namespace, and
+  through the given `callbacks`.
 
   The callbacks common to both channel types are:
 
