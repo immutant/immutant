@@ -142,6 +142,20 @@ turn those calls into no-ops. This means the database spec you pass to
               :name "java:jboss/datasources/ExampleDS"})
 ```
 
+## Transactions from an Uberjar
+
+Narayana relies on a configuration file embedded within its
+distribution jar for much of its default behavior. The name of this
+file is specified as an attribute within the `MANIFEST.MF` of that
+same jar. When you include it in your uberjar (transitively, by
+depending on `org.immutant/transactions`), this manifest attribute is
+lost.
+
+The file, `jbossts-properties.xml`, will be in your uberjar, but
+without the manifest attribute, it won't be used. See
+[the Narayana install guide](http://docs.jboss.org/jbosstm/latest/guides/narayana-jta-installation_guide/index.html#chap-JBossJTA_Installation_Guide-Test_Chapter)
+for more details.
+
 [immutant.transactions]: immutant.transactions.html
 [Narayana]: http://www.jboss.org/narayana
 [Infinispan]: http://infinispan.org

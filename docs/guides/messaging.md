@@ -236,10 +236,32 @@ queue with that name must already exist on the remote host. When
 [[queue]] is passed a remote context, it will return a reference to
 the remote queue *without asking HornetQ to create it*.
 
-To create the queue (or topic) either have some server-side code call
-[[queue]] (or [[topic]]) without a remote context, or you can
-configure destinations directly in the WildFly config file, e.g.
-`standalone-full.xml`. For example,
+## Destination creation in WildFly
+
+Outside of WildFly, i.e. embedded in your standalone app, creating
+destinations is as simple as calling either [[queue]] (or [[topic]])
+without a remote context.
+
+But creating destinations dynamically like that is not something
+WildFly is built for. JEE apps expect their queues/topics to already
+exist; creating them is the job of the server administrator.
+
+Calling [[queue]] or [[topic]] within WildFly *might* work, but it
+could also result in deadlock depending on the CPU resources available
+and the number of apps being deployed simultaneously. You can avoid
+that uncertainty by configuring the destinations yourself using the
+normal WildFly mechanisms. You still have to call [[queue]] or
+[[topic]] in your Clojure code, but because the named destinations
+already exist, no deadlock will occur.
+
+As
+[this guide](https://docs.jboss.org/author/display/WFLY9/Messaging+configuration)
+explains, there are 3 common ways to create your destinations with
+WildFly: the main config file, one or more `-jms.xml` files, or the
+CLI.
+
+Here's a snippet from the main config file, e.g. `standalone-full.xml`
+with comments showing the Clojure code required to reference each one:
 
 ```xml
 ...
