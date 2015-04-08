@@ -66,14 +66,17 @@
 
 (def ^:dynamic ^:private *dispatched?* nil)
 
+(defn ^:private maybe-dispatch* [ch f]
+  (if (or *dispatched?*
+        ;; we can't do async sends under WF 8.x due to WFLY-3715
+        (and (instance? HttpChannel ch)
+          (not (.asyncSendSupported ^HttpChannel ch))))
+    (f)
+    (binding [*dispatched?* true]
+      (future (f)))))
+
 (defmacro ^:private maybe-dispatch [ch & body]
-  `(if (or *dispatched?*
-         ;; we can't do async sends under WF 8.x due to WFLY-3715
-         (and (instance? HttpChannel ~ch)
-           (not (.asyncSendSupported ^HttpChannel ~ch))))
-     (do ~@body)
-     (binding [*dispatched?* true]
-       (future ~@body))))
+  `(maybe-dispatch* ~ch (fn [] ~@body)))
 
 (defn ^:private finalize-channel-response
   [^Channel ch status headers]
