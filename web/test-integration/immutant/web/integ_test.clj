@@ -476,10 +476,12 @@
     (let [done? (promise)
           results (atom [])]
       (with-open [socket (ws/connect (cdef-url "ws")
-                           :on-receive (partial swap! results conj)
+                           :on-receive (fn [m]
+                                         (swap! results conj m)
+                                         (when (= 3 (count @results))
+                                           (deliver done? true)))
                            :on-binary (fn [m _ _]
-                                        (swap! results conj m)
-                                        (deliver done? true)))]
+                                        (swap! results conj m)))]
         (is (deref done? 5000 nil))
         (let [[h b g] @results]
           (is (= ["ham" (into [] (.getBytes "biscuit")) "gravy"]
