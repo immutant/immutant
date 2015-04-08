@@ -66,8 +66,11 @@
 
 (def ^:dynamic ^:private *dispatched?* nil)
 
-(defmacro ^:private maybe-dispatch [& body]
-  `(if *dispatched?*
+(defmacro ^:private maybe-dispatch [ch & body]
+  `(if (or *dispatched?*
+         ;; we can't do async sends under WF 8.x due to WFLY-3715
+         (and (instance? HttpChannel ~ch)
+           (not (.asyncSendSupported ^HttpChannel ~ch))))
      (do ~@body)
      (binding [*dispatched?* true]
        (future ~@body))))
@@ -135,7 +138,7 @@
 
   ISeq
   (dispatch-message [message ch {:keys [on-success on-error close?] :as options}]
-    (maybe-dispatch
+    (maybe-dispatch ch
       (let [result (catch-and-notify ch on-error
                      (loop [item (first message)
                             items (rest message)]
@@ -160,7 +163,7 @@
 
   InputStream
   (dispatch-message [message ch {:keys [on-success on-error close?] :as options}]
-    (maybe-dispatch
+    (maybe-dispatch ch
       (let [buf-size (* 1024 16) ;; 16k is the undertow default if > 128M RAM is available
             buffer (byte-array buf-size)
             result (catch-and-notify ch on-error
