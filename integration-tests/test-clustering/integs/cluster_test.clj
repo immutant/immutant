@@ -80,7 +80,7 @@
               ctx2 (msg/context (assoc opts :port (http-port "server-two")))]
     (let [q1 (msg/queue "/queue/cluster" :context ctx1)
           q2 (msg/queue "/queue/cluster" :context ctx2)
-          received (atom [])
+          received (atom #{})
           p (promise)
           c 100]
       (msg/listen q2 (fn [m]
@@ -91,4 +91,4 @@
       (dotimes [i c]
         (msg/publish q1 i))
       (deref p 60000 nil)
-      (is (= (range c) @received)))))
+      (is (= (set (range c)) @received)))))
