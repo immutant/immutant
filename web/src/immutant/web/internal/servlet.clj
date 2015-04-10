@@ -103,21 +103,20 @@
 
 (defn add-endpoint
   "Adds an endpoint to a container obtained from the servlet-context"
-  [^Endpoint endpoint ^ServletContext servlet-context {:keys [path handshake] :or {path "/"}}]
+  [^ServletContext servlet-context {:keys [path handshake] :or {path "/"}}]
   (.addEndpoint (server-container servlet-context)
     (.. ServerEndpointConfig$Builder
-      (create (class endpoint) path)
+      (create DelegatingJavaxEndpoint path)
       (configurator (proxy [ServerEndpointConfig$Configurator] []
-                      (getEndpointInstance [c] endpoint)
-                      (modifyHandshake [^ServerEndpointConfig config _ response]
+                      (getEndpointInstance [c] (DelegatingJavaxEndpoint.))
+                      (modifyHandshake [config _ _]
                         (when handshake
                           (handshake config
-                            (.get (WebSocketHelpyHelpersonFilter/requestTL))
-                            response)))))
+                            (.get WebSocketHelpyHelpersonFilter/requestTL))))))
       build)))
 
 (defn handshake-ring-invoker [handler]
-  (fn [^ServerEndpointConfig config request response]
+  (fn [^ServerEndpointConfig config request]
     (let [body (:body (handler (ring/ring-request-map request
                                  [:handler-type :servlet]
                                  [:servlet-request request]
@@ -125,7 +124,7 @@
       (when (instance? WebsocketChannel body)
         (-> config
           .getUserProperties
-          (.put DelegatingJavaxEndpoint/ENDPOINT_KEY
+          (.put (DelegatingJavaxEndpoint/endpointKey)
             (.endpoint ^WebsocketChannel body)))))))
 
 (defn ^Servlet create-servlet
@@ -150,7 +149,7 @@
               mapping (-> context (.getServletRegistration (.getServletName this)) .getMappings first)
               path (apply str (take (- (count mapping) 2) mapping))
               path (if (empty? path) "/" path)]
-          (add-endpoint (DelegatingJavaxEndpoint.) context
+          (add-endpoint context
             {:path path :handshake (handshake-ring-invoker handler)}))))))
 
 (defmethod async/initialize-stream :servlet

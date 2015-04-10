@@ -179,6 +179,30 @@
         (is (= (str "/" path)
               (-> result (deref 5000 "nil") read-string :path-info)))))))
 
+(deftest concurrent-ws-requests-should-not-cross-streams
+  (replace-handler
+    '(fn [request]
+       (async/as-channel request
+         :on-open (fn [ch]
+                    (let [query-string (:query-string (async/originating-request ch))]
+                      (async/send! ch (last (re-find #"x=(.*)$" query-string))))))))
+  (let [results (atom [])
+        clients (atom [])
+        done? (promise)
+        client-count 40]
+    (dotimes [n client-count]
+      (future
+        (let [client (ws/connect (str (cdef-url "ws") "?x=" n)
+                       :on-receive (fn [m]
+                                     (swap! results conj m)
+                                     (when (= client-count (count @results))
+                                       (deliver done? true))))]
+          (swap! clients conj client))))
+    (is (deref done? 5000 nil))
+    (is (= (->> client-count (range 0) (map str) set)
+          (set @results)))
+    (doseq [client @clients]
+      (.close client))))
 
 (deftest request-should-be-attached-to-channel-for-ws
   (replace-handler
