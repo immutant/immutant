@@ -282,9 +282,10 @@ is sent from the server using [[immutant.web.async/send!]].
 
 It's important to note that `as-channel` returns a normal Ring
 response map, so it's completely compatible with Ring middleware that
-might affect other entries in the response. The only requirement is
-that the `:body` entry needs to be ultimately returned by any
-downstream middleware.
+might affect other entries in the response, allowing you to `assoc`
+`:status`, `:headers`, etc on to it. The only requirement is that the
+`:body` entry needs to be ultimately returned by any downstream
+middleware.
 
 The signatures of the callback functions supported by `as-channel` are
 as follows:
@@ -323,6 +324,17 @@ callback sends a number to the client every second. On the 10th time
 it sets the `:close?` option to true. Its default value is false,
 causing the channel to remain open after the data is sent.
 
+If you don't know the status or headers that you need to send until
+the `send!` call, you can pass a map of the form `{:body msg :status
+code :headers [...]}` in place of the message, but only on the *first*
+send to that channel. A `:status` or `:headers` value in that map will
+override the `:status` or `:headers` returned by the Ring handler
+invocation that called `as-channel`.
+
+The message passed to `send!` (or the `:body` of a map passed to
+`send!`) can be any of the standard Ring body types (`String`, `File`,
+`InputStream`, `ISeq`), as well as `byte[]`.
+
 ### WebSockets
 
 To support graceful client degradation, WebSockets are coded exactly
@@ -339,6 +351,16 @@ supported, `:on-message`, for bidirectional communication.
 
 (run app)
 ```
+
+The message passed to `send!` can be any of the standard Ring body
+types (`String`, `File`, `InputStream`, `ISeq`), as well as
+`byte[]`. Note that each entry in an `ISeq` will pass through `send!`,
+so will be sent as at least one message (more if the entry itself is a
+type that triggers multiple messages). `File`s and `InputStream`s may
+also be broken up in to multiple messages if they are too large (we
+hint that they should be sent as up to 16KB messages, but the actual
+sizes of the messages may vary, depending on the WildFly or Undertow
+heuristics and configuration).
 
 You can identify a WebSocket upgrade request by the presence of
 `:websocket?` in the request map. This enables you to construct your
@@ -427,6 +449,19 @@ data: bye!
 And note that most EventSource clients will attempt to reconnect if
 the server closes the connection, so instead we send a special "close"
 event on which our client can dispatch to initiate the close.
+
+### Knowing when a send! completes or fails
+
+Calling `send!` (`sse/` or `async/`) is an async operation - the send
+is immediately queued, and `send!` returns to the caller. To know when
+the send has completed, you can provide an `:on-success` callback. You
+can also provide an `:on-error` callback to know when an error occurs:
+
+```
+(async/send! ch a-message
+  :on-success #(println "yay!")
+  :on-error   (fn [e] (println "boo!" e)))
+```
 
 ## Feature Demo
 
