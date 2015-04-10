@@ -22,39 +22,39 @@
   otherwise run body in a new one"
   [& body]
   (let [f `(fn [] ~@body)]
-    `(.required tx ~f)))
+    `(.required (tx) ~f)))
 
 (defmacro requires-new
   "JEE RequiresNew - suspend current transaction, if any, and execute
   body in a new one"
   [& body]
   (let [f `(fn [] ~@body)]
-    `(.requiresNew tx ~f)))
+    `(.requiresNew (tx) ~f)))
 
 (defmacro not-supported
   "JEE NotSupported - suspend current transaction, if any, and run
   body without a transaction"
   [& body]
   (let [f `(fn [] ~@body)]
-    `(.notSupported tx ~f)))
+    `(.notSupported (tx) ~f)))
 
 (defmacro supports
   "JEE Supports - run body regardless of current transaction
   state (unpredictable)"
   [& body]
   (let [f `(fn [] ~@body)]
-    `(.supports tx ~f)))
+    `(.supports (tx) ~f)))
 
 (defmacro mandatory
   "JEE Mandatory - throws an exception unless there's an active
   transaction in which body will be run"
   [& body]
   (let [f `(fn [] ~@body)]
-    `(.mandatory tx ~f)))
+    `(.mandatory (tx) ~f)))
 
 (defmacro never
   "JEE Never - throws an exception if there's an active transaction,
   otherwise runs body"
   [& body]
   (let [f `(fn [] ~@body)]
-    `(.never tx ~f)))
+    `(.never (tx) ~f)))

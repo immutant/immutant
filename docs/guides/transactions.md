@@ -28,12 +28,12 @@ single component of an XA transaction fails, all of them rollback.
 ## Defining a transaction
 
 If you're familiar with [JTA], we make a `TransactionManager`
-available via the [[manager]] var, and everything else provided by the
-library is mostly a syntactic sugary glaze slathered on that instance.
-For example, the [[transaction]] macro will query the manager to see
-if a transaction is active. If so, it'll simply invoke its body.
-Otherwise, it'll start a new transaction, execute its body, and commit
-the transaction unless either an exception is caught or
+available via the [[manager]] function, and everything else provided
+by the library is mostly a syntactic sugary glaze slathered on that
+instance. For example, the [[transaction]] macro will query the
+manager to see if a transaction is active. If so, it'll simply invoke
+its body. Otherwise, it'll start a new transaction, execute its body,
+and commit the transaction unless either an exception is caught or
 [[set-rollback-only]] is called, in which case the transaction is
 rolled back. Either way, it relies on the transactional components
 within the body to automatically enlist themselves as XA resources.

@@ -17,12 +17,12 @@
   (:import [org.projectodd.wunderboss WunderBoss]
            [org.projectodd.wunderboss.transactions Transaction]))
 
-(def ^:no-doc ^Transaction tx (WunderBoss/findOrCreateComponent Transaction))
+(def ^:no-doc ^Transaction tx (memoize #(WunderBoss/findOrCreateComponent Transaction)))
 
-(def
-  ^{:doc "The JTA TransactionManager"
-    :tag javax.transaction.TransactionManager}
-  manager (.manager tx))
+(defn ^javax.transaction.TransactionManager manager
+  "The JTA TransactionManager"
+  []
+  (.manager (tx)))
 
 (defmacro transaction
   "Execute body within current transaction, if any, otherwise start a
@@ -34,20 +34,20 @@
   the [[immutant.transactions.scope/required]] transaction scope."
   [& body]
   (let [f `(fn [] ~@body)]
-    `(.required tx ~f)))
+    `(.required (tx) ~f)))
 
 (defn set-rollback-only
   "Modify the current transaction such that the only possible outcome
   is a rollback; useful when rollback is desired but an exception is
   not"
   []
-  (.setRollbackOnly manager))
+  (.setRollbackOnly (manager)))
 
 (defn enlist
   "Enlist a valid XAResource as a participant in the current
   transaction. Not required for Immutant resources, i.e. messaging and
   caching, as they will be enlisted automatically."
   [^javax.transaction.xa.XAResource resource]
-  (-> manager
+  (-> (manager)
     .getTransaction
     (.enlistResource resource)))
