@@ -199,6 +199,7 @@
                                        (deliver done? true))))]
           (swap! clients conj client))))
     (is (deref done? 5000 nil))
+    (println "RESULTS" @results)
     (is (= (->> client-count (range 0) (map str) set)
           (set @results)))
     (doseq [client @clients]
