@@ -348,7 +348,45 @@
                (fn [_])
                :error-handler (fn [_ _] (deliver p [*current-step* *next-step*])))]
       (pl "hi")
-      (is (= ["0" "1"] (deref p 1000 :failure))))))
+      (is (= ["0" "1"] (deref p 1000 :failure)))))
+
+  (deftest error-handler-should-receive-decoded-message
+    (let [p (promise)
+          pl (pipeline
+               :eh-decoded
+               chucker
+               :error-handler (fn [_ m]
+                                (deliver p m)))]
+      (pl "hi")
+      (is (= "hi" (deref p 1000 :failure)))))
+
+  (deftest retrying-from-an-error-handler-should-work
+    (let [call-count (atom 0)
+          pl (pipeline
+               :eh-retry
+               (fn [m]
+                 (swap! call-count inc)
+                 (when (= 1 @call-count)
+                   (throw (Exception. "RETRY")))
+                 m)
+               :error-handler (fn [_ m]
+                                (retry m)))]
+      (is (= "hi" (deref (pl "hi") 1000 :failure)))))
+
+  (deftest retrying-from-an-error-handler-should-be-able-to-jump-a-step
+    (let [call-count (atom 0)
+          pl (pipeline
+               :eh-retry-jump
+               (fn [m]
+                 (swap! call-count inc)
+                 (when (= 1 @call-count)
+                   (throw (Exception. "RETRY")))
+                 m)
+               identity
+               :error-handler (fn [_ m]
+                                (retry m *next-step*)))]
+      (is (= "hi" (deref (pl "hi") 1000 :failure)))
+      (is (= 1 @call-count)))))
 
 (defrecord TestRecord [a])
 

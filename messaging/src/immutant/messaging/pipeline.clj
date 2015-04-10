@@ -52,7 +52,7 @@
        :concurrency 2 ;; run all steps with 2 threads (unless overridden)
        :error-handler (fn [ex m] ;; do something special with errors, and retry
                         ...
-                        (pl/*pipeline* m :step *current-step*))))
+                        (pl/retry (update-in m [:retry-count] (fnil inc 0))))))
 
    ;; put data onto the front pipeline
    (foo-pipeline {:bar 1 :ham \"biscuit\"})
@@ -94,6 +94,14 @@
   "A map of the currently active steps."
   nil)
 
+(def ^:dynamic ^:private *id*
+  "The correlation id of the current message, useful for retries"
+  nil)
+
+(def ^:dynamic ^:private *in-error-handler*
+  "Set when an error-handler is being executed"
+  nil)
+
 (def halt
   "Halts pipeline processing for a given message if returned from any
    handler function."
@@ -130,7 +138,8 @@
       (try
         (f m)
         (catch Exception e
-          (error-handler e m))))
+          (binding [*in-error-handler* true]
+            (error-handler e (mi/decode-with-metadata m))))))
     f))
 
 (defn- wrap-step-bindings
@@ -138,6 +147,11 @@
   (binding [*current-step* current
             *next-step* next]
     (bound-fn* f)))
+
+(defn- wrap-id-binding [f]
+  (fn [m]
+    (binding [*id* (get-correlation-property m)]
+      (f m))))
 
 (defn- wrap-fanout [f {:keys [fanout?]}]
   (if fanout?
@@ -182,6 +196,7 @@
         wrap-decode
         (wrap-result-passing pl step next-step opts)
         (wrap-error-handler opts)
+        wrap-id-binding
         (wrap-step-bindings step next-step))
       opts)))
 
@@ -224,9 +239,8 @@
   optionally at a step specified by :step"
   [pl step-names keep-result?]
   (vary-meta
-    (fn [m & {:keys [step] :or {step (first step-names)}}]
-      (let [step (str step)
-            id (str (UUID/randomUUID))]
+    (fn [m & {:keys [step id] :or {step (first step-names) id (str (UUID/randomUUID))}}]
+      (let [step (str step)]
         (when-not (some #{step} step-names)
           (throw (IllegalArgumentException.
                    (format "'%s' is not one of the available steps: %s" step (vec step-names)))))
@@ -284,6 +298,16 @@
         :properties {"result" true, correlation-property (get-correlation-property m)}))
     :decode? false))
 
+(defn retry
+  "Retries the message at the current step, or at the given step.
+
+  Can only be called from within an :error-handler."
+  ([m]
+   (retry m *current-step*))
+  ([m step]
+   (when-not *in-error-handler*
+     (throw (IllegalStateException. "retry can only be called from within an error-handler")))
+   (*pipeline* m :step step :id *id*)))
 
 (defn ^{:valid-options
         #{:concurrency :error-handler :result-ttl :step-deref-timeout :durable?}}
