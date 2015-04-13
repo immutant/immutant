@@ -142,6 +142,26 @@ turn those calls into no-ops. This means the database spec you pass to
               :name "java:jboss/datasources/ExampleDS"})
 ```
 
+## Transaction Configuration
+
+Narayana will look for a configuration file on the classpath called
+`jbossts-properties.xml`. There is a default one embedded within its
+distribution jar that you can use as a basis for your own.
+
+One of the properties, in particular, has an annoying default value.
+The location of the persistent object store is `PutObjectStoreDirHere`
+by default. This can be overridden with the following system property
+if you'd prefer not to create the XML file:
+
+    "-DObjectStoreEnvironmentBean.objectStoreDir=target/ObjectStore"
+
+The "now obsolete but somewhat equivalent and occasionally still
+relevant" analog to the above is this:
+
+    "-Dcom.arjuna.ats.arjuna.objectstore.objectStoreDir=target/ObjectStore"
+
+So you may need to set them both.
+
 [immutant.transactions]: immutant.transactions.html
 [Narayana]: http://www.jboss.org/narayana
 [Infinispan]: http://infinispan.org
