@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/immutant "2.0.0-beta3"
+(defproject org.immutant/immutant "2.0.0-SNAPSHOT"
   :description "A catch-all pom that brings in all Immutant libs."
   :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
