@@ -90,16 +90,16 @@
                         potemkin                   "0.3.12"
                         clj-http                   "1.0.1"
 
-                        ;; org.projectodd.wunderboss  "0.4.1"
-                        org.projectodd.wunderboss  "1.x.incremental.229"
+                        org.projectodd.wunderboss  "0.6.0"
+                        ;; org.projectodd.wunderboss  "1.x.incremental.229"
                         ;; org.projectodd.wunderboss  "0.5.1-SNAPSHOT"
 
                         org.immutant               :version
                         fntest                     "2.0.3"}}
 
   :release-tasks  [["vcs" "assert-committed"]
-                   ["change"           "version" "set" "\"2.0.0-beta2\""]
-                   ["modules" "change" "version" "set" "\"2.0.0-beta2\""]
+                   ["change"           "version" "set" "\"2.0.0-beta3\""]
+                   ["modules" "change" "version" "set" "\"2.0.0-beta3\""]
 
                    ["modules" ":dirs" ".,web,messaging,transactions,scheduling,caching"
                     "file-replace" "README.md" "(<version>| \")" "(\"]|</version>)" "version"]
