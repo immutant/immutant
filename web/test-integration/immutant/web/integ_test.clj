@@ -198,7 +198,7 @@
                                      (when (= client-count (count @messages))
                                        (deliver results @messages))))]
           (swap! clients conj client))))
-    (let [results' (deref results 5000 nil)]
+    (let [results' (deref results 10000 nil)]
       (is results')
       (println "RESULTS" results')
       (is (= (->> client-count (range 0) (map str) set)
