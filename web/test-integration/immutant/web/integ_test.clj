@@ -186,23 +186,22 @@
          :on-open (fn [ch]
                     (let [query-string (:query-string (async/originating-request ch))]
                       (async/send! ch (last (re-find #"x=(.*)$" query-string))))))))
-  (let [messages (atom [])
+  (let [results (atom [])
         clients (atom [])
-        results (promise)
+        done? (promise)
         client-count 40]
     (dotimes [n client-count]
       (future
         (let [client (ws/connect (str (cdef-url "ws") "?x=" n)
                        :on-receive (fn [m]
-                                     (swap! messages conj m)
-                                     (when (= client-count (count @messages))
-                                       (deliver results @messages))))]
+                                     (swap! results conj m)
+                                     (when (= client-count (count @results))
+                                       (deliver done? true))))]
           (swap! clients conj client))))
-    (let [results' (deref results 10000 nil)]
-      (is results')
-      (println "RESULTS" results')
-      (is (= (->> client-count (range 0) (map str) set)
-            (set results'))))
+    (is (deref done? 5000 nil))
+    (println "RESULTS" @results)
+    (is (= (->> client-count (range 0) (map str) set)
+          (set @results)))
     (doseq [client @clients]
       (.close client))))
 
