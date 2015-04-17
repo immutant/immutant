@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/web "2.0.0-SNAPSHOT"
+(defproject org.immutant/web "2.0.0"
   :description "Serve web requests using Ring handlers, Servlets, or Undertow HttpHandlers."
   :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
