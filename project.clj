@@ -98,8 +98,8 @@
                         fntest                     "2.0.3"}}
 
   :release-tasks  [["vcs" "assert-committed"]
-                   ["change"           "version" "set" "\"2.0.0-beta3\""]
-                   ["modules" "change" "version" "set" "\"2.0.0-beta3\""]
+                   ["change"           "version" "set" "\"2.0.0\""]
+                   ["modules" "change" "version" "set" "\"2.0.0\""]
 
                    ["modules" ":dirs" ".,web,messaging,transactions,scheduling,caching"
                     "file-replace" "README.md" "(<version>| \")" "(\"]|</version>)" "version"]
@@ -107,7 +107,7 @@
                    ["vcs" "commit"]
                    ["vcs" "tag"]
                    ["modules" "deploy"]
-                   ["change"           "version" "set" "\"2.0.0-SNAPSHOT\""]
-                   ["modules" "change" "version" "set" "\"2.0.0-SNAPSHOT\""]
+                   ["change"           "version" "set" "\"2.1.0-SNAPSHOT\""]
+                   ["modules" "change" "version" "set" "\"2.1.0-SNAPSHOT\""]
                    ["vcs" "commit"]
                    ["vcs" "push"]])
