@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/immutant-parent "2.1.0-SNAPSHOT"
+(defproject org.immutant/immutant-parent "2.0.1-SNAPSHOT"
   :description "Parent for all that is Immutant"
   :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
@@ -98,8 +98,9 @@
                         fntest                     "2.0.3"}}
 
   :release-tasks  [["vcs" "assert-committed"]
-                   ["change"           "version" "set" "\"2.0.0\""]
-                   ["with-profile" "integs" "modules" "change" "version" "set" "\"2.0.0\""]
+
+                   ["change" "version" "leiningen.release/bump-version" "release"]
+                   ["with-profile" "integs" "modules" "change" "version" "leiningen.release/bump-version" "release"]
 
                    ["modules" ":dirs" ".,web,messaging,transactions,scheduling,caching"
                     "file-replace" "README.md" "(<version>| \")" "(\"]|</version>)" "version"]
@@ -107,7 +108,9 @@
                    ["vcs" "commit"]
                    ["vcs" "tag"]
                    ["modules" "deploy"]
-                   ["change"           "version" "set" "\"2.1.0-SNAPSHOT\""]
-                   ["with-profile" "integs" "modules" "change" "version" "set" "\"2.1.0-SNAPSHOT\""]
+
+                   ["change" "version" "leiningen.release/bump-version"]
+                   ["with-profile" "integs" "modules" "change" "version" "leiningen.release/bump-version"]
+
                    ["vcs" "commit"]
                    ["vcs" "push"]])
