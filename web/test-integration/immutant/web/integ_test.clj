@@ -198,7 +198,7 @@
                                      (when (= client-count (count @results))
                                        (deliver done? true))))]
           (swap! clients conj client))))
-    (is (deref done? 5000 nil))
+    (is (deref done? 10000 nil))
     (println "RESULTS" @results)
     (is (= (->> client-count (range 0) (map str) set)
           (set @results)))
