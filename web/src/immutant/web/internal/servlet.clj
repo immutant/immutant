@@ -108,24 +108,22 @@
     (.. ServerEndpointConfig$Builder
       (create DelegatingJavaxEndpoint path)
       (configurator (proxy [ServerEndpointConfig$Configurator] []
-                      (getEndpointInstance [c] (DelegatingJavaxEndpoint.))
-                      (modifyHandshake [config _ _]
+                      (getEndpointInstance [_] (DelegatingJavaxEndpoint.))
+                      (modifyHandshake [_ _ _]
                         (when handshake
-                          (handshake config
+                          (handshake
                             (.get WebSocketHelpyHelpersonFilter/requestTL))))))
       build)))
 
 (defn handshake-ring-invoker [handler]
-  (fn [^ServerEndpointConfig config request]
+  (fn [request]
     (let [body (:body (handler (ring/ring-request-map request
                                  [:handler-type :servlet]
                                  [:servlet-request request]
                                  [:websocket? true])))]
       (when (instance? WebsocketChannel body)
-        (-> config
-          .getUserProperties
-          (.put (DelegatingJavaxEndpoint/endpointKey)
-            (.endpoint ^WebsocketChannel body)))))))
+        (DelegatingJavaxEndpoint/setCurrentDelegate
+          (.endpoint ^WebsocketChannel body))))))
 
 (defn ^Servlet create-servlet
   "Encapsulate a ring handler within a servlet"
