@@ -20,7 +20,7 @@
               Channel$OnOpen Channel$OnClose Channel$OnError
               ServletHttpChannel Util]
              [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint
-              JavaxWebsocketChannel WebSocketHelpyHelpersonFilter
+              JavaxWebsocketChannel WebSocketHelpyHelpertonFilter
               WebsocketChannel WebsocketChannel$OnMessage]
              [java.util LinkedHashMap]
              [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
@@ -112,7 +112,7 @@
                       (modifyHandshake [_ _ _]
                         (when handshake
                           (handshake
-                            (.get WebSocketHelpyHelpersonFilter/requestTL))))))
+                            (.get WebSocketHelpyHelpertonFilter/requestTL))))))
       build)))
 
 (defn handshake-ring-invoker [handler]
@@ -194,4 +194,4 @@
 
 (defn websocket-servlet-filter-map []
   (doto (LinkedHashMap.)
-    (.put "ws-helper" (WebSocketHelpyHelpersonFilter.))))
+    (.put "ws-helper" (WebSocketHelpyHelpertonFilter.))))
