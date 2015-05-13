@@ -71,7 +71,7 @@
                          :signing {:gpg-key "BFC757F9"}
                          :deploy-repositories [["releases" {:url "https://clojars.org/repo/" :creds :gpg}]]}
 
-             :versions {clojure                    "1.6.0"
+             :versions {clojure                    "1.7.0-beta3"
                         java.classpath             "0.2.2"
                         tools.nrepl                "0.2.7"
                         tools.reader               "0.8.13"
@@ -83,7 +83,7 @@
                         io.pedestal                "0.3.1"
                         http.async.client          "0.5.2"
                         stylefruits/gniazdo        "0.1.0"
-                        compojure                  "1.3.1"
+                        compojure                  "1.3.4"
                         org.clojure/java.jdbc      "0.3.6"
                         h2                         "1.3.176"
                         jersey-media-sse           "2.15"
