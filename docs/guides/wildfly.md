@@ -167,6 +167,24 @@ this and set your context path to "/" instead, name your war file
 
     $ lein immutant war -o /srv/wildfly -n ROOT
 
+## Initialization Caveats
+
+There are two issues to be aware of with regards to application
+initialization in WildFly:
+
+* Your `:main` function *must* return when initialization is
+  complete - deployment will not finish until it does. If it doesn't
+  return within 4 minutes, the deployment will be aborted. If you need
+  more than 4 minutes, you can override the default with
+  `-Dwunderboss.deployment.timeout=<n seconds>`. Note that if you set
+  that to more than 5 minutes, you will also need to increase
+  WildFly's own coarser grained deployment timeout with
+  `-Djboss.as.management.blocking.timeout=<m seconds>`.
+
+* Any `immutant.web/run` calls *have* to occur before `:main`
+  returns. A limitation of the JavaEE specification prevents us from
+  registering any servlets after that point.
+
 ## Logging in WildFly
 
 To learn about how logging works when inside WildFly, along with how

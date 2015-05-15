@@ -103,6 +103,9 @@ then start your app like so:
 
     lein run
 
+If you are deploying your application to [WildFly], see the
+[WildFly guide] for information on how `:main` is handled there.
+
 ## Incremental Builds
 
 If you need cutting-edge features/fixes that aren't in the latest
