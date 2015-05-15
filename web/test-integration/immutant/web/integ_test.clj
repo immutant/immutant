@@ -199,16 +199,16 @@
         client-count 40]
     (dotimes [n client-count]
       (future
-        (mark "CLIENT SEND" n)
+        ;;(mark "CLIENT SEND" n)
         (let [client (ws/connect (str (cdef-url "ws") "?x=" n)
                        :on-receive (fn [m]
-                                     (mark "CLIENT RCVD" m)
+                                     ;;(mark "CLIENT RCVD" m)
                                      (swap! results conj m)
                                      (when (= client-count (count @results))
                                        (deliver done? true))))]
           (swap! clients conj client))))
     (is (deref done? 10000 nil))
-    (mark "RESULTS" @results)
+    ;;(mark "RESULTS" @results)
     (is (= (->> client-count (range 0) (map str) set)
           (set @results)))
     (doseq [client @clients]
