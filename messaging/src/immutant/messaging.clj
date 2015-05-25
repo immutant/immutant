@@ -40,9 +40,9 @@
    than rely on the messaging functions to lazily create them as
    needed:
 
-   1) for communicating with a remote HornetQ instance
-   2) for sharing a context among a batch of messaging operations
-   3) for decoupling the client-id from the subscription name for
+   1. for communicating with a remote HornetQ instance
+   2. for sharing a context among a batch of messaging operations
+   3. for decoupling the client-id from the subscription name for
       durable topic subscriptions (see [[subscribe]])
 
    You are responsible for closing any contexts created via this
