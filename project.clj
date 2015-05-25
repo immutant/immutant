@@ -1,74 +1,116 @@
-(defproject org.immutant/immutant-parent "1.1.2-SNAPSHOT"
+;; Copyright 2014-2015 Red Hat, Inc, and individual contributors.
+;;
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+;;
+;; http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
+
+(defproject org.immutant/immutant-parent "2.0.2-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :plugins [[lein-modules "0.2.4"]]
+  :pedantic? false
+  :plugins [[lein-modules "0.3.11"]]
   :packaging "pom"
 
-  :profiles {:provided
-             {:dependencies [[org.clojure/clojure _]
-                             [org.jboss.as/jboss-as-server _]]}
-             :dev
-             {:dependencies [[midje/midje "1.6.3"]]}
+  :profiles {:pedantic {:pedantic? true}
+             :provided {:dependencies [[org.clojure/clojure _]]}
+             :travis {:modules {:subprocess "lein2"}}
+             :incremental {:deploy-repositories [["releases"
+                                                  {:url "dav:https://repository-projectodd.forge.cloudbees.com/incremental"
+                                                   :sign-releases false}]]
+                           :plugins [[lein-webdav "0.1.0"]]}
+             :dev {:dependencies [[pjstadig/humane-test-output "0.6.0"]]
+                   :injections [(require 'pjstadig.humane-test-output)
+                                (pjstadig.humane-test-output/activate!)]}
+             :integs {}}
 
-             :dist {}
-             :integ {}
-             :fast {:modules {:subprocess false}}}
-  
-  :modules  {:inherited {:hooks [immutant.build.plugin.pom/hooks]
-                         :plugins [[org.immutant/immutant-build-support "1.1.2-SNAPSHOT"]]
-                         :repositories [["projectodd-upstream"
+  :aliases {"docs-from-index" ["build-helper" "docs" "generate" "docs/guides"
+                               "caching" "core" "messaging" "scheduling" "transactions" "web" "wildfly"]
+            "docs" ["do" "modules" "doc-index" "," "docs-from-index"]}
+  :modules  {:subprocess nil
+             :inherited {:repositories [["projectodd-upstream"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
                                           :snapshots false}]
                                         ["projectodd-release"
                                          {:url "http://repository-projectodd.forge.cloudbees.com/release"
                                           :snapshots false}]
                                         ["projectodd-snapshot"
-                                         {:url "https://repository-projectodd.forge.cloudbees.com/snapshot"
+                                         {:url "http://repository-projectodd.forge.cloudbees.com/snapshot"
+
                                           :snapshots true}]
+                                        ["projectodd-incremental"
+                                         {:url "https://repository-projectodd.forge.cloudbees.com/incremental"
+                                          :snapshots false}]
                                         ["jboss"
-                                         "https://repository.jboss.org/nexus/content/groups/public-thirdparty-releases/"]]
-                         :source-paths ^:replace ["src/main/clojure"]
-                         :test-paths ^:replace ["src/test/clojure"]
-                         :resource-paths ^:replace ["src/module/resources" "src/test/resources" "src/main/resources"]
-                         :java-source-paths ^:replace ["src/main/java"]
-                         :jar-exclusions [#"\.java$"]
+                                         "http://repository.jboss.org/nexus/content/groups/public/"]]
+                         :dependencies [[org.projectodd.wunderboss/wunderboss-clojure _]
+                                        [org.clojure/clojure _]]
+                         :aliases {"-i" ^:replace ["with-profile" "+integs"]
+                                   "doc-index" ^:replace ["build-helper" "docs" "generate-index"]
+                                   "all" ^:displace ["do" "clean," "check," "test," "install"]}
 
-                         ;; This is occasionally broken due to
-                         ;; https://github.com/technomancy/leiningen/issues/878 
-                         :aliases {"all" ^:displace ["do" "clean," "test," "install"]
-                                   "-i" ["with-profile" "+fast"]}
-
-                         :license {:name "GNU Lesser General Pulic License v2.1"
-                                   :url "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"}
                          :mailing-list {:name "Immutant users list"
                                         :unsubscribe "immutant-users-unsubscribe@immutant.org"
                                         :subscribe "immutant-users-subscribe@immutant.org"
                                         :post "immutant-users@immutant.org"}
                          :url "http://immutant.org"
-                         :scm {:name "git", :url "https://github.com/immutant/immutant/"}}
+                         :scm {:dir "."}
+                         :license {:name "Apache Software License - v 2.0"
+                                   :url "http://www.apache.org/licenses/LICENSE-2.0"
+                                   :distribution :repo}
+                         :plugins [[org.immutant/build-helper "0.2.8"]
+                                   [lein-file-replace "0.1.0"]]
+                         :hooks [build-helper.plugin.pom/hooks]
 
-             :versions {org.clojure/clojure               "1.6.0"
-                        org.clojure/tools.nrepl           "0.2.3"
-                        leiningen-core/leiningen-core     "2.3.4"
-                        org.infinispan/infinispan-core    "6.0.0.Final"
-                        cheshire/cheshire                 "5.2.0"
-                        clj-stacktrace/clj-stacktrace     "0.2.7"
-                        clojure-complete/clojure-complete "0.2.2"
-                        org.tcrawley/dynapath             "0.2.3"
-                        
-                        :immutant                 "1.1.2-SNAPSHOT"
-                        :ring                     "1.2.1"
-                        :jbossas                  "7.2.x.slim.incremental.16"
-                        :polyglot                 "1.20.0"
-                        :hornetq                  "2.3.1.Final"
-                        :shimdandy                "1.0.1"
+                         :signing {:gpg-key "BFC757F9"}
+                         :deploy-repositories [["releases" {:url "https://clojars.org/repo/" :creds :gpg}]]}
 
-                        ring                      :ring
-                        org.hornetq               :hornetq
-                        org.immutant              :immutant
-                        org.jboss.as              :jbossas
-                        org.projectodd            :polyglot
-                        org.projectodd.shimdandy  :shimdandy
+             :versions {clojure                    "1.7.0-beta3"
+                        java.classpath             "0.2.2"
+                        tools.nrepl                "0.2.7"
+                        tools.reader               "0.8.13"
+                        ring                       "1.3.1"
+                        clj-time                   "0.9.0"
+                        cheshire                   "5.4.0"
+                        data.fressian              "0.2.0"
+                        core.memoize               "0.5.6"
+                        io.pedestal                "0.3.1"
+                        http.async.client          "0.5.2"
+                        stylefruits/gniazdo        "0.1.0"
+                        compojure                  "1.3.4"
+                        org.clojure/java.jdbc      "0.3.6"
+                        h2                         "1.3.176"
+                        jersey-media-sse           "2.15"
+                        potemkin                   "0.3.12"
+                        clj-http                   "1.0.1"
 
-                        org.immutant/immutant-dependency-exclusions "0.1.0"
-                        org.immutant/deploy-tools "0.12.0"
-                        org.immutant/fntest "0.5.2"}})
+                        org.projectodd.wunderboss  "0.7.0"
+                        ;; org.projectodd.wunderboss  "1.x.incremental.239"
+                        ;; org.projectodd.wunderboss  "0.7.0-SNAPSHOT"
+
+                        org.immutant               :version
+                        fntest                     "2.0.3"}}
+
+  :release-tasks  [["vcs" "assert-committed"]
+
+                   ["change" "version" "leiningen.release/bump-version" "release"]
+                   ["with-profile" "integs" "modules" "change" "version" "leiningen.release/bump-version" "release"]
+
+                   ["modules" ":dirs" ".,web,messaging,transactions,scheduling,caching"
+                    "file-replace" "README.md" "(<version>| \")" "(\"]|</version>)" "version"]
+
+                   ["vcs" "commit"]
+                   ["vcs" "tag"]
+                   ["modules" "deploy"]
+
+                   ["change" "version" "leiningen.release/bump-version"]
+                   ["with-profile" "integs" "modules" "change" "version" "leiningen.release/bump-version"]
+
+                   ["vcs" "commit"]
+                   ["vcs" "push"]])

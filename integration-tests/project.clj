@@ -1,33 +1,58 @@
-(defproject org.immutant/immutant-integration-tests "1.1.2-SNAPSHOT"
-  :parent [org.immutant/immutant-parent _ :relative-path "../pom.xml"]
-  :plugins [[lein-modules "0.2.4"]
-            [lein-resource "0.3.4"]
-            [lein-environ "0.4.0"]]
-  :dependencies [[org.immutant/immutant-build-assembly :immutant :extension "pom"]
-                 [org.immutant/fntest _]
-                 [clj-http "0.7.2"]
-                 [leiningen-core _]
-                 [org.immutant/deploy-tools _]]
+;; Copyright 2014-2015 Red Hat, Inc, and individual contributors.
+;;
+;; Licensed under the Apache License, Version 2.0 (the "License");
+;; you may not use this file except in compliance with the License.
+;; You may obtain a copy of the License at
+;;
+;; http://www.apache.org/licenses/LICENSE-2.0
+;;
+;; Unless required by applicable law or agreed to in writing, software
+;; distributed under the License is distributed on an "AS IS" BASIS,
+;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;; See the License for the specific language governing permissions and
+;; limitations under the License.
 
-  :aliases {"all" ["check"]}
-  :profiles {:dev
-             {:dependencies [[org.immutant/immutant-messaging :immutant]
-                             [org.clojars.tcrawley/java.jmx "0.3.0"]
-                             [org.jboss.remotingjmx/remoting-jmx "1.1.0.Final"]
-                             [environ "0.4.0"]]}
-             :cluster {:env {:modes "offset,domain"}}
-             :integ   {:aliases {"all" ^:replace ["do" "clean," "test"]}}}
+(defproject org.immutant/integs "2.0.2-SNAPSHOT"
+  :pedantic? false
+  :plugins [[lein-modules "0.3.11"]]
+  :dependencies [[org.immutant/immutant _]
+                 [org.immutant/wildfly _]]
+  :aliases {"all" ^:replace ["do" "clean," "test"]}
+  :modules {:parent nil}
+  :profiles {:integ-base {:plugins [[lein-immutant "2.0.0"]]
+                          :aliases {"test" ^:displace ["immutant" "test"]}
+                          :modules {:parent ".."}}
+             :integ-messaging {:test-paths ["../messaging/test"]}
+             :integ-scheduling {:dependencies [[clj-time _]]
+                                :test-paths ["../scheduling/test"]}
+             :integ-caching {:dependencies [[cheshire _]
+                                            [org.clojure/data.fressian _]
+                                            [org.clojure/core.memoize _]]
+                             :test-paths ["../caching/test"]}
+             :integ-web {:dependencies [[io.pedestal/pedestal.service _]
+                                        [org.clojars.jcrossley3/http.async.client _]
+                                        [stylefruits/gniazdo _]
+                                        [ring/ring-devel _]
+                                        [compojure _]
+                                        [org.glassfish.jersey.media/jersey-media-sse _]]
+                         :resource-paths ["../web/dev-resources"]
+                         :test-paths ["../web/test-integration"]
+                         :main integs.web}
+             :integ-transactions {:test-paths ["../transactions/test"]
+                                  :dependencies [[org.clojure/java.jdbc _]
+                                                 [com.h2database/h2 _]]}
 
-  :resource {:resource-paths ["apps"]
-             :target-path "target/apps"
-             :update true
-             :skip-stencil [ #".*"]}
+             :web [:integ-base :integ-web]
+             :scheduling [:integ-base :integ-scheduling]
+             :messaging [:integ-base :integ-messaging]
+             :caching [:integ-base :integ-caching]
+             :transactions [:integ-base :integ-transactions]
 
-  :env {:assembly-dir "../build/assembly/target/stage/immutant"
-        :integ-dist-dir "target/integ-dist"
-        :test-ns-path "src/test/clojure"
-        :databases "h2"
-        :versions  "1.6.0"
-        :modes     "offset"}
+             :integs [:web :messaging :caching :scheduling :transactions]
 
-  :hooks [immutant.build.plugin.integs/hooks])
+             :cluster {:eval-in :leiningen ; because prj/read, lein-modules, hooks, etc
+                       :modules {:parent ".."}
+                       :main integs.cluster
+                       :dependencies [[org.immutant/fntest _]
+                                      [clj-http _]]
+                       :test-paths ^:replace ["test-clustering"]}})

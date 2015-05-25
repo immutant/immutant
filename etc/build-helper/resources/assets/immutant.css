@@ -1,0 +1,33 @@
+code code, pre code {
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+div.public {
+  margin-bottom: 1em;
+  padding-top: 1em;
+  border-top: 1px solid #e4e4e4;
+}
+
+div.guide-content .description {
+  font-style: italic;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+div.guide-content h2 {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+h2.shrunk {
+  font-size: 20px;
+}
+
+#guide-index table {
+  margin-top: 10px;
+}
+
+.sidebar li.guide {
+  margin-left: 5px;
+}
