@@ -18,7 +18,7 @@
   :plugins [[lein-modules "0.3.11"]]
 
   :dependencies [[org.immutant/core _]
-                 [org.projectodd.wunderboss/wunderboss-messaging _]]
+                 [org.projectodd.wunderboss/wunderboss-messaging-hornetq _]]
 
   :jvm-opts ["-Dhornetq.data.dir=target/hornetq-data"]
 

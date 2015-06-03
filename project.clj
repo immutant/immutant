@@ -90,9 +90,9 @@
                         potemkin                   "0.3.12"
                         clj-http                   "1.0.1"
 
-                        org.projectodd.wunderboss  "0.7.0"
-                        ;; org.projectodd.wunderboss  "1.x.incremental.239"
-                        ;; org.projectodd.wunderboss  "0.7.0-SNAPSHOT"
+                        ;; org.projectodd.wunderboss  "0.7.0"
+                        org.projectodd.wunderboss  "1.x.incremental.242"
+                        ;; org.projectodd.wunderboss  "0.7.1-SNAPSHOT"
 
                         org.immutant               :version
                         fntest                     "2.0.3"}}

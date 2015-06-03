@@ -19,7 +19,8 @@
             [immutant.util               :as pu]
             [immutant.messaging.internal :refer [broker]])
   (:import [org.projectodd.wunderboss.messaging Destination Queue]
-           [org.projectodd.wunderboss.messaging.hornetq HQDestination HQMessaging]
+           org.projectodd.wunderboss.messaging.jms2.JMSDestination
+           org.projectodd.wunderboss.messaging.hornetq.HQMessaging
            org.hornetq.api.core.SimpleString
            org.hornetq.jms.server.JMSServerManager))
 
@@ -33,7 +34,7 @@
 
 (defn ^:private ^String jms-name [dest]
   (if-let [wd (-> dest meta :wrapped-destination)]
-    (.jmsName ^HQDestination wd)
+    (.jmsName ^JMSDestination wd)
     dest))
 
 (defn destination-controller
