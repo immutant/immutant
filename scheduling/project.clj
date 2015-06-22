@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/scheduling "2.0.2-SNAPSHOT"
+(defproject org.immutant/scheduling "2.0.2"
   :description "Schedule jobs for execution in the future."
   :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
