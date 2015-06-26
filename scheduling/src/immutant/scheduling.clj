@@ -15,7 +15,7 @@
 (ns immutant.scheduling
   "Schedule jobs for execution"
   (:require [immutant.scheduling.internal :refer :all]
-            [immutant.internal.options    :refer :all]
+            [immutant.internal.options    :as o]
             [immutant.internal.util       :as iu]
             [immutant.util                :as u]
             [immutant.scheduling.options  :refer [resolve-options defoption]])
@@ -68,13 +68,18 @@
   (schedule #(prn 'fire!) :in [5 :minutes], :every :day)
   ```
 
-  Two additional options may be passed in the spec:
+  Three additional options may be passed in the spec:
 
   * :id - a unique identifier for the scheduled job
   * :singleton - a boolean denoting the job's behavior in a cluster [true]
+  * :allow-concurrent-exec? - a boolean denoting the job's concurrency behavior in the current process [true]
 
   If called with an :id that has already been scheduled, the prior job
   will be replaced. If an id is not provided, a UUID is used instead.
+
+  If :allow-concurrent-exec? is true, a job that fires while a
+  previous invocation is running will also run, assuming a worker
+  thread is available.
 
   The return value is a map of the options with any missing defaults
   filled in, including a generated id if necessary.
@@ -100,19 +105,22 @@
                resolve-options
                (merge create-defaults schedule-defaults))
         id (:id opts (iu/uuid))
-        scheduler (scheduler (validate-options opts schedule))]
+        scheduler (scheduler (o/validate-options opts schedule))]
     (when (and (u/in-cluster?)
             (:singleton opts)
             (not (:id opts)))
       (iu/warn "Singleton job scheduled in a cluster without an :id - job won't really be a singleton. See docs for immutant.scheduling/schedule."))
     (.schedule scheduler (name id) f
-      (extract-options opts Scheduling$ScheduleOption))
+      (doto (o/extract-options opts Scheduling$ScheduleOption)
+        println))
     (-> opts
       (update-in [:ids scheduler] conj id)
       (assoc :id id))))
 
-(set-valid-options! schedule
-  (conj (opts->set Scheduling$ScheduleOption Scheduling$CreateOption) :id :ids))
+(o/set-valid-options! schedule
+  (-> (o/opts->set Scheduling$ScheduleOption Scheduling$CreateOption)
+    (conj :id :ids)
+    (o/boolify :allow-concurrent-exec)))
 
 (defn stop
   "Unschedule a scheduled job.
@@ -125,7 +133,7 @@
   [& options]
   (let [options (-> options
                   iu/kwargs-or-map->map
-                  (validate-options schedule "stop"))
+                  (o/validate-options schedule "stop"))
         ids (if-let [ids (:ids options)]
               ids
               (let [s (scheduler options)]
@@ -182,11 +190,11 @@
   "If true (the default), only one instance of a given job name will
    run in a cluster. See [[schedule]].")
 
-(defoption ^{:arglists '([boolean] [m boolean])} allow-concurrent-exec
-  "If true (the default), the job is allowed to run concurrently.
-   If false it will be forced to run sequentially on one machine.
-   To disallow concurrent execution cluster wide make sure to also
-   set `(singleton true)`. See [[singleton]].")
+(defoption ^{:arglists '([boolean] [m boolean])} allow-concurrent-exec?
+  "If true (the default), the job is allowed to run concurrently
+   within the current process. If false it will be forced to run
+   sequentially.  To disallow concurrent execution cluster wide make
+   sure to also set the :singleton option. See [[singleton]].")
 
 (defoption ^{:arglists '([str] [m str])} id
   "Takes a String or keyword to use as the unique id for the job. See [[schedule]].")

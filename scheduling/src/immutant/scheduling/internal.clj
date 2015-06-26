@@ -13,21 +13,23 @@
 ;; limitations under the License.
 
 (ns ^:no-doc ^:internal immutant.scheduling.internal
-    (:require [immutant.internal.options :refer :all]
+    (:require [immutant.internal.options :as o]
               [immutant.internal.util    :as u])
   (:import org.projectodd.wunderboss.WunderBoss
            [org.projectodd.wunderboss.scheduling
             Scheduling Scheduling$CreateOption Scheduling$ScheduleOption]))
 
-(def ^:internal create-defaults (opts->defaults-map Scheduling$CreateOption))
-(def ^:internal schedule-defaults (opts->defaults-map Scheduling$ScheduleOption))
+(def ^:internal create-defaults (o/opts->defaults-map Scheduling$CreateOption))
+(def ^:internal schedule-defaults
+  (o/boolify (o/opts->defaults-map Scheduling$ScheduleOption)
+    :allow-concurrent-exec))
 
 (def scheduler-name
   (partial u/hash-based-component-name create-defaults))
 
 (defn ^Scheduling scheduler [opts]
   (WunderBoss/findOrCreateComponent Scheduling
-    (scheduler-name (select-keys opts (valid-options-for scheduler)))
-    (extract-options opts Scheduling$CreateOption)))
+    (scheduler-name (select-keys opts (o/valid-options-for scheduler)))
+    (o/extract-options opts Scheduling$CreateOption)))
 
-(set-valid-options! scheduler (opts->set Scheduling$CreateOption))
+(o/set-valid-options! scheduler (o/opts->set Scheduling$CreateOption))

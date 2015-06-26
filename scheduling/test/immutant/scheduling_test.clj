@@ -16,7 +16,8 @@
   (:require [clojure.test                 :refer :all]
             [immutant.scheduling          :refer :all]
             [immutant.scheduling.internal :refer :all]
-            [immutant.util                :as u]))
+            [immutant.util                :as u])
+  (:import [java.util.concurrent CountDownLatch TimeUnit]))
 
 (u/set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
 
@@ -111,3 +112,25 @@
         other-scheduler (doto (scheduler {:num-threads 1}) .start)]
     (is (not= other-scheduler default))
     (is (not= (.scheduler other-scheduler) (.scheduler default)))))
+
+(defn run-with-maybe-concurrent-exec [concurrent? sleep]
+  (let [latch (CountDownLatch. 5)
+        ts    (atom [])
+        job   (schedule (fn []
+                          (swap! ts conj (System/currentTimeMillis))
+                          (Thread/sleep sleep)
+                          (.countDown latch))
+                :every 10
+                :allow-concurrent-exec? concurrent?)]
+    (is (.await latch 10 TimeUnit/SECONDS))
+    (stop job)
+    (->> @ts reverse (partition 2 1) (map #(apply - %)))))
+
+(let [sleep-duration 50]
+  (deftest concurrent-execution-enabled
+    (doseq [delta (run-with-maybe-concurrent-exec true sleep-duration)]
+      (is (< delta sleep-duration))))
+
+  (deftest concurrent-execution-disabled
+    (doseq [delta (run-with-maybe-concurrent-exec false sleep-duration)]
+      (is (>= delta sleep-duration)))))
