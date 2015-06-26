@@ -182,7 +182,7 @@
   "If true (the default), only one instance of a given job name will
    run in a cluster. See [[schedule]].")
 
-(defoption ^{:arglists '([boolean] [m boolean])} allow-concurrent-exec?
+(defoption ^{:arglists '([boolean] [m boolean])} allow-concurrent-exec
   "If true (the default), the job is allowed to run concurrently.
    If false it will be forced to run sequentially on one machine.
    To disallow concurrent execution cluster wide make sure to also
