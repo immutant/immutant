@@ -71,7 +71,7 @@
                          :signing {:gpg-key "BFC757F9"}
                          :deploy-repositories [["releases" {:url "https://clojars.org/repo/" :creds :gpg}]]}
 
-             :versions {clojure                    "1.7.0-RC2"
+             :versions {clojure                    "1.7.0"
                         java.classpath             "0.2.2"
                         tools.nrepl                "0.2.7"
                         tools.reader               "0.8.13"
