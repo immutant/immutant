@@ -17,7 +17,7 @@
   (:require [immutant.internal.options :refer [boolify opts->set set-valid-options!
                                                validate-options extract-options]]
             [immutant.internal.util    :refer [kwargs-or-map->map]]
-            [immutant.web.internal.wunderboss :as internal]
+            [immutant.web.internal.wunderboss :as wboss]
             [immutant.web.undertow :as undertow])
   (:import [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
@@ -86,12 +86,12 @@
   (let [options (-> options
                   kwargs-or-map->map
                   (validate-options run)
-                  internal/available-port
+                  wboss/available-port
                   undertow/options-maybe
-                  (->> (merge internal/create-defaults internal/register-defaults)))]
-    (let [server (internal/server options)]
-      (internal/mount server handler options)
-      (update-in options [:contexts server] conj (internal/mounts options)))))
+                  (->> (merge wboss/create-defaults wboss/register-defaults)))]
+    (let [server (wboss/server options)]
+      (wboss/mount server handler options)
+      (update-in options [:contexts server] conj (wboss/mounts options)))))
 
 (set-valid-options! run (-> (opts->set Web$CreateOption Web$RegisterOption)
                           (conj :contexts)
@@ -112,7 +112,7 @@
   (let [opts (-> options
                kwargs-or-map->map
                (validate-options run "stop"))
-        contexts (:contexts opts {(internal/server opts) [(internal/mounts opts)]})
+        contexts (:contexts opts {(wboss/server opts) [(wboss/mounts opts)]})
         stopped (some boolean (doall (for [[^Web s os] contexts, o os]
                                        (.unregister s (extract-options o Web$RegisterOption)))))]
     (doseq [^Web server (keys contexts)]
@@ -132,7 +132,7 @@
                       (resolve handler))
                   `(var ~handler)
                   handler)]
-    `(internal/run-dmc* run ~handler ~@options)))
+    `(wboss/run-dmc* run ~handler ~@options)))
 
 (defn server
   "Returns the web server instance associated with a particular set of
@@ -155,8 +155,8 @@
   [& options]
   (let [options (->> options
                   kwargs-or-map->map
-                  (merge internal/create-defaults internal/register-defaults))
-        servers (keys (:contexts options {(internal/server options) nil}))]
+                  (merge wboss/create-defaults wboss/register-defaults))
+        servers (keys (:contexts options {(wboss/server options) nil}))]
     (if (= 1 (count servers))
       (first servers)
       servers)))
