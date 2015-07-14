@@ -192,7 +192,7 @@ to change the default configuration, see our [logging guide].
 
 [WildFly]: http://wildfly.org
 [JBoss EAP]: http://www.jboss.org/products/eap/overview/
-[lein-immutant]: https://github.com/immutant/lein-immutant/tree/2x-dev
+[lein-immutant]: https://github.com/immutant/lein-immutant/
 [Midje]: https://github.com/marick/Midje
 [Expectations]: http://jayfields.com/expectations/
 [logging guide]: guide-logging.html
