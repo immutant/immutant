@@ -109,8 +109,7 @@
   (request-method [exchange]     (-> exchange .getRequestMethod .toString .toLowerCase keyword))
   (content-type [exchange]       (-> exchange .getRequestHeaders (.getFirst Headers/CONTENT_TYPE)))
   (content-length [exchange]     (.getRequestContentLength exchange))
-  (character-encoding [exchange] (if-let [type (ring/content-type exchange)]
-                                   (Headers/extractTokenFromHeader type "charset")))
+  (character-encoding [exchange] (.getRequestCharset exchange))
   (headers [exchange]            (-> exchange .getRequestHeaders hdr/headers->map))
   (body [exchange]               (when (.isBlocking exchange) (.getInputStream exchange)))
   (context [exchange]            (.getResolvedPath exchange))
@@ -119,9 +118,11 @@
   (ssl-client-cert [_])
 
   ring/RingResponse
-  (set-status [exchange status] (.setResponseCode exchange status))
-  (header-map [exchange] (.getResponseHeaders exchange))
-  (output-stream [exchange] (.getOutputStream exchange)))
+  (set-status [exchange status]       (.setResponseCode exchange status))
+  (header-map [exchange]              (.getResponseHeaders exchange))
+  (output-stream [exchange]           (.getOutputStream exchange))
+  (resp-character-encoding [exchange] (or (.getResponseCharset exchange)
+                                        hdr/default-encoding)))
 
 (defn create-http-handler [handler]
   (reify HttpHandler

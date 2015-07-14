@@ -16,11 +16,7 @@
     immutant.web.internal.headers
   (:require [clojure.string :as str]))
 
-;; borrowed from ring.util.request/charset-pattern, which appeared in ring 1.3.0.
-(def ^:private charset-pattern
-  #";(?:.*\s)?(?i:charset)=([!#$%&'*\-+.0-9A-Z\^_`a-z\|~]+|\"(\\\"|[^\"])*\")\s*(?:;|$)")
-
-(def ^:private default-encoding "ISO-8859-1")
+(def ^:internal default-encoding "ISO-8859-1")
 
 (defprotocol Headers
   (get-names [x])
@@ -28,12 +24,6 @@
   (get-value [x key])
   (set-header [x key value])
   (add-header [x key value]))
-
-(defn ^:internal ^String get-character-encoding [headers]
-  (or
-    (when-let [type (get-value headers "content-type")]
-      (second (re-find charset-pattern type)))
-    default-encoding))
 
 (defn ^:internal headers->map [headers]
   (persistent!

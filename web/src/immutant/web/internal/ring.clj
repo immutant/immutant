@@ -103,9 +103,15 @@
            (.put m k v))
          m))))
 
+(defprotocol RingResponse
+  (header-map [x])
+  (set-status [x status])
+  (output-stream [x])
+  (resp-character-encoding [x]))
+
 (defprotocol BodyWriter
   "Writing different body types to output streams"
-  (write-body [body stream headers]))
+  (write-body [body stream response]))
 
 (extend-protocol BodyWriter
   Object
@@ -116,13 +122,13 @@
   (write-body [_ _ _])
 
   String
-  (write-body [body ^OutputStream os headers]
-    (.write os (.getBytes body (hdr/get-character-encoding headers))))
+  (write-body [body ^OutputStream os response]
+    (.write os (.getBytes body ^String (resp-character-encoding response))))
 
   ISeq
-  (write-body [body ^OutputStream os headers]
+  (write-body [body ^OutputStream os response]
     (doseq [fragment body]
-      (write-body fragment os headers)))
+      (write-body fragment os response)))
 
   File
   (write-body [body ^OutputStream os _]
@@ -133,24 +139,18 @@
     (with-open [body body]
       (io/copy body os))))
 
-(defprotocol RingResponse
-  (header-map [x])
-  (set-status [x status])
-  (output-stream [x]))
-
 (defn write-response
   "Set the status, write the headers and the content"
   [response {:keys [status headers body] :as response-map}]
-  (let [hmap (header-map response)
-        set-status' #(when %
+  (let [set-status' #(when %
                        (set-status response %))
-        set-headers' (partial hdr/set-headers hmap)]
+        set-headers' (partial hdr/set-headers (header-map response))]
     (if (async/streaming-body? body)
       (async/open-stream body response-map set-status' set-headers')
       (do
         (set-status' status)
         (set-headers' headers)
-        (write-body body (output-stream response) hmap)))))
+        (write-body body (output-stream response) response)))))
 
 ;; ring 1.3.2 introduced a change that causes wrap-resource to break
 ;; in-container because it doesn't know how to handle vfs: urls. ring

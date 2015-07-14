@@ -90,13 +90,15 @@
 
 (extend-type HttpServletResponse
   ring/RingResponse
-  (set-status [response status] (.setStatus response status))
-  (header-map [response] response)
-  (output-stream [response] (.getOutputStream response))
+  (set-status [response status]       (.setStatus response status))
+  (header-map [response]              response)
+  (output-stream [response]           (.getOutputStream response))
+  (resp-character-encoding [response] (or (.getCharacterEncoding response)
+                                        hdr/default-encoding))
   hdr/Headers
-  (get-value [response key] (.getHeader response key))
-  (set-header [response key value] (.setHeader response key value))
-  (add-header [response key value] (.addHeader response key value)))
+  (get-value [response ^String key]        (.getHeader response key))
+  (set-header [response ^String key value] (.setHeader response key value))
+  (add-header [response key value]         (.addHeader response key value)))
 
 (defn ^ServerContainer server-container [^ServletContext context]
   (.getAttribute context "javax.websocket.server.ServerContainer"))
