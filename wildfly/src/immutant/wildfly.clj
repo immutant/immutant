@@ -22,7 +22,7 @@
 
 (def ^:no-doc ^Class module-class-loader-class (memoize #(u/try-import 'org.jboss.modules.ModuleClassLoader)))
 
-(def ^:no-doc in-cluster (delay (-> ^Class (u/try-import 'org.projectodd.wunderboss.wildfly.ClusterUtils)
+(def ^:no-doc in-cluster (delay (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ClusterUtils)
                                   (.getMethod "inCluster" nil)
                                   (.invoke nil nil))))
 

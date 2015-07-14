@@ -20,6 +20,7 @@
   :dependencies [[org.immutant/core _]
                  [potemkin _]
                  [org.projectodd.wunderboss/wunderboss-web _]
+                 [org.projectodd.wunderboss/wunderboss-web-undertow _]
                  [ring/ring-core _]]
 
   :profiles {:dev

@@ -24,11 +24,15 @@
              [io.undertow.websockets.core CloseMessage WebSocketChannel]
              [io.undertow.websockets.spi WebSocketHttpExchange]
              [org.projectodd.wunderboss.web.async Channel
-              Channel$OnOpen Channel$OnClose Channel$OnError
+              Channel$OnOpen Channel$OnClose Channel$OnError]
+             [org.projectodd.wunderboss.web.async.websocket WebsocketChannel
+              WebsocketChannel$OnMessage]
+             [org.projectodd.wunderboss.web.undertow.async
               UndertowHttpChannel]
-             [org.projectodd.wunderboss.web.async.websocket UndertowWebsocket
+             [org.projectodd.wunderboss.web.undertow.async.websocket
+              UndertowWebsocket
               UndertowWebsocketChannel
-              WebsocketChannel WebsocketChannel$OnMessage WebsocketInitHandler]))
+              WebsocketInitHandler]))
 
 (def ^{:tag SessionCookieConfig :private true} set-cookie-config!
   (memoize
@@ -174,8 +178,9 @@
         (when on-message
           (on-message ch message))))))
 
-(defn ^:internal create-websocket-init-handler [handler-fn downstream-handler request-map-fn]
-  (let [http-exchange-tl (ThreadLocal.)]
+(defn ^:internal create-websocket-init-handler [handler-fn request-map-fn]
+  (let [http-exchange-tl (ThreadLocal.)
+        downstream-handler (create-http-handler handler-fn)]
     (UndertowWebsocket/createHandler
       http-exchange-tl
       (reify WebsocketInitHandler

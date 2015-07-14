@@ -1,0 +1,3 @@
+<jboss-web>
+   <enable-websockets>true</enable-websockets>
+</jboss-web>

@@ -19,7 +19,7 @@
                  [org.immutant/wildfly _]]
   :aliases {"all" ^:replace ["do" "clean," "test"]}
   :modules {:parent nil}
-  :profiles {:integ-base {:plugins [[lein-immutant "2.0.0"]]
+  :profiles {:integ-base {:plugins [[lein-immutant "2.0.1-SNAPSHOT"]]
                           :aliases {"test" ^:displace ["immutant" "test"]}
                           :modules {:parent ".."}}
              :integ-messaging {:test-paths ["../messaging/test"]}
@@ -55,4 +55,5 @@
                        :main integs.cluster
                        :dependencies [[org.immutant/fntest _]
                                       [clj-http _]]
-                       :test-paths ^:replace ["test-clustering"]}})
+                       :test-paths ^:replace ["test-clustering"]}
+             :eap {:immutant {:war {:resource-paths ["eap-resources"]}}}})
