@@ -17,8 +17,7 @@
   (:require [immutant.internal.util         :refer [try-resolve]]
             [immutant.util                  :refer [in-container?]]
             [immutant.web.async             :refer [as-channel]]
-            [immutant.web.internal.servlet  :refer [wrap-servlet-session]]
-            [immutant.web.internal.undertow :refer [wrap-undertow-session]]))
+            [immutant.web.internal.servlet  :refer [wrap-servlet-session]]))
 
 (defn wrap-development
   "Wraps stacktrace and reload middleware with the correct :dirs
@@ -75,7 +74,8 @@
      (let [options (merge {:timeout (* 30 60)} options)]
        (if (in-container?)
          (wrap-servlet-session handler options)
-         (wrap-undertow-session handler options)))))
+         ((try-resolve 'immutant.web.internal.undertow/wrap-undertow-session)
+          handler options)))))
 
 (defn wrap-websocket
   "Middleware to attach websocket callbacks to a Ring handler.

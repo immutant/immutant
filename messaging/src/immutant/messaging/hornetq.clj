@@ -19,7 +19,7 @@
             [immutant.util               :as pu]
             [immutant.messaging.internal :refer [broker]])
   (:import [org.projectodd.wunderboss.messaging Destination Queue]
-           org.projectodd.wunderboss.messaging.jms2.JMSDestination
+           org.projectodd.wunderboss.messaging.jms.JMSDestination
            org.projectodd.wunderboss.messaging.hornetq.HQMessaging
            org.hornetq.api.core.SimpleString
            org.hornetq.jms.server.JMSServerManager))

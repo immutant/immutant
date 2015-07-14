@@ -16,9 +16,8 @@
   "Serve web requests using Ring handlers, Servlets, or Undertow HttpHandlers"
   (:require [immutant.internal.options :refer [boolify opts->set set-valid-options!
                                                validate-options extract-options]]
-            [immutant.internal.util    :refer [kwargs-or-map->map]]
-            [immutant.web.internal.wunderboss :as wboss]
-            [immutant.web.undertow :as undertow])
+            [immutant.internal.util    :refer [kwargs-or-map->map try-resolve]]
+            [immutant.web.internal.wunderboss :as wboss])
   (:import [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]))
 
 (defn run
@@ -83,11 +82,12 @@
    invocations of `run` must be within the initialization function for
    your application, i.e. your `-main`."
   [handler & options]
-  (let [options (-> options
+  (let [undertow-options-maybe (try-resolve 'immutant.web.undertow/options-maybe)
+        options (-> options
                   kwargs-or-map->map
                   (validate-options run)
                   wboss/available-port
-                  undertow/options-maybe
+                  (cond-> undertow-options-maybe undertow-options-maybe)
                   (->> (merge wboss/create-defaults wboss/register-defaults)))]
     (let [server (wboss/server options)]
       (wboss/mount server handler options)
@@ -96,7 +96,9 @@
 (set-valid-options! run (-> (opts->set Web$CreateOption Web$RegisterOption)
                           (conj :contexts)
                           (boolify :dispatch)
-                          (clojure.set/union (-> #'undertow/options meta :valid-options))))
+                          (clojure.set/union (-> (try-resolve 'immutant.web.undertow/options)
+                                               meta
+                                               :valid-options))))
 
 (defn stop
   "Stops a running handler.

@@ -13,8 +13,7 @@
 ;; limitations under the License.
 
 (ns ^:no-doc ^:internal immutant.web.internal.wunderboss
-    (:require [immutant.web.internal.undertow :refer [create-http-handler create-websocket-init-handler]]
-              [immutant.web.internal.servlet  :refer [create-servlet websocket-servlet-filter-map]]
+    (:require [immutant.web.internal.servlet  :refer [create-servlet websocket-servlet-filter-map]]
               [immutant.web.internal.ring     :refer [ring-request-map]]
               [immutant.internal.options  :refer [boolify extract-options opts->set
                                                   opts->defaults-map opts->map keywordize]]
@@ -23,7 +22,6 @@
               [immutant.web.middleware    :refer [wrap-development]]
               [clojure.java.browse        :refer [browse-url]])
     (:import org.projectodd.wunderboss.WunderBoss
-             io.undertow.server.HttpHandler
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]
              javax.servlet.Servlet
              [java.net ServerSocket InetSocketAddress]))
@@ -55,9 +53,8 @@
                    (var? handler))
                (if (in-container?)
                  (create-servlet handler)
-                 (create-websocket-init-handler
-                   handler (create-http-handler handler)
-                   ring-request-map))
+                 ((u/try-resolve 'immutant.web.internal.undertow/create-websocket-init-handler)
+                   handler ring-request-map))
                handler)
         opts (extract-options
                (if (in-container?)
@@ -68,7 +65,7 @@
       (try
         (.registerServlet server hdlr opts)
         (catch IllegalStateException e
-          (if (re-find #"^UT010041" (.getMessage e))
+          (if (re-find #"after servlet init" (.getMessage e))
             (throw (IllegalStateException.
                      "You can't call immutant.web/run outside of -main inside the container."
                      e))

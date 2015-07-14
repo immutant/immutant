@@ -25,7 +25,8 @@
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.util.response :refer (charset)]
             [clj-http.client :as http]
-            [immutant.web.undertow :as undertow])
+            [immutant.web.undertow :as undertow]
+            immutant.web.internal.undertow)
   (:import clojure.lang.ExceptionInfo
            java.net.ConnectException))
 

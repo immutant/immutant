@@ -91,11 +91,11 @@
                         clj-http                   "1.0.1"
 
                         ;; org.projectodd.wunderboss  "0.8.1"
-                        org.projectodd.wunderboss  "1.x.incremental.247"
-                        ;; org.projectodd.wunderboss  "0.8.2-SNAPSHOT"
+                        ;; org.projectodd.wunderboss  "1.x.incremental.247"
+                        org.projectodd.wunderboss  "0.8.2-SNAPSHOT"
 
                         org.immutant               :version
-                        fntest                     "2.0.3"}}
+                        fntest                     "2.0.6-SNAPSHOT"}}
 
   :release-tasks  [["vcs" "assert-committed"]
 
