@@ -248,10 +248,10 @@
   "Converts the current ring `request` in to an asynchronous channel.
 
   The type of channel created depends on the request - if the request
-  is a Websocket upgrade request, a Websocket channel will be created.
-  Otherwise, an HTTP stream channel is created. You interact with both
-  channel types using the other functions in this namespace, and
-  through the given `callbacks`.
+  is a Websocket upgrade request (the :websocket? key is true), a
+  Websocket channel will be created. Otherwise, an HTTP stream channel
+  is created. You interact with both channel types using the other
+  functions in this namespace, and through the given `callbacks`.
 
   The callbacks common to both channel types are:
 
