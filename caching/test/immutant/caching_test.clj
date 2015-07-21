@@ -227,7 +227,7 @@
               getCacheConfiguration eviction maxEntries))))
 
 (deftest test-eviction
-  (let [c (new-cache :max-entries 2)]
+  (let [c (new-cache :max-entries 2 :eviction :lru)]
     (.put c :a 1)
     (.put c :b 2)
     (.put c :c 3)
