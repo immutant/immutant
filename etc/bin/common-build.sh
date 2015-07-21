@@ -1,7 +1,7 @@
 BIN_DIR="${WORKSPACE}/bin"
 WF_DIR="${WORKSPACE}/wildfly-dists"
 WF8_VERSION="8.2.0.Final"
-WF9_VERSION="9.0.0.CR1"
+WF9_VERSION="9.0.0.Final"
 LEIN_VERSION=2.5.1
 export PATH="${BIN_DIR}:${PATH}"
 export WORKSPACE_HOME="${WORKSPACE}/home"
