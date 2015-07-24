@@ -25,7 +25,6 @@
 (def ^:no-doc in-cluster (delay (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ClusterUtils)
                                   (.getMethod "inCluster" nil)
                                   (.invoke nil nil))))
-
 (defn- get-resource-loaders
   [cl]
   (if (module-class-loader-class)
@@ -110,9 +109,26 @@
   "Returns the HTTP port for the embedded web server"
   (partial port :http))
 
-(def messaging-remoting-port
+(let [container-type (delay (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ASUtils)
+                              (.getMethod "containerTypeAsString" nil)
+                              (.invoke nil nil)))]
+  (defn in-eap?
+  "Returns true if we're in an EAP container."
+  []
+  (= "EAP" @container-type)))
+
+(let [streaming-supported? (delay (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ASUtils)
+                                    (.getMethod "isAsyncStreamingSupported" nil)
+                                    (.invoke nil nil)))]
+  (defn async-streaming-supported?
+  "Returns true if the container supports async HTTP stream sends."
+  []
+  @streaming-supported?))
+
+(defn messaging-remoting-port
   "Returns the port that HornetQ is listening on for remote connections"
-  http-port)
+  []
+  (port (if (in-eap?) :messaging :http)))
 
 (defn context-path
   "Returns the HTTP context path for the deployed app"

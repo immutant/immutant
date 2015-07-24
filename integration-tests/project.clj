@@ -19,7 +19,7 @@
                  [org.immutant/wildfly _]]
   :aliases {"all" ^:replace ["do" "clean," "test"]}
   :modules {:parent nil}
-  :profiles {:integ-base {:plugins [[lein-immutant "2.0.1-SNAPSHOT"]]
+  :profiles {:integ-base {:plugins [[lein-immutant "2.0.0"]]
                           :aliases {"test" ^:displace ["immutant" "test"]}
                           :modules {:parent ".."}}
              :integ-messaging {:test-paths ["../messaging/test"]}
@@ -56,4 +56,8 @@
                        :dependencies [[org.immutant/fntest _]
                                       [clj-http _]]
                        :test-paths ^:replace ["test-clustering"]}
-             :eap {:immutant {:war {:resource-paths ["eap-resources"]}}}})
+             :eap-base {:immutant {:war {:resource-paths ["eap-resources"]}}
+                        :exclusions [org.hornetq/hornetq-jms-server org.hornetq/hornetq-server]
+                        :dependencies [[org.hornetq/hornetq-jms-server "2.3.25.Final"]
+                                       [org.hornetq/hornetq-server "2.3.25.Final"]]}
+             :eap [:web :scheduling :messaging :eap-base]})

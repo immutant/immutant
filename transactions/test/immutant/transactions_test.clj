@@ -28,7 +28,7 @@
 (def local-remote-queue (msg/queue "remote" :durable? false))
 (def conn (if (in-container?)
             (msg/context :host "localhost" :port (messaging-remoting-port)
-              :username "testuser" :password "testuser" :remote-type :hornetq-wildfly
+              :username "testuser" :password "testuser1!" :remote-type :hornetq-wildfly
               :xa? true)
             (msg/context :host "localhost" :xa? true)))
 (def remote-queue (msg/queue "remote" :context conn))

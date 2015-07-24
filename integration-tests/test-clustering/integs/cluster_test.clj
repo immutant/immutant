@@ -22,7 +22,7 @@
             [immutant.messaging :as msg]))
 
 (def opts {:host "localhost", :remote-type :hornetq-wildfly,
-           :username "testuser", :password "testuser"})
+           :username "testuser", :password "testuser1!"})
 
 (use-fixtures :once
   (compose-fixtures

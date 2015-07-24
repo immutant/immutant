@@ -15,7 +15,9 @@
 (ns ^{:no-doc true} immutant.web.internal.servlet
     (:require [immutant.web.internal.ring    :as ring]
               [immutant.web.internal.headers :as hdr]
+              [immutant.internal.util        :refer [try-resolve]]
               [immutant.web.async            :as async])
+
     (:import [org.projectodd.wunderboss.web.async Channel
               Channel$OnOpen Channel$OnClose Channel$OnError
               ServletHttpChannel WebsocketUtil]
@@ -152,6 +154,10 @@
           (add-endpoint context
             {:path path :handshake (handshake-ring-invoker handler)}))))))
 
+(defn async-streaming-supported? []
+  (when-let [f (try-resolve 'immutant.wildfly/async-streaming-supported?)]
+    (f)))
+
 (defmethod async/initialize-stream :servlet
   [request {:keys [on-open on-error on-close]}]
   (ServletHttpChannel.
@@ -170,7 +176,8 @@
       (reify Channel$OnClose
         (handle [_ ch code reason]
           (on-close ch {:code code
-                        :reason reason}))))))
+                        :reason reason}))))
+    (async-streaming-supported?)))
 
 (defmethod async/initialize-websocket :servlet
   [request {:keys [on-open on-error on-close on-message on-error]}]

@@ -20,6 +20,9 @@
 
 (u/set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
 
+(def test-user "testuser")
+(def test-password "testuser1!")
+
 (use-fixtures :once u/reset-fixture)
 
 (defn random-queue []
@@ -183,8 +186,9 @@
 (deftest remote-request-respond-should-work
   (queue "remote-req-resp" :durable? false)
   (let [extra-connect-opts
-        (when (u/in-container?)
-          [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
+        (cond-> []
+          (u/in-container?) (conj :username test-user :password test-password)
+          (and (u/in-container?) (not (u/in-eap?))) (conj :remote-type :hornetq-wildfly))]
     (with-open [c (apply context :host "localhost" :port (u/messaging-remoting-port)
                     extra-connect-opts)]
       (let [q (queue "remote-req-resp" :context c)]
@@ -194,8 +198,9 @@
 (deftest remote-listen-should-work
   (queue "remote-listen" :durable? false)
   (let [extra-connect-opts
-        (when (u/in-container?)
-          [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
+        (cond-> []
+          (u/in-container?) (conj :username test-user :password test-password)
+          (and (u/in-container?) (not (u/in-eap?))) (conj :remote-type :hornetq-wildfly))]
     (with-open [c (apply context :host "localhost" :port (u/messaging-remoting-port)
                     extra-connect-opts)]
       (let [q (queue "remote-listen" :context c)
@@ -217,8 +222,9 @@
 (deftest remote-context-should-work
   (queue "remote" :durable? false)
   (let [extra-connect-opts
-        (when (u/in-container?)
-          [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
+        (cond-> []
+          (u/in-container?) (conj :username test-user :password test-password)
+          (and (u/in-container?) (not (u/in-eap?))) (conj :remote-type :hornetq-wildfly))]
     (with-open [c (apply context :host "localhost" :port (u/messaging-remoting-port)
                     extra-connect-opts)]
       (let [q (queue "remote" :context c)]
@@ -232,8 +238,9 @@
 #_(deftest remote-receive-should-properly-timeout
   (let [q-name (.name (random-queue))
         extra-connect-opts
-        (when (u/in-container?)
-          [:username "testuser" :password "testuser" :remote-type :hornetq-wildfly])]
+        (cond-> []
+          (u/in-container?) (conj :username test-user :password test-password)
+          (and (u/in-container?) (not (u/in-eap?))) (conj :remote-type :hornetq-wildfly))]
     (with-open [c (apply context :host "localhost" :port (u/messaging-remoting-port)
                     extra-connect-opts)]
       (let [q (queue q-name :context c)
@@ -280,10 +287,12 @@
 
 (deftest publish-to-a-remote-queue-from-a-listener-should-work
   (queue "remote" :durable? false)
-  (let [conn (if (u/in-container?)
-               (context :host "localhost" :port (u/messaging-remoting-port)
-                 :username "testuser" :password "testuser" :remote-type :hornetq-wildfly)
-               (context :host "localhost"))
+  (let [extra-connect-opts
+        (cond-> []
+          (u/in-container?) (conj :username test-user :password test-password)
+          (and (u/in-container?) (not (u/in-eap?))) (conj :remote-type :hornetq-wildfly))
+        conn (apply context :host "localhost" :port (u/messaging-remoting-port)
+               extra-connect-opts)
         q (random-queue)
         remote-q (queue "remote" :context conn)
         l (listen q #(publish remote-q %))]

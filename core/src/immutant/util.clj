@@ -32,10 +32,16 @@
   []
   (WunderBoss/inContainer))
 
+(defn in-eap?
+  "Returns true if running inside an EAP container."
+  []
+  (when-let [f (try-resolve 'immutant.wildfly/in-eap?)]
+    (f)))
+
 (defn in-cluster?
   "Returns true if running inside a WildFly/EAP container that's part of a cluster"
   []
-  (if-let [f (try-resolve 'immutant.wildfly/in-cluster?)]
+  (when-let [f (try-resolve 'immutant.wildfly/in-cluster?)]
     (f)))
 
 (defn reset-fixture
