@@ -21,6 +21,11 @@ etc/bin/reversion.sh 2.x.incremental.${BUILD_NUMBER}
 mark "Starting build"
 lein modules all
 
+mark "Testing messaging with HornetQ 2.3"
+cd messaging
+lein with-profile +hornetq-2.3 test
+cd -
+
 mark "Starting deploy build"
 lein with-profile +incremental modules deploy
 

@@ -24,4 +24,9 @@
 
   :profiles {:dev
              {:dependencies [[cheshire _]
-                             [org.clojure/data.fressian _]]}})
+                             [org.clojure/data.fressian _]]}
+             :hornetq-2.3
+             {:exclusions [org.hornetq/hornetq-server
+                           org.hornetq/hornetq-jms-server]
+              :dependencies [[org.hornetq/hornetq-server "2.3.25.Final"]
+                             [org.hornetq/hornetq-jms-server "2.3.25.Final"]]}})
