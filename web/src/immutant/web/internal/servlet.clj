@@ -20,7 +20,7 @@
 
     (:import [org.projectodd.wunderboss.web.async Channel
               Channel$OnOpen Channel$OnClose Channel$OnError
-              ServletHttpChannel WebsocketUtil]
+              ServletHttpChannel]
              [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint
               JavaxWebsocketChannel WebSocketHelpyHelpertonFilter
               WebsocketChannel WebsocketChannel$OnMessage]
