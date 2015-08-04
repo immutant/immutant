@@ -1,7 +1,5 @@
 BIN_DIR="${WORKSPACE}/bin"
-WF_DIR="${WORKSPACE}/wildfly-dists"
-WF8_VERSION="8.2.0.Final"
-WF9_VERSION="9.0.0.Final"
+AS_DIR="${WORKSPACE}/as-dists"
 LEIN_VERSION=2.5.1
 export PATH="${BIN_DIR}:${PATH}"
 export WORKSPACE_HOME="${WORKSPACE}/home"
@@ -22,7 +20,7 @@ function mark {
 function cleanup {
     rm -rf ${WORKSPACE}/target
     rm -rf ${BIN_DIR}
-    rm -rf ${WF_DIR}
+    rm -rf ${AS_DIR}
 }
 
 function install-lein {
@@ -38,12 +36,4 @@ function setup-lein-profiles {
     mark "Setting up lein profiles"
     mkdir -p ${LEIN_HOME}
     cp -f /private/projectodd/auth_profile.clj ${LEIN_HOME}/profiles.clj
-}
-
-function install-wildfly {
-    mark "Installing WildFly ${WF8_VERSION}"
-    ${DIR}/ci-prep-wildfly.sh ${WF_DIR} ${WF8_VERSION}
-
-    mark "Installing WildFly ${WF9_VERSION}"
-    ${DIR}/ci-prep-wildfly.sh ${WF_DIR} ${WF9_VERSION}
 }
