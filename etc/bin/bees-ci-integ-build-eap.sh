@@ -29,7 +29,7 @@ cd integration-tests
 export JBOSS_HOME="${AS_DIR}/EAP-${EAP_VERSION}"
 
 mark "Starting integs"
-lein with-profile +integs,+eap all
+lein with-profile +eap all
 
 mark "Starting cluster tests"
 lein with-profile +cluster,+eap all
