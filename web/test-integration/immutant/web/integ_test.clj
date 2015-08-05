@@ -676,7 +676,7 @@
                :on-close (fn [_ reason]
                            (deliver @client-state :closed)))))]
     (replace-handler handler)
-    (let [:keys [body status] (get-response (cdef-url))]
+    (let [{:keys [body status]} (get-response (cdef-url))]
       (is (= 200 status))
       (is (= [0 1 2 3] (read-string body))))
     (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
