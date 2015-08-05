@@ -251,7 +251,7 @@
   is a Websocket upgrade request (the :websocket? key is true), a
   Websocket channel will be created. Otherwise, an HTTP stream channel
   is created. You interact with both channel types using the other
-  functions in this namespace, and through the given `callbacks`.
+  functions in this namespace, and through callbacks in `options`.
 
   The callbacks common to both channel types are:
 
@@ -277,21 +277,27 @@
   * :on-message - `(fn [ch message] ...)` - Called for each message
     from the client. `message` will be a `String` or `byte[]`
 
+  You can also specify an `:idle-timeout` option, that will cause the
+  channel to be closed if idle more than the timeout. It defaults to 0
+  (no timeout), and is in milliseconds.
+
   When the ring handler is called during a WebSocket upgrade request,
   any headers returned in the response map are ignored, but any changes to
   the session are applied.
 
   Returns a ring response map, at least the :body of which *must* be
   returned in the response map from the calling ring handler."
-  [request & callbacks]
-  (let [callbacks (-> callbacks
+  [request & options]
+  (let [options (-> options
                     u/kwargs-or-map->map
                     (o/validate-options as-channel))
         ch (if (:websocket? request)
-             (initialize-websocket request callbacks)
-             (initialize-stream request callbacks))]
+             (initialize-websocket request options)
+             (initialize-stream request options))]
+    (when-let [idle-timeout (:idle-timeout options)]
+      (.setIdleTimeout ^Channel ch idle-timeout))
     {:status 200
      :body ch}))
 
 (o/set-valid-options! as-channel
-  #{:on-open :on-close :on-message :on-error})
+  #{:on-open :on-close :on-message :on-error :idle-timeout})

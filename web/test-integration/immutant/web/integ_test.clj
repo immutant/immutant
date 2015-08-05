@@ -598,6 +598,85 @@
         (is (= data @rcvd))))
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
 
+(deftest ws-should-timeout-when-idle
+  (let [handler
+        '(do
+           (reset! client-state (promise))
+           (fn [request]
+             (async/as-channel request
+               :idle-timeout 100
+               :on-error (fn [_ e] (.printStackTrace e))
+               :on-open (fn [ch] (async/send! ch "open"))
+               :on-close (fn [_ reason]
+                           (deliver @client-state :closed)))))
+        ready (promise)]
+    (replace-handler handler)
+    (with-open [socket (ws/connect (cdef-url "ws")
+                         :on-receive #(deliver ready %))]
+      (is (= "open" (deref ready 1000 :failure)))
+      (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
+
+(deftest ws-timeout-should-occur-when-truly-idle
+  (let [handler
+        '(do
+           (reset! client-state (promise))
+           (fn [request]
+             (async/as-channel request
+               :idle-timeout 100
+               :on-error (fn [_ e] (.printStackTrace e))
+               :on-open (fn [ch] (future
+                                  (dotimes [n 4]
+                                    (async/send! ch (str n))
+                                    (Thread/sleep 50))
+                                  (async/send! ch "done")))
+               :on-close (fn [_ reason]
+                           (deliver @client-state :closed)))))
+        ready (promise)
+        data (atom [])]
+    (replace-handler handler)
+    (with-open [socket (ws/connect (cdef-url "ws")
+                         :on-receive (fn [m]
+                                       (if (= "done" m)
+                                         (deliver ready m)
+                                         (swap! data conj m))))]
+      (is (= "done" (deref ready 1000 :failure)))
+      (is (= ["0" "1" "2" "3"] @data))
+      (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
+
+(deftest stream-should-timeout-when-idle
+  (let [handler
+        '(do
+           (reset! client-state (promise))
+           (fn [request]
+             (async/as-channel request
+               :idle-timeout 100
+               :on-error (fn [_ e] (.printStackTrace e))
+               :on-close (fn [_ reason]
+                           (deliver @client-state :closed)))))]
+    (replace-handler handler)
+    (is (= 200 (:status (get-response (cdef-url)))))
+    (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
+
+(deftest stream-timeout-should-occur-when-truly-idle
+  (let [handler
+        '(do
+           (reset! client-state (promise))
+           (fn [request]
+             (async/as-channel request
+               :idle-timeout 100
+               :on-open (fn [ch] (future
+                                  (async/send! ch "[")
+                                  (dotimes [n 4]
+                                    (async/send! ch (str " " n))
+                                    (Thread/sleep 50))
+                                  (async/send! ch "]")))
+               :on-error (fn [_ e] (.printStackTrace e))
+               :on-close (fn [_ reason]
+                           (deliver @client-state :closed)))))]
+    (replace-handler handler)
+    (is (= [0 1 2 3] (read-string (get-body (cdef-url)))))
+    (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
+
 ;; TODO: build a long-running random test
 
 (when (not (in-container?))
