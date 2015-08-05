@@ -614,6 +614,7 @@
     (with-open [socket (ws/connect (cdef-url "ws")
                          :on-receive #(deliver ready %))]
       (is (= "open" (deref ready 1000 :failure)))
+      (Thread/sleep 100)
       (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
 
 (deftest ws-timeout-should-occur-when-truly-idle
@@ -641,6 +642,7 @@
                                          (swap! data conj m))))]
       (is (= "done" (deref ready 1000 :failure)))
       (is (= ["0" "1" "2" "3"] @data))
+      (Thread/sleep 100)
       (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
 
 (deftest stream-should-timeout-when-idle
@@ -674,7 +676,9 @@
                :on-close (fn [_ reason]
                            (deliver @client-state :closed)))))]
     (replace-handler handler)
-    (is (= [0 1 2 3] (read-string (get-body (cdef-url)))))
+    (let [:keys [body status] (get-response (cdef-url))]
+      (is (= 200 status))
+      (is (= [0 1 2 3] (read-string body))))
     (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
 
 ;; TODO: build a long-running random test
