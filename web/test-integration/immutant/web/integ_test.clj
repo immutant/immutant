@@ -23,7 +23,8 @@
             [immutant.util :refer (in-container? http-port)]
             [immutant.web :refer (stop) :as web]
             [testing.app :refer (run)]
-            [testing.web :refer (get-body get-response event-source handle-events)]))
+            [testing.web :refer (get-body get-response event-source
+                                  handle-events cookies)]))
 
 (when-not (in-container?)
   (use-fixtures :once
@@ -59,21 +60,20 @@
   (let []
     (is (= "0" (get-body (url) :cookies nil)))
     (is (= "1" (get-body (url))))
-    (let [{:keys [name] :as expected} (-> @testing.web/cookies first (select-keys [:name :value]))]
+    (let [{:keys [name] :as expected} (-> @cookies first (select-keys [:name :value]))]
       (is (= "JSESSIONID" name))
       (is (empty? (get-body (str (url) "unsession"))))
-      (is (= expected (-> @testing.web/cookies first (select-keys [:name :value]))))
+      (is (= expected (-> @cookies first (select-keys [:name :value]))))
       (is (= "0" (get-body (url)))))))
 
 (deftest share-session-with-websocket
   (is (= "0" (get-body (url) :cookies nil)))
   (is (= "1" (get-body (url))))
   (let [result (promise)]
-    (with-open [client (http/create-client)
-                socket (http/websocket client (str (url "ws") "dump")
-                         :text (fn [_ s] (deliver result (decode s)))
-                         :cookies @testing.web/cookies)]
-      (http/send socket :text "doesn't matter")
+    (with-open [socket (ws/connect (str (url "ws") "dump")
+                         :on-receive (fn [s] (deliver result (decode s)))
+                         :cookies @cookies)]
+      (ws/send-msg socket "doesn't matter")
       (let [upgrade (deref result 5000 {})]
         (is (= {:count 2} (:session upgrade))))))
   (is (= "2" (get-body (url)))))
@@ -162,11 +162,10 @@
   ;; initialize the session
   (get-body (str (url)) :cookies nil)
   (let [result (promise)]
-    (with-open [client (http/create-client)
-                socket (http/websocket client (str (url "ws") "ws")
-                         :text (fn [_ m] (deliver result m))
-                         :cookies @testing.web/cookies)]
-      (http/send socket :text "hello")
+    (with-open [socket (ws/connect (str (url "ws") "ws")
+                         :on-receive (fn [m] (deliver result m))
+                         :cookies @cookies)]
+      (ws/send-msg socket "hello")
       (is (= "HELLO" (deref result 5000 :failure)))
       (is (= {:count 1 :ham :sandwich} (decode (get-body (str (url) "session"))))))))
 
@@ -256,7 +255,7 @@
            :on-close (fn [_ r] (deliver @client-state r))))))
   (let [socket (ws/connect (cdef-url "ws"))]
     (ws/close socket)
-    (is (= 1000 (:code (read-string (get-body (str (cdef-url) "state"))))))))
+    (is (= 1001 (:code (read-string (get-body (str (cdef-url) "state"))))))))
 
 (deftest ws-on-close-should-be-invoked-for-every-connection
   (replace-handler
@@ -605,16 +604,19 @@
            (fn [request]
              (async/as-channel request
                :idle-timeout 100
-               :on-error (fn [_ e] (.printStackTrace e))
+               :on-error (fn [_ e]
+                           (println "ERROR ON ws-should-timeout-when-idle")
+                           (.printStackTrace e))
                :on-open (fn [ch] (async/send! ch "open"))
-               :on-close (fn [_ reason]
+               :on-close (fn [_ _]
                            (deliver @client-state :closed)))))
         ready (promise)]
     (replace-handler handler)
     (with-open [socket (ws/connect (cdef-url "ws")
-                         :on-receive #(deliver ready %))]
+                         :on-receive (fn [m]
+                                       (deliver ready m)))]
       (is (= "open" (deref ready 1000 :failure)))
-      (Thread/sleep 100)
+      (Thread/sleep 150)
       (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
 
 (deftest ws-timeout-should-occur-when-truly-idle
@@ -624,7 +626,9 @@
            (fn [request]
              (async/as-channel request
                :idle-timeout 100
-               :on-error (fn [_ e] (.printStackTrace e))
+               :on-error (fn [_ e]
+                           (println "ERROR ON ws-timeout-should-occur-when-truly-idle")
+                           (.printStackTrace e))
                :on-open (fn [ch] (future
                                   (dotimes [n 4]
                                     (async/send! ch (str n))
@@ -642,7 +646,7 @@
                                          (swap! data conj m))))]
       (is (= "done" (deref ready 1000 :failure)))
       (is (= ["0" "1" "2" "3"] @data))
-      (Thread/sleep 100)
+      (Thread/sleep 150)
       (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
 
 (deftest stream-should-timeout-when-idle

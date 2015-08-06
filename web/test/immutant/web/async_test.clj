@@ -59,7 +59,7 @@
         (send! :whatever :whatever {:bad :option}))))
 
 (deftest middleware-websocket
-  (let [expected [:open "hello" 1000]]
+  (let [expected [:open "hello" 1001]]
     (is (= expected (test-websocket (partial wrap-websocket hello))))))
 
 (deftest remote-sending-to-client-using-gniazdo-and-init-ws

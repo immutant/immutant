@@ -25,7 +25,7 @@
   :profiles {:dev
              {:dependencies [[io.pedestal/pedestal.service _]
                              [org.clojars.jcrossley3/http.async.client _]
-                             [stylefruits/gniazdo _]
+                             [org.clojars.tcrawley/gniazdo _]
                              [ring/ring-devel _]
                              [compojure _]
                              [clj-http _]

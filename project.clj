@@ -82,7 +82,7 @@
                         core.memoize               "0.5.6"
                         io.pedestal                "0.3.1"
                         http.async.client          "0.5.2"
-                        stylefruits/gniazdo        "0.1.0"
+                        gniazdo                    "0.4.1a"
                         compojure                  "1.3.4"
                         org.clojure/java.jdbc      "0.3.6"
                         h2                         "1.3.176"
