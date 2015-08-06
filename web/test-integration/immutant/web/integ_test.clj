@@ -603,12 +603,15 @@
            (reset! client-state (promise))
            (fn [request]
              (async/as-channel request
-               :idle-timeout 100
+               :timeout 100
                :on-error (fn [_ e]
                            (println "ERROR ON ws-should-timeout-when-idle")
                            (.printStackTrace e))
-               :on-open (fn [ch] (async/send! ch "open"))
+               :on-open (fn [ch]
+                          (async/send! ch "open")
+                          (println "OPENED ws-should-timeout-when-idle"))
                :on-close (fn [_ _]
+                           (println "CLOSING ws-should-timeout-when-idle")
                            (deliver @client-state :closed)))))
         ready (promise)]
     (replace-handler handler)
@@ -616,7 +619,6 @@
                          :on-receive (fn [m]
                                        (deliver ready m)))]
       (is (= "open" (deref ready 1000 :failure)))
-      (Thread/sleep 150)
       (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
 
 (deftest ws-timeout-should-occur-when-truly-idle
@@ -625,16 +627,19 @@
            (reset! client-state (promise))
            (fn [request]
              (async/as-channel request
-               :idle-timeout 100
+               :timeout 100
                :on-error (fn [_ e]
                            (println "ERROR ON ws-timeout-should-occur-when-truly-idle")
                            (.printStackTrace e))
-               :on-open (fn [ch] (future
-                                  (dotimes [n 4]
-                                    (async/send! ch (str n))
-                                    (Thread/sleep 50))
-                                  (async/send! ch "done")))
+               :on-open (fn [ch]
+                          (future
+                            (dotimes [n 4]
+                              (async/send! ch (str n))
+                              (Thread/sleep 50))
+                            (async/send! ch "done")
+                            (println "OPENED ws-timeout-should-occur-when-truly-idle")))
                :on-close (fn [_ reason]
+                           (println "CLOSING ws-timeout-should-occur-when-truly-idle")
                            (deliver @client-state :closed)))))
         ready (promise)
         data (atom [])]
@@ -649,40 +654,21 @@
       (Thread/sleep 150)
       (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest stream-should-timeout-when-idle
+(deftest stream-should-timeout
   (let [handler
         '(do
            (reset! client-state (promise))
            (fn [request]
              (async/as-channel request
-               :idle-timeout 100
-               :on-error (fn [_ e] (.printStackTrace e))
+               :timeout 100
+               :on-error (fn [_ e]
+                           (println "ERROR stream-should-timeout")
+                           (.printStackTrace e))
                :on-close (fn [_ reason]
+                           (println "CLOSE stream-should-timeout")
                            (deliver @client-state :closed)))))]
     (replace-handler handler)
     (is (= 200 (:status (get-response (cdef-url)))))
-    (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
-
-(deftest stream-timeout-should-occur-when-truly-idle
-  (let [handler
-        '(do
-           (reset! client-state (promise))
-           (fn [request]
-             (async/as-channel request
-               :idle-timeout 100
-               :on-open (fn [ch] (future
-                                  (async/send! ch "[")
-                                  (dotimes [n 4]
-                                    (async/send! ch (str " " n))
-                                    (Thread/sleep 50))
-                                  (async/send! ch "]")))
-               :on-error (fn [_ e] (.printStackTrace e))
-               :on-close (fn [_ reason]
-                           (deliver @client-state :closed)))))]
-    (replace-handler handler)
-    (let [{:keys [body status]} (get-response (cdef-url))]
-      (is (= 200 status))
-      (is (= [0 1 2 3] (read-string body))))
     (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
 
 ;; TODO: build a long-running random test

@@ -277,9 +277,12 @@
   * :on-message - `(fn [ch message] ...)` - Called for each message
     from the client. `message` will be a `String` or `byte[]`
 
-  You can also specify an `:idle-timeout` option, that will cause the
-  channel to be closed if idle more than the timeout. It defaults to 0
-  (no timeout), and is in milliseconds.
+  You can also specify a `:timeout` option, that will cause a
+  Websocket to be closed if *idle* more than the timeout, or an HTTP
+  stream to be closed if *open* more than the timeout. This means that
+  once opened, an HTTP stream will be closed after :timeout elapses,
+  regardless of activity. It defaults to 0 (no timeout), and is in
+  milliseconds.
 
   When the ring handler is called during a WebSocket upgrade request,
   any headers returned in the response map are ignored, but any changes to
@@ -289,15 +292,15 @@
   returned in the response map from the calling ring handler."
   [request & options]
   (let [options (-> options
-                    u/kwargs-or-map->map
-                    (o/validate-options as-channel))
+                  u/kwargs-or-map->map
+                  (o/validate-options as-channel))
         ch (if (:websocket? request)
              (initialize-websocket request options)
              (initialize-stream request options))]
-    (when-let [idle-timeout (:idle-timeout options)]
-      (.setIdleTimeout ^Channel ch idle-timeout))
+    (when-let [timeout (:timeout options)]
+      (.setTimeout ^Channel ch timeout))
     {:status 200
      :body ch}))
 
 (o/set-valid-options! as-channel
-  #{:on-open :on-close :on-message :on-error :idle-timeout})
+  #{:on-open :on-close :on-message :on-error :timeout})

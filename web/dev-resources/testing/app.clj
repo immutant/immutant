@@ -92,7 +92,7 @@
   (@client-defined-handler request))
 
 (defn get-client-state [_]
-  (-> @client-state (maybe-deref 5000 :failure!) pr-str response))
+  (-> @client-state (maybe-deref 30000 :failure!) pr-str response))
 
 (defroutes routes
   (GET "/" [] counter)
