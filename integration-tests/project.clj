@@ -60,4 +60,4 @@
                         :exclusions [org.hornetq/hornetq-jms-server org.hornetq/hornetq-server]
                         :dependencies [[org.hornetq/hornetq-jms-server "2.3.25.Final"]
                                        [org.hornetq/hornetq-server "2.3.25.Final"]]}
-             :eap [:web :scheduling :messaging :eap-base]})
+             :eap [:web :scheduling :messaging :caching :eap-base]})
