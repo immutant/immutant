@@ -32,7 +32,7 @@ mark "Starting integs"
 lein with-profile +eap all
 
 mark "Starting cluster tests"
-lein with-profile +cluster,+eap all
+lein with-profile +cluster,+eap-base all
 
 cd -
 
