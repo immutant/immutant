@@ -190,6 +190,20 @@ initialization in WildFly:
 To learn about how logging works when inside WildFly, along with how
 to change the default configuration, see our [logging guide].
 
+## Async Issues with WildFly 8.2
+
+Due to
+[a locking issue around sessions](https://issues.jboss.org/browse/WFLY-3715),
+HTTP streams have a couple of limitations in WildFly 8.2, namely:
+
+* [[immutant.web.async/send!]] calls to a stream are actually synchronous
+  instead of asynchronous
+* you cannot pass a `:timeout` to [[immutant.web.async/as-channel]] -
+  doing so will trigger an exception
+
+We recommend you upgrade to WildFly 9.0.0 or newer if you intend to
+use HTTP streams.
+
 [WildFly]: http://wildfly.org
 [JBoss EAP]: http://www.jboss.org/products/eap/overview/
 [lein-immutant]: https://github.com/immutant/lein-immutant/
