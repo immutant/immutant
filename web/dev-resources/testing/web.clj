@@ -50,8 +50,10 @@
   (with-open [client (http/create-client)]
     (let [response (get-response url :headers headers :cookies cookies)]
       (if (= 200 (:status response))
-          (:body response)
-          (:status response)))))
+        (:body response)
+        (do
+          (if-let [b (:body response)] (println b))
+          (:status response))))))
 
 (defn event-source
   "Returns an SSE EventSource client"
