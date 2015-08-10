@@ -18,16 +18,23 @@
 (ns integs.cluster-test
   (:require [fntest.core :refer :all]
             [clojure.test :refer :all]
-            [integs.cluster-help :refer (get-as-data stop start http-port mark)]
+            [environ.core :refer (env)]
+            [integs.cluster-help :refer (get-as-data stop start mark) :as u]
             [immutant.messaging :as msg]))
 
-(def opts {:host "localhost", :remote-type :hornetq-wildfly,
-           :username "testuser", :password "testuser1!"})
+(def opts {:host "localhost", :username "testuser", :password "testuser1!" :remote-type :hornetq-wildfly})
+(def port u/http-port)
+(def profiles [:cluster :dev :test])
+
+(when (env :eap)
+  (def opts (dissoc opts :remote-type))
+  (def port u/messaging-port)
+  (def profiles (conj profiles :eap-base)))
 
 (use-fixtures :once
   (compose-fixtures
     (partial with-jboss #{:isolated :offset :domain})
-    (with-deployment "ROOT.war" "." :profiles [:cluster :dev :test])))
+    (with-deployment "ROOT.war" "." :profiles profiles)))
 
 (defmacro marktest [t & body]
   `(deftest ~t
@@ -55,7 +62,7 @@
 
 (marktest failover
   (let [responses (atom [])
-        host1 (with-open [c (msg/context (assoc opts :port (http-port "server-one")))]
+        host1 (with-open [c (msg/context (assoc opts :port (port "server-one")))]
                 (deref (msg/request (msg/queue "/queue/cache" :context c) :whatever)
                   60000 nil))
         host2 (-> #{"server-one" "server-two"} (disj host1) first)
@@ -76,8 +83,8 @@
     (is (apply < (map :count @responses)))))
 
 (marktest publish-here-receive-there
-  (with-open [ctx1 (msg/context (assoc opts :port (http-port "server-one")))
-              ctx2 (msg/context (assoc opts :port (http-port "server-two")))]
+  (with-open [ctx1 (msg/context (assoc opts :port (port "server-one")))
+              ctx2 (msg/context (assoc opts :port (port "server-two")))]
     (let [q1 (msg/queue "/queue/cluster" :context ctx1)
           q2 (msg/queue "/queue/cluster" :context ctx2)
           received (atom #{})

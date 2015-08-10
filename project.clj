@@ -89,13 +89,14 @@
                         jersey-media-sse           "2.15"
                         potemkin                   "0.3.12"
                         clj-http                   "1.0.1"
+                        environ                    "1.0.0"
 
                         ;; org.projectodd.wunderboss  "0.8.1"
                         org.projectodd.wunderboss  "1.x.incremental.272"
                         ;; org.projectodd.wunderboss  "0.8.2-SNAPSHOT"
 
                         org.immutant               :version
-                        fntest                     "2.0.5"}}
+                        fntest                     "2.0.6"}}
 
   :release-tasks  [["vcs" "assert-committed"]
 

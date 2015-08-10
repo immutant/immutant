@@ -21,7 +21,7 @@
             [fntest.core :refer (offset-port *server*)]))
 
 (def http-port (partial offset-port :http))
-(def messaging-port (partial offset-port :messaging))
+(def messaging-port (partial offset-port 5445))
 (def cookies (clj-http.cookies/cookie-store))
 
 (defn base-url [host]
