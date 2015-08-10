@@ -654,22 +654,42 @@
       (Thread/sleep 150)
       (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest stream-should-timeout
-  (let [handler
-        '(do
-           (reset! client-state (promise))
-           (fn [request]
-             (async/as-channel request
-               :timeout 100
-               :on-error (fn [_ e]
-                           (println "ERROR stream-should-timeout")
-                           (.printStackTrace e))
-               :on-close (fn [_ reason]
-                           (println "CLOSE stream-should-timeout")
-                           (deliver @client-state :closed)))))]
-    (replace-handler handler)
-    (is (= 200 (:status (get-response (cdef-url)))))
-    (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
+(deftest stream-timeouts
+  (if (or (immutant.web.internal.servlet/async-streaming-supported?)
+        (not (in-container?)))
+    (let [handler
+          '(do
+             (reset! client-state (promise))
+             (fn [request]
+               (async/as-channel request
+                 :timeout 100
+                 :on-error (fn [_ e]
+                             (println "ERROR stream-should-timeout")
+                             (.printStackTrace e))
+                 :on-close (fn [_ reason]
+                             (println "CLOSE stream-should-timeout")
+                             (deliver @client-state :closed)))))]
+      (replace-handler handler)
+      (is (= 200 (:status (get-response (cdef-url)))))
+      (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))
+    ;; in WF 8.2, a timeout causes a deadlock in ispan around the
+    ;; session, so we don't allow timeouts there
+    (let [handler
+          '(do
+             (reset! client-state (promise))
+             (fn [request]
+               (try
+                 (async/as-channel request
+                   :timeout 100)
+                 (println "TOO FAR")
+                 (catch IllegalArgumentException e
+                   (println "HEY" e)
+                   (deliver @client-state (.getMessage e))
+                   {:status 500}))))]
+      (replace-handler handler)
+      (is (= 500 (:status (get-response (cdef-url)))))
+      (is (re-find #"HTTP stream timeouts are not supported on this platform"
+            (read-string (get-body (str (cdef-url) "state"))))))))
 
 ;; TODO: build a long-running random test
 

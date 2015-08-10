@@ -109,21 +109,25 @@
   "Returns the HTTP port for the embedded web server"
   (partial port :http))
 
-(let [container-type (delay (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ASUtils)
-                              (.getMethod "containerTypeAsString" nil)
-                              (.invoke nil nil)))]
+(defn- invoke-as-util-method [^String method]
+  (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ASUtils)
+    (.getMethod method nil)
+    (.invoke nil nil)))
+
+(let [container-type (delay (invoke-as-util-method "containerTypeAsString"))]
   (defn in-eap?
   "Returns true if we're in an EAP container."
   []
   (= "EAP" @container-type)))
 
-(let [streaming-supported? (delay (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ASUtils)
-                                    (.getMethod "isAsyncStreamingSupported" nil)
-                                    (.invoke nil nil)))]
+(let [streaming-supported? (delay (invoke-as-util-method "isAsyncStreamingSupported"))]
   (defn async-streaming-supported?
   "Returns true if the container supports async HTTP stream sends."
   []
-  @streaming-supported?))
+  ;; the delay returns an instance of Boolean, but not Boolean/TRUE or
+  ;; Boolean/FALSE for some reason, so we have to coerce it to a
+  ;; boolean primitive for clojure to be happy and treat false as false
+  (boolean @streaming-supported?)))
 
 (defn messaging-remoting-port
   "Returns the port that HornetQ is listening on for remote connections"
