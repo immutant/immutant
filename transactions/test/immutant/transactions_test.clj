@@ -17,7 +17,7 @@
             [clojure.java.io :as io]
             [immutant.transactions :refer :all]
             [immutant.transactions.scope :refer (required not-supported)]
-            [immutant.util :refer [in-container? set-log-level! messaging-remoting-port]]
+            [immutant.util :refer [in-container? in-eap? set-log-level! messaging-remoting-port]]
             [immutant.messaging :as msg]
             [immutant.caching   :as csh]
             [clojure.java.jdbc :as sql]))
@@ -26,11 +26,11 @@
 (def cache (csh/cache "tx-test" :transactional? true))
 (def queue (msg/queue "/queue/test" :durable? false))
 (def local-remote-queue (msg/queue "remote" :durable? false))
-(def conn (if (in-container?)
-            (msg/context :host "localhost" :port (messaging-remoting-port)
-              :username "testuser" :password "testuser1!" :remote-type :hornetq-wildfly
-              :xa? true)
-            (msg/context :host "localhost" :xa? true)))
+(def conn (msg/context (cond-> {:host "localhost" :xa? true}
+                         (in-container?) (assoc :port (messaging-remoting-port)
+                                           :username "testuser" :password "testuser1!"
+                                           :remote-type :hornetq-wildfly)
+                         (in-eap?) (dissoc :remote-type))))
 (def remote-queue (msg/queue "remote" :context conn))
 (def trigger (msg/queue "/queue/trigger" :durable? false))
 (def spec {:connection-uri "jdbc:h2:mem:ooc;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"})

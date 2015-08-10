@@ -64,4 +64,4 @@
                         :dependencies [[org.hornetq/hornetq-jms-server "2.3.25.Final"]
                                        [org.hornetq/hornetq-server "2.3.25.Final"]
                                        [org.jboss.jbossts.jta/narayana-jta "4.17.29.Final"]]}
-             :eap [:web :scheduling :messaging :caching :eap-base]})
+             :eap [:web :scheduling :messaging :caching :transactions :eap-base]})
