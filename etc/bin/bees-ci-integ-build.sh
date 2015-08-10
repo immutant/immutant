@@ -10,7 +10,7 @@ DIR=$( cd "$( dirname "$0" )" && pwd )
 . ${DIR}/common-build.sh
 
 WF8_VERSION="8.2.0.Final"
-WF9_VERSION="9.0.0.Final"
+WF9_VERSION="9.0.1.Final"
 
 function install-wildfly {
     mark "Installing WildFly ${WF8_VERSION}"
