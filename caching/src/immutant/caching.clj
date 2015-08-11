@@ -141,6 +141,13 @@
       (:ttl options -1)
       (:idle options -1))))
 
+(let [serializer (java.util.concurrent.Executors/newSingleThreadExecutor)]
+  (defn mark [& msg]
+    (let [^Runnable r #(apply println
+                         (.format (java.text.SimpleDateFormat. "HH:mm:ss,SSS")
+                           (java.util.Date.)) msg)]
+      (.submit serializer r))))
+
 (defn swap-in!
   "Atomically swaps the value associated to the key in the cache with
   the result of applying f, passing the current value as the first
@@ -149,15 +156,22 @@
   If the key is missing, the result of applying f to nil will be
   inserted atomically."
   [^org.infinispan.Cache cache key f & args]
+  (mark "SWAP-IN started")
   (loop [val (get cache key)]
+    (mark "SWAP-IN in loop")
     (let [new (apply f val args)]
+      (mark "SWAP-IN post apply")
       (if (or val (contains? cache key))
-        (if (.replace cache key val new)
-          new
-          (recur (get cache key)))
-        (if (nil? (.putIfAbsent cache key new))
-          new
-          (recur (get cache key)))))))
+        (let [v (.replace cache key val new)]
+          (mark "SWAP-IN post replace")
+          (if v
+            new
+            (recur (get cache key))))
+        (let [v (.putIfAbsent cache key new)]
+          (mark "SWAP-IN post putIfAbsent")
+          (if (nil? v)
+            new
+            (recur (get cache key))))))))
 
 (defn exists?
   "Return true if the named cache exists"

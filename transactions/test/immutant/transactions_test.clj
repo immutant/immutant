@@ -62,15 +62,23 @@
     :c
     int))
 
+(def mark csh/mark)
+
 (defn work [m]
+  (mark "MESSAGE RCVD" m)
   (csh/swap-in! cache :a (constantly 1))
+  (mark "SWAPPED")
   (msg/publish queue "kiwi")
+  (mark "PUBLISHED kiwi")
   (msg/publish remote-queue "starfruit")
+  (mark "PUBLISHED starfruit")
   (not-supported
     (csh/swap-in! cache :deliveries (fnil inc 0)))
+  (mark "UPDATED :deliveries")
   (sql/with-db-transaction [t spec]
+    (mark "WRITING TO DB")
     (write-thing-to-db t "tangerine")
-    (when (:throw? m) (throw (Exception. "rollback")))
+    (when (:throw? m) (mark "THROWING") (throw (Exception. "rollback")))
     (when (:rollback? m)
       (set-rollback-only)
       (sql/db-set-rollback-only! t))))
@@ -154,11 +162,13 @@
 (deftest non-transactional-writes-in-listener-with-exception
   (with-open [_ (msg/listen trigger listener :mode :auto-ack)]
     (msg/publish trigger {:throw? true})
+    (mark "MESSAGE SENT")
     (is (= 10 (loop [i 0]
                 (Thread/sleep 100)
                 (if (or (= 50 i) (= 10 (:deliveries cache)))
                   (:deliveries cache)
                   (recur (inc i))))))
+    (mark "LOOP DONE")
     (is (= 1 (:a cache)))
     (is (= (repeat 10 "kiwi")      (repeatedly 10 #(msg/receive queue))))
     (is (= (repeat 10 "starfruit") (repeatedly 10 #(msg/receive local-remote-queue))))))
