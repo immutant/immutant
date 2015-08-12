@@ -453,7 +453,13 @@
                           (async/send! ch "biscuit"
                             {:close? true
                              :on-success #(deliver @client-state :complete!)
-                             :on-error #(deliver @client-state %)})))))]
+                             :on-error (fn [e]
+                                         (println "SEND ERROR send!-a-string")
+                                         (.printStackTrace e)
+                                         (deliver @client-state e))}))
+               :on-error (fn [_ e]
+                           (println "CHANNEL ERROR send!-a-string")
+                           (.printStackTrace e)))))]
     (replace-handler handler)
     (is (= "biscuit" (get-body (cdef-url))))
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
@@ -476,7 +482,13 @@
                           (async/send! ch (.getBytes "biscuit")
                             {:close? true
                              :on-success #(deliver @client-state :complete!)
-                             :on-error #(deliver @client-state %)})))))]
+                             :on-error (fn [e]
+                                         (println "SEND ERROR send!-a-byte-array")
+                                         (.printStackTrace e)
+                                         (deliver @client-state e))}))
+               :on-error (fn [_ e]
+                           (println "CHANNEL ERROR send!-a-byte-array")
+                           (.printStackTrace e)))))]
     (replace-handler handler)
     (is (= "biscuit" (String. (get-body (cdef-url)))))
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
@@ -500,7 +512,13 @@
                           (async/send! ch (list "ham" (.getBytes "biscuit") (list "gravy"))
                             {:close? true
                              :on-success #(deliver @client-state :complete!)
-                             :on-error #(deliver @client-state %)})))))]
+                             :on-error (fn [e]
+                                         (println "SEND ERROR send!-a-sequence")
+                                         (.printStackTrace e)
+                                         (deliver @client-state e))}))
+               :on-error (fn [_ e]
+                           (println "CHANNEL ERROR send!-a-sequence")
+                           (.printStackTrace e)))))]
     (replace-handler handler)
     (is (= "hambiscuitgravy" (String. (get-body (cdef-url)))))
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
@@ -529,8 +547,15 @@
              (async/as-channel request
                :on-open (fn [ch]
                           (async/send! ch '()
-                            {:close? true}))
-               :on-close (fn [_ _] (deliver @client-state :complete!)))))]
+                            {:close? true
+                             :on-error (fn [e]
+                                         (println "SEND ERROR send!-an-empty-sequence")
+                                         (.printStackTrace e)
+                                         (deliver @client-state e))}))
+               :on-close (fn [_ _] (deliver @client-state :complete!))
+               :on-error (fn [_ e]
+                           (println "CHANNEL ERROR send!-an-empty-sequence")
+                           (.printStackTrace e)))))]
     (replace-handler handler)
     (get-body (cdef-url))
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
@@ -550,7 +575,13 @@
                           (async/send! ch (io/file (io/resource "public/foo.html"))
                             {:close? true
                              :on-success #(deliver @client-state :complete!)
-                             :on-error #(deliver @client-state %)})))))]
+                             :on-error (fn [e]
+                                         (println "SEND ERROR send!-a-file")
+                                         (.printStackTrace e)
+                                         (deliver @client-state e))}))
+               :on-error (fn [_ e]
+                           (println "CHANNEL ERROR send!-a-file")
+                           (.printStackTrace e)))))]
     (replace-handler handler)
     (is (= (slurp (io/file (io/resource "public/foo.html")))
           (String. (get-body (cdef-url)))))
@@ -578,7 +609,13 @@
                                             io/resource io/file)
                             {:close? true
                              :on-success #(deliver @client-state :complete!)
-                             :on-error #(deliver @client-state %)})))))
+                             :on-error (fn [e]
+                                         (println "SEND ERROR send!-with-input-stream-larger-than-size-hint")
+                                         (.printStackTrace e)
+                                         (deliver @client-state e))}))
+               :on-error (fn [_ e]
+                           (println "CHANNEL ERROR send!-with-input-stream-larger-than-size-hint")
+                           (.printStackTrace e)))))
         data (->> "data"
                io/resource io/file slurp)]
     (replace-handler handler)
