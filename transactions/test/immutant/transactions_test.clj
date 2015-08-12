@@ -23,8 +23,7 @@
             [clojure.java.jdbc :as sql]))
 
 (set-log-level! (or (System/getenv "LOG_LEVEL") :OFF))
-(def tx-cache (csh/cache "tx-test" :transactional? true))
-(def non-tx-cache (csh/cache "non-tx-test" :transactional? false))
+(def cache (csh/cache "tx-test" :transactional? true))
 (def queue (msg/queue "/queue/test" :durable? false))
 (def local-remote-queue (msg/queue "remote" :durable? false))
 (def conn (msg/context (cond-> {:host "localhost" :xa? true}
@@ -38,8 +37,7 @@
 
 (use-fixtures :each
   (fn [f]
-    (.clear tx-cache)
-    (.clear non-tx-cache)
+    (.clear cache)
     (try
       (sql/db-do-commands spec
         (sql/drop-table-ddl :things)
@@ -65,19 +63,17 @@
     int))
 
 (defn work [m]
-  (let [{:keys [non-tx-cache? throw? rollback?]} m
-        cache (if non-tx-cache? non-tx-cache tx-cache)]
-    (csh/swap-in! cache :a (constantly 1))
-    (msg/publish queue "kiwi")
-    (msg/publish remote-queue "starfruit")
-    (not-supported
-      (csh/swap-in! cache :deliveries (fnil inc 0)))
-    (sql/with-db-transaction [t spec]
-      (write-thing-to-db t "tangerine")
-      (when throw? (throw (Exception. "rollback")))
-      (when rollback?
-        (set-rollback-only)
-        (sql/db-set-rollback-only! t)))))
+  (csh/swap-in! cache :a (constantly 1))
+  (msg/publish queue "kiwi")
+  (msg/publish remote-queue "starfruit")
+  (not-supported
+    (csh/swap-in! cache :deliveries (fnil inc 0)))
+  (sql/with-db-transaction [t spec]
+    (write-thing-to-db t "tangerine")
+    (when (:throw? m) (throw (Exception. "rollback")))
+    (when (:rollback? m)
+      (set-rollback-only)
+      (sql/db-set-rollback-only! t))))
 
 (defn listener [m]
   (if (:tx? m)
@@ -103,14 +99,14 @@
 (defn verify-success []
   (is (= "kiwi" (msg/receive queue :timeout 1000)))
   (is (= "starfruit" (msg/receive local-remote-queue :timeout 1000)))
-  (is (= 1 (:a tx-cache)))
+  (is (= 1 (:a cache)))
   (is (= "tangerine" (:name (read-thing-from-db spec "tangerine"))))
   (is (= 1 (count-things-in-db spec))))
 
 (defn verify-failure []
   (is (nil? (msg/receive queue :timeout 1000)))
   (is (nil? (msg/receive local-remote-queue :timeout 1000)))
-  (is (nil? (:a tx-cache)))
+  (is (nil? (:a cache)))
   (is (nil? (read-thing-from-db spec "tangerine")))
   (is (= 0 (count-things-in-db spec))))
 
@@ -147,22 +143,22 @@
   (with-open [_ (msg/listen trigger listener)]
     (msg/publish trigger {:tx? true :throw? true})
     (verify-failure)
-    (is (= 10 (:deliveries tx-cache)))))
+    (is (= 10 (:deliveries cache)))))
 
 (deftest transactional-writes-in-listener-should-fail-on-rollback
   (with-open [_ (msg/listen trigger listener)]
     (msg/publish trigger {:tx? true :rollback? true})
     (verify-failure)
-    (is (= 1 (:deliveries tx-cache)))))
+    (is (= 1 (:deliveries cache)))))
 
 (deftest non-transactional-writes-in-listener-with-exception
   (with-open [_ (msg/listen trigger listener :mode :auto-ack)]
-    (msg/publish trigger {:throw? true :non-tx-cache? true})
+    (msg/publish trigger {:throw? true})
     (is (= 10 (loop [i 0]
                 (Thread/sleep 100)
-                (if (or (= 50 i) (= 10 (:deliveries non-tx-cache)))
-                  (:deliveries non-tx-cache)
+                (if (or (= 50 i) (= 10 (:deliveries cache)))
+                  (:deliveries cache)
                   (recur (inc i))))))
-    (is (= 1 (:a non-tx-cache)))
+    (is (= 1 (:a cache)))
     (is (= (repeat 10 "kiwi")      (repeatedly 10 #(msg/receive queue))))
     (is (= (repeat 10 "starfruit") (repeatedly 10 #(msg/receive local-remote-queue))))))
