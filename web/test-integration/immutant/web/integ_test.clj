@@ -50,13 +50,37 @@
   (get-response (str (cdef-url) "set-handler")
     :query {:new-handler (pr-str form)}))
 
-(deftest http-session-store
+(let [serializer (java.util.concurrent.Executors/newSingleThreadExecutor)]
+  (defn mark [& msg]
+    (let [ts (.format (java.text.SimpleDateFormat. "HH:mm:ss,SSS")
+               (java.util.Date.))
+          ^Runnable r #(apply println ts msg)]
+      (when (in-container?) (apply println ts msg))
+      (.submit serializer r))))
+
+(defmacro marktest [t & body]
+  `(deftest ~t
+     (let [v# (-> ~t var meta :name)]
+       (mark "START" v#)
+       ~@body
+       (mark "FINISH" v#))))
+
+(defmacro flog
+  "runs the body 100 times"
+  [& body]
+  `(dotimes [n# 100]
+     (mark (format "RUNNING %s (iteration %s)"
+             (-> *testing-vars* first meta :name)
+             n#))
+     ~@body))
+
+(marktest http-session-store
   (is (= "0" (get-body (url) :cookies nil)))
   (is (= {:count 1} (decode (get-body (str (url) "session")))))
   (is (= "1" (get-body (url))))
   (is (= {:count 2} (decode (get-body (str (url) "session"))))))
 
-(deftest session-invalidation
+(marktest session-invalidation
   (let []
     (is (= "0" (get-body (url) :cookies nil)))
     (is (= "1" (get-body (url))))
@@ -66,7 +90,7 @@
       (is (= expected (-> @cookies first (select-keys [:name :value]))))
       (is (= "0" (get-body (url)))))))
 
-(deftest share-session-with-websocket
+(marktest share-session-with-websocket
   (is (= "0" (get-body (url) :cookies nil)))
   (is (= "1" (get-body (url))))
   (let [result (promise)]
@@ -78,7 +102,7 @@
         (is (= {:count 2} (:session upgrade))))))
   (is (= "2" (get-body (url)))))
 
-(deftest request-map-entries
+(marktest request-map-entries
   (get-body (url)) ;; ensure there's something in the session
   (let [request (decode (get-body (str (url) "dump/request?query=help") :headers {:content-type "text/html; charset=utf-8"}))]
     (are [x expected] (= expected (x request))
@@ -98,7 +122,7 @@
     (is (map? (:headers request)))
     (is (< 3 (count (:headers request))))))
 
-(deftest upgrade-request-map-entries
+(marktest upgrade-request-map-entries
   (let [request (promise)]
     (with-open [s (ws/connect (str (url "ws") "dump?x=y&j=k")
                     :on-receive (fn [m] (deliver request (decode m))))]
@@ -116,14 +140,14 @@
         (is (= "Upgrade" (get-in m [:headers "connection"])))
         (is (= "k" (get-in m [:params "j"])))))))
 
-(deftest response-charset-should-be-honored
+(marktest response-charset-should-be-honored
   (doseq [charset ["UTF-8" "Shift_JIS" "ISO-8859-1" "UTF-16" "US-ASCII"]]
     (let [{:keys [headers raw-body]} (get-response (str (url) "charset?charset=" charset))]
       (is (= (read-string (headers "BodyBytes"))
             (into [] (.toByteArray raw-body)))))))
 
 (when (in-container?)
-  (deftest run-in-container-outside-of-init-should-throw
+  (marktest run-in-container-outside-of-init-should-throw
     (try
       (web/run identity)
       (is false)
@@ -132,7 +156,7 @@
 
 ;; async
 
-(deftest chunked-streaming
+(marktest chunked-streaming
   (with-open [client (http/create-client)]
     (let [response (http/stream-seq client :get (str (url) "chunked-stream"))
           stream @(:body response)
@@ -150,7 +174,7 @@
       (is (= 10 (count @body)))
       (is (= "biscuit" (:ham headers))))))
 
-(deftest non-chunked-stream
+(marktest non-chunked-stream
   (let [data (apply str (repeat 128 1))]
     (let [response (get-response (str (url) "non-chunked-stream"))]
       (is (= 200 (:status response)))
@@ -158,7 +182,7 @@
       (is (= (count data) (-> response :headers :content-length read-string)))
       (is (= data (:body response))))))
 
-(deftest websocket-as-channel
+(marktest websocket-as-channel
   ;; initialize the session
   (get-body (str (url)) :cookies nil)
   (let [result (promise)]
@@ -169,7 +193,7 @@
       (is (= "HELLO" (deref result 5000 :failure)))
       (is (= {:count 1 :ham :sandwich} (decode (get-body (str (url) "session"))))))))
 
-(deftest nested-ws-routes
+(marktest nested-ws-routes
   (doseq [path ["" "foo" "foo/bar"]]
     (let [result (promise)]
       (with-open [socket (ws/connect (format "%snested-ws/%s" (url "ws") path)
@@ -178,14 +202,7 @@
         (is (= (str "/" path)
               (-> result (deref 5000 "nil") read-string :path-info)))))))
 
-(let [serializer (java.util.concurrent.Executors/newSingleThreadExecutor)]
-  (defn mark [& msg]
-    (let [^Runnable r #(apply println
-                         (.format (java.text.SimpleDateFormat. "HH:mm:ss,SSS")
-                           (java.util.Date.)) msg)]
-      (.submit serializer r))))
-
-(deftest concurrent-ws-requests-should-not-cross-streams
+(marktest concurrent-ws-requests-should-not-cross-streams
   (replace-handler
     '(fn [request]
        (async/as-channel request
@@ -213,7 +230,7 @@
     (doseq [client @clients]
       (.close client))))
 
-(deftest request-should-be-attached-to-channel-for-ws
+(marktest request-should-be-attached-to-channel-for-ws
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -234,7 +251,7 @@
       (is (= "/" (:path-info request)))
       (is (= "Upgrade" (get-in request [:headers "connection"]))))))
 
-(deftest ws-on-close-should-be-invoked-when-closing-on-server-side
+(marktest ws-on-close-should-be-invoked-when-closing-on-server-side
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -246,7 +263,7 @@
     (ws/send-msg socket "hello")
     (is (= 1000 (:code (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest ws-on-close-should-be-invoked-when-closing-on-client
+(marktest ws-on-close-should-be-invoked-when-closing-on-client
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -257,7 +274,7 @@
     (ws/close socket)
     (is (= 1001 (:code (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest ws-on-close-should-be-invoked-for-every-connection
+(marktest ws-on-close-should-be-invoked-for-every-connection
   (replace-handler
     '(do
        (reset! client-state #{})
@@ -270,7 +287,7 @@
     (ws/close socket2)
     (is (= 2 (-> (str (cdef-url) "state") get-body read-string count)))))
 
-(deftest ws-on-success-should-be-called-after-send
+(marktest ws-on-success-should-be-called-after-send
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -284,7 +301,7 @@
     (ws/send-msg socket "hello")
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
 
-(deftest ws-on-error-is-called-if-on-success-throws
+(marktest ws-on-error-is-called-if-on-success-throws
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -298,7 +315,7 @@
     (ws/send-msg socket "hello")
     (is (= "BOOM" (read-string (get-body (str (cdef-url) "state")))))))
 
-(deftest ws-send!-nil-should-work
+(marktest ws-send!-nil-should-work
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -312,7 +329,7 @@
     (ws/send-msg socket "hello")
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
 
-(deftest request-should-be-attached-to-channel-for-stream
+(marktest request-should-be-attached-to-channel-for-stream
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -333,7 +350,7 @@
     (is request)
     (is (= "/" (:path-info request)))))
 
-(deftest send!-to-stream-with-map-overrides-status-headers
+(marktest send!-to-stream-with-map-overrides-status-headers
   (replace-handler
     '(fn [request]
        (async/as-channel request
@@ -347,7 +364,7 @@
     (is (= 201 status))
     (is (= "bar" (:foo headers)))))
 
-(deftest send!-to-stream-with-map-after-send-has-started-throws
+(marktest send!-to-stream-with-map-after-send-has-started-throws
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -364,7 +381,7 @@
   (is (re-find #"this is not the first send"
         (read-string (get-body (str (cdef-url) "state"))))))
 
-(deftest send!-to-ws-with-map-throws
+(marktest send!-to-ws-with-map-throws
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -379,7 +396,7 @@
   (is (re-find #"channel is not an HTTP stream channel"
         (read-string (get-body (str (cdef-url) "state"))))))
 
-(deftest closing-a-stream-with-no-send-should-honor-original-response
+(marktest closing-a-stream-with-no-send-should-honor-original-response
   (replace-handler
     '(fn [request]
        (assoc (async/as-channel request
@@ -390,7 +407,7 @@
     (is (= 201 status))
     (is (= "biscuit" (:ham headers)))))
 
-(deftest stream-on-close-should-be-invoked-when-closing-on-server-side
+(marktest stream-on-close-should-be-invoked-when-closing-on-server-side
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -401,7 +418,7 @@
   (is (= nil (get-body (cdef-url))))
   (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))
 
-(deftest nil-send!-to-stream-should-work
+(marktest nil-send!-to-stream-should-work
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -416,7 +433,7 @@
     (is (nil? body))
     (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
 
-(deftest stream-on-success-should-be-called-after-send
+(marktest stream-on-success-should-be-called-after-send
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -429,7 +446,7 @@
   (is (= "ahoy" (get-body (cdef-url))))
   (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))
 
-(deftest stream-on-error-is-called-if-on-success-throws
+(marktest stream-on-error-is-called-if-on-success-throws
   (replace-handler
     '(do
        (reset! client-state (promise))
@@ -443,7 +460,7 @@
   (is (= "ahoy" (get-body (cdef-url))))
   (is (= "BOOM" (read-string (get-body (str (cdef-url) "state"))))))
 
-(deftest send!-a-string
+(marktest send!-a-string
   (let [handler
         '(do
            (reset! client-state (promise))
@@ -460,19 +477,20 @@
                :on-error (fn [_ e]
                            (println "CHANNEL ERROR send!-a-string")
                            (.printStackTrace e)))))]
-    (replace-handler handler)
-    (is (= "biscuit" (get-body (cdef-url))))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+    (flog
+      (replace-handler handler)
+      (is (= "biscuit" (get-body (cdef-url))))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
 
-    (replace-handler handler)
-    (let [result (promise)]
-      (with-open [socket (ws/connect (cdef-url "ws")
-                           :on-receive (fn [m]
-                                         (deliver result m)))]
-        (is (= "biscuit" (deref result 5000 nil)))))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+      (replace-handler handler)
+      (let [result (promise)]
+        (with-open [socket (ws/connect (cdef-url "ws")
+                             :on-receive (fn [m]
+                                           (deliver result m)))]
+          (is (= "biscuit" (deref result 5000 nil)))))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest send!-a-byte-array
+(marktest send!-a-byte-array
   (let [handler
         '(do
            (reset! client-state (promise))
@@ -489,20 +507,21 @@
                :on-error (fn [_ e]
                            (println "CHANNEL ERROR send!-a-byte-array")
                            (.printStackTrace e)))))]
-    (replace-handler handler)
-    (is (= "biscuit" (String. (get-body (cdef-url)))))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+    (flog
+      (replace-handler handler)
+      (is (= "biscuit" (String. (get-body (cdef-url)))))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
 
-    (replace-handler handler)
-    (let [result (promise)]
-      (with-open [socket (ws/connect (cdef-url "ws")
-                           :on-binary (fn [m _ _]
-                                        (deliver result m)))]
-        (is (= (into [] (.getBytes "biscuit"))
-              (into [] (deref result 5000 nil))))))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+      (replace-handler handler)
+      (let [result (promise)]
+        (with-open [socket (ws/connect (cdef-url "ws")
+                             :on-binary (fn [m _ _]
+                                          (deliver result m)))]
+          (is (= (into [] (.getBytes "biscuit"))
+                (into [] (deref result 5000 nil))))))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest send!-a-sequence
+(marktest send!-a-sequence
   (let [handler
         '(do
            (reset! client-state (promise))
@@ -519,27 +538,28 @@
                :on-error (fn [_ e]
                            (println "CHANNEL ERROR send!-a-sequence")
                            (.printStackTrace e)))))]
-    (replace-handler handler)
-    (is (= "hambiscuitgravy" (String. (get-body (cdef-url)))))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+    (flog
+      (replace-handler handler)
+      (is (= "hambiscuitgravy" (String. (get-body (cdef-url)))))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
 
-    (replace-handler handler)
-    (let [done? (promise)
-          results (atom [])]
-      (with-open [socket (ws/connect (cdef-url "ws")
-                           :on-receive (fn [m]
-                                         (swap! results conj m)
-                                         (when (= 3 (count @results))
-                                           (deliver done? true)))
-                           :on-binary (fn [m _ _]
-                                        (swap! results conj m)))]
-        (is (deref done? 5000 nil))
-        (let [[h b g] @results]
-          (is (= ["ham" (into [] (.getBytes "biscuit")) "gravy"]
-                [h (into [] b) g])))))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+      (replace-handler handler)
+      (let [done? (promise)
+            results (atom [])]
+        (with-open [socket (ws/connect (cdef-url "ws")
+                             :on-receive (fn [m]
+                                           (swap! results conj m)
+                                           (when (= 3 (count @results))
+                                             (deliver done? true)))
+                             :on-binary (fn [m _ _]
+                                          (swap! results conj m)))]
+          (is (deref done? 5000 nil))
+          (let [[h b g] @results]
+            (is (= ["ham" (into [] (.getBytes "biscuit")) "gravy"]
+                  [h (into [] b) g])))))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest send!-an-empty-sequence
+(marktest send!-an-empty-sequence
   (let [handler
         '(do
            (reset! client-state (promise))
@@ -556,15 +576,16 @@
                :on-error (fn [_ e]
                            (println "CHANNEL ERROR send!-an-empty-sequence")
                            (.printStackTrace e)))))]
-    (replace-handler handler)
-    (get-body (cdef-url))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+    (flog
+      (replace-handler handler)
+      (get-body (cdef-url))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
 
-    (replace-handler handler)
-    (with-open [socket (ws/connect (cdef-url "ws"))]
-      (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))))
+      (replace-handler handler)
+      (with-open [socket (ws/connect (cdef-url "ws"))]
+        (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))))
 
-(deftest send!-a-file
+(marktest send!-a-file
   (let [handler
         '(do
            (reset! client-state (promise))
@@ -582,22 +603,23 @@
                :on-error (fn [_ e]
                            (println "CHANNEL ERROR send!-a-file")
                            (.printStackTrace e)))))]
-    (replace-handler handler)
-    (is (= (slurp (io/file (io/resource "public/foo.html")))
-          (String. (get-body (cdef-url)))))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+    (flog
+      (replace-handler handler)
+      (is (= (slurp (io/file (io/resource "public/foo.html")))
+            (String. (get-body (cdef-url)))))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
 
-    (replace-handler handler)
-    (let [result (promise)]
-      (with-open [socket (ws/connect (cdef-url "ws")
-                           :on-binary (fn [m _ _]
-                                        (deliver result m)))]
-        (is (= (into [] (-> (io/resource "public/foo.html")
-                          io/file slurp .getBytes))
-              (into [] (deref result 5000 nil))))))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+      (replace-handler handler)
+      (let [result (promise)]
+        (with-open [socket (ws/connect (cdef-url "ws")
+                             :on-binary (fn [m _ _]
+                                          (deliver result m)))]
+          (is (= (into [] (-> (io/resource "public/foo.html")
+                            io/file slurp .getBytes))
+                (into [] (deref result 5000 nil))))))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest send!-with-input-stream-larger-than-size-hint
+(marktest send!-with-input-stream-larger-than-size-hint
   (let [handler
         '(do
            (reset! client-state (promise))
@@ -618,23 +640,24 @@
                            (.printStackTrace e)))))
         data (->> "data"
                io/resource io/file slurp)]
-    (replace-handler handler)
-    (is (= data (get-body (cdef-url))))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
+    (flog
+      (replace-handler handler)
+      (is (= data (get-body (cdef-url))))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))
 
-    (replace-handler handler)
-    (let [done? (promise)
-          rcvd (atom "")]
-      (with-open [socket (ws/connect (cdef-url "ws")
-                           :on-binary (fn [m _ _]
-                                        (when (= (+ 2 (* 16 1024))
-                                                (count (swap! rcvd #(str % (String. m)))))
-                                          (deliver done? true))))]
-        (is (deref done? 5000 nil))
-        (is (= data @rcvd))))
-    (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
+      (replace-handler handler)
+      (let [done? (promise)
+            rcvd (atom "")]
+        (with-open [socket (ws/connect (cdef-url "ws")
+                             :on-binary (fn [m _ _]
+                                          (when (= (+ 2 (* 16 1024))
+                                                  (count (swap! rcvd #(str % (String. m)))))
+                                            (deliver done? true))))]
+          (is (deref done? 5000 nil))
+          (is (= data @rcvd))))
+      (is (= :complete! (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest ws-should-timeout-when-idle
+(marktest ws-should-timeout-when-idle
   (let [handler
         '(do
            (reset! client-state (promise))
@@ -658,7 +681,7 @@
       (is (= "open" (deref ready 1000 :failure)))
       (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest ws-timeout-should-occur-when-truly-idle
+(marktest ws-timeout-should-occur-when-truly-idle
   (let [handler
         '(do
            (reset! client-state (promise))
@@ -691,7 +714,7 @@
       (Thread/sleep 150)
       (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))))
 
-(deftest stream-timeouts
+(marktest stream-timeouts
   (if (or (immutant.web.internal.servlet/async-streaming-supported?)
         (not (in-container?)))
     (let [handler
@@ -706,9 +729,10 @@
                  :on-close (fn [_ reason]
                              (println "CLOSE stream-should-timeout")
                              (deliver @client-state :closed)))))]
-      (replace-handler handler)
-      (is (= 200 (:status (get-response (cdef-url)))))
-      (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))
+      (flog
+        (replace-handler handler)
+        (is (= 200 (:status (get-response (cdef-url)))))
+        (is (= :closed (read-string (get-body (str (cdef-url) "state")))))))
     ;; in WF 8.2, a timeout causes a deadlock in ispan around the
     ;; session, so we don't allow timeouts there
     (let [handler
@@ -718,9 +742,7 @@
                (try
                  (async/as-channel request
                    :timeout 100)
-                 (println "TOO FAR")
                  (catch IllegalArgumentException e
-                   (println "HEY" e)
                    (deliver @client-state (.getMessage e))
                    {:status 500}))))]
       (replace-handler handler)
@@ -733,7 +755,7 @@
 (when (not (in-container?))
   ;; TODO: Run this in-container. The only thing stopping us is our
   ;; jersey sse client seems to be incompatible with resteasy
-  (deftest server-sent-events
+  (marktest server-sent-events
     (let [closed (promise)
           result (atom [])
           client (as-> (event-source (str (url) "sse")) c
