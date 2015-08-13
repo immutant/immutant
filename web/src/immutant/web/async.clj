@@ -150,15 +150,13 @@
                            (assoc options
                              :on-success #(deliver latch nil)
                              :on-error   (partial deliver latch)
-                             :close?     false))
+                             :close?     (and close? (not (seq items)))))
                          (if-let [err @latch]
                            (notify ch on-error err)
                            (when (seq items)
                              (recur (first items) (rest items)))))))]
         (when-not (= ::notified result)
-          (notify ch on-success)))
-      (when close?
-        (close ch))))
+          (notify ch on-success)))))
 
   File
   (dispatch-message [message ch options]
