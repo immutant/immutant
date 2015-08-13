@@ -553,7 +553,7 @@
                                              (deliver done? true)))
                              :on-binary (fn [m _ _]
                                           (swap! results conj m)))]
-          (is (deref done? 5000 nil))
+          (is (deref done? 10000 nil))
           (let [[h b g] @results]
             (is (= ["ham" (into [] (.getBytes "biscuit")) "gravy"]
                   [h (into [] b) g])))))
