@@ -77,7 +77,7 @@
 
    Transactions: caches can participate in transactions when a
    TransactionManager is available. The locking scheme may be either
-   :optimisitic or :pessimistic
+   :optimistic or :pessimistic
 
    * :transactional? - whether the cache is transactional [false]
    * :locking - transactional locking scheme [:optimistic]
