@@ -724,10 +724,10 @@
                (async/as-channel request
                  :timeout 100
                  :on-error (fn [_ e]
-                             (println "ERROR stream-should-timeout")
+                             (println "ERROR stream-timeouts")
                              (.printStackTrace e))
                  :on-close (fn [_ reason]
-                             (println "CLOSE stream-should-timeout")
+                             (println "CLOSE stream-timeouts")
                              (deliver @client-state :closed)))))]
       (flog
         (replace-handler handler)
