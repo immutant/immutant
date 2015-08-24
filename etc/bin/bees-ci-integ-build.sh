@@ -19,11 +19,11 @@ function install-wildfly {
 }
 
 function run-tests {
+    export JBOSS_HOME="${AS_DIR}/wildfly-$1"
+
     install-wildfly $1
 
     cd integration-tests
-
-    export JBOSS_HOME="${AS_DIR}/wildfly-$1"
 
     mark "Starting integs with $1"
     lein with-profile +integs all
