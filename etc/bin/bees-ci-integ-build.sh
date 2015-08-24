@@ -11,41 +11,38 @@ DIR=$( cd "$( dirname "$0" )" && pwd )
 
 WF8_VERSION="8.2.0.Final"
 WF9_VERSION="9.0.1.Final"
+WF10_VERSION="10.0.0.Beta2"
 
 function install-wildfly {
-    mark "Installing WildFly ${WF8_VERSION}"
-    ${DIR}/ci-prep-as.sh ${AS_DIR} wildfly ${WF8_VERSION}
+    mark "Installing WildFly $1"
+    ${DIR}/ci-prep-as.sh ${AS_DIR} wildfly $1
+}
 
-    mark "Installing WildFly ${WF9_VERSION}"
-    ${DIR}/ci-prep-as.sh ${AS_DIR} wildfly ${WF9_VERSION}
+function run-tests {
+    install-wildfly $1
+
+    cd integration-tests
+
+    export JBOSS_HOME="${AS_DIR}/wildfly-$1"
+
+    mark "Starting integs with $1"
+    lein with-profile +integs all
+
+    mark "Starting cluster tests with $1"
+    lein with-profile +cluster all
+
+    cd -
 }
 
 cleanup
 install-lein
 setup-lein-profiles
-install-wildfly
 
 mark "Building SNAPSHOT without tests"
 lein modules install
 
-cd integration-tests
-
-export JBOSS_HOME="${AS_DIR}/wildfly-${WF8_VERSION}"
-
-mark "Starting integs with ${WF8_VERSION}"
-lein with-profile +integs all
-
-mark "Starting cluster tests with ${WF8_VERSION}"
-lein with-profile +cluster all
-
-export JBOSS_HOME="${AS_DIR}/wildfly-${WF9_VERSION}"
-
-mark "Starting integs with ${WF9_VERSION}"
-lein with-profile +integs all
-
-mark "Starting cluster tests with ${WF9_VERSION}"
-lein with-profile +cluster all
-
-cd -
+run-tests ${WF8_VERSION}
+run-tests ${WF9_VERSION}
+run-tests ${WF10_VERSION}
 
 mark "Done"
