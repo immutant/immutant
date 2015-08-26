@@ -52,11 +52,12 @@
 
 (let [serializer (java.util.concurrent.Executors/newSingleThreadExecutor)]
   (defn mark [& msg]
-    (let [ts (.format (java.text.SimpleDateFormat. "HH:mm:ss,SSS")
-               (java.util.Date.))
-          ^Runnable r #(apply println ts msg)]
-      (when (in-container?) (apply println ts msg))
-      (.submit serializer r))))
+    (when (System/getenv "VERBOSE")
+      (let [ts (.format (java.text.SimpleDateFormat. "HH:mm:ss,SSS")
+                 (java.util.Date.))
+            ^Runnable r #(apply println ts msg)]
+        (when (in-container?) (apply println ts msg))
+        (.submit serializer r)))))
 
 (defmacro marktest [t & body]
   `(deftest ~t
@@ -68,11 +69,13 @@
 (defmacro flog
   "runs the body 100 times"
   [& body]
-  `(dotimes [n# 100]
-     (mark (format "RUNNING %s (iteration %s)"
-             (-> *testing-vars* first meta :name)
-             n#))
-     ~@body))
+  `(if (System/getenv "FLOG")
+     (dotimes [n# 100]
+       (mark (format "RUNNING %s (iteration %s)"
+               (-> *testing-vars* first meta :name)
+               n#))
+       ~@body)
+     (do ~@body)))
 
 (marktest http-session-store
   (is (= "0" (get-body (url) :cookies nil)))
