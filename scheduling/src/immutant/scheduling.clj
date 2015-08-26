@@ -71,7 +71,8 @@
   Three additional options may be passed in the spec:
 
   * :id - a unique identifier for the scheduled job
-  * :singleton - a boolean denoting the job's behavior in a cluster [true]
+  * :singleton - denotes the job's behavior in a cluster. If truthy, an :id as required. The
+    given value will be used as the :id if it is truthy but not `true` and :id isn't specified [false]
   * :allow-concurrent-exec? - a boolean denoting the job's concurrency behavior in the current process [true]
 
   If called with an :id that has already been scheduled, the prior job
@@ -104,17 +105,21 @@
                iu/kwargs-or-map->map
                resolve-options
                (merge create-defaults schedule-defaults))
-        id (:id opts (iu/uuid))
+        singleton (:singleton opts)
+        id (:id opts (when (and singleton (not (true? singleton)))
+                       singleton))
+        final-id (or id (iu/uuid))
         scheduler (scheduler (o/validate-options opts schedule))]
     (when (and (u/in-cluster?)
-            (:singleton opts)
-            (not (:id opts)))
+            singleton
+            (not id))
       (iu/warn "Singleton job scheduled in a cluster without an :id - job won't really be a singleton. See docs for immutant.scheduling/schedule."))
-    (.schedule scheduler (name id) f
-      (o/extract-options opts Scheduling$ScheduleOption))
+    (.schedule scheduler (name final-id) f
+      (o/extract-options (update-in opts [:singleton] boolean)
+        Scheduling$ScheduleOption))
     (-> opts
-      (update-in [:ids scheduler] conj id)
-      (assoc :id id))))
+      (update-in [:ids scheduler] conj final-id)
+      (assoc :id final-id))))
 
 (o/set-valid-options! schedule
   (-> (o/opts->set Scheduling$ScheduleOption Scheduling$CreateOption)
@@ -185,14 +190,16 @@
    see the [Quartz docs](http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/tutorial-lesson-06)
    for the syntax. See [[schedule]].")
 
-(defoption ^{:arglists '([boolean] [m boolean])} singleton
-  "If true (the default), only one instance of a given job name will
-   run in a cluster. See [[schedule]].")
+(defoption ^{:arglists '([boolean-or-id] [m boolean-or-id])} singleton
+  "If truthy (false by default), only one instance of a given job name
+   will run in a cluster. If truthy, an :id as required. The given
+   value will be used as the :id if it is truthy but not `true`
+   and :id isn't specified. See [[schedule]].")
 
 (defoption ^{:arglists '([boolean] [m boolean])} allow-concurrent-exec?
   "If true (the default), the job is allowed to run concurrently
    within the current process. If false it will be forced to run
-   sequentially.  To disallow concurrent execution cluster wide make
+   sequentially. To disallow concurrent execution cluster wide make
    sure to also set the :singleton option. See [[singleton]].")
 
 (defoption ^{:arglists '([str] [m str])} id

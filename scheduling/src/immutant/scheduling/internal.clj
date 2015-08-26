@@ -21,8 +21,9 @@
 
 (def ^:internal create-defaults (o/opts->defaults-map Scheduling$CreateOption))
 (def ^:internal schedule-defaults
-  (o/boolify (o/opts->defaults-map Scheduling$ScheduleOption)
-    :allow-concurrent-exec))
+  (-> (o/opts->defaults-map Scheduling$ScheduleOption)
+    (o/boolify :allow-concurrent-exec)
+    (assoc :singleton false)))
 
 (def scheduler-name
   (partial u/hash-based-component-name create-defaults))

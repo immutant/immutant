@@ -40,7 +40,7 @@
         start #(reset! resp (m/respond q (fn [_] (:node cache))))
         stop  #(m/stop @resp)]
     (singleton-daemon "cache-status" start stop))
-  (s/schedule update-cache :id "cache-updater" :every 222)
+  (s/schedule update-cache :singleton "cache-updater" :every 222)
   (m/queue "/queue/cluster", :durable? false)
   (w/run (-> #'counter wrap-session) :path "/counter")
   (w/run (fn [_] (response (with-out-str (pr cache)))) :path "/cache"))
