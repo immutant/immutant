@@ -27,6 +27,8 @@ lein modules install
 cd integration-tests
 
 export JBOSS_HOME="${AS_DIR}/EAP-${EAP_VERSION}"
+export VERBOSE=1
+export FLOG=1
 
 mark "Starting integs"
 lein with-profile +eap all
