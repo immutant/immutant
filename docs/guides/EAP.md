@@ -6,15 +6,15 @@
 
 [Red Hat JBoss Enterprise Application Platform](https://www.redhat.com/en/technologies/jboss-middleware/application-platform)
 (EAP for short) is the commercial product built on the open source
-JBoss application server. The current version (6.4.0) is based on a
+JBoss application server. The current version (6.4.x) is based on a
 JBoss AS version that predates WildFly, so has some component
 differences with WildFly and Immutant itself. However, starting with
-Immutant 2.1.0, you can now deploy Immutant applications to EAP, with
-some caveats.
+Immutant 2.1.0, you can now deploy Immutant applications to EAP the
+same way you can to [WildFly](guide-wildfly.html), with some caveats.
 
 ## Messaging
 
-EAP 6.4.0 uses an older version of HornetQ (2.3.25 vs. 2.4.5 brought
+EAP 6.4.x uses an older version of HornetQ (2.3.25 vs. 2.4.5 brought
 in by Immutant). If you are using `org.immutant/messaging`, you'll
 need to exclude its version of HornetQ and bring in the version being
 used in EAP:
@@ -26,7 +26,7 @@ used in EAP:
 
 ## Transactions
 
-EAP 6.4.0 uses a version of Narayana (4.17.29 vs. 5.0.3 brought in by
+EAP 6.4.x uses a version of Narayana (4.17.29 vs. 5.0.3 brought in by
 Immutant). If you are using `org.immutant/transactions`, you'll need
 to exclude its version of Narayana and bring in the version being used
 in EAP (note the different groupId):
@@ -42,11 +42,12 @@ multiplexing over HTTP.
 
 ## Web
 
-EAP 6.4.0 uses [jbossweb] as its web/servlet server instead of
-[Undertow] (which Immutant uses standalone, and is the web/servlet
-server inside WildFly). The behavior of web requests in EAP should be
-the same as WildFly, but you'll need to do a couple of extra
-configuration steps if you intend to use Websockets.
+EAP 6.4.x uses [jbossweb](http://jbossweb.jboss.org/) as its
+web/servlet server instead of [Undertow](http://undertow.io/) (which
+Immutant uses standalone, and is the web/servlet server inside
+WildFly). The behavior of web requests in EAP should be the same as
+WildFly, but you'll need to do a couple of extra configuration steps
+if you intend to use Websockets.
 
 First, you need to change the configuration of EAP itself (in
 `standalone/configuration/standalone*.xml`) to use a different
@@ -67,10 +68,11 @@ file needs to be under `WEB-INF/jboss-web.xml`, and contain:
       <enable-websockets>true</enable-websockets>
     </jboss-web>
 
-The easiest way to do this is to use the [`:war-resources` option of
-the `lein-immutant` plugin]. Note that a WAR with the above contents
-*can't* be deployed to a WildFly server, as `enable-websockets` isn't
-a valid option there, unfortunately.
+The easiest way to do this is to use the
+[`:war-resources` option of the `lein-immutant` plugin](https://github.com/immutant/lein-immutant/blob/master/docs/deployment.md). Note
+that a WAR with the above contents *can't* be deployed to a WildFly
+server, as `enable-websockets` isn't a valid option there,
+unfortunately.
 
 ## Infinispan issues
 
@@ -86,3 +88,22 @@ know if you are in any container (WildFly or EAP), there is
 running inside EAP.
 
 ## Doing it all from a profile
+
+If you want to only have these changes take effect when deploying to
+EAP, you can put them all in a lein profile:
+
+    :profiles {:eap
+               {:exclusions [org.hornetq/hornetq-jms-server org.hornetq/hornetq-server
+                             org.jboss.narayana.jta/narayana-jta]
+                :dependencies [[org.hornetq/hornetq-jms-server "2.3.25.Final"]
+                               [org.hornetq/hornetq-server "2.3.25.Final"]
+                               [org.jboss.jbossts.jta/narayana-jta "4.17.29.Final"]]
+                :immutant {:war {:resource-paths ["eap-resources"]}}}}
+
+where `eap-resources/` contains `WEB-INF/jboss-web.xml`. You would
+then apply this profile only when building a WAR file for EAP:
+
+    lein with-profile +eap immutant war
+
+For an example of an application that does this, see our
+[feature demo](https://github.com/immutant/feature-demo/).
