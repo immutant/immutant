@@ -24,11 +24,16 @@
             [ring.util.response :refer (charset redirect response)]
             [ring.middleware.params :refer [wrap-params]]))
 
-(defn counter [{session :session}]
-  (let [count (:count session 0)
-        session (assoc session :count (inc count))]
-    (-> (response (str count))
-      (assoc :session session))))
+(defn counter [{:keys [session websocket?] :as request}]
+  (if websocket?
+    ;; just to test websockets at /, has nothing to do with the session
+    (async/as-channel request
+      :on-message (fn [ch message]
+                    (async/send! ch (str "ROOT" message))))
+    (let [count (:count session 0)
+          session (assoc session :count (inc count))]
+      (-> (response (str count))
+        (assoc :session session)))))
 
 (defn dump
   [request]

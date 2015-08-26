@@ -185,6 +185,13 @@
       (is (= (count data) (-> response :headers :content-length read-string)))
       (is (= data (:body response))))))
 
+(marktest ws-at-root
+  (let [result (promise)]
+    (with-open [socket (ws/connect (url "ws")
+                         :on-receive (fn [m] (deliver result m)))]
+      (ws/send-msg socket "hello")
+      (is (= "ROOThello" (deref result 5000 :failure))))))
+
 (marktest websocket-as-channel
   ;; initialize the session
   (get-body (str (url)) :cookies nil)
