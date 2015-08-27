@@ -1,10 +1,10 @@
 ---
-{:title "EAP"
+{:title "EAP 6.4.x"
  :sequence 5.5
- :description "Deploying your app to Red Hat JBoss Enterprise Application Platform"}
+ :description "Deploying your app to Red Hat JBoss Enterprise Application Platform 6.4.x"}
  ---
 
-[Red Hat JBoss Enterprise Application Platform](https://www.redhat.com/en/technologies/jboss-middleware/application-platform)
+[Red Hat JBoss Enterprise Application Platform](http://www.jboss.org/products/eap/overview/)
 (EAP for short) is the commercial product built on the open source
 JBoss application server. The current version (6.4.x) is based on a
 JBoss AS version that predates WildFly, so has some component

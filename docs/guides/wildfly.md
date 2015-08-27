@@ -27,9 +27,13 @@ container requires some "glue code" that must be aware of the
 container's implementation.
 
 For this reason, Immutant intentionally uses the same services as
-[WildFly], the community-supported upstream project for the next
-version of the commercially-supported [JBoss EAP] product. And these
-are the containers we'll initially support.
+[WildFly], the community-supported upstream project for the *next*
+version of the commercially-supported
+[Red Hat JBoss Enterprise Application Platform] \(EAP) product.
+
+If you are using the *current* version of EAP (6.4.x), everything here
+applies, but you'll want to take a look at our
+[EAP guide](guide-EAP.html) as well.
 
 ## WildFly
 
@@ -205,7 +209,7 @@ We recommend you upgrade to WildFly 9.0.0 or newer if you intend to
 use HTTP streams.
 
 [WildFly]: http://wildfly.org
-[JBoss EAP]: http://www.jboss.org/products/eap/overview/
+[Red Hat JBoss Enterprise Application Platform]: http://www.jboss.org/products/eap/overview/
 [lein-immutant]: https://github.com/immutant/lein-immutant/
 [Midje]: https://github.com/marick/Midje
 [Expectations]: http://jayfields.com/expectations/
