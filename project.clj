@@ -64,7 +64,7 @@
                          :license {:name "Apache Software License - v 2.0"
                                    :url "http://www.apache.org/licenses/LICENSE-2.0"
                                    :distribution :repo}
-                         :plugins [[org.immutant/build-helper "0.2.8"]
+                         :plugins [[org.immutant/build-helper "0.2.9"]
                                    [lein-file-replace "0.1.0"]]
                          :hooks [build-helper.plugin.pom/hooks]
 

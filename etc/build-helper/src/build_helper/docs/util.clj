@@ -291,7 +291,7 @@
       (println "Generating api docs to" target-dir "...")
       (-> codox-options
         (update-in [:src-dir-uri] str (if (re-find #"SNAPSHOT|incremental" version)
-                                        "thedeuce"
+                                        "master"
                                         version))
         (assoc :version version
                :namespaces namespaces
