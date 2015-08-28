@@ -134,23 +134,30 @@
     (stop)))
 
 (deftest http-session-invalidation
-  (let [http (atom {})
+  (let [session-obj (atom {})
         handler (fn [req]
                   (let [result (if-not (-> req :session :foo)
                                  (-> (response "yay")
                                    (assoc :session {:foo "yay"}))
                                  (-> (response "boo")
                                    (assoc :session nil)))]
-                    (reset! http (-> req :server-exchange Sessions/getOrCreateSession))
-                    result))]
-    (run (wrap-session handler))
-    (is (= "yay" (get-body url :cookies nil)))
-    (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
-    (is (= "boo" (get-body url)))
-    (is (thrown? IllegalStateException (-> @http (.getAttribute "ring-session-data") :foo)))
-    (is (= "yay" (get-body url)))
-    (is (= "yay" (-> @http (.getAttribute "ring-session-data") :foo)))
-    (stop)))
+                    result))
+        orig-get-or-create-session (deref #'immutant.web.internal.undertow/get-or-create-session)]
+    (with-redefs [immutant.web.internal.undertow/get-or-create-session
+                  (fn g-o-c-s
+                    ([exchange] (g-o-c-s exchange nil))
+                    ([exchange opts]
+                     (let [session (orig-get-or-create-session exchange opts)]
+                       (reset! session-obj session)
+                       session)))]
+      (run (wrap-session handler))
+      (is (= "yay" (get-body url :cookies nil)))
+      (is (= "yay" (-> @session-obj (.getAttribute "ring-session-data") :foo)))
+      (is (= "boo" (get-body url)))
+      (is (thrown? IllegalStateException (-> @session-obj (.getAttribute "ring-session-data") :foo)))
+      (is (= "yay" (get-body url)))
+      (is (= "yay" (-> @session-obj (.getAttribute "ring-session-data") :foo)))
+      (stop))))
 
 (defmethod initialize-stream :test
   [& _])
