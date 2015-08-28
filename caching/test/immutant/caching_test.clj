@@ -218,7 +218,7 @@
     (is (= 1 (:a c)))
     (stop "terrence")
     (is (empty? (cache "terrence")))
-    (is (thrown? IllegalStateException (empty? c)))))
+    (is (thrown? RuntimeException (empty? c)))))
 
 (deftest test-create-reconfigures
   (is (= -1 (.. (new-cache)
