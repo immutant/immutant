@@ -20,29 +20,22 @@
   (:import java.net.URL
            org.projectodd.wunderboss.WunderBoss))
 
-(def ^:no-doc ^Class module-class-loader-class (memoize #(u/try-import 'org.jboss.modules.ModuleClassLoader)))
-
-(def ^:no-doc in-cluster (delay (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ClusterUtils)
-                                  (.getMethod "inCluster" nil)
-                                  (.invoke nil nil))))
-(defn- get-resource-loaders
-  [cl]
-  (if (module-class-loader-class)
-    (-> (doto (.getDeclaredMethod (module-class-loader-class) "getResourceLoaders"
-                (make-array Class 0))
-          (.setAccessible true))
-      (.invoke cl (make-array Class 0)))))
+(defmacro ^:no-doc ignore-load-failures [& body]
+  `(try
+     ~@body
+     (catch ClassNotFoundException _#)
+     (catch NoClassDefFoundError _#)))
 
 (defn- if-exists?
   "Returns the given url if it matches a file that exists."
   [url]
-  (if (and url (.exists (io/file url)))
+  (when (and url (.exists (io/file url)))
     url))
 
 (defn- loader->url
   "Converts a ResourceLoader into a url."
   [l]
-  (if-let [r (.getResource l "/")]
+  (when-let [r (.getResource l "/")]
     (.getURL r)))
 
 (defn- vfs->file
@@ -52,29 +45,38 @@
     (URL. (str "file" (last match)))
     url))
 
-(defn ^:no-doc get-module-loader-urls [loader]
-  (->> loader
-    get-resource-loaders
-    (map (comp if-exists? vfs->file loader->url))
-    (keep identity)))
+(let [^Class module-class-loader-class (memoize #(u/try-import 'org.jboss.modules.ModuleClassLoader))]
+  (defn- get-resource-loaders
+    [cl]
+    (when (module-class-loader-class)
+      (-> (doto (.getDeclaredMethod (module-class-loader-class) "getResourceLoaders"
+                  (make-array Class 0))
+            (.setAccessible true))
+        (.invoke cl (make-array Class 0)))))
 
-(defn ^:no-doc extend-module-classloader-to-cjc []
-  (when (u/try-resolve 'clojure.java.classpath/URLClasspath)
-    (eval
-      `(extend-protocol clojure.java.classpath/URLClasspath
-         (module-class-loader-class)
-         (urls [cl#]
-           (get-module-loader-urls cl#))))))
+  (defn ^:no-doc get-module-loader-urls [loader]
+    (->> loader
+      get-resource-loaders
+      (map (comp if-exists? vfs->file loader->url))
+      (keep identity)))
 
-(defn ^:no-doc extend-module-classloader-to-dynapath []
-  (when (u/try-resolve 'dynapath.dynamic-classpath/DynamicClasspath)
-    (eval
-      `(extend-protocol dynapath.dynamic-classpath/DynamicClasspath
-         (module-class-loader-class)
-         (can-read? [cl#] true)
-         (can-add? [cl#] false)
-         (classpath-urls [cl#]
-           (get-module-loader-urls cl#))))))
+  (defn ^:no-doc extend-module-classloader-to-cjc []
+    (when (u/try-resolve 'clojure.java.classpath/URLClasspath)
+      (eval
+        `(extend-protocol clojure.java.classpath/URLClasspath
+           (module-class-loader-class)
+           (urls [cl#]
+             (get-module-loader-urls cl#))))))
+
+  (defn ^:no-doc extend-module-classloader-to-dynapath []
+    (when (u/try-resolve 'dynapath.dynamic-classpath/DynamicClasspath)
+      (eval
+        `(extend-protocol dynapath.dynamic-classpath/DynamicClasspath
+           (module-class-loader-class)
+           (can-read? [cl#] true)
+           (can-add? [cl#] false)
+           (classpath-urls [cl#]
+             (get-module-loader-urls cl#)))))))
 
 (defn ^:no-doc init-deployment
   "Initializes an in-container deployment. Should be used by the
@@ -110,9 +112,10 @@
   (partial port :http))
 
 (defn- invoke-as-util-method [^String method]
-  (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ASUtils)
-    (.getMethod method nil)
-    (.invoke nil nil)))
+  (ignore-load-failures
+    (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ASUtils)
+      (.getMethod method nil)
+      (.invoke nil nil))))
 
 (let [container-type (delay (invoke-as-util-method "containerTypeAsString"))]
   (defn in-eap?
@@ -120,14 +123,11 @@
   []
   (= "EAP" @container-type)))
 
-(let [streaming-supported? (delay (invoke-as-util-method "isAsyncStreamingSupported"))]
+(let [streaming-supported? (delay (boolean (invoke-as-util-method "isAsyncStreamingSupported")))]
   (defn async-streaming-supported?
   "Returns true if the container supports async HTTP stream sends."
   []
-  ;; the delay returns an instance of Boolean, but not Boolean/TRUE or
-  ;; Boolean/FALSE for some reason, so we have to coerce it to a
-  ;; boolean primitive for clojure to be happy and treat false as false
-  (boolean @streaming-supported?)))
+  @streaming-supported?))
 
 (defn messaging-remoting-port
   "Returns the port that HornetQ is listening on for remote connections"
@@ -148,7 +148,13 @@
   ([host protocol]
      (format "%s://%s:%s%s" protocol host (http-port) (context-path))))
 
-(defn in-cluster?
+(let [in-cluster (delay
+                   (boolean
+                     (ignore-load-failures
+                       (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ClusterUtils)
+                         (.getMethod "inCluster" nil)
+                         (.invoke nil nil)))))]
+  (defn in-cluster?
   "Returns true if running inside a cluster"
   []
-  @in-cluster)
+  @in-cluster))
