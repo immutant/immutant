@@ -31,7 +31,11 @@ fi
 conf="${jboss_home}/standalone/configuration/standalone-full.xml"
 if [ $(grep -c NIO ${conf}) -eq 0 ]; then
     echo "Enabling NIO journal to avoid AIO failures"
-    perl -p -i -e "s:(<hornetq-server>)$:\1<journal-type>NIO</journal-type>:" $(ls ${jboss_home}/*/configuration/*)
+    if [ $(grep -c activemq ${conf}) -eq 0 ]; then
+        perl -p -i -e "s:(<hornetq-server>)$:\1<journal-type>NIO</journal-type>:" $(ls ${jboss_home}/*/configuration/*)
+    else
+        perl -p -i -e "s:(<server name=\"default\">)$:\1<journal type=\"NIO\"/>:" $(ls ${jboss_home}/*/configuration/*)
+    fi
 fi
 
 #echo "Enabling TRACE logging"
