@@ -43,6 +43,10 @@
        ~@body
        (mark "FINISH" v#))))
 
+(marktest in-cluster
+  (is (get-as-data "/in-cluster" "server-one"))
+  (is (get-as-data "/in-cluster" "server-two")))
+
 (marktest bouncing-basic-web
   (is (-> (get-as-data "/cache" "server-one") :count number?))
   (is (-> (get-as-data "/cache" "server-two") :count number?))
