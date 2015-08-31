@@ -96,7 +96,7 @@
                         ;; org.projectodd.wunderboss  "0.8.2-SNAPSHOT"
 
                         org.immutant               :version
-                        fntest                     "2.0.6"}}
+                        fntest                     "2.0.7"}}
 
   :release-tasks  [["vcs" "assert-committed"]
 
