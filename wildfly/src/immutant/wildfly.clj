@@ -45,38 +45,40 @@
     (URL. (str "file" (last match)))
     url))
 
-(let [^Class module-class-loader-class (memoize #(u/try-import 'org.jboss.modules.ModuleClassLoader))]
-  (defn- get-resource-loaders
-    [cl]
-    (when (module-class-loader-class)
-      (-> (doto (.getDeclaredMethod (module-class-loader-class) "getResourceLoaders"
-                  (make-array Class 0))
-            (.setAccessible true))
-        (.invoke cl (make-array Class 0)))))
+(def ^:no-doc ^Class module-class-loader-class
+  (memoize #(u/try-import 'org.jboss.modules.ModuleClassLoader)))
 
-  (defn ^:no-doc get-module-loader-urls [loader]
-    (->> loader
-      get-resource-loaders
-      (map (comp if-exists? vfs->file loader->url))
-      (keep identity)))
+(defn- get-resource-loaders
+  [cl]
+  (when (module-class-loader-class)
+    (-> (doto (.getDeclaredMethod (module-class-loader-class) "getResourceLoaders"
+                (make-array Class 0))
+          (.setAccessible true))
+      (.invoke cl (make-array Class 0)))))
 
-  (defn ^:no-doc extend-module-classloader-to-cjc []
-    (when (u/try-resolve 'clojure.java.classpath/URLClasspath)
-      (eval
-        `(extend-protocol clojure.java.classpath/URLClasspath
-           (module-class-loader-class)
-           (urls [cl#]
-             (get-module-loader-urls cl#))))))
+(defn ^:no-doc get-module-loader-urls [loader]
+  (->> loader
+    get-resource-loaders
+    (map (comp if-exists? vfs->file loader->url))
+    (keep identity)))
 
-  (defn ^:no-doc extend-module-classloader-to-dynapath []
-    (when (u/try-resolve 'dynapath.dynamic-classpath/DynamicClasspath)
-      (eval
-        `(extend-protocol dynapath.dynamic-classpath/DynamicClasspath
-           (module-class-loader-class)
-           (can-read? [cl#] true)
-           (can-add? [cl#] false)
-           (classpath-urls [cl#]
-             (get-module-loader-urls cl#)))))))
+(defn ^:no-doc extend-module-classloader-to-cjc []
+  (when (u/try-resolve 'clojure.java.classpath/URLClasspath)
+    (eval
+      `(extend-protocol clojure.java.classpath/URLClasspath
+         (module-class-loader-class)
+         (urls [cl#]
+           (get-module-loader-urls cl#))))))
+
+(defn ^:no-doc extend-module-classloader-to-dynapath []
+  (when (u/try-resolve 'dynapath.dynamic-classpath/DynamicClasspath)
+    (eval
+      `(extend-protocol dynapath.dynamic-classpath/DynamicClasspath
+         (module-class-loader-class)
+         (can-read? [cl#] true)
+         (can-add? [cl#] false)
+         (classpath-urls [cl#]
+           (get-module-loader-urls cl#))))))
 
 (defn ^:no-doc init-deployment
   "Initializes an in-container deployment. Should be used by the
