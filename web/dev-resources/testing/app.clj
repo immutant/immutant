@@ -97,7 +97,9 @@
   (@client-defined-handler request))
 
 (defn get-client-state [_]
-  (-> @client-state (maybe-deref 30000 :failure!) pr-str response))
+  (let [state (maybe-deref @client-state 30000 :failure!)]
+    (when (nil? state) (println "CLIENT-STATE IS NIL!"))
+    (-> state pr-str response)))
 
 (defroutes routes
   (GET "/" [] counter)
