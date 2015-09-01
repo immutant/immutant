@@ -5,7 +5,7 @@
 Leiningen:
 
 ``` clj
-[org.immutant/scheduling "2.0.2"]
+[org.immutant/scheduling "2.1.0"]
 ```
 
 Maven:
@@ -14,6 +14,6 @@ Maven:
 <dependency>
   <groupId>org.immutant</groupId>
   <artifactId>scheduling</artifactId>
-  <version>2.0.2</version>
+  <version>2.1.0</version>
 </dependency>
 ```
