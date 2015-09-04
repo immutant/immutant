@@ -17,12 +17,15 @@
             [immutant.web :as web]
             [immutant.web.async :as async]
             [immutant.web.sse :as sse]
+            [immutant.web.internal.servlet :as servlet]
+            [immutant.web.internal.ring    :as ring]
             [immutant.internal.util :refer [maybe-deref]]
             [immutant.web.middleware :refer (wrap-session wrap-websocket)]
             [immutant.codecs :refer (encode)]
             [compojure.core :refer (GET defroutes)]
             [ring.util.response :refer (charset redirect response)]
-            [ring.middleware.params :refer [wrap-params]]))
+            [ring.middleware.params :refer [wrap-params]])
+  (:import [javax.servlet.http HttpServlet]))
 
 (defn counter [{:keys [session websocket?] :as request}]
   (if websocket?
@@ -101,6 +104,50 @@
     (when (nil? state) (println "CLIENT-STATE IS NIL!"))
     (-> state pr-str response)))
 
+(def user-defined-servlet
+  (let [events (atom nil)
+        results (atom (promise))]
+    (proxy [HttpServlet] []
+      (service [servlet-request servlet-response]
+        (let [ring-request (ring/ring-request-map servlet-request
+                             [:servlet-request  servlet-request]
+                             [:servlet-response servlet-response])
+              ring-response (if (= "get-result" (:query-string ring-request))
+                              (-> (maybe-deref @results 30000 :failure!) pr-str response)
+                              (async/as-channel ring-request
+                                :on-open (fn [stream]
+                                           (dotimes [n 10]
+                                             (async/send! stream (str n) {:close? (= n 9)})))))]
+          (ring/write-response servlet-response ring-response)))
+      (init [config]
+        (proxy-super init config)
+        (servlet/add-endpoint this config
+          {:on-open    (fn [_]
+                         (reset! events [:open]))
+           :on-close   (fn [_ {c :code}]
+                         (deliver @results (swap! events conj c)))
+           :on-message (fn [_ m]
+                         (swap! events conj m))})))))
+
+(def wrapped-handler-servlet
+  (let [events (atom nil)
+        results (atom (promise))]
+    (-> (fn [{:keys [websocket? query-string] :as req}]
+          (if (= "get-result" query-string)
+            (-> (maybe-deref @results 30000 :failure!) pr-str response)
+            (async/as-channel req
+              :on-open    (fn [ch]
+                            (if websocket?
+                              (reset! events [:open])
+                              (dotimes [n 10]
+                                (async/send! ch (str n) {:close? (= n 9)}))))
+              :on-close   (fn [_ {c :code}]
+                            (when websocket?
+                              (deliver @results (swap! events conj c))))
+              :on-message (fn [_ m]
+                            (swap! events conj m)))))
+      servlet/create-servlet)))
+
 (defroutes routes
   (GET "/" [] counter)
   (GET "/session" {s :session} (encode s))
@@ -125,4 +172,6 @@
   (web/run (-> #'cdef-handler wrap-params) :path "/cdef")
   (web/run (-> ws-as-channel wrap-session) :path "/ws")
   (web/run (-> dump wrap-session wrap-params) :path "/dump")
+  (web/run user-defined-servlet :path "/user-defined-servlet")
+  (web/run wrapped-handler-servlet :path "/wrapped-handler-servlet")
   (web/run nested-ws-routes :path "/nested-ws"))

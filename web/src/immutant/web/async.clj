@@ -33,9 +33,10 @@
     (.attach :set-headers-fn set-headers-fn)
     (.notifyOpen nil)))
 
-(defmulti ^:internal ^:no-doc initialize-stream :handler-type)
+(let [dispatch-fn (fn [request _] (:handler-type request :servlet))]
+  (defmulti ^:internal ^:no-doc initialize-stream dispatch-fn)
 
-(defmulti ^:internal ^:no-doc initialize-websocket :handler-type)
+  (defmulti ^:internal ^:no-doc initialize-websocket dispatch-fn))
 
 (defprotocol ^:private MessageDispatch
   (dispatch-message [from ch options-map]))

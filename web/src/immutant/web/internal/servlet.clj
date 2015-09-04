@@ -105,29 +105,40 @@
 (defn ^ServerContainer server-container [^ServletContext context]
   (.getAttribute context "javax.websocket.server.ServerContainer"))
 
-(defn add-endpoint
-  "Adds an endpoint to a container obtained from the servlet-context"
-  [^ServletContext servlet-context {:keys [path handshake] :or {path "/"}}]
-  (.addEndpoint (server-container servlet-context)
-    (.. ServerEndpointConfig$Builder
-      (create DelegatingJavaxEndpoint path)
-      (configurator (proxy [ServerEndpointConfig$Configurator] []
-                      (getEndpointInstance [_] (DelegatingJavaxEndpoint.))
-                      (modifyHandshake [_ _ _]
-                        (when handshake
-                          (handshake
-                            (.get WebSocketHelpyHelpertonFilter/requestTL))))))
-      build)))
+(defn add-endpoint-with-handler
+  [^HttpServlet servlet ^ServletConfig config handler]
+    (let [servlet-context (.getServletContext config)
+          mapping (-> servlet-context
+                    (.getServletRegistration (.getServletName servlet))
+                    .getMappings
+                    first)
+          path (apply str (take (- (count mapping) 2) mapping))
+          path (if (empty? path) "/" path)]
+      (.addEndpoint (server-container servlet-context)
+        (.. ServerEndpointConfig$Builder
+          (create DelegatingJavaxEndpoint path)
+          (configurator (proxy [ServerEndpointConfig$Configurator] []
+                          (getEndpointInstance [_] (DelegatingJavaxEndpoint.))
+                          (modifyHandshake [_ _ _]
+                            (let [request (.get WebSocketHelpyHelpertonFilter/requestTL)
+                                  body (:body (handler (ring/ring-request-map request
+                                                         [:handler-type :servlet]
+                                                         [:servlet-request request]
+                                                         [:websocket? true])))]
+                              (when (instance? WebsocketChannel body)
+                          (DelegatingJavaxEndpoint/setCurrentDelegate
+                            (.endpoint ^WebsocketChannel body)))))))
+          build))))
 
-(defn handshake-ring-invoker [handler]
-  (fn [request]
-    (let [body (:body (handler (ring/ring-request-map request
-                                 [:handler-type :servlet]
-                                 [:servlet-request request]
-                                 [:websocket? true])))]
-      (when (instance? WebsocketChannel body)
-        (DelegatingJavaxEndpoint/setCurrentDelegate
-          (.endpoint ^WebsocketChannel body))))))
+(defn add-endpoint
+  "Adds a javax.websocket.Endpoint for the given `servlet` and `servlet-config`.
+
+  `ws-callbacks` is a map of callbacks for handling the WebSocket, and are
+  the same as the callbacks provided to [[immutant.web.async/as-channel]]."
+  [^HttpServlet servlet ^ServletConfig servlet-config ws-callbacks]
+  (add-endpoint-with-handler servlet servlet-config
+    (fn [req]
+      (async/as-channel req ws-callbacks))))
 
 (defn ^Servlet create-servlet
   "Encapsulate a ring handler within a servlet"
@@ -147,12 +158,7 @@
     (init [^ServletConfig config]
       (let [^HttpServlet this this]
         (proxy-super init config)
-        (let [context (.getServletContext config)
-              mapping (-> context (.getServletRegistration (.getServletName this)) .getMappings first)
-              path (apply str (take (- (count mapping) 2) mapping))
-              path (if (empty? path) "/" path)]
-          (add-endpoint context
-            {:path path :handshake (handshake-ring-invoker handler)}))))))
+        (add-endpoint-with-handler this config handler)))))
 
 (defn async-streaming-supported? []
   (when-let [f (try-resolve 'immutant.wildfly/async-streaming-supported?)]
@@ -177,7 +183,7 @@
         (handle [_ ch code reason]
           (on-close ch {:code code
                         :reason reason}))))
-    (async-streaming-supported?)))
+    (boolean (async-streaming-supported?))))
 
 (defmethod async/initialize-websocket :servlet
   [request {:keys [on-open on-error on-close on-message on-error]}]

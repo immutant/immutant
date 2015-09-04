@@ -56,12 +56,13 @@
                  ((u/try-resolve 'immutant.web.internal.undertow/create-websocket-init-handler)
                    handler ring-request-map))
                handler)
+        servlet? (instance? Servlet hdlr)
         opts (extract-options
-               (if (in-container?)
+               (if servlet?
                  (assoc opts :filter-map (websocket-servlet-filter-map))
                  opts)
                Web$RegisterOption)]
-    (if (instance? Servlet hdlr)
+    (if servlet?
       (try
         (.registerServlet server hdlr opts)
         (catch IllegalStateException e

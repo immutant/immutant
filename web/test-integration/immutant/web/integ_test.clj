@@ -212,6 +212,50 @@
         (is (= (str "/" path)
               (-> result (deref 5000 "nil") read-string :path-info)))))))
 
+(marktest websocket-from-user-servlet
+  (with-open [socket (ws/connect (str (url "ws") "user-defined-servlet"))]
+    (ws/send-msg socket "hello"))
+  (is (= [:open "hello" 1001] (read-string (get-body (str (url) "user-defined-servlet?get-result"))))))
+
+(marktest stream-from-user-servlet
+  (with-open [client (http/create-client)]
+    (let [response (http/stream-seq client :get (str (url) "user-defined-servlet"))
+          stream @(:body response)
+          headers @(:headers response)
+          body (atom [])]
+      (loop []
+        (let [v (.poll stream)]
+          (when (not= v :http.async.client/done)
+            (when v
+              (swap! body conj (read-string (.toString v "UTF-8"))))
+            (recur))))
+      (is (= 200 (-> response :status deref :code)))
+      (is (= "chunked" (:transfer-encoding headers)))
+      (is (= (range 10) @body))
+      (is (= 10 (count @body))))))
+
+(marktest websocket-from-wrapped-handler-servlet
+  (with-open [socket (ws/connect (str (url "ws") "wrapped-handler-servlet"))]
+    (ws/send-msg socket "hello"))
+  (is (= [:open "hello" 1001] (read-string (get-body (str (url) "wrapped-handler-servlet?get-result"))))))
+
+(marktest stream-from-wrapped-handler-servlet
+  (with-open [client (http/create-client)]
+    (let [response (http/stream-seq client :get (str (url) "wrapped-handler-servlet"))
+          stream @(:body response)
+          headers @(:headers response)
+          body (atom [])]
+      (loop []
+        (let [v (.poll stream)]
+          (when (not= v :http.async.client/done)
+            (when v
+              (swap! body conj (read-string (.toString v "UTF-8"))))
+            (recur))))
+      (is (= 200 (-> response :status deref :code)))
+      (is (= "chunked" (:transfer-encoding headers)))
+      (is (= (range 10) @body))
+      (is (= 10 (count @body))))))
+
 (marktest concurrent-ws-requests-should-not-cross-streams
   (replace-handler
     '(fn [request]
