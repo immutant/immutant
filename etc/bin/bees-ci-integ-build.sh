@@ -11,7 +11,7 @@ DIR=$( cd "$( dirname "$0" )" && pwd )
 
 WF8_VERSION="8.2.0.Final"
 WF9_VERSION="9.0.1.Final"
-WF10_VERSION="10.0.0.Beta2"
+WF10_VERSION="10.0.0.CR1"
 
 function install-wildfly {
     mark "Installing WildFly $1"
