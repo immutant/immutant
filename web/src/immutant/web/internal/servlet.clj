@@ -106,10 +106,10 @@
   (.getAttribute context "javax.websocket.server.ServerContainer"))
 
 (defn add-endpoint-with-handler
-  [^HttpServlet servlet ^ServletConfig config handler]
+  [^Servlet servlet ^ServletConfig config handler]
     (let [servlet-context (.getServletContext config)
           mapping (-> servlet-context
-                    (.getServletRegistration (.getServletName servlet))
+                    (.getServletRegistration (-> servlet .getServletConfig .getServletName))
                     .getMappings
                     first)
           path (apply str (take (- (count mapping) 2) mapping))
