@@ -135,7 +135,7 @@
 
   `ws-callbacks` is a map of callbacks for handling the WebSocket, and are
   the same as the callbacks provided to [[immutant.web.async/as-channel]]."
-  [^HttpServlet servlet ^ServletConfig servlet-config ws-callbacks]
+  [^Servlet servlet ^ServletConfig servlet-config ws-callbacks]
   (add-endpoint-with-handler servlet servlet-config
     (fn [req]
       (async/as-channel req ws-callbacks))))
