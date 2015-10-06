@@ -17,9 +17,10 @@
    your application."
   (:require [immutant.internal.options :as o])
   (:import org.projectodd.wunderboss.WunderBoss
-           [org.projectodd.wunderboss.singleton
-            SingletonContext
-            SingletonContext$CreateOption]))
+           [org.projectodd.wunderboss.ec
+            DaemonContext
+            DaemonContext$CreateOption
+            DaemonContext$StopCallback]))
 
 (defn singleton-daemon
   "Sets up a highly-available singleton daemon.
@@ -37,9 +38,14 @@
    If used outside of WildFly, or in a WildFly instance not in a cluster,
    it behaves as if the cluster size is 1, and starts immediatey."
   [daemon-name start-fn stop-fn]
-  (doto ^SingletonContext (WunderBoss/findOrCreateComponent SingletonContext
-          (name daemon-name)
-          (o/extract-options {:daemon true, :daemon-stop-callback stop-fn}
-            SingletonContext$CreateOption))
-    (.setRunnable start-fn)
+  (doto ^DaemonContext
+    (WunderBoss/findOrCreateComponent DaemonContext
+      (name daemon-name)
+      ;; TODO: expose :stop-timeout
+      (o/extract-options {:singleon true}
+            DaemonContext$CreateOption))
+    (.setAction start-fn)
+    (.setStopCallback (reify DaemonContext$StopCallback
+                        (notify [_ _]
+                          (stop-fn))))
     .start))

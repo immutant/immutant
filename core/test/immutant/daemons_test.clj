@@ -28,7 +28,7 @@
       #(deliver stopped-p :stopped))
     (is (= :started (deref started-p 1000 :failure)))
     ;; confirm we're on the right thread
-    (is (re-find #"singleton-thread\[foo\]" @thread-a))
+    (is (re-find #"daemon-thread\[foo\]" @thread-a))
     (WunderBoss/shutdownAndReset)
     ;; confirm stop fn is called
     (is (= :stopped (deref stopped-p 1000 :failure)))))
