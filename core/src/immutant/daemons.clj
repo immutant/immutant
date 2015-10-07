@@ -38,14 +38,18 @@
    If used outside of WildFly, or in a WildFly instance not in a cluster,
    it behaves as if the cluster size is 1, and starts immediatey."
   [daemon-name start-fn stop-fn]
-  (doto ^DaemonContext
-    (WunderBoss/findOrCreateComponent DaemonContext
-      (name daemon-name)
-      ;; TODO: expose :stop-timeout
-      (o/extract-options {:singleon true}
-            DaemonContext$CreateOption))
-    (.setAction start-fn)
-    (.setStopCallback (reify DaemonContext$StopCallback
-                        (notify [_ _]
-                          (stop-fn))))
-    .start))
+  (let [actually-ran? (atom false)]
+    (doto ^DaemonContext
+      (WunderBoss/findOrCreateComponent DaemonContext
+        (name daemon-name)
+        ;; TODO: expose :stop-timeout
+        (o/extract-options {:singleon true}
+          DaemonContext$CreateOption))
+      (.setAction (fn []
+                    (reset! actually-ran? true)
+                    (start-fn)))
+      (.setStopCallback (reify DaemonContext$StopCallback
+                          (notify [_ _]
+                            (when @actually-ran?
+                              (stop-fn)))))
+      .start)))
