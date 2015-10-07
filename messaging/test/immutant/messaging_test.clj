@@ -250,6 +250,15 @@
         (is (= :success (receive q :timeout 100 :timeout-val :success)))
         (is (< (- (System/currentTimeMillis) start) 200))))))
 
+(deftest request-receive-should-work-with-recreated-queue
+  (let [q (random-queue)
+        action (fn [q msg]
+                 (respond q identity)
+                 (is (= msg (deref (request q msg) 1000 :failure)))
+                 (stop q))]
+    (action q :hi)
+    (action (queue (.name q)) :hi-again)))
+
 (deftest publish-from-a-listener-should-work
   (let [q (random-queue)
         q2 (random-queue)
