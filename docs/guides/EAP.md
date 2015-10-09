@@ -74,10 +74,23 @@ that a WAR with the above contents *can't* be deployed to a WildFly
 server, as `enable-websockets` isn't a valid option there,
 unfortunately.
 
-## Infinispan issues
+## Caching
 
-What goes here?
+Immutant's caching library is designed to work, with different major
+versions of Infinispan, including 5, 6, 7 and 8. EAP 6.4 includes
+Infinispan 5, which is relatively old with some known issues. Three
+things, in particular:
 
+* [IMMUTANT-454](https://issues.jboss.org/browse/IMMUTANT-454) is not
+  fixed in EAP 6.4
+* Because it lacks support for `Equivalence` functions, binary keys are
+  stored in wrappers, a common Infinispan technique prior to version 6.
+  This limits your ability to read/write values in a cache with
+  different encodings, which is something nobody should ever do
+  anyway.
+* Events are a little broken in Infinispan 5. Specifically, neither
+  the `:pre?` nor `:value` attributes will change in the before and
+  after events.
 
 ## Detecting EAP at runtime
 
