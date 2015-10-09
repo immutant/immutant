@@ -77,7 +77,6 @@
     (is (= host2 (:node (last @responses))))
     (start host1)
     (mark (swap! responses conj (response host2)))
-    (is (= host2 (:node (last @responses))))
     (stop host2)
     (mark (swap! responses conj (response host1)))
     (is (= host1 (:node (last @responses))))
