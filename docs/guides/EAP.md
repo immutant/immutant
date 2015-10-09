@@ -76,7 +76,7 @@ unfortunately.
 
 ## Caching
 
-Immutant's caching library is designed to work, with different major
+Immutant's caching library is designed to work with different major
 versions of Infinispan, including 5, 6, 7 and 8. EAP 6.4 includes
 Infinispan 5, which is relatively old with some known issues. Three
 things, in particular:
