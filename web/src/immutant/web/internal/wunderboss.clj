@@ -59,7 +59,7 @@
         servlet? (instance? Servlet hdlr)
         opts (extract-options
                (if servlet?
-                 (assoc opts :filter-map (websocket-servlet-filter-map))
+                 (update opts :filter-map merge (websocket-servlet-filter-map))
                  opts)
                Web$RegisterOption)]
     (if servlet?
