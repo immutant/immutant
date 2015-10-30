@@ -14,43 +14,84 @@
 
 (ns immutant.transactions.jdbc
   "Enables `clojure.java.jdbc` to behave within an XA transaction"
-  (:import [java.sql PreparedStatement Connection])
+  (:import [java.sql Connection Statement CallableStatement
+            PreparedStatement DatabaseMetaData])
   (:require [immutant.transactions :refer (set-rollback-only)]
             [clojure.java.jdbc :as jdbc]))
 
 (defmacro ^:private override-delegate
-  [type delegate & body]
-  (let [overrides (group-by first body)
+  [type delegate-expr & body]
+  (let [delegate (gensym)
+        overrides (group-by first body)
         methods (for [m (.getMethods (resolve type))
-                      :let [f (with-meta (symbol (.getName m)) {:tag (-> m .getReturnType .getName)})]
+                      :let [f (-> (.getName m) symbol (with-meta {:tag (-> m .getReturnType .getName)}))]
                       :when (not (overrides f))
                       :let [args (for [t (.getParameterTypes m)] (with-meta (gensym) {:tag (.getName t)}))]]
                   (list f (vec (conj args '_)) `(. ~delegate ~f ~@(map #(with-meta % nil) args))))]
-    `(reify ~type ~@body ~@methods)))
+    `(let [~delegate ~delegate-expr]
+       (reify ~type ~@body ~@methods))))
 
-(defn ^:no-doc prepared-statement
- [con ^PreparedStatement stmt]
- (override-delegate PreparedStatement stmt
-   ;; Make the wrapper the statement's back-reference
-   (getConnection [_] con)))
+(defmacro connection-backref
+  "TODO: make this work"
+  [con f args]
+  (list f (vec (cons 'this args))
+    (list 'override-delegate (:tag (meta f)) `(. ~con ~f ~@(map #(with-meta % nil) args))
+       '(getConnection [_] this))))
 
 (defn ^:no-doc connection
  [^Connection con]
  (override-delegate Connection con
+
    ;; Eat these since they're illegal on an XA connection
+
    (setAutoCommit [& _])
    (commit [_])
    (rollback [_] (set-rollback-only))
 
-   ;; Ensure statement's back-reference points to this
+   ;; Ensure each statement's connection back-reference points to this
+
+   (^Statement createStatement [this]
+     (override-delegate Statement (.createStatement con)
+       (getConnection [_] this)))
+   (^Statement createStatement [this ^int a ^int b]
+     (override-delegate Statement (.createStatement con a b)
+       (getConnection [_] this)))
+   (^Statement createStatement [this ^int a ^int b ^int c]
+     (override-delegate Statement (.createStatement con a b c)
+       (getConnection [_] this)))
+
+   (^CallableStatement prepareCall [this ^String a]
+     (override-delegate CallableStatement (.prepareCall con a)
+       (getConnection [_] this)))
+   (^CallableStatement prepareCall [this ^String a ^int b ^int c]
+     (override-delegate CallableStatement (.prepareCall con a b c)
+       (getConnection [_] this)))
+   (^CallableStatement prepareCall [this ^String a ^int b ^int c ^int d]
+     (override-delegate CallableStatement (.prepareCall con a b c d)
+       (getConnection [_] this)))
+
    (^PreparedStatement prepareStatement [this ^String a]
-     (prepared-statement this (.prepareStatement con a)))
+     (override-delegate PreparedStatement (.prepareStatement con a)
+       (getConnection [_] this)))
    (^PreparedStatement prepareStatement [this ^String a ^int b]
-     (prepared-statement this (.prepareStatement con a b)))
+     (override-delegate PreparedStatement (.prepareStatement con a b)
+       (getConnection [_] this)))
+   (^PreparedStatement prepareStatement [this ^String a ^ints b]
+     (override-delegate PreparedStatement (.prepareStatement con a b)
+       (getConnection [_] this)))
+   (^PreparedStatement prepareStatement [this ^String a ^"[Ljava.lang.String;" b]
+     (override-delegate PreparedStatement (.prepareStatement con a b)
+       (getConnection [_] this)))
    (^PreparedStatement prepareStatement [this ^String a ^int b ^int c]
-     (prepared-statement this (.prepareStatement con a b c)))
+     (override-delegate PreparedStatement (.prepareStatement con a b c)
+       (getConnection [_] this)))
    (^PreparedStatement prepareStatement [this ^String a ^int b ^int c ^int d]
-     (prepared-statement this (.prepareStatement con a b c d)))))
+     (override-delegate PreparedStatement (.prepareStatement con a b c d)
+       (getConnection [_] this)))
+
+   (^DatabaseMetaData getMetaData [this]
+     (override-delegate DatabaseMetaData (.getMetaData con)
+       (getConnection [_] this)))))
 
 (defn factory
   "May be passed via the :factory option to a `clojure.java.jdbc` spec

@@ -52,6 +52,8 @@
                                        :connection-uri "jdbc:h2:mem:ooc"})
                 s (.prepareStatement c "")]
       (.clearParameters s)
+      (is (= c (.getConnection s)))
       (is (not (.isClosed c)))
+      (is (not (.isClosed s)))
       (.close c)
       (is (.isClosed c)))))
