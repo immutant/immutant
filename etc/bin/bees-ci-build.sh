@@ -18,8 +18,11 @@ setup-lein-profiles
 mark "Reversioning"
 etc/bin/reversion.sh 2.x.incremental.${BUILD_NUMBER}
 
-mark "Starting build"
+mark "Building with Clojure 1.7.0"
 lein modules all
+
+mark "Building with Clojure 1.8.0"
+lein with-profile +clojure-1.8 modules all
 
 mark "Testing messaging with HornetQ 2.3"
 cd messaging

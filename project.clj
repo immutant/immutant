@@ -28,7 +28,8 @@
              :dev {:dependencies [[pjstadig/humane-test-output "0.6.0"]]
                    :injections [(require 'pjstadig.humane-test-output)
                                 (pjstadig.humane-test-output/activate!)]}
-             :integs {}}
+             :integs {}
+             :clojure-1.8 {:modules {:versions {clojure "1.8.0-beta2"}}}}
 
   :aliases {"docs-from-index" ["build-helper" "docs" "generate" "docs/guides"
                                "caching" "core" "messaging" "scheduling" "transactions" "web" "wildfly"]
