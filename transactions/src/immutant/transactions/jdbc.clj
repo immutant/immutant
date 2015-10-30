@@ -18,30 +18,25 @@
   (:require [immutant.transactions :refer (set-rollback-only)]
             [clojure.java.jdbc :as jdbc]))
 
+(defmacro ^:private override-delegate
+  [type delegate & body]
+  (let [overrides (group-by first body)
+        methods (for [m (.getMethods (resolve type))
+                      :let [f (with-meta (symbol (.getName m)) {:tag (-> m .getReturnType .getName)})]
+                      :when (not (overrides f))
+                      :let [args (for [t (.getParameterTypes m)] (with-meta (gensym) {:tag (.getName t)}))]]
+                  (list f (vec (conj args '_)) `(. ~delegate ~f ~@(map #(with-meta % nil) args))))]
+    `(reify ~type ~@body ~@methods)))
+
 (defn ^:no-doc prepared-statement
  [con ^PreparedStatement stmt]
- (reify PreparedStatement
+ (override-delegate PreparedStatement stmt
    ;; Make the wrapper the statement's back-reference
-   (getConnection [_] con)
-
-   ;; Delegate everything else
-   (executeBatch [_] (.executeBatch stmt))
-   (executeUpdate [_] (.executeUpdate stmt))
-   (executeQuery [_] (.executeQuery stmt))
-   (getUpdateCount [_] (.getUpdateCount stmt))
-   (getParameterMetaData [_] (.getParameterMetaData stmt))
-   (getGeneratedKeys [_] (.getGeneratedKeys stmt))
-   (setFetchSize [_ s] (.setFetchSize stmt s))
-   (setMaxRows [_ m] (.setMaxRows stmt m))
-   (setNull [_ x y] (.setNull stmt x y))
-   (setObject [_ x y] (.setObject stmt x y))
-   (addBatch [_ b] (.addBatch stmt b))
-   (addBatch [_] (.addBatch stmt))
-   (close [_] (.close stmt))))
+   (getConnection [_] con)))
 
 (defn ^:no-doc connection
  [^Connection con]
- (reify Connection
+ (override-delegate Connection con
    ;; Eat these since they're illegal on an XA connection
    (setAutoCommit [& _])
    (commit [_])
@@ -55,17 +50,7 @@
    (^PreparedStatement prepareStatement [this ^String a ^int b ^int c]
      (prepared-statement this (.prepareStatement con a b c)))
    (^PreparedStatement prepareStatement [this ^String a ^int b ^int c ^int d]
-     (prepared-statement this (.prepareStatement con a b c d)))
-
-   ;; Delegate everything else
-   (close [_] (.close con))
-   (getAutoCommit [_] (.getAutoCommit con))
-   (createStatement [_] (.createStatement con))
-   (getMetaData [_] (.getMetaData con))
-   (getTransactionIsolation [_] (.getTransactionIsolation con))
-   (setTransactionIsolation [_ v] (.setTransactionIsolation con v))
-   (isReadOnly [_] (.isReadOnly con))
-   (setReadOnly [_ v] (.setReadOnly con v))))
+     (prepared-statement this (.prepareStatement con a b c d)))))
 
 (defn factory
   "May be passed via the :factory option to a `clojure.java.jdbc` spec
