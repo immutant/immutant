@@ -32,7 +32,7 @@
     `(let [~delegate ~delegate-expr]
        (reify ~type ~@expanded ~@methods))))
 
-(defmacro with-backref
+(defmacro ^:private with-backref
   "Expands to a reify spec for a Connection with an override-delegate
   call for a Statement, its specific type taken from (:tag (meta f)),
   created by invoking f on con, that overrides getConnection to return
