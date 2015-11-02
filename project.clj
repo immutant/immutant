@@ -93,11 +93,11 @@
                         environ                    "1.0.0"
 
                         ;; org.projectodd.wunderboss  "0.9.0"
-                        org.projectodd.wunderboss  "1.x.incremental.292"
+                        org.projectodd.wunderboss  "1.x.incremental.295"
                         ;; org.projectodd.wunderboss  "0.9.1-SNAPSHOT"
 
                         org.immutant               :version
-                        fntest                     "2.0.7"}}
+                        fntest                     "2.0.8-SNAPSHOT"}}
 
   :release-tasks  [["vcs" "assert-committed"]
 

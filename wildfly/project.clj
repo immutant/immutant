@@ -19,6 +19,6 @@
 
   :dependencies [[org.immutant/core _]
                  [org.clojure/tools.nrepl "_"]
-                 [org.projectodd.wunderboss/wunderboss-wildfly _]]
+                 [org.projectodd.wunderboss/wunderboss-wildfly-core _]]
 
   :profiles {:base {:dependencies []}})

@@ -150,12 +150,7 @@
   ([host protocol]
      (format "%s://%s:%s%s" protocol host (http-port) (context-path))))
 
-(let [in-cluster (delay
-                   (boolean
-                     (ignore-load-failures
-                       (-> ^Class (u/try-import 'org.projectodd.wunderboss.as.ClusterUtils)
-                         (.getMethod "inCluster" nil)
-                         (.invoke nil nil)))))]
+(let [in-cluster (delay (invoke-as-util-method "inCluster"))]
   (defn in-cluster?
   "Returns true if running inside a cluster"
   []
