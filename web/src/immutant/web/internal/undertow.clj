@@ -108,7 +108,8 @@
   (server-name [exchange]        (.getHostName exchange))
   (remote-addr [exchange]        (-> exchange .getSourceAddress .getAddress .getHostAddress))
   (uri [exchange]                (.getRequestURI exchange))
-  (query-string [exchange]       (.getQueryString exchange))
+  (query-string [exchange]       (let [qs (.getQueryString exchange)]
+                                   (if (= "" qs) nil qs)))
   (scheme [exchange]             (-> exchange .getRequestScheme keyword))
   (request-method [exchange]     (-> exchange .getRequestMethod .toString .toLowerCase keyword))
   (content-type [exchange]       (-> exchange .getRequestHeaders (.getFirst Headers/CONTENT_TYPE)))

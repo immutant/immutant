@@ -125,6 +125,10 @@
     (is (map? (:headers request)))
     (is (< 3 (count (:headers request))))))
 
+(marktest non-existent-query-string-is-nil
+  (let [request (decode (get-body (str (url) "dump/request") :headers {:content-type "text/html; charset=utf-8"}))]
+    (is (nil? (:query-string request)))))
+
 (marktest upgrade-request-map-entries
   (let [request (promise)]
     (with-open [s (ws/connect (str (url "ws") "dump?x=y&j=k")
