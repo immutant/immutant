@@ -154,6 +154,12 @@
     (with-open [listener (respond q keyword)]
       (is (= :hi (deref (request q "hi") 10000 :fail))))))
 
+(deftest request-respond-should-work-with-a-local-context
+  (let [q (random-queue)]
+    (with-open [listener (respond q keyword)
+                c (context)]
+      (is (= :hi (deref (request q "hi" :context c) 10000 :fail))))))
+
 (deftest request-should-restore-properties-to-metadata
   (let [q (random-queue)]
     (with-open [listener (respond q identity)]
