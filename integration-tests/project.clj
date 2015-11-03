@@ -34,7 +34,10 @@
                                         [org.clojars.tcrawley/gniazdo _]
                                         [ring/ring-devel _]
                                         [compojure _]
-                                        [org.glassfish.jersey.media/jersey-media-sse _]]
+                                        [org.glassfish.jersey.media/jersey-media-sse _
+                                         :exclusions [org.glassfish.jersey.core/jersey-server]]
+                                        [org.glassfish.jersey.core/jersey-client _]
+                                        [javax.ws.rs/javax.ws.rs-api "2.0.1"]]
                          :resource-paths ["../web/dev-resources"]
                          :test-paths ["../web/test-integration"]
                          :main integs.web}
