@@ -122,22 +122,33 @@
   [ns]
   (WunderBoss/logger (str ns)))
 
+(defn ^:internal handle-log-args [& args]
+  (update-in
+    (if (instance? Throwable (last args))
+      [(butlast args) (last args)]
+      [args])
+    [0] #(apply print-str %)))
+
 (defmacro warn
   "Logs as warn."
   [& msg]
-  `(.warn (logger ~*ns*) (print-str ~@msg)))
+  `(let [[m# t#] (handle-log-args ~@msg)]
+    (.warn (logger ~*ns*) m# t#)))
 
 (defmacro error
   "Logs as error."
   [& msg]
-  `(.error (logger ~*ns*) (print-str ~@msg)))
+  `(let [[m# t#] (handle-log-args ~@msg)]
+     (.error (logger ~*ns*) m# t#)))
 
 (defmacro info
   "Logs as info."
   [& msg]
-  `(.info (logger ~*ns*) (print-str ~@msg)))
+  `(let [[m# t#] (handle-log-args ~@msg)]
+     (.info (logger ~*ns*) m# t#)))
 
 (defmacro debug
   "Logs as debug."
   [& msg]
-  `(.debug (logger ~*ns*) (print-str ~@msg)))
+  `(let [[m# t#] (handle-log-args ~@msg)]
+     (.debug (logger ~*ns*) m# t#)))
