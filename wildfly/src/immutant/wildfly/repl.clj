@@ -54,16 +54,26 @@
     (when (and nrepl-middleware nrepl-handler)
       (throw (IllegalArgumentException.
                "Can only use one of :nrepl-handler or :nrepl-middleware")))
-    (let [handler (or (and nrepl-handler (iu/require-resolve nrepl-handler))
-                    (->> nrepl-middleware
-                      (map #(cond
-                              (var? %) %
-                              (symbol? %) (iu/require-resolve %)
-                              (list? %) (eval %)))
-                      (apply nrepl/default-handler)))
-          server (nrepl/start-server :port port :bind host :handler handler)]
-      (u/at-exit (partial stop server))
-      (let [[host bound-port] (nrepl-host-port server)]
-        (iu/info (format "nREPL bound to %s:%s" host bound-port))
-        (spit-nrepl-files bound-port port-file))
-      server)))
+    (try
+      (let [handler (or (and nrepl-handler (iu/require-resolve nrepl-handler))
+                      (->> nrepl-middleware
+                        (map #(cond
+                                (var? %) %
+                                (symbol? %) (iu/require-resolve %)
+                                (list? %) (eval %)))
+                        (apply nrepl/default-handler)))
+            server (nrepl/start-server :port port :bind host :handler handler)]
+        (u/at-exit (partial stop server))
+        (let [[host bound-port] (nrepl-host-port server)]
+          (iu/info (format "nREPL bound to %s:%s" host bound-port))
+          (spit-nrepl-files bound-port port-file))
+        server)
+      (catch Exception e
+        (iu/error "Failed to start nrepl, possibly due to nrepl middleware"
+          "that isn't compatible with WildFly" e)
+        (iu/error "nrepl settings were:"
+          (pr-str {:host host
+                   :port port
+                   :port-file port-file
+                   :nrepl-middleware nrepl-middleware
+                   :nrepl-handler nrepl-handler}))))))
