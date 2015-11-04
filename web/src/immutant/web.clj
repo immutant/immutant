@@ -35,9 +35,13 @@
      * :path          Maps the handler to a prefix of the url path [\"/\"]
      * :virtual-host  Virtual host name[s] (a String or a List of Strings) [nil]
      * :dispatch?     Invoke handlers in worker thread pool [true]
-     * :servlet-name  The name to register the servlet under (gets passed to
-                      ServletInfo, valid for servlets only) [the :path]
 
+  When `handler` is a Servlet, the following options are also supported:
+  
+     * :servlet-name  The servlet's registered name [the :path]
+     * :filter-map    An ordered mapping, e.g. a LinkedHashMap, of names
+                      to Filter instances [nil]
+  
    Note the web server only binds to the loopback interface, by
    default. To expose your handler to the network, set :host to an
    external IP address, or use \"0.0.0.0\" to bind it to all interfaces.
