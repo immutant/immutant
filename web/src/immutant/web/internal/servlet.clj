@@ -24,7 +24,6 @@
              [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint
               JavaxWebsocketChannel WebSocketHelpyHelpertonFilter
               WebsocketChannel WebsocketChannel$OnMessage]
-             [java.util LinkedHashMap]
              [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
              [javax.servlet Servlet ServletConfig ServletContext]
              [javax.websocket Session Endpoint EndpointConfig MessageHandler$Whole CloseReason]
@@ -208,5 +207,4 @@
           (on-message ch message))))))
 
 (defn websocket-servlet-filter-map []
-  (doto (LinkedHashMap.)
-    (.put "ws-helper" (WebSocketHelpyHelpertonFilter.))))
+  {"ws-helper" (WebSocketHelpyHelpertonFilter.)})

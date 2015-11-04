@@ -22,6 +22,7 @@
               [immutant.web.middleware    :refer [wrap-development]]
               [clojure.java.browse        :refer [browse-url]])
     (:import org.projectodd.wunderboss.WunderBoss
+             [java.util Map LinkedHashMap]
              [org.projectodd.wunderboss.web Web Web$CreateOption Web$RegisterOption]
              javax.servlet.Servlet
              [java.net ServerSocket InetSocketAddress]))
@@ -48,6 +49,11 @@
     (server-name (select-keys opts (disj (opts->set Web$CreateOption) :auto-start)))
     (extract-options opts Web$CreateOption)))
 
+(defn ^:internal add-ws-filter [m]
+  (let [m (or m {})]
+    (doto (LinkedHashMap. ^Map m)
+      (.putAll (websocket-servlet-filter-map)))))
+
 (defn ^:internal mount [^Web server handler opts]
   (let [hdlr (if (or (fn? handler)
                    (var? handler))
@@ -59,7 +65,7 @@
         servlet? (instance? Servlet hdlr)
         opts (extract-options
                (if servlet?
-                 (update opts :filter-map merge (websocket-servlet-filter-map))
+                 (update-in opts [:filter-map] add-ws-filter)
                  opts)
                Web$RegisterOption)]
     (if servlet?

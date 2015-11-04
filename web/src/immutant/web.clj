@@ -39,8 +39,8 @@
   When `handler` is a Servlet, the following options are also supported:
   
      * :servlet-name  The servlet's registered name [the :path]
-     * :filter-map    An ordered mapping, e.g. a LinkedHashMap, of names
-                      to Filter instances [nil]
+     * :filter-map    An insertion-order-preserving mapping, e.g. array-map
+                      or LinkedHashMap, of names to Filter instances [nil]
   
    Note the web server only binds to the loopback interface, by
    default. To expose your handler to the network, set :host to an
