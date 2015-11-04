@@ -75,16 +75,15 @@ to function to use instead of `-main`:
 :main my-app.core/start
 ```
 
-But what if your project doesn't have a `:main` function? If you
-created your app with a popular Ring-based template like [Compojure]
-or [Luminus], it won't:
+But what if your project doesn't have a `:main` function? Perhaps you
+created your app with a popular Ring-based template like [Compojure]:
 
     lein new compojure my-app
 
-Instead, you'll have a `:ring` map with a `:handler` called
-`my-app.handler/app`. So you'll need to manually add a `:main` entry
-referencing a function in your project. You can easily add one to
-`src/my_app/handler.clj`:
+Instead of a `:main`, you'll have a `:ring` map with a `:handler`
+called `my-app.handler/app`. So you'll need to manually add a `:main`
+entry referencing a function in your project. You can easily add one
+to `src/my_app/handler.clj`:
 
 ```clojure
 (ns my-app.handler
