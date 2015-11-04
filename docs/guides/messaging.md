@@ -414,6 +414,6 @@ See the [Transactions Guide] for more details.
 [request-response]: https://en.wikipedia.org/wiki/Request-response
 [Future]: http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Future.html
 [edn]: https://github.com/edn-format/edn
-[default versions]: https://github.com/projectodd/wunderboss/blob/{{wunderboss-tag}}/modules/messaging-hornetq/src/main/resources/
+[default versions]: https://github.com/projectodd/wunderboss/blob/{{wunderboss-tag}}/messaging-hornetq/src/main/resources/
 [configuration options]: https://docs.jboss.org/hornetq/2.4.0.Final/docs/user-manual/html_single/#server.configuration
 [Transactions Guide]: guide-transactions.html

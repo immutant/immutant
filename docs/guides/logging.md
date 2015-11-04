@@ -149,7 +149,7 @@ information on running your application in WildFly, see our
 [Timbre]: https://github.com/ptaoussanis/timbre
 [myriad options]: http://logback.qos.ch/manual/index.html
 [logback.xml]: http://logback.qos.ch/manual/configuration.html
-[default configuration]: https://github.com/projectodd/wunderboss/blob/master/core/src/main/resources/logback-default.xml
+[default configuration]: https://github.com/projectodd/wunderboss/blob/{{wunderboss-tag}}/core/src/main/resources/logback-default.xml
 [incremental build]: http://immutant.org/builds/2x/
 [logging documentation]: https://docs.jboss.org/author/display/WFLY8/Logging+Configuration
 [WildFly]: http://wildfly.org/
