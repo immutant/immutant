@@ -132,23 +132,23 @@
 (defmacro warn
   "Logs as warn."
   [& msg]
-  `(let [[m# t#] (handle-log-args ~@msg)]
+  `(let [[^String m# ^Throwable t#] (handle-log-args ~@msg)]
     (.warn (logger ~*ns*) m# t#)))
 
 (defmacro error
   "Logs as error."
   [& msg]
-  `(let [[m# t#] (handle-log-args ~@msg)]
+  `(let [[^String m# ^Throwable t#] (handle-log-args ~@msg)]
      (.error (logger ~*ns*) m# t#)))
 
 (defmacro info
   "Logs as info."
   [& msg]
-  `(let [[m# t#] (handle-log-args ~@msg)]
+  `(let [[^String m# ^Throwable t#] (handle-log-args ~@msg)]
      (.info (logger ~*ns*) m# t#)))
 
 (defmacro debug
   "Logs as debug."
   [& msg]
-  `(let [[m# t#] (handle-log-args ~@msg)]
+  `(let [[^String m# ^Throwable t#] (handle-log-args ~@msg)]
      (.debug (logger ~*ns*) m# t#)))
