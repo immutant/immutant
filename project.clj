@@ -83,7 +83,7 @@
                         core.memoize               "0.5.6"
                         io.pedestal                "0.3.1"
                         http.async.client          "0.5.2"
-                        gniazdo                    "0.4.1a"
+                        gniazdo                    "0.4.1b"
                         compojure                  "1.3.4"
                         org.clojure/java.jdbc      "0.3.6"
                         h2                         "1.3.176"
@@ -94,7 +94,7 @@
                         environ                    "1.0.0"
 
                         ;; org.projectodd.wunderboss  "0.9.0"
-                        org.projectodd.wunderboss  "1.x.incremental.296"
+                        org.projectodd.wunderboss  "1.x.incremental.297"
                         ;; org.projectodd.wunderboss  "0.9.1-SNAPSHOT"
 
                         org.immutant               :version

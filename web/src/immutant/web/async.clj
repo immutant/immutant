@@ -284,8 +284,8 @@
   milliseconds.
 
   When the ring handler is called during a WebSocket upgrade request,
-  any headers returned in the response map are ignored, but any changes to
-  the session are applied.
+  any changes to the session in the response map are applied, and any
+  headers from the response map are included in the upgrade response.
 
   Returns a ring response map, at least the :body of which *must* be
   returned in the response map from the calling ring handler."

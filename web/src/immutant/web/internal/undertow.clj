@@ -14,15 +14,14 @@
 
 (ns ^{:no-doc true} immutant.web.internal.undertow
     (:require [immutant.web.async            :as async]
-              [immutant.web.internal.ring    :as ring]
               [immutant.web.internal.headers :as hdr]
+              [immutant.web.internal.ring    :as ring]
               [ring.middleware.session       :as ring-session])
-    (:import java.net.URI
-             [io.undertow.server HttpHandler HttpServerExchange]
+    (:import [io.undertow.server HttpHandler HttpServerExchange]
              [io.undertow.server.session Session SessionConfig SessionCookieConfig]
              [io.undertow.util HeaderMap Headers HttpString Sessions]
              [io.undertow.websockets.core CloseMessage WebSocketChannel]
-             [io.undertow.websockets.spi WebSocketHttpExchange]
+             java.net.URI
              [org.projectodd.wunderboss.web.async Channel
               Channel$OnOpen Channel$OnClose Channel$OnError]
              [org.projectodd.wunderboss.web.async.websocket WebsocketChannel
@@ -180,20 +179,18 @@
           (on-message ch message))))))
 
 (defn ^:internal create-websocket-init-handler [handler-fn request-map-fn]
-  (let [http-exchange-tl (ThreadLocal.)
-        downstream-handler (create-http-handler handler-fn)]
+  (let [downstream-handler (create-http-handler handler-fn)]
     (UndertowWebsocket/createHandler
-      http-exchange-tl
       (reify WebsocketInitHandler
         (shouldConnect [_ exchange endpoint-wrapper]
-          (let [http-exchange (.get http-exchange-tl)]
-            (boolean
-              (let [body (:body (handler-fn (request-map-fn http-exchange
-                                              [:websocket? true]
-                                              [:server-exchange http-exchange]
-                                              [:handler-type :undertow])))]
-                (when (instance? WebsocketChannel body)
-                  (.setEndpoint endpoint-wrapper
-                    (.endpoint ^WebsocketChannel body))
-                  true))))))
+          (boolean
+            (let [{:keys [body headers] :as r} (handler-fn (request-map-fn exchange
+                                                             [:websocket? true]
+                                                             [:server-exchange exchange]
+                                                             [:handler-type :undertow]))]
+              (hdr/set-headers (.getResponseHeaders exchange) headers)
+              (when (instance? WebsocketChannel body)
+                (.setEndpoint endpoint-wrapper
+                  (.endpoint ^WebsocketChannel body))
+                true)))))
       downstream-handler)))

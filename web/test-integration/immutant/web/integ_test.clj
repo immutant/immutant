@@ -207,6 +207,17 @@
       (is (= "HELLO" (deref result 5000 :failure)))
       (is (= {:count 1 :ham :sandwich} (decode (get-body (str (url) "session"))))))))
 
+(marktest websocket-upgrade-request-can-set-headers
+  (let [result (promise)]
+    (with-open [socket (ws/connect (str (url "ws") "ws")
+                         :on-receive (fn [m] (deliver result m))
+                         :cookies @cookies)
+                session (ws/session socket)]
+      (ws/send-msg socket "hello")
+      (is (= "HELLO" (deref result 5000 :failure)))
+      (let [headers (into {} (-> session .getUpgradeResponse .getHeaders))]
+        (is (= "biscuit" (first (headers "ham"))))))))
+
 (marktest nested-ws-routes
   (doseq [path ["" "foo" "foo/bar"]]
     (let [result (promise)]

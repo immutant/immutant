@@ -26,7 +26,8 @@
               WebsocketChannel WebsocketChannel$OnMessage]
              [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
              [javax.servlet Servlet ServletConfig ServletContext]
-             [javax.websocket Session Endpoint EndpointConfig MessageHandler$Whole CloseReason]
+             [javax.websocket Session
+              Endpoint EndpointConfig HandshakeResponse MessageHandler$Whole CloseReason]
              [javax.websocket.server ServerContainer
               ServerEndpointConfig ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
@@ -104,6 +105,17 @@
 (defn ^ServerContainer server-container [^ServletContext context]
   (.getAttribute context "javax.websocket.server.ServerContainer"))
 
+(extend-type HandshakeResponse
+  hdr/Headers
+  (set-header [response ^String key value] (-> response .getHeaders (.put key [value])))
+  (add-header [response ^String key value]
+    (let [headers (.getHeaders response)
+          curr (.get headers key)]
+      (.put headers key
+        (if curr
+          (conj (vec curr) value)
+          [value])))))
+
 (defn add-endpoint-with-handler
   [^Servlet servlet ^ServletConfig config handler]
     (let [servlet-context (.getServletContext config)
@@ -118,15 +130,16 @@
           (create DelegatingJavaxEndpoint path)
           (configurator (proxy [ServerEndpointConfig$Configurator] []
                           (getEndpointInstance [_] (DelegatingJavaxEndpoint.))
-                          (modifyHandshake [_ _ _]
+                          (modifyHandshake [_ _ ^HandshakeResponse response]
                             (let [request (.get WebSocketHelpyHelpertonFilter/requestTL)
-                                  body (:body (handler (ring/ring-request-map request
-                                                         [:handler-type :servlet]
-                                                         [:servlet-request request]
-                                                         [:websocket? true])))]
+                                  {:keys [body headers]} (handler (ring/ring-request-map request
+                                                                    [:handler-type :servlet]
+                                                                    [:servlet-request request]
+                                                                    [:websocket? true]))]
+                              (hdr/set-headers response headers)
                               (when (instance? WebsocketChannel body)
-                          (DelegatingJavaxEndpoint/setCurrentDelegate
-                            (.endpoint ^WebsocketChannel body)))))))
+                                (DelegatingJavaxEndpoint/setCurrentDelegate
+                                  (.endpoint ^WebsocketChannel body)))))))
           build))))
 
 (defn add-endpoint

@@ -85,6 +85,7 @@
        :on-error (fn [ch err]
                    (println "Error on websocket")
                    (.printStackTrace err))})
+    :headers {"ham" "biscuit"}
     :session (assoc (:session request) :ham :sandwich)))
 
 (def client-defined-handler (atom (fn [_] (throw (Exception. "no handler given")))))
