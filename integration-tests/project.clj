@@ -58,7 +58,8 @@
                        :main integs.cluster
                        :dependencies [[org.immutant/fntest _]
                                       [clj-http _]
-                                      [environ _]]
+                                      [environ _]
+                                      [jboss-as-management "0.4.3-SNAPSHOT"]]
                        :plugins [[lein-environ "1.0.0"]]
                        :test-paths ^:replace ["test-clustering"]}
              :eap-base {:env {:eap true}
