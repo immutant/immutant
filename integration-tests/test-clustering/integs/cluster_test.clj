@@ -71,6 +71,8 @@
                   60000 nil))
         host2 (-> #{"server-one" "server-two"} (disj host1) first)
         response (fn [s] (get-as-data "/cache" s))]
+    (when-not host1
+      (throw (IllegalStateException. "host1 is nil!")))
     (mark (swap! responses conj (response host1)))
     (stop host1)
     (mark (swap! responses conj (response host2)))
