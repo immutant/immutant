@@ -1,7 +1,7 @@
 ---
 {:title "Caching"
  :sequence 4
- :base-ns 'immutant.caching
+ :base-ns immutant.caching
  :description "Flexible caching and memoization using a linearly-scalable data grid"}
 ---
 

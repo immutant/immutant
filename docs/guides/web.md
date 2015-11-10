@@ -1,7 +1,7 @@
 ---
 {:title "Web"
  :sequence 1.5
- :base-ns 'immutant.web
+ :base-ns immutant.web
  :description "Running Clojure web applications"}
 ---
 

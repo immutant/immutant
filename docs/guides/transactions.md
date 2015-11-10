@@ -1,7 +1,7 @@
 ---
 {:title "Transactions"
  :sequence 4.5
- :base-ns 'immutant.transactions
+ :base-ns immutant.transactions
  :description "Providing support for distributed (XA) transactions"}
 ---
 

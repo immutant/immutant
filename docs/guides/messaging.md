@@ -1,7 +1,7 @@
 ---
 {:title "Messaging"
  :sequence 2
- :base-ns 'immutant.messaging
+ :base-ns immutant.messaging
  :description "Simple creation and usage of distributed queues and topics"}
 ---
 

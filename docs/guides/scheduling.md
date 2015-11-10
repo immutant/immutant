@@ -1,7 +1,7 @@
 ---
 {:title "Scheduling"
  :sequence 3
- :base-ns 'immutant.scheduling
+ :base-ns immutant.scheduling
  :description "Schedule asynchronous jobs"}
 ---
 
