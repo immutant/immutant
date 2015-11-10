@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/build-helper "0.2.9"
+(defproject org.immutant/build-helper "0.2.10"
   :description "A plugin to aid in building Immutant"
   :pedantic? false
   :url "https://github.com/immutant/immutant"

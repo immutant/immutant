@@ -120,7 +120,7 @@
    2000))
 
 (defn render-markdown [guide namespaces content]
-  (.markdownToHtml pegdown content (#'html/link-renderer {:namespaces namespaces} (:base-ns guide))))
+  (.markdownToHtml pegdown content (#'html/link-renderer {:namespaces namespaces} {:name (:base-ns guide)})))
 
 (defn guides-menu [guides]
   [:div#guides
