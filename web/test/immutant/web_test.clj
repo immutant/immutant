@@ -42,11 +42,14 @@
   (when (re-find #"(?i)^windows" (System/getProperty "os.name"))
     (Thread/sleep 100)))
 
-(deftest mount-and-remount-pedestal-service
+(deftest mount-remount-and-share-pedestal-service
   (run pedestal/servlet)
   (is (= "Hello World!" (get-body url)))
   (run pedestal/servlet)
-  (is (= "Hello World!" (get-body url))))
+  (is (= "Hello World!" (get-body url)))
+  (run hello :path "/some-path")
+  (is (= "Hello World!" (get-body url)))
+  (is (= "hello" (get-body (str url "some-path")))))
 
 (deftest nil-body
   (run (constantly {:status 200 :body nil}))
