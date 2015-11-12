@@ -235,6 +235,12 @@
      * :mode         - the mode to use for the listener context. One of :auto-ack, :client-ack,
                        :transacted [:transacted]
 
+   Note the default :mode is :transacted. This can lead to deadlock
+   when [[publish]] or [[request]] is invoked in the handler, since
+   they will attempt to participate in the listener's transaction,
+   which won't be committed until the handler completes. In this case,
+   use either :auto-ack or an XA [[context]].
+  
    Returns a listener object that can be stopped by passing it to [[stop]], or by
    calling .close on it."
   [^Destination destination f & options]

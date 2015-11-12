@@ -333,14 +333,17 @@ default for listeners, *not* `:auto-ack`):
   Message object. This means you need to get the raw message (by
   passing `:decode? false` to `listen`).
 
-* `:transacted` - when active, `.commit` is called on the context
-  automatically if the handler function completes successfully. If it
-  throws an exception, `.rollback` is called on the context. Any
-  messaging operations that take a context will use the context that
-  is active for the listener itself (if not passed one
-  explicitly). This means that any messaging operations within the
-  handler function are also transacted. This is the default mode for
-  listeners.
+* `:transacted` - *the default for listeners!* when active, `.commit`
+  is called on the context automatically if the handler function
+  completes successfully. If it throws an exception, `.rollback` is
+  called on the context. Any messaging operations that take a context
+  will use the context that is active for the listener itself (if not
+  passed one explicitly). This means that any messaging operations
+  within the handler function *become participants in the listener's
+  transaction*, by default. This can lead to deadlock when a
+  transacted handler calls `publish` or `request` since those calls
+  can't complete until the handler completes. In such a case, either
+  set `:mode` to `:auto-ack` or use distributed transactions.
 
 If you need to use distributed transactions (XA) within a listener
 function, you are responsible for demarcating the transaction. See the
