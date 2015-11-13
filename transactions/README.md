@@ -5,7 +5,7 @@
 Leiningen:
 
 ``` clj
-[org.immutant/transactions "2.1.0"]
+[org.immutant/transactions "2.1.1"]
 ```
 
 Maven:
@@ -14,6 +14,6 @@ Maven:
 <dependency>
   <groupId>org.immutant</groupId>
   <artifactId>transactions</artifactId>
-  <version>2.1.0</version>
+  <version>2.1.1</version>
 </dependency>
 ```
