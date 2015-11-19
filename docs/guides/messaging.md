@@ -276,7 +276,7 @@ with comments showing the Clojure code required to reference each one:
 
       <!-- (topic "/foo/bar") -->
       <jms-topic name="/foo/bar">
-        <entry name="java:/jms/topic/anything/really/foo/bar"/>
+        <entry name="java:/jms/topic/_/foo/bar"/>
       </jms-topic>
 
     </jms-destinations>
@@ -284,10 +284,12 @@ with comments showing the Clojure code required to reference each one:
 </subsystem>
 ```
 
-Note that while WildFly does require an `<entry>` element for each
-destination, the Immutant client ignores it: the name you pass to
-[[queue]] or [[topic]] directly corresponds to the `name` attribute of
-`<jms-queue>` or `<jms-topic>`, respectively.
+Note that Immutant looks the destination up via JNDI, so you must have
+an entry of the same form as those given above. Also note that if the
+name of the destination starts with `/`, you must include a `_`
+segment in the JNDI names, as JNDI does not allow blank
+segments. Immutant will insert the `_` when looking up or creating
+destination entries where the name starts with `/`.
 
 ## Context modes
 
