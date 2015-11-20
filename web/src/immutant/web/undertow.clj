@@ -17,7 +17,7 @@
   (:require [immutant.internal.util :refer (kwargs-or-map->map)]
             [immutant.internal.options :refer (validate-options set-valid-options! opts->set coerce)]
             [immutant.web.ssl :refer (keystore->ssl-context)])
-  (:import [io.undertow Undertow Undertow$Builder]
+  (:import [io.undertow Undertow Undertow$Builder UndertowOptions]
            [org.xnio Options SslClientAuthMode]
            [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
@@ -71,6 +71,19 @@
         (dissoc :client-auth)))
     options))
 
+(defn http2
+  "Enables HTTP 2.0 support if :http2? option is truthy"
+  [{:keys [configuration http2?] :as options}]
+  (if http2?
+    (let [^Undertow$Builder builder (or configuration (Undertow/builder))]
+      (-> options
+        (assoc :configuration
+          (-> builder
+            (.setServerOption UndertowOptions/ENABLE_HTTP2 true)
+            (.setServerOption UndertowOptions/ENABLE_SPDY  true)))
+        (dissoc :http2?)))
+    (dissoc options :http2?)))
+
 (defn ssl-context
   "Assoc an SSLContext given a keystore and a trustore, which may be
   either actual KeyStore instances, or paths to them. If truststore is
@@ -117,6 +130,8 @@
 
    * :client-auth - SSL client auth, may be :want or :need
 
+   * :http2? - whether to enable HTTP 2.0 support
+
   Tuning:
 
    * :io-threads - # threads handling IO, defaults to available processors
@@ -124,15 +139,15 @@
    * :buffer-size - a number, defaults to 16k for modern servers
    * :buffers-per-region - a number, defaults to 10
    * :direct-buffers? - boolean, defaults to true"
-  (comp listen ssl-context client-auth tune
+  (comp listen ssl-context client-auth tune http2
     (partial coerce [:port :ajp-port :ssl-port :io-threads :worker-threads
-                     :buffer-size :buffers-per-region :direct-buffers?])
+                     :buffer-size :buffers-per-region :direct-buffers? :http2?])
     #(validate-options % options)
     kwargs-or-map->map (fn [& x] x)))
 
 ;;; take the valid options from the arglists of the composed functions
 (def ^:private valid-options
-  (->> [#'listen #'ssl-context #'client-auth #'tune]
+  (->> [#'listen #'ssl-context #'client-auth #'tune #'http2]
     (map #(-> % meta :arglists ffirst :keys))
     flatten
     (map keyword)

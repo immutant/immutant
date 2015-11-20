@@ -15,7 +15,7 @@
 (ns immutant.web.undertow-test
   (:require [clojure.test :refer :all]
             [immutant.web.undertow :refer :all])
-  (:import [io.undertow Undertow$Builder]
+  (:import [io.undertow Undertow$Builder UndertowOptions]
            [org.xnio Options SslClientAuthMode]))
 
 (defn reflect
@@ -97,3 +97,9 @@
        :need      SslClientAuthMode/REQUIRED
        :required  SslClientAuthMode/REQUIRED)
   (is (thrown? IllegalArgumentException (options :client-auth :invalid))))
+
+(deftest enable-http2
+  (let [builder (:configuration (options :http2? true))
+        opts (-> (reflect "serverOptions" builder) .getMap)]
+    (is (.get opts UndertowOptions/ENABLE_HTTP2))
+    (is (.get opts UndertowOptions/ENABLE_SPDY))))
