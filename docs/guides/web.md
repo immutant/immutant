@@ -245,11 +245,14 @@ There are three steps to enabling HTTP/2 or SPDY:
 
 You'll need to consult the [ALPN] docs to know which version of
 `alpn-boot.jar` is appropriate for your JVM version. Most importantly,
-it needs to be in the *bootclasspath*, e.g.
+it needs to be prepended (note the `/p`) to the *bootclasspath*, e.g.
 
     java -Xbootclasspath/p:{/path/to/alpn-boot.jar} ...
 
-See the [Immutant Feature Demo] for an HTTP/2 configuration example.
+See the [Immutant Feature Demo] for an HTTP/2 configuration example,
+including the use of a
+[plugin](https://github.com/sunng87/lein-bootclasspath-deps) to set
+the bootclasspath for REPL development.
 
 ## Handler Types
 
