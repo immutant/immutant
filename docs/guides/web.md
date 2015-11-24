@@ -204,7 +204,7 @@ twice, in a manner of speaking:
 (run app opts)
 ```
 
-### SSL configuration
+### TLS/SSL
 
 SSL and Java is a notoriously gnarly combination that is way outside
 the scope of this guide. Ultimately, Undertow needs either a
@@ -234,6 +234,22 @@ along these lines:
 Client authentication may be specified using the `:client-auth`
 option, where possible values are `:want` and `:need`. Or, if you're
 fancy, `:requested` and `:required`.
+
+### HTTP/2
+
+There are three steps to enabling HTTP/2 or SPDY:
+
+* Set the `:http2?` option to `true`
+* Configure an SSL listener (see previous section)
+* Prepend the appropriate `alpn-boot.jar` to your *bootclasspath*
+
+You'll need to consult the [ALPN] docs to know which version of
+`alpn-boot.jar` is appropriate for your JVM version. Most importantly,
+it needs to be in the *bootclasspath*, e.g.
+
+    java -Xbootclasspath/p:{/path/to/alpn-boot.jar} ...
+
+See the [Immutant Feature Demo] for an HTTP/2 configuration example.
 
 ## Handler Types
 
@@ -487,3 +503,4 @@ Have fun!
 [less-awful-ssl]: https://github.com/aphyr/less-awful-ssl
 [Server-Sent Events]: http://www.w3.org/TR/eventsource/
 [HTTP streams]: http://en.wikipedia.org/wiki/Chunked_transfer_encoding
+[ALPN]: http://www.eclipse.org/jetty/documentation/current/alpn-chapter.html
