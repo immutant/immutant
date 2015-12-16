@@ -29,7 +29,7 @@
                    :injections [(require 'pjstadig.humane-test-output)
                                 (pjstadig.humane-test-output/activate!)]}
              :integs {}
-             :clojure-1.8 {:modules {:versions {clojure "1.8.0-RC3"}}}}
+             :clojure-1.8 {:modules {:versions {clojure "1.8.0-RC4"}}}}
 
   :aliases {"docs-from-index" ["build-helper" "docs" "generate" "docs/guides"
                                "caching" "core" "messaging" "scheduling" "transactions" "web" "wildfly"]
