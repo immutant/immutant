@@ -85,7 +85,7 @@
     (dissoc options :http2?)))
 
 (defn ssl-context
-  "Assoc an SSLContext given a keystore and a trustore, which may be
+  "Assoc an SSLContext given a keystore and a truststore, which may be
   either actual KeyStore instances, or paths to them. If truststore is
   ommitted, the keystore is assumed to fulfill both roles"
   [{:keys [keystore key-password truststore trust-password] :as options}]
