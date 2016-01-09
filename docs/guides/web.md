@@ -122,7 +122,7 @@ Or like `run`, if you prefer kwargs, this:
 ```
 
 Alternatively, you can save the return value from `run` and pass it to
-stop to stop your handler.
+`stop` to stop your handler.
 
 ```clojure
 (def server (run app {:port 4242 :path "/hello"}))
