@@ -28,7 +28,8 @@
             [immutant.web.undertow :as undertow]
             immutant.web.internal.undertow)
   (:import clojure.lang.ExceptionInfo
-           java.net.ConnectException))
+           java.net.ConnectException
+           javax.servlet.Filter))
 
 (u/set-log-level! (or (System/getenv "LOG_LEVEL") :ERROR))
 
@@ -294,3 +295,12 @@
     (is (not-any? zero? [p1 p2]))
     (is (= "one" (get-body (str "http://localhost:" p1))))
     (is (= "two" (get-body (str "http://localhost:" p2))))))
+
+(deftest verify-filter-map
+  (let [filter (reify Filter
+                 (doFilter [_ request response chain]
+                   (.doFilter chain request response))
+                 (init [_ config])
+                 (destroy [_]))]
+    (run pedestal/servlet :filter-map {"myfilter" filter})
+    (is (= "Hello World!" (get-body url)))))

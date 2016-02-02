@@ -14,7 +14,6 @@
 
 (ns ^:no-doc ^:internal immutant.internal.options
   "Functions for validating options."
-  (:require [clojure.walk  :refer [stringify-keys]])
   (:import [org.projectodd.wunderboss Option]))
 
 (defn ->var [x]
@@ -101,7 +100,7 @@
   [m c]
   (let [optsm (opts->map c)]
     (->> m
-      stringify-keys
+      (map (fn [[k v]] (if (keyword? k) [(name k) v] [k v])))
       (map (fn [[k v]]
              (when-let [key (optsm k
                               (optsm (->underscored-string k)))]

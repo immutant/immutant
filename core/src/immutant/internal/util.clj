@@ -14,8 +14,7 @@
 
 (ns ^:no-doc ^:internal immutant.internal.util
     "Various internal utility functions."
-    (:require [clojure.string :as str]
-              [clojure.walk :refer (keywordize-keys)])
+    (:require [clojure.string :as str])
     (:import clojure.lang.IDeref
              java.util.UUID
              org.projectodd.wunderboss.WunderBoss))
@@ -42,11 +41,16 @@
     {}
     m))
 
-(def kwargs-or-map->map
+(defn kwargs-or-map->map
   "If vals contains one value, return it. Otherwise, treat as kwargs and coerce to a map.
 
    In either case, turn the keys into keywords"
-  (comp keywordize-keys scrub-keys kwargs-or-map->raw-map))
+  [v]
+  (->> v
+    kwargs-or-map->raw-map
+    scrub-keys
+    (map (fn [[k v]] (if (string? k) [(keyword k) v] [k v])))
+    (into {})))
 
 (defn require-resolve
   "Requires and resolves the given namespace-qualified symbol."
