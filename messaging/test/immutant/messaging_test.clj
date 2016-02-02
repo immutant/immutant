@@ -76,13 +76,13 @@
 
 (deftest publish-should-preserve-metadata-as-properties
   (let [q (random-queue)]
-    (publish q (with-meta {:x :y} {"ham" "biscuit"}))
+    (publish q (with-meta {:x :y} {:ham "biscuit"}))
     (let [r (receive q :decode? false)]
       (is (= "biscuit" (get (.properties r) "ham"))))))
 
 (deftest receive-should-restore-properties-to-metadata
   (let [q (random-queue)]
-    (publish q (with-meta {:x :y} {"ham" "biscuit"}))
+    (publish q (with-meta {:x :y} {:ham "biscuit"}))
     (let [r (receive q)]
       (is (= {"ham" "biscuit"} (meta r))))))
 
@@ -97,7 +97,7 @@
   (let [p (promise)
         q (random-queue)]
     (with-open [listener (listen q #(deliver p (meta %)))]
-      (publish q (with-meta {:x :y} {"ham" "biscuit"}))
+      (publish q (with-meta {:x :y} {:ham "biscuit"}))
       (is (= {"ham" "biscuit"} (deref p 2000 :fail))))))
 
 (deftest durable-subscriber
@@ -163,7 +163,7 @@
 (deftest request-should-restore-properties-to-metadata
   (let [q (random-queue)]
     (with-open [listener (respond q identity)]
-      (let [result (deref (request q (with-meta {:x :y} {"ham" "biscuit"})) 2000 :fail)]
+      (let [result (deref (request q (with-meta {:x :y} {:ham "biscuit"})) 2000 :fail)]
         (is (= {"ham" "biscuit"} (meta result)))))))
 
 (deftest respond-future-should-handle-a-timeout

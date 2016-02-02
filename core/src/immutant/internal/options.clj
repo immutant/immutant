@@ -107,6 +107,19 @@
                [key v])))
       (into {}))))
 
+(defn stringify-properties
+  "TODO: remove this for the next non-patch release as a breaking change
+
+  Also known as 'fixing your broken cancer', we allow you to pass
+  properties/metadata with keyword keys, but we stringify them for you
+  so that our probably-wrong-but-possibly-relied-upon tests continue
+  to pass"
+  [options metadata]
+  (->> (or (:properties options) metadata)
+    (map (fn [[k v]] (if (keyword? k) [(name k) v] [k v])))
+    (into {})
+    (assoc options :properties)))
+
 (defn boolify
   "Appends ? to each of `keywords` in `coll`, replacing the original.
 
