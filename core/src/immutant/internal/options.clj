@@ -107,9 +107,13 @@
                [key v])))
       (into {}))))
 
-(defn stringify-properties
-  "TODO: remove this for the next non-patch release as a breaking change
+(defn set-properties
+  "TODO: remove the stringification in here prior to the next
+  non-patch release and doc as a breaking change
 
+  If :properties appears in the options, use it, otherwise use the
+  passed metadata.
+  
   Also known as 'fixing your broken cancer', we allow you to pass
   properties/metadata with keyword keys, but we stringify them for you
   so that our probably-wrong-but-possibly-relied-upon tests continue

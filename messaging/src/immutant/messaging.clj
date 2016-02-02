@@ -166,7 +166,7 @@
                   u/kwargs-or-map->map
                   (merge-context destination)
                   (o/validate-options publish)
-                  (o/stringify-properties (meta message)))
+                  (o/set-properties (meta message)))
         coerced-options (o/extract-options options Destination$PublishOption)]
     (.publish destination message (codecs/lookup-codec (:encoding options :edn))
       coerced-options)))
@@ -269,7 +269,7 @@
                   u/kwargs-or-map->map
                   (merge-context queue)
                   (o/validate-options publish)
-                  (o/stringify-properties (meta message)))]
+                  (o/set-properties (meta message)))]
     (delegating-future
       (.request queue message
                  (codecs/lookup-codec (:encoding options :edn))

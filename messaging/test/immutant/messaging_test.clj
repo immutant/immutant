@@ -86,6 +86,12 @@
     (let [r (receive q)]
       (is (= {"ham" "biscuit"} (meta r))))))
 
+(deftest properties-option-should-override-metadata
+  (let [q (random-queue)]
+    (publish q (with-meta {:x :y} {:ham "biscuit"}) :properties {:eggs "gravy"})
+    (let [r (receive q)]
+      (is (= {"eggs" "gravy"} (meta r))))))
+
 (deftest listen-should-work
   (let [p (promise)
         q (random-queue)]
