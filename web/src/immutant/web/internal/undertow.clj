@@ -128,16 +128,6 @@
   (resp-character-encoding [exchange] (or (.getResponseCharset exchange)
                                         hdr/default-encoding)))
 
-(defn create-http-handler [handler]
-  (reify HttpHandler
-    (^void handleRequest [this ^HttpServerExchange exchange]
-      (.startBlocking exchange)
-      (if-let [response (handler (ring/ring-request-map exchange
-                                   [:server-exchange exchange]
-                                   [:handler-type :undertow]))]
-        (ring/write-response exchange response)
-        (throw (NullPointerException. "Ring handler returned nil"))))))
-
 (defmethod async/initialize-stream :undertow
   [request {:keys [on-open on-error on-close]}]
   (UndertowHttpChannel.
@@ -178,19 +168,25 @@
         (when on-message
           (on-message ch message))))))
 
-(defn ^:internal create-websocket-init-handler [handler-fn request-map-fn]
-  (let [downstream-handler (create-http-handler handler-fn)]
-    (UndertowWebsocket/createHandler
-      (reify WebsocketInitHandler
-        (shouldConnect [_ exchange endpoint-wrapper]
-          (boolean
-            (let [{:keys [body headers] :as r} (handler-fn (request-map-fn exchange
-                                                             [:websocket? true]
-                                                             [:server-exchange exchange]
-                                                             [:handler-type :undertow]))]
-              (hdr/set-headers (.getResponseHeaders exchange) headers)
-              (when (instance? WebsocketChannel body)
-                (.setEndpoint endpoint-wrapper
-                  (.endpoint ^WebsocketChannel body))
-                true)))))
-      downstream-handler)))
+(defn ^:internal ^HttpHandler create-http-handler [handler]
+  (UndertowWebsocket/createHandler
+    (reify WebsocketInitHandler
+      (shouldConnect [_ exchange endpoint-wrapper]
+        (boolean
+          (let [{:keys [body headers] :as r} (handler (ring/ring-request-map exchange
+                                                        [:websocket? true]
+                                                        [:server-exchange exchange]
+                                                        [:handler-type :undertow]))]
+            (hdr/set-headers (.getResponseHeaders exchange) headers)
+            (when (instance? WebsocketChannel body)
+              (.setEndpoint endpoint-wrapper
+                (.endpoint ^WebsocketChannel body))
+              true)))))
+    (reify HttpHandler
+      (^void handleRequest [this ^HttpServerExchange exchange]
+       (.startBlocking exchange)
+       (if-let [response (handler (ring/ring-request-map exchange
+                                    [:server-exchange exchange]
+                                    [:handler-type :undertow]))]
+         (ring/write-response exchange response)
+         (throw (NullPointerException. "Ring handler returned nil")))))))

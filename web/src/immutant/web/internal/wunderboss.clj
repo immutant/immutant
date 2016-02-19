@@ -14,7 +14,6 @@
 
 (ns ^:no-doc ^:internal immutant.web.internal.wunderboss
     (:require [immutant.web.internal.servlet  :refer [create-servlet websocket-servlet-filter-map]]
-              [immutant.web.internal.ring     :refer [ring-request-map]]
               [immutant.internal.options  :refer [boolify extract-options opts->set
                                                   opts->defaults-map opts->map keywordize]]
               [immutant.internal.util     :as u]
@@ -59,8 +58,8 @@
                    (var? handler))
                (if (in-container?)
                  (create-servlet handler)
-                 ((u/try-resolve 'immutant.web.internal.undertow/create-websocket-init-handler)
-                   handler ring-request-map))
+                 ((u/try-resolve 'immutant.web.internal.undertow/create-http-handler)
+                   handler))
                handler)
         servlet? (instance? Servlet hdlr)
         opts (extract-options

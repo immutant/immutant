@@ -25,8 +25,7 @@
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.util.response :refer (charset)]
             [clj-http.client :as http]
-            [immutant.web.undertow :as undertow]
-            immutant.web.internal.undertow)
+            [immutant.web.undertow :as undertow])
   (:import clojure.lang.ExceptionInfo
            java.net.ConnectException
            javax.servlet.Filter))
@@ -70,8 +69,10 @@
   (is (= "hello" (get-body url))))
 
 (deftest run-accepts-an-http-handler
-  (run (immutant.web.internal.undertow/create-http-handler hello))
-  (is (= "hello" (get-body url))))
+  (let [hh (undertow/http-handler hello)]
+    (is (instance? io.undertow.server.HttpHandler hh))
+    (run hh)
+    (is (= "hello" (get-body url)))))
 
 (deftest run-returns-passed-opts-with-defaults
   (let [opts (run hello {:path "/abc"})]

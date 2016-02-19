@@ -16,12 +16,19 @@
   "Advanced options specific to the Undertow web server used by Immutant"
   (:require [immutant.internal.util :refer (kwargs-or-map->map)]
             [immutant.internal.options :refer (validate-options set-valid-options! opts->set coerce)]
+            [immutant.web.internal.undertow :refer (create-http-handler)]
             [immutant.web.ssl :refer (keystore->ssl-context)])
   (:import [io.undertow Undertow Undertow$Builder UndertowOptions]
+           [io.undertow.server HttpHandler]
            [org.xnio Options SslClientAuthMode]
            [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
-(defn tune
+(defn ^HttpHandler http-handler
+  "Create an Undertow HttpHandler instance from a Ring handler function"
+  [handler]
+  (create-http-handler handler))
+
+(defn ^:no-doc tune
   "Return the passed tuning options with an Undertow$Builder instance
   set accordingly, mapped to :configuration in the return value"
   [{:keys [configuration io-threads worker-threads buffer-size buffers-per-region direct-buffers?]
@@ -37,7 +44,7 @@
           (not (nil? direct-buffers?)) (.setDirectBuffers direct-buffers?)))
       (dissoc :io-threads :worker-threads :buffer-size :buffers-per-region :direct-buffers?))))
 
-(defn listen
+(defn ^:no-doc listen
   "Return the passed listener-related options with an Undertow$Builder
   instance set accordingly, mapped to :configuration in the return
   value. If :ssl-port is non-nil, either :ssl-context or :key-managers
@@ -55,7 +62,7 @@
           (and port)                       (.addHttpListener port host)))
       (dissoc :host :port :ssl-port :ssl-context :key-managers :trust-managers :ajp-port))))
 
-(defn client-auth
+(defn ^:no-doc client-auth
   "Possible values are :want or :need (:requested and :required are
   also acceptable)"
   [{:keys [configuration client-auth] :as options}]
@@ -71,7 +78,7 @@
         (dissoc :client-auth)))
     options))
 
-(defn http2
+(defn ^:no-doc http2
   "Enables HTTP 2.0 support if :http2? option is truthy"
   [{:keys [configuration http2?] :as options}]
   (if http2?
@@ -84,7 +91,7 @@
         (dissoc :http2?)))
     (dissoc options :http2?)))
 
-(defn ssl-context
+(defn ^:no-doc ssl-context
   "Assoc an SSLContext given a keystore and a truststore, which may be
   either actual KeyStore instances, or paths to them. If truststore is
   ommitted, the keystore is assumed to fulfill both roles"
