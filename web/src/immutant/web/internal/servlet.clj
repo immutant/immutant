@@ -15,7 +15,8 @@
 (ns ^{:no-doc true} immutant.web.internal.servlet
     (:require [immutant.web.internal.ring    :as ring]
               [immutant.web.internal.headers :as hdr]
-              [immutant.internal.util        :refer [try-resolve]]
+              [immutant.internal.util        :refer [try-resolve warn]]
+              [immutant.util                 :refer [in-eap?]]
               [immutant.web.async            :as async])
 
     (:import [org.projectodd.wunderboss.web.async Channel
@@ -118,14 +119,15 @@
 
 (defn add-endpoint-with-handler
   [^Servlet servlet ^ServletConfig config handler]
-    (let [servlet-context (.getServletContext config)
-          mapping (-> servlet-context
-                    (.getServletRegistration (-> servlet .getServletConfig .getServletName))
-                    .getMappings
-                    first)
-          path (apply str (take (- (count mapping) 2) mapping))
-          path (if (empty? path) "/" path)]
-      (.addEndpoint (server-container servlet-context)
+  (let [servlet-context (.getServletContext config)
+        mapping (-> servlet-context
+                  (.getServletRegistration (-> servlet .getServletConfig .getServletName))
+                  .getMappings
+                  first)
+        path (apply str (take (- (count mapping) 2) mapping))
+        path (if (empty? path) "/" path)]
+    (if-let [container (server-container servlet-context)]
+      (.addEndpoint container
         (.. ServerEndpointConfig$Builder
           (create DelegatingJavaxEndpoint path)
           (configurator (proxy [ServerEndpointConfig$Configurator] []
@@ -140,7 +142,10 @@
                               (when (instance? WebsocketChannel body)
                                 (DelegatingJavaxEndpoint/setCurrentDelegate
                                   (.endpoint ^WebsocketChannel body)))))))
-          build))))
+          build))
+      (if (in-eap?)
+        (warn "Websockets unavailable; see the Immutant EAP guide for details.")
+        (warn "Websockets unavailable; please check your configuration.")))))
 
 (defn add-endpoint
   "Adds a javax.websocket.Endpoint for the given `servlet` and `servlet-config`.
