@@ -20,11 +20,11 @@
 
 (defn- ^KeyStore load-keystore
   [keystore ^String password]
-  (if (string? keystore)
+  (if (instance? KeyStore keystore)
+    keystore
     (with-open [in (io/input-stream keystore)]
       (doto (KeyStore/getInstance (KeyStore/getDefaultType))
-        (.load in (.toCharArray password))))
-    keystore))
+        (.load in (.toCharArray password))))))
 
 (defn keystore->key-managers
   "Return a KeyManager[] given a KeyStore and password"
