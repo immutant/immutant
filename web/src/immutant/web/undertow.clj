@@ -19,7 +19,8 @@
             [immutant.web.internal.undertow :refer (create-http-handler)]
             [immutant.web.ssl :refer (keystore->ssl-context)])
   (:import [io.undertow Undertow Undertow$Builder UndertowOptions]
-           [io.undertow.server HttpHandler]
+           io.undertow.server.HttpHandler
+           io.undertow.server.handlers.GracefulShutdownHandler
            [org.xnio Options SslClientAuthMode]
            [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
@@ -27,6 +28,21 @@
   "Create an Undertow HttpHandler instance from a Ring handler function"
   [handler]
   (create-http-handler handler))
+
+(defn ^HttpHandler add-graceful-shutdown-hook
+  "Creates an io.undertow.server.handlers/GracefulShutdownHandler with
+  the passed HttpHandler, and adds a shutdown hook to the Java Runtime
+  that enables a graceful shutdown, prohibiting new requests while
+  waiting for pending ones to complete, up to a specified number of
+  milliseconds. Return value should be passed to immutant.web/run"
+  [^HttpHandler handler ^Long timeout]
+  (let [result (GracefulShutdownHandler. handler)]
+    (.addShutdownHook
+      (Runtime/getRuntime)
+      (Thread. (fn []
+                 (.shutdown result)
+                 (.awaitShutdown result timeout))))
+    result))
 
 (defn ^:no-doc tune
   "Return the passed tuning options with an Undertow$Builder instance
