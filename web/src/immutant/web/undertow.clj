@@ -26,15 +26,16 @@
            [org.projectodd.wunderboss.web Web$CreateOption Web$RegisterOption]))
 
 (defn ^HttpHandler http-handler
-  "Create an Undertow HttpHandler instance from a Ring handler function"
+  "Create an Undertow `HttpHandler` instance from a Ring handler function"
   [handler]
   (create-http-handler handler))
 
 (defn ^HttpHandler graceful-shutdown
-  "Creates an io.undertow.server.handlers/GracefulShutdownHandler with
-  the passed HttpHandler and returns it, after adding an at-exit fn
-  that prohibits new requests while waiting for pending ones to
-  complete, up to a specified number of milliseconds"
+  "Creates an `io.undertow.server.handlers/GracefulShutdownHandler`
+  with the passed `HttpHandler` and returns it, after adding an
+  `immutant.util/at-exit` fn that prohibits new requests while waiting
+  for pending ones to complete, up to a specified number of
+  milliseconds"
   [^HttpHandler handler ^Long timeout]
   (let [h (GracefulShutdownHandler. handler)]
     (at-exit (fn []
