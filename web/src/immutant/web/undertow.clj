@@ -14,7 +14,8 @@
 
 (ns immutant.web.undertow
   "Advanced options specific to the Undertow web server used by Immutant"
-  (:require [immutant.internal.util :refer (kwargs-or-map->map)]
+  (:require [immutant.util :refer (at-exit)]
+            [immutant.internal.util :refer (kwargs-or-map->map)]
             [immutant.internal.options :refer (validate-options set-valid-options! opts->set coerce)]
             [immutant.web.internal.undertow :refer (create-http-handler)]
             [immutant.web.ssl :refer (keystore->ssl-context)])
@@ -29,20 +30,17 @@
   [handler]
   (create-http-handler handler))
 
-(defn ^HttpHandler add-graceful-shutdown-hook
+(defn ^HttpHandler graceful-shutdown
   "Creates an io.undertow.server.handlers/GracefulShutdownHandler with
-  the passed HttpHandler, and adds a shutdown hook to the Java Runtime
-  that enables a graceful shutdown, prohibiting new requests while
-  waiting for pending ones to complete, up to a specified number of
-  milliseconds. Return value should be passed to immutant.web/run"
+  the passed HttpHandler and returns it, after adding an at-exit fn
+  that prohibits new requests while waiting for pending ones to
+  complete, up to a specified number of milliseconds"
   [^HttpHandler handler ^Long timeout]
-  (let [result (GracefulShutdownHandler. handler)]
-    (.addShutdownHook
-      (Runtime/getRuntime)
-      (Thread. (fn []
-                 (.shutdown result)
-                 (.awaitShutdown result timeout))))
-    result))
+  (let [h (GracefulShutdownHandler. handler)]
+    (at-exit (fn []
+               (.shutdown h)
+               (.awaitShutdown h timeout)))
+    h))
 
 (defn ^:no-doc tune
   "Return the passed tuning options with an Undertow$Builder instance
