@@ -125,6 +125,12 @@
     (is (map? (:headers request)))
     (is (< 3 (count (:headers request))))))
 
+;; IMMUTANT-610
+(marktest test-non-decoded-path-info
+  (let [request (decode (get-body (str (url) "dump/request%2B?query=help")
+                                  :headers {:content-type "text/html; charset=utf-8"}))]
+    (is (= (:path-info request) "/request%2B"))))
+
 (marktest non-existent-query-string-is-nil
   (let [request (decode (get-body (str (url) "dump/request") :headers {:content-type "text/html; charset=utf-8"}))]
     (is (nil? (:query-string request)))))

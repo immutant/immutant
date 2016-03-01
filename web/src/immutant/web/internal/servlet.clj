@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.internal.servlet
-  (:require [immutant.web.internal.ring :as ring]
+  (:require [clojure.string :as str]
+            [immutant.web.internal.ring :as ring]
             [immutant.web.internal.headers :as hdr]
             [immutant.internal.util :refer [try-resolve warn]]
             [immutant.util :refer [in-eap?]]
@@ -68,6 +69,27 @@
   (set-expiry [session timeout]
     (.setMaxInactiveInterval session timeout)))
 
+;;
+;; V1 comment:
+;; We don't use .getPathInfo (HttpServletRequest) since it is
+;; decoded. See IMMUTANT-195.
+;;
+;; ---
+;; This function ported from V1.x, also see IMMUTANT-610
+;; See also path-info' in immutant.web.internal.undertow. We un-DRYed
+;; this to avoid the cost associated with reflection on the request
+;; arg.
+;;
+(defn- path-info'
+  "Takes a HttpServletRequest and returns a path-info string without
+  any URL decoding performed upon it."
+  [^HttpServletRequest request]
+  (let [path-info (subs (.getRequestURI request)
+                        (count (ring/context request)))]
+    (if (str/blank? path-info)
+      "/"
+      path-info)))
+
 (extend-type HttpServletRequest
   ring/RingRequest
   (server-port [request]        (.getServerPort request))
@@ -83,7 +105,7 @@
   (headers [request]            (hdr/headers->map request))
   (body [request]               (.getInputStream request))
   (context [request]            (str (.getContextPath request) (.getServletPath request)))
-  (path-info [request]          (or (.getPathInfo request) "/"))
+  (path-info [request]          (path-info' request))
   (ssl-client-cert [request]    (first (.getAttribute request "javax.servlet.request.X509Certificate")))
   hdr/Headers
   (get-names [request]      (enumeration-seq (.getHeaderNames request)))
