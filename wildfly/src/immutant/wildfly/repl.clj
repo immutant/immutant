@@ -23,11 +23,12 @@
   (let [file (io/file file)]
     (if (and file (.isAbsolute file))
       [file]
-      (when (u/app-root)
-        (map u/app-relative
-          (if file
-            [file]
-            [".nrepl-port" "target/repl-port"]))))))
+      (binding [iu/*warn-on-deprecation* false]
+        (when (u/app-root)
+          (map u/app-relative
+            (if file
+              [file]
+              [".nrepl-port" "target/repl-port"])))))))
 
 (defn ^:private spit-nrepl-files
   [port file]

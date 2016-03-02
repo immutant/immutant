@@ -156,3 +156,15 @@
   [& msg]
   `(let [[^String m# ^Throwable t#] (handle-log-args ~@msg)]
      (.debug (logger ~*ns*) m# t#)))
+
+(def ^:dynamic *warn-on-deprecation* true)
+
+(def warn-deprecated*
+  (memoize
+    (fn [old new]
+      (warn (format "%s is deprecated, use %s instead" old new)))))
+
+(defn warn-deprecated
+  [old new]
+  (when *warn-on-deprecation*
+    (warn-deprecated* old new)))

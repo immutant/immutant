@@ -17,7 +17,7 @@
   (:require [clojure.string         :as str]
             [clojure.java.io        :as io]
             [clojure.java.classpath :as cp]
-            [immutant.internal.util :refer [try-resolve]]
+            [immutant.internal.util :refer [try-resolve warn-deprecated *warn-on-deprecation*]]
             [wunderboss.util        :as wu])
   (:import org.projectodd.wunderboss.WunderBoss))
 
@@ -62,8 +62,10 @@
           (Thread/sleep 100))))))
 
 (defn app-root
-  "Returns a file pointing to the root dir of the application."
+  "Returns a file pointing to the root dir of the application.
+   DEPRECATED: use clojure.java.io/resource instead."
   []
+  (warn-deprecated 'immutant.util/app-root 'clojure.java.io/resource)
   (io/file (get (WunderBoss/options) "root")))
 
 (defn app-name
@@ -103,12 +105,15 @@
     (wf-port-fn)
     (read-string (System/getProperty "hornetq.netty.port" "5445"))))
 
-(defn app-relative
-  "Returns an absolute file relative to [[app-root]]."
+(defn ^{:deprecated "2.1.3"} app-relative
+  "Returns an absolute file relative to [[app-root]].
+   DEPRECATED: use clojure.java.io/resource instead."
   [& path]
-  (if-let [root (app-root)]
-    (apply io/file root path)
-    (apply io/file path)))
+  (warn-deprecated 'immutant.util/app-relative 'clojure.java.io/resource)
+  (binding [*warn-on-deprecation* false]
+    (if-let [root (app-root)]
+      (apply io/file root path)
+      (apply io/file path))))
 
 (defn classpath
   "Returns the effective classpath for the application."
