@@ -13,7 +13,8 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.internal.undertow
-    (:require [immutant.web.async            :as async]
+    (:require [clojure.string                :as str]
+              [immutant.web.async            :as async]
               [immutant.web.internal.headers :as hdr]
               [immutant.web.internal.ring    :as ring]
               [ring.middleware.session       :as ring-session])
@@ -99,6 +100,27 @@
   (set-header [headers ^String k ^String v] (.put headers (HttpString. k) v))
   (add-header [headers ^String k ^String v] (.add headers (HttpString. k) v)))
 
+;;
+;; V1 comment:
+;; We don't use .getRequestPath (HttpServerExchange) since it is
+;; decoded. See IMMUTANT-195.
+;;
+;; ---
+;; This function ported from V1.x, also see IMMUTANT-610
+;; See also path-info' in immutant.web.internal.servlet. Un-DRYed
+;; this to avoid the cost associated with reflection on the request
+;; arg.
+;;
+(defn- path-info'
+  "Takes a HttpServerExchange and returns a path-info string without
+  any URL decoding performed upon it."
+  [^HttpServerExchange request]
+  (let [path-info (subs (.getRequestURI request)
+                        (count (ring/context request)))]
+    (if (str/blank? path-info)
+      "/"
+      path-info)))
+
 (extend-type HttpServerExchange
   ring/RingRequest
   (server-port [exchange]        (-> exchange .getDestinationAddress .getPort))
@@ -115,8 +137,7 @@
   (headers [exchange]            (-> exchange .getRequestHeaders hdr/headers->map))
   (body [exchange]               (when (.isBlocking exchange) (.getInputStream exchange)))
   (context [exchange]            (.getResolvedPath exchange))
-  (path-info [exchange]          (let [v (.getRelativePath exchange)]
-                                   (if (empty? v) "/" v)))
+  (path-info [exchange]          (path-info' exchange))
   (ssl-client-cert [_])
 
   ring/RingResponse
