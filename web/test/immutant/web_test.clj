@@ -19,7 +19,7 @@
             [immutant.web          :refer :all]
             [immutant.web.internal.wunderboss :refer [create-defaults register-defaults]]
             [immutant.web.middleware :refer (wrap-session)]
-            [testing.web           :refer [get-body get-response hello handler]]
+            [testing.web           :refer [get-body get-response hello handler file-response input-stream-response]]
             [testing.app]
             [testing.hello.service :as pedestal]
             [ring.middleware.resource :refer [wrap-resource]]
@@ -150,6 +150,28 @@
   (is (= "hello" (get-body url)))
   (is (= "howdy" (get-body (str url "howdy"))))
   (is (= "howdy" (get-body (str url2 "howdy")))))
+
+(deftest run-with-no-dispatch-should-work
+  (run hello :dispatch? false)
+  (is (= "hello" (get-body url))))
+
+(deftest writing-a-file-with-no-dispatch-should-throw
+  (run file-response :dispatch? false)
+  (let [response (get-response url)]
+    (is (= 500 (:status response)))))
+
+(deftest writing-a-file-with-dispatch-should-work
+  (run file-response)
+  (is (= "foo" (get-body url))))
+
+(deftest writing-an-input-stream-with-no-dispatch-should-throw
+  (run input-stream-response :dispatch? false)
+  (let [response (get-response url)]
+    (is (= 500 (:status response)))))
+
+(deftest writing-an-input-stream-with-dispatch-should-work
+  (run input-stream-response)
+  (is (= "foo" (get-body url))))
 
 (deftest stop-should-stop-all-threaded-apps
   (let [everything (-> (run hello)

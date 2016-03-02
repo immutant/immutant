@@ -19,7 +19,7 @@
               [immutant.web.internal.headers :as hdr]
               [immutant.internal.util        :refer [try-resolve]])
     (:import [java.io File InputStream OutputStream]
-             [clojure.lang ISeq PersistentHashMap]))
+             clojure.lang.PersistentHashMap))
 
 (defprotocol Session
   (attribute [session key])
@@ -106,38 +106,38 @@
 (defprotocol RingResponse
   (header-map [x])
   (set-status [x status])
-  (output-stream [x])
+  (output [x])
   (resp-character-encoding [x]))
 
-(defprotocol BodyWriter
-  "Writing different body types to output streams"
-  (write-body [body stream response]))
+(defmulti write-body
+          (fn [body out _]
+            (cond
+              (nil? body) nil
+              (seq? body) :seq
+              :else       [(type body) (type out)])))
 
-(extend-protocol BodyWriter
-  Object
-  (write-body [body _ _]
-    (throw (IllegalStateException. (str "Can't coerce body of type " (class body)))))
+(defmethod write-body :default [body _ _]
+  (throw (IllegalStateException. (str "Can't coerce body of type " (class body)))))
 
-  nil
-  (write-body [_ _ _])
+(defmethod write-body nil [_ _ _])
 
-  String
-  (write-body [body ^OutputStream os response]
-    (.write os (.getBytes body ^String (resp-character-encoding response))))
+(defmethod write-body :seq
+  [body out response]
+  (doseq [fragment body]
+    (write-body fragment out response)))
 
-  ISeq
-  (write-body [body ^OutputStream os response]
-    (doseq [fragment body]
-      (write-body fragment os response)))
+(defmethod write-body [String OutputStream]
+  [^String body ^OutputStream os response]
+  (.write os (.getBytes body ^String (resp-character-encoding response))))
 
-  File
-  (write-body [body ^OutputStream os _]
-    (io/copy body os))
+(defmethod write-body [File OutputStream]
+  [body ^OutputStream os _]
+  (io/copy body os))
 
-  InputStream
-  (write-body [body ^OutputStream os _]
-    (with-open [body body]
-      (io/copy body os))))
+(defmethod write-body [InputStream OutputStream]
+  [^InputStream body ^OutputStream os _]
+  (with-open [body body]
+    (io/copy body os)))
 
 (defn write-response
   "Set the status, write the headers and the content"
@@ -150,7 +150,7 @@
       (do
         (set-status' status)
         (set-headers' headers)
-        (write-body body (output-stream response) response)))))
+        (write-body body (output response) response)))))
 
 ;; ring 1.3.2 introduced a change that causes wrap-resource to break
 ;; in-container because it doesn't know how to handle vfs: urls. ring

@@ -78,7 +78,9 @@
    performance by setting :dispatch? to false. This causes the
    handlers to run on Undertow's I/O threads, avoiding the context
    switch of dispatching them to the worker thread pool, at the
-   risk of refusing client requests under load.
+   risk of refusing client requests under load. Note that when
+   :dispatch? is false, you cannot use an InputStream or File as
+   a ring :body for performance reasons.
 
    Inside WildFly, the :host, :port, :configuration, and :dispatch?
    options are ignored, since all handlers are mounted as servlets

@@ -13,10 +13,11 @@
 ;; limitations under the License.
 
 (ns testing.web
-  (:require [http.async.client :as http]
+  (:require [clojure.java.io :as io]
+            [http.async.client :as http]
             [ring.util.response :refer [response]])
-  (:import [org.glassfish.jersey.media.sse EventSource EventListener]
-           [javax.ws.rs.client ClientBuilder]))
+  (:import [javax.ws.rs.client ClientBuilder]
+           [org.glassfish.jersey.media.sse EventSource EventListener]))
 
 (def cookies (atom nil))
 
@@ -25,10 +26,14 @@
 
 (def hello (handler "hello"))
 
+(def file-response (handler (io/file (io/resource "public/foo.html"))))
+
+(def input-stream-response (handler (io/input-stream (io/resource "public/foo.html"))))
+
 (defn get-response
   "Return the response as a map. Any response returning a :set-cookie
   will cause subsequent requests to send them. The raw
-  ByteArrayOutputStream of the body is included as :raw-body]"
+  ByteArrayOutputStream of the body is included as :raw-body"
   [url & {:keys [headers cookies query] :or {cookies @testing.web/cookies}}]
   (with-open [client (http/create-client)]
     (let [response (http/GET client url :headers headers :cookies cookies :query query)]
@@ -47,13 +52,12 @@
   the numeric status code. Any response returning a :set-cookie will
   cause subsequent requests to send them."
   [url & {:keys [headers cookies] :or {cookies @testing.web/cookies}}]
-  (with-open [client (http/create-client)]
-    (let [response (get-response url :headers headers :cookies cookies)]
-      (if (= 200 (:status response))
-        (:body response)
-        (do
-          (if-let [b (:body response)] (println b))
-          (:status response))))))
+  (let [response (get-response url :headers headers :cookies cookies)]
+    (if (= 200 (:status response))
+      (:body response)
+      (do
+        (if-let [b (:body response)] (println b))
+        (:status response)))))
 
 (defn event-source
   "Returns an SSE EventSource client"

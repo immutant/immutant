@@ -17,21 +17,19 @@
               [immutant.web.internal.headers :as hdr]
               [immutant.web.internal.ring    :as ring]
               [ring.middleware.session       :as ring-session])
-    (:import [io.undertow.server HttpHandler HttpServerExchange]
+    (:import io.undertow.io.Sender
+             [io.undertow.server HttpHandler HttpServerExchange]
              [io.undertow.server.session Session SessionConfig SessionCookieConfig]
              [io.undertow.util HeaderMap Headers HttpString Sessions]
-             [io.undertow.websockets.core CloseMessage WebSocketChannel]
-             java.net.URI
              [org.projectodd.wunderboss.web.async Channel
               Channel$OnOpen Channel$OnClose Channel$OnError]
              [org.projectodd.wunderboss.web.async.websocket WebsocketChannel
               WebsocketChannel$OnMessage]
-             [org.projectodd.wunderboss.web.undertow.async
-              UndertowHttpChannel]
+             org.projectodd.wunderboss.web.undertow.async.UndertowHttpChannel
              [org.projectodd.wunderboss.web.undertow.async.websocket
-              UndertowWebsocket
-              UndertowWebsocketChannel
-              WebsocketInitHandler]))
+              UndertowWebsocket UndertowWebsocketChannel WebsocketInitHandler]
+             [java.io File InputStream]
+             java.nio.charset.Charset))
 
 (def ^{:tag SessionCookieConfig :private true} set-cookie-config!
   (memoize
@@ -124,9 +122,23 @@
   ring/RingResponse
   (set-status [exchange status]       (.setResponseCode exchange status))
   (header-map [exchange]              (.getResponseHeaders exchange))
-  (output-stream [exchange]           (.getOutputStream exchange))
+  (output [exchange]                  (if (.isInIoThread exchange)
+                                        (.getResponseSender exchange)
+                                        (.getOutputStream exchange)))
   (resp-character-encoding [exchange] (or (.getResponseCharset exchange)
                                         hdr/default-encoding)))
+
+(defmethod ring/write-body [String Sender]
+  [^String body ^Sender sender response]
+  (.send sender body (Charset/forName (ring/resp-character-encoding response))))
+
+(defmethod ring/write-body [File Sender]
+  [_ ^Sender sender _]
+  (throw (IllegalStateException. "Can't write a File body when :dispatch? is false")))
+
+(defmethod ring/write-body [InputStream Sender]
+  [_ ^Sender sender _]
+  (throw (IllegalStateException. "Can't write an InputStream body when :dispatch? is false")))
 
 (defmethod async/initialize-stream :undertow
   [request {:keys [on-open on-error on-close]}]
@@ -184,9 +196,10 @@
               true)))))
     (reify HttpHandler
       (^void handleRequest [this ^HttpServerExchange exchange]
-       (.startBlocking exchange)
-       (if-let [response (handler (ring/ring-request-map exchange
-                                    [:server-exchange exchange]
-                                    [:handler-type :undertow]))]
-         (ring/write-response exchange response)
-         (throw (NullPointerException. "Ring handler returned nil")))))))
+        (when-not (.isInIoThread exchange)
+          (.startBlocking exchange))
+        (if-let [response (handler (ring/ring-request-map exchange
+                                     [:server-exchange exchange]
+                                     [:handler-type :undertow]))]
+          (ring/write-response exchange response)
+          (throw (NullPointerException. "Ring handler returned nil")))))))

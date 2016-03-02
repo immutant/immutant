@@ -13,33 +13,31 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.internal.servlet
-    (:require [immutant.web.internal.ring    :as ring]
-              [immutant.web.internal.headers :as hdr]
-              [immutant.internal.util        :refer [try-resolve warn]]
-              [immutant.util                 :refer [in-eap?]]
-              [immutant.web.async            :as async])
+  (:require [immutant.web.internal.ring :as ring]
+            [immutant.web.internal.headers :as hdr]
+            [immutant.internal.util :refer [try-resolve warn]]
+            [immutant.util :refer [in-eap?]]
+            [immutant.web.async :as async])
 
-    (:import [org.projectodd.wunderboss.web.async Channel
-              Channel$OnOpen Channel$OnClose Channel$OnError
-              ServletHttpChannel]
-             [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint
-              JavaxWebsocketChannel WebSocketHelpyHelpertonFilter
-              WebsocketChannel WebsocketChannel$OnMessage]
-             [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
-             [javax.servlet Servlet ServletConfig ServletContext]
-             [javax.websocket Session
-              Endpoint EndpointConfig HandshakeResponse MessageHandler$Whole CloseReason]
-             [javax.websocket.server ServerContainer
-              ServerEndpointConfig ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
+  (:import [org.projectodd.wunderboss.web.async Channel
+                                                Channel$OnOpen Channel$OnClose Channel$OnError
+                                                ServletHttpChannel]
+           [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint
+                                                          JavaxWebsocketChannel WebSocketHelpyHelpertonFilter
+                                                          WebsocketChannel WebsocketChannel$OnMessage]
+           [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
+           [javax.servlet Servlet ServletConfig ServletContext]
+           [javax.websocket HandshakeResponse]
+           [javax.websocket.server ServerContainer ServerEndpointConfig$Builder ServerEndpointConfig$Configurator]))
 
 (defn- get-or-create-session
   ([servlet-request]
    (get-or-create-session servlet-request nil))
   ([^HttpServletRequest servlet-request timeout]
-    (let [session (.getSession servlet-request)]
-      (if timeout
-        (ring/set-session-expiry session timeout)
-        session))))
+   (let [session (.getSession servlet-request)]
+     (if timeout
+       (ring/set-session-expiry session timeout)
+       session))))
 
 (defn wrap-servlet-session
   "Ring middleware to insert a :session entry into the request, its
@@ -95,7 +93,7 @@
   ring/RingResponse
   (set-status [response status]       (.setStatus response status))
   (header-map [response]              response)
-  (output-stream [response]           (.getOutputStream response))
+  (output [response]                  (.getOutputStream response))
   (resp-character-encoding [response] (or (.getCharacterEncoding response)
                                         hdr/default-encoding))
   hdr/Headers

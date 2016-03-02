@@ -159,6 +159,13 @@
       (is (= "yay" (-> @session-obj (.getAttribute "ring-session-data") :foo)))
       (stop))))
 
+(deftest http-stream-with-no-dispatch-should-work
+  (run (fn [req]
+         (as-channel req :on-open (fn [c]
+                                    (send! c "foo")
+                                    (send! c "bar" :close? true)))))
+  (is (= "foobar" (get-body url))))
+
 (defmethod initialize-stream :test
   [& _])
 
