@@ -75,7 +75,7 @@
           (and ssl-port (not ssl-context)) (.addHttpsListener ^int ssl-port ^String host ^"[Ljavax.net.ssl.KeyManager;" key-managers ^"[Ljavax.net.ssl.TrustManager;" trust-managers)
           (and ajp-port)                   (.addAjpListener ajp-port host)
           (and port)                       (.addHttpListener port host)))
-      (dissoc :host :port :ssl-port :ssl-context :key-managers :trust-managers :ajp-port))))
+      (dissoc :ssl-port :ssl-context :key-managers :trust-managers :ajp-port))))
 
 (defn ^:no-doc client-auth
   "Possible values are :want or :need (:requested and :required are

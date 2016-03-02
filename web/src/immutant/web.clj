@@ -91,8 +91,8 @@
                   kwargs-or-map->map
                   (validate-options run)
                   wboss/available-port
-                  (cond-> undertow-options-maybe undertow-options-maybe)
-                  (->> (merge wboss/create-defaults wboss/register-defaults)))]
+                  (->> (merge wboss/create-defaults wboss/register-defaults))
+                  (cond-> undertow-options-maybe undertow-options-maybe))]
     (let [server (wboss/server options)]
       (wboss/mount server handler options)
       (update-in options [:contexts server] conj (wboss/mounts options)))))

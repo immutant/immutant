@@ -305,3 +305,13 @@
                  (destroy [_]))]
     (run pedestal/servlet :filter-map {"myfilter" filter})
     (is (= "Hello World!" (get-body url)))))
+
+(deftest undertow-options-should-return-last-port
+  (let [server (run hello :port 0 :io-threads 2)
+        port (:port server)
+        server (run (handler "howdy") (assoc server :path "/howdy"))]
+    (try
+      (is (= "hello" (get-body (str "http://localhost:" port "/"))))
+      (is (= "howdy" (get-body (str "http://localhost:" port "/howdy"))))
+      (is (= port (:port server)))
+      (finally (stop server)))))

@@ -37,7 +37,7 @@
            :direct-buffers? false}
         v (options m)]
     (is (:configuration v))
-    (is (empty? (select-keys v (keys m))))
+    (is (= {:host "hostname" :port 42} (select-keys v (keys m))))
     (are [x expected] (= expected (reflect x (:configuration v)))
          "ioThreads"        1
          "workerThreads"    2
@@ -69,7 +69,7 @@
            "--direct-buffers?" "true"}
         v (options m)]
     (is (:configuration v))
-    (is (empty? (select-keys v (keys m))))
+    (is (every? (set (keys v)) [:host :port :configuration]))
     (are [x expected] (= expected (reflect x (:configuration v)))
          "ioThreads"        1
          "workerThreads"    2
