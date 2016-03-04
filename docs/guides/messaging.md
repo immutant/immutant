@@ -130,7 +130,8 @@ calling `.close` on it:
 
 Now let's take a look at synchronous messaging. Let's create a new
 queue for this (you'll want to use a dedicated queue for each
-responder) and register a responder that just increments the request:
+responder, and not use this queue for `publish`/`listen`) and register
+a responder that just increments the request:
 
 ```clojure
 (def sync-q (queue "sync"))

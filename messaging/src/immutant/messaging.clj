@@ -283,7 +283,10 @@
 
    Accepts the same options as [[listen]], along with [default]:
 
-     * :ttl  - time for the response mesage to live, in millis [60000 (1 minute)]"
+     * :ttl  - time for the response mesage to live, in millis [60000 (1 minute)]
+
+   Note that [[listen]] and [[respond]] should not be called on the same
+   queue."
   [^Queue queue f & options]
   (let [options (-> options
                   u/kwargs-or-map->map
