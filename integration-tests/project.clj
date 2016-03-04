@@ -19,6 +19,9 @@
                  [org.immutant/wildfly _]]
   :aliases {"all" ^:replace ["do" "clean," "test"]}
   :modules {:parent nil}
+  :main clojure.core/+                  ; immutant war build requires
+                                        ; a main... any no-arg taking
+                                        ; fn will do
   :profiles {:integ-base {:plugins [[lein-immutant "2.1.0"]]
                           :aliases {"test" ^:displace ["immutant" "test"]}
                           :modules {:parent ".."}}

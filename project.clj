@@ -94,7 +94,7 @@
                         environ                    "1.0.0"
 
                         ;; org.projectodd.wunderboss  "0.11.0"
-                        org.projectodd.wunderboss  "1.x.incremental.304"
+                        org.projectodd.wunderboss  "1.x.incremental.305"
                         ;; org.projectodd.wunderboss  "0.12.0-SNAPSHOT"
 
                         org.immutant               :version
