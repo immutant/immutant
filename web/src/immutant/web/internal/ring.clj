@@ -106,7 +106,7 @@
 (defprotocol RingResponse
   (header-map [x])
   (set-status [x status])
-  (output [x])
+  (write-sync-response [x status headers body])
   (resp-character-encoding [x]))
 
 (defmulti write-body
@@ -142,15 +142,11 @@
 (defn write-response
   "Set the status, write the headers and the content"
   [response {:keys [status headers body] :as response-map}]
-  (let [set-status' #(when %
-                       (set-status response %))
-        set-headers' (partial hdr/set-headers (header-map response))]
-    (if (async/streaming-body? body)
-      (async/open-stream body response-map set-status' set-headers')
-      (do
-        (set-status' status)
-        (set-headers' headers)
-        (write-body body (output response) response)))))
+  (if (async/streaming-body? body)
+    (async/open-stream body response-map
+      (partial set-status response)
+      (partial hdr/set-headers (header-map response)))
+    (write-sync-response response status headers body)))
 
 ;; ring 1.3.2 introduced a change that causes wrap-resource to break
 ;; in-container because it doesn't know how to handle vfs: urls. ring

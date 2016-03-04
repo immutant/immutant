@@ -22,13 +22,15 @@
 (def cookies (atom nil))
 
 (defn handler [body]
-  (fn [request] (response body)))
+  (fn [request] (response (if (fn? body) (body) body))))
 
 (def hello (handler "hello"))
 
 (def file-response (handler (io/file (io/resource "public/foo.html"))))
 
-(def input-stream-response (handler (io/input-stream (io/resource "public/foo.html"))))
+(def input-stream-response (handler #(io/input-stream (io/resource "public/foo.html"))))
+
+(def seq-response (handler (seq ["a" "b" "c" (io/file (io/resource "public/foo.html"))])))
 
 (defn get-response
   "Return the response as a map. Any response returning a :set-cookie

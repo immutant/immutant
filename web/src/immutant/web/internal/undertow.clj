@@ -18,7 +18,8 @@
               [immutant.web.internal.headers :as hdr]
               [immutant.web.internal.ring    :as ring]
               [ring.middleware.session       :as ring-session])
-    (:import io.undertow.io.Sender
+    (:import clojure.lang.ISeq
+             io.undertow.io.Sender
              [io.undertow.server HttpHandler HttpServerExchange]
              [io.undertow.server.session Session SessionConfig SessionCookieConfig]
              [io.undertow.util HeaderMap Headers HttpString Sessions]
@@ -121,6 +122,10 @@
       "/"
       path-info)))
 
+(defn- force-dispatch? [body]
+  (let [c (class body)]
+    (some #{File InputStream ISeq} (conj (ancestors c) c))))
+
 (extend-type HttpServerExchange
   ring/RingRequest
   (server-port [exchange]        (-> exchange .getDestinationAddress .getPort))
@@ -143,23 +148,32 @@
   ring/RingResponse
   (set-status [exchange status]       (.setResponseCode exchange status))
   (header-map [exchange]              (.getResponseHeaders exchange))
-  (output [exchange]                  (if (.isInIoThread exchange)
-                                        (.getResponseSender exchange)
-                                        (.getOutputStream exchange)))
   (resp-character-encoding [exchange] (or (.getResponseCharset exchange)
-                                        hdr/default-encoding)))
+                                        hdr/default-encoding))
+  (write-sync-response
+    [exchange status headers body]
+    (let [action
+          (fn [out]
+            (when status (ring/set-status exchange status))
+            (hdr/set-headers (ring/header-map exchange) headers)
+            (ring/write-body body out exchange))]
+      (if (.isInIoThread exchange)
+        (if (force-dispatch? body)
+          ;; dispatch to the XNIO worker pool to free up the IO thread
+          (.dispatch exchange (fn []
+                                (.startBlocking exchange)
+                                (action (.getOutputStream exchange))
+                                (.endExchange exchange)))
+          ;; use the async sender for speed on the IO thread
+          (action (.getResponseSender exchange)))
+        ;; .startBlocking has already been called, and
+        ;; the exchange will end automatically when
+        ;; the handler returns since we were directly dispatched
+        (action (.getOutputStream exchange))))))
 
 (defmethod ring/write-body [String Sender]
   [^String body ^Sender sender response]
   (.send sender body (Charset/forName (ring/resp-character-encoding response))))
-
-(defmethod ring/write-body [File Sender]
-  [_ ^Sender sender _]
-  (throw (IllegalStateException. "Can't write a File body when :dispatch? is false")))
-
-(defmethod ring/write-body [InputStream Sender]
-  [_ ^Sender sender _]
-  (throw (IllegalStateException. "Can't write an InputStream body when :dispatch? is false")))
 
 (defmethod async/initialize-stream :undertow
   [request {:keys [on-open on-error on-close]}]

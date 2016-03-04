@@ -115,9 +115,14 @@
   ring/RingResponse
   (set-status [response status]       (.setStatus response status))
   (header-map [response]              response)
-  (output [response]                  (.getOutputStream response))
   (resp-character-encoding [response] (or (.getCharacterEncoding response)
                                         hdr/default-encoding))
+  (write-sync-response
+    [response status headers body]
+    (when status (ring/set-status response status))
+    (hdr/set-headers (ring/header-map response) headers)
+    (ring/write-body body (.getOutputStream response) response))
+  
   hdr/Headers
   (get-value [response ^String key]        (.getHeader response key))
   (set-header [response ^String key value] (.setHeader response key value))

@@ -19,7 +19,8 @@
             [immutant.web          :refer :all]
             [immutant.web.internal.wunderboss :refer [create-defaults register-defaults]]
             [immutant.web.middleware :refer (wrap-session)]
-            [testing.web           :refer [get-body get-response hello handler file-response input-stream-response]]
+            [testing.web           :refer [get-body get-response hello handler file-response
+                                           input-stream-response seq-response]]
             [testing.app]
             [testing.hello.service :as pedestal]
             [ring.middleware.resource :refer [wrap-resource]]
@@ -155,23 +156,29 @@
   (run hello :dispatch? false)
   (is (= "hello" (get-body url))))
 
-(deftest writing-a-file-with-no-dispatch-should-throw
+(deftest writing-a-file-with-no-dispatch-should-work
   (run file-response :dispatch? false)
-  (let [response (get-response url)]
-    (is (= 500 (:status response)))))
+  (is (= "foo" (get-body url))))
 
 (deftest writing-a-file-with-dispatch-should-work
   (run file-response)
   (is (= "foo" (get-body url))))
 
-(deftest writing-an-input-stream-with-no-dispatch-should-throw
+(deftest writing-an-input-stream-with-no-dispatch-should-work
   (run input-stream-response :dispatch? false)
-  (let [response (get-response url)]
-    (is (= 500 (:status response)))))
+  (is (= "foo" (get-body url))))
 
 (deftest writing-an-input-stream-with-dispatch-should-work
   (run input-stream-response)
   (is (= "foo" (get-body url))))
+
+(deftest writing-a-seq-with-no-dispatch-should-work
+  (run seq-response :dispatch? false)
+  (is (= "abcfoo" (get-body url))))
+
+(deftest writing-a-seq-with-dispatch-should-work
+  (run seq-response)
+  (is (= "abcfoo" (get-body url))))
 
 (deftest stop-should-stop-all-threaded-apps
   (let [everything (-> (run hello)

@@ -79,8 +79,9 @@
    handlers to run on Undertow's I/O threads, avoiding the context
    switch of dispatching them to the worker thread pool, at the
    risk of refusing client requests under load. Note that when
-   :dispatch? is false, you cannot use an InputStream or File as
-   a ring :body for performance reasons.
+   :dispatch? is false, returning a seq, File, or InputStream as a
+   ring body will cause that request to be dispatched to a worker
+   thread at write time to prevent blocking an I/O thread.
 
    Inside WildFly, the :host, :port, :configuration, and :dispatch?
    options are ignored, since all handlers are mounted as servlets
