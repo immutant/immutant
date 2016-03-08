@@ -208,9 +208,52 @@ HTTP streams have a couple of limitations in WildFly 8.2, namely:
 We recommend you upgrade to WildFly 9.0.0 or newer if you intend to
 use HTTP streams.
 
+## Concurrent Requests When Using Sessions
+
+In order to satisfy the JavaEE spec, WildFly serializes requests that
+share a session. This means if you are using a session, you can't have
+concurrent requests - requests will queue up waiting for the previous
+request to complete. This includes asynchronous requests, which means
+that a synchronous request may have to wait for a possibly
+long-running async request to complete.
+
+In order to prevent this, you'll have to adjust the caching settings
+to allow concurrent access.
+
+If using `standalone.xml` or `standalone-full.xml`, change the `web` cache container to:
+
+    <cache-container name="web" default-cache="passivation" module="org.wildfly.clustering.web.infinispan">
+      <local-cache name="passivation">
+        <locking isolation="READ_COMMITTED"/>
+        <transaction mode="BATCH"/>
+        <file-store passivation="true" purge="false"/>
+      </local-cache>
+      
+      <local-cache name="persistent">
+        <locking isolation="READ_COMMITTED"/>
+        <transaction mode="BATCH"/>
+        <file-store passivation="false" purge="false"/>
+      </local-cache>
+    </cache-container>
+
+Or, for `standalone-ha.xml` or `standalone-ha-full.xml`:
+
+    <cache-container name="web" default-cache="repl" module="org.wildfly.clustering.web.infinispan">  
+      <transport lock-timeout="60000"/>  
+      <replicated-cache name="repl" mode="ASYNC" batching="true">  
+        <transaction locking="OPTIMISTIC"/>  
+        <locking isolation="READ_COMMITTED"/>  
+        <file-store/>  
+      </replicated-cache>  
+    </cache-container>  
+
+For more details on the plethora of available options, see the [Infinispan User Guide].
+
+
 [WildFly]: http://wildfly.org
 [Red Hat JBoss Enterprise Application Platform]: http://www.jboss.org/products/eap/overview/
 [lein-immutant]: https://github.com/immutant/lein-immutant/
 [Midje]: https://github.com/marick/Midje
 [Expectations]: http://jayfields.com/expectations/
 [logging guide]: guide-logging.html
+[Infinispan User Guide]: http://infinispan.org/docs/8.0.x/user_guide/user_guide.html#_transaction_modes
