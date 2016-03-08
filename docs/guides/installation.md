@@ -41,6 +41,20 @@ aggregate that brings them all in transitively:
   :dependencies [[org.immutant/immutant "{{version}}"]]
 ```
 
+**NOTE:** There is another library providing utility functions relevant
+only within [WildFly] that is not brought in by the aggregate. If your
+app relies on the [[immutant.wildfly]] namespace and you wish to
+compile it outside the container, you'll need to explicitly depend on
+`org.immutant/wildfly` in your `project.clj`:
+
+```clojure
+(defproject some-project "1.2.3"
+  ...
+  :dependencies [[org.immutant/immutant "{{version}}"]
+                 [org.immutant/wildfly "{{version}}"]]
+```
+See the [WildFly guide] for details.
+
 ### :main
 
 With the dependencies in place, you simply invoke the Immutant

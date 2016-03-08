@@ -102,6 +102,22 @@ For a brief listing of just the command line switches:
 
     $ lein help immutant war
 
+### org.immutant/wildfly
+
+Automatically included in an Immutant war file is a library that makes
+the [[immutant.wildfly]] namespace available to your app. This
+contains functions that are only relevant when your app is running in
+the [WildFly] container. If your app relies on these functions and you
+need to compile them outside the container, you must explicitly depend
+on `org.immutant/wildfly` in your `project.clj`:
+
+```clojure
+(defproject some-project "1.2.3"
+  ...
+  :dependencies [[org.immutant/immutant "{{version}}"]
+                 [org.immutant/wildfly "{{version}}"]]
+```
+
 ### Running tests in-container
 
 Although you no longer need to run a container to test your
