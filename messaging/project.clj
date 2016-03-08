@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/messaging "2.1.3-SNAPSHOT"
+(defproject org.immutant/messaging "2.1.3"
   :description "Easily publish and receive messages containing any type of nested data structure to dynamically-created queues and topics."
   :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
