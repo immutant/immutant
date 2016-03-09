@@ -377,7 +377,7 @@ WildFly configuration to achieve similar effects.
 
 In addition, it is possible to override many HornetQ configuration
 settings at runtime using
-[[immutant.messaging.hornetq/set-address-settings]].
+[[immutant.messaging.hornetq/set-address-options]].
 
 ## Transactions
 
