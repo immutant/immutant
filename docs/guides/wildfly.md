@@ -13,12 +13,20 @@ But here's the trade-off: app server containers can simplify the
 configuration of features -- e.g. security, monitoring, clustering --
 for all the applications deployed to it.
 
-And since each Immutant library automatically benefits in some way
-from being clustered, we wanted to *facilitate* app server deployment
-but not actually *require* it. Further, we didn't want to require any
-tweaking of the stock "vanilla" configuration provided by the app
-server. This meant using the standard deployment protocol for all Java
-app servers: war files.
+Further, each Immutant library automatically benefits from being
+clustered. Without any changes to your code, deploying your app to
+WildFly yields the following enhanced functionality:
+
+* Web session replication
+* Load-balanced message distribution
+* Highly-available "singleton" scheduled jobs
+* Flexible cache replication
+* Multiple polyglot app deployments
+
+So we wanted to *facilitate* app server deployment but not actually
+*require* it. And we didn't want to require any tweaking of the stock
+"vanilla" configuration provided by the app server. This meant using
+the standard deployment protocol for all Java app servers: war files.
 
 Theoretically, this implies you could stick the Immutant jars in any
 ol' war file and deploy them to any ol' Java app server.
