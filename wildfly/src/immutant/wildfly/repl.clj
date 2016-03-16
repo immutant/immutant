@@ -25,7 +25,7 @@
       [file]
       (binding [iu/*warn-on-deprecation* false]
         (when (u/app-root)
-          (map u/app-relative
+          (mapv u/app-relative
             (if file
               [file]
               [".nrepl-port" "target/repl-port"])))))))
