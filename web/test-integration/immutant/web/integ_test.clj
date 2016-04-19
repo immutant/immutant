@@ -164,8 +164,68 @@
     (try
       (web/run identity)
       (is false)
+
       (catch IllegalStateException e
         (is (re-find #"^You can't call immutant.web/run outside" (.getMessage e)))))))
+
+(marktest write-error-handler
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (import 'java.io.InputStream)
+       (fn [request]
+         {:status 200
+          :write-error-handler (fn [ex req resp]
+                                 (reset! client-state [(.getMessage ex)
+                                                       (:path-info req)
+                                                       (:status resp)]))
+          :body (proxy [InputStream] []
+                  (read [_]
+                    (throw (Exception. "BOOM"))))})))
+  (let [response (get-response (cdef-url))
+        [ex-message path-info response-status] (read-string (get-body (str (cdef-url) "state")))]
+    (is (= 500 (:status response)))
+    (is (= "BOOM" ex-message))
+    (is (= 200 response-status))))
+
+(marktest write-error-handler-from-middleware
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (import 'java.io.InputStream)
+       (immutant.web.middleware/wrap-write-error-handling
+         (fn [request]
+           {:status 200
+            :body (proxy [InputStream] []
+                    (read [_]
+                      (throw (Exception. "BOOM"))))})
+         (fn [ex req resp]
+           (reset! client-state [(.getMessage ex)
+                                 (:path-info req)
+                                 (:status resp)])))))
+  (let [response (get-response (cdef-url))
+        [ex-message path-info response-status] (read-string (get-body (str (cdef-url) "state")))]
+    (is (= 500 (:status response)))
+    (is (= "BOOM" ex-message))
+    (is (= 200 response-status))))
+
+(marktest write-error-handler-from-response-should-overwrite-from-middleware
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (import 'java.io.InputStream)
+       (immutant.web.middleware/wrap-write-error-handling
+         (fn [request]
+           {:status 200
+            :write-error-handler (fn [_ _ _] (reset! client-state :from-response))
+            :body (proxy [InputStream] []
+                    (read [_]
+                      (throw (Exception. "BOOM"))))})
+         (fn [_ _ _] (reset! client-state :from-middleware)))))
+  (let [response (get-response (cdef-url))
+        from-handler (read-string (get-body (str (cdef-url) "state")))]
+    (is (= 500 (:status response)))
+    (is (= :from-response from-handler))))
 
 ;; async
 

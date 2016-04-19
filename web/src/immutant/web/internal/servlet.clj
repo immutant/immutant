@@ -195,7 +195,8 @@
                          [:servlet-response response]
                          [:servlet-context  (delay (.getServletContext ^HttpServlet this))]))]
         (if-let [result (if handler (handler ring-map) {:status 404})]
-          (ring/write-response response result)
+          (ring/handle-write-error ring-map response result
+            #(ring/write-response response result))
           (throw (NullPointerException. "Ring handler returned nil")))))
     (init [^ServletConfig config]
       (let [^HttpServlet this this]

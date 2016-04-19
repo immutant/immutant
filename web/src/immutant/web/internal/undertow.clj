@@ -233,8 +233,10 @@
       (^void handleRequest [this ^HttpServerExchange exchange]
         (when-not (.isInIoThread exchange)
           (.startBlocking exchange))
-        (if-let [response (handler (ring/ring-request-map exchange
+        (let [ring-map (ring/ring-request-map exchange
                                      [:server-exchange exchange]
-                                     [:handler-type :undertow]))]
-          (ring/write-response exchange response)
-          (throw (NullPointerException. "Ring handler returned nil")))))))
+                                     [:handler-type :undertow])]
+          (if-let [response (handler ring-map)]
+            (ring/handle-write-error ring-map exchange response
+              #(ring/write-response exchange response))
+            (throw (NullPointerException. "Ring handler returned nil"))))))))

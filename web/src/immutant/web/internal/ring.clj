@@ -139,9 +139,20 @@
   (with-open [body body]
     (io/copy body os)))
 
+(defn handle-write-error [request-map response {:keys [write-error-handler] :as response-map} f]
+  (if write-error-handler
+    (try
+      (f)
+      (catch Throwable e
+        ;; if the error isn't rethrown, the status will be
+        ;; whatever was set in the response map
+        (set-status response 500)
+        (write-error-handler e request-map response-map)))
+    (f)))
+
 (defn write-response
   "Set the status, write the headers and the content"
-  [response {:keys [status headers body] :as response-map}]
+  [response {:keys [status headers body write-error-handler] :as response-map}]
   (if (async/streaming-body? body)
     (async/open-stream body response-map
       (partial set-status response)

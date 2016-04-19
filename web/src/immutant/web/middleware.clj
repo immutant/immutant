@@ -36,6 +36,18 @@
         wrap-stacktrace)
       (throw (RuntimeException. "Middleware requires ring/ring-devel; check your dependencies")))))
 
+(defn wrap-write-error-handling
+  "Sets the :write-error-handler for each request to error-handler,
+   unless it is already set.
+
+   See [[immutant.web/run]] for more details on :write-error-handler."
+  [handler error-handler]
+  (fn [request]
+    (let [response (handler request)]
+      (if (:write-error-handler response)
+        response
+        (assoc response :write-error-handler error-handler)))))
+
 (defn wrap-session
   "Uses the session from either Undertow or, when deployed to an app
   server cluster such as WildFly or EAP, the servlet's

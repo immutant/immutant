@@ -66,6 +66,17 @@
    for ello and owdy requests on port 8080, and another listening
    for ola requests on 8081.
 
+   For ring handlers, the actual writing of the response happens after
+   your hander returns. If an exception occurs on the write (the most
+   common case being an IOException because the client has gone away),
+   the default behavior is to log the exception. If you would like to
+   be able to handle that exception yourself, you can return a function
+   in the ring response under :write-error-handler. This function will
+   be called with the exception, the request map, and the response map
+   if an exception occurs when writing the response. Note that this
+   handler can't actually affect the response. If you would prefer
+   a global handler, see [[immutant.web.middleware/wrap-write-error-handling]].
+  
    The underlying web server for Immutant is Undertow, which supports
    more advanced options than the above. These can be configured by
    passing an `Undertow$Builder` via the :configuration option, an
