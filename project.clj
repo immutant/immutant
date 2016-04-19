@@ -85,7 +85,7 @@
                         http.async.client          "0.5.2"
                         gniazdo                    "0.4.1b"
                         compojure                  "1.3.4"
-                        org.clojure/java.jdbc      "0.3.6"
+                        org.clojure/java.jdbc      "0.6.0-alpha1"
                         h2                         "1.3.176"
                         jersey-media-sse           "2.15"
                         jersey-client              "2.15"

@@ -26,8 +26,7 @@
   (let [spec {:factory factory :name "java:jboss/datasources/ExampleDS"}]
     (deftest jdbc-transactions
       (sql/db-do-commands spec
-        (sql/create-table-ddl :things
-          [:name :varchar]))
+        (sql/create-table-ddl :things [[:name :varchar]]))
 
       (transaction
         (sql/insert! spec :things {:name "success"}))
