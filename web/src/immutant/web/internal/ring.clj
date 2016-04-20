@@ -145,8 +145,12 @@
       (f)
       (catch Throwable e
         ;; if the error isn't rethrown, the status will be
-        ;; whatever was set in the response map
-        (set-status response 500)
+        ;; whatever was set in the response map, so we
+        ;; try to set it to 500. This will fail if the body has
+        ;; been partially sent, hence the swallow
+        (try
+          (set-status response 500)
+          (catch Exception _))
         (write-error-handler e request-map response-map)))
     (f)))
 

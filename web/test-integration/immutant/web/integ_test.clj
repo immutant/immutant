@@ -188,6 +188,33 @@
     (is (= "BOOM" ex-message))
     (is (= 200 response-status))))
 
+(marktest write-error-handler-when-body-has-started
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (import 'java.io.InputStream)
+       (let [counter (atom 100000)]
+         (fn [request]
+           {:status 200
+            :write-error-handler (fn [ex req resp]
+                                   (reset! client-state [(.getMessage ex)
+                                                         (:path-info req)
+                                                         (:status resp)]))
+            :body (proxy [InputStream] []
+                    (read [_]
+                      (if (= 0 @counter)
+                        (throw (Exception. "BOOM"))
+                        (do
+                          (swap! counter dec)
+                          1))))}))))
+  (let [response (get-response (cdef-url))
+        [ex-message path-info response-status] (read-string (get-body (str (cdef-url) "state")))]
+    ;; with larger responses, the body will have been partially sent,
+    ;; so we can't reset the status code to 500
+    (is (= 200 (:status response)))
+    (is (= "BOOM" ex-message))
+    (is (= 200 response-status))))
+
 (marktest write-error-handler-from-middleware
   (replace-handler
     '(do
