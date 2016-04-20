@@ -11,7 +11,7 @@ To file an issue, see https://issues.jboss.org/browse/IMMUTANT
 Leiningen:
 
 ``` clj
-[org.immutant/immutant "2.1.3"]
+[org.immutant/immutant "2.1.4"]
 ```
 
 Maven:
@@ -20,7 +20,7 @@ Maven:
 <dependency>
   <groupId>org.immutant</groupId>
   <artifactId>immutant</artifactId>
-  <version>2.1.3</version>
+  <version>2.1.4</version>
 </dependency>
 ```
 

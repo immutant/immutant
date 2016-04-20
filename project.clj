@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/immutant-parent "2.1.4-SNAPSHOT"
+(defproject org.immutant/immutant-parent "2.1.4"
   :description "Parent for all that is Immutant"
   :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
@@ -93,9 +93,9 @@
                         clj-http                   "1.0.1"
                         environ                    "1.0.0"
 
-                        ;;org.projectodd.wunderboss  "0.12.0"
-                        org.projectodd.wunderboss  "1.x.incremental.308"
-                        ;;org.projectodd.wunderboss  "0.12.1-SNAPSHOT"
+                        org.projectodd.wunderboss  "0.12.1"
+                        ;;org.projectodd.wunderboss  "1.x.incremental.308"
+                        ;;org.projectodd.wunderboss  "0.12.2-SNAPSHOT"
 
                         org.immutant               :version
                         fntest                     "2.0.8"}}
