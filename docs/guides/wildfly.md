@@ -84,6 +84,9 @@ install it, e.g.
 
     :plugins [[lein-immutant "2.1.0"]]
 
+*Note:* If you are a [boot] user, we have a [boot-immutant plugin]
+as well.
+
 ### Creating a war file
 
 Immutant war files require a bit of special config: a couple of jars
@@ -277,6 +280,8 @@ For more details on the plethora of available options, see the [Infinispan User 
 [WildFly]: http://wildfly.org
 [Red Hat JBoss Enterprise Application Platform]: http://www.jboss.org/products/eap/overview/
 [lein-immutant]: https://github.com/immutant/lein-immutant/
+[boot]: http://boot-clj.com/
+[boot-immutant]: https://github.com/immutant/boot-immutant
 [Midje]: https://github.com/marick/Midje
 [Expectations]: http://jayfields.com/expectations/
 [logging guide]: guide-logging.html
