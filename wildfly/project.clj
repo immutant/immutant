@@ -14,7 +14,6 @@
 
 (defproject org.immutant/wildfly "2.1.5-SNAPSHOT"
   :description "Utility functions only useful within a WildFly container."
-  :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
 
   :dependencies [[org.immutant/core _]

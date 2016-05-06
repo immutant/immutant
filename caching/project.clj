@@ -14,7 +14,6 @@
 
 (defproject org.immutant/caching "2.1.5-SNAPSHOT"
   :description "Create, manage and manipulate Infinispan caches."
-  :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
 
   :dependencies [[org.immutant/core _]

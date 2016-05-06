@@ -19,7 +19,7 @@ mark "Reversioning"
 etc/bin/reversion.sh 2.x.incremental.${BUILD_NUMBER}
 
 mark "Building with Clojure 1.7.0"
-lein modules all
+lein with-profile +pedantic modules all
 
 mark "Building with Clojure 1.8.0"
 lein with-profile +clojure-1.8 modules all

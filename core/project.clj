@@ -14,7 +14,6 @@
 
 (defproject org.immutant/core "2.1.5-SNAPSHOT"
   :description "Utilities shared by Immutant libs."
-  :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
 
   :dependencies [[org.clojure/java.classpath _]

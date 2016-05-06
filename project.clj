@@ -14,11 +14,10 @@
 
 (defproject org.immutant/immutant-parent "2.1.5-SNAPSHOT"
   :description "Parent for all that is Immutant"
-  :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
   :packaging "pom"
 
-  :profiles {:pedantic {:pedantic? true}
+  :profiles {:pedantic {:pedantic? :abort}
              :provided {:dependencies [[org.clojure/clojure _]]}
              :travis {:modules {:subprocess "lein2"}}
              :incremental {:deploy-repositories [["releases"
@@ -75,8 +74,8 @@
              :versions {clojure                    "1.7.0"
                         java.classpath             "0.2.2"
                         tools.nrepl                "0.2.7"
-                        tools.reader               "0.8.13"
-                        ring                       "1.3.1"
+                        tools.reader               "0.10.0"
+                        ring                       "1.4.0"
                         clj-time                   "0.9.0"
                         cheshire                   "5.4.0"
                         data.fressian              "0.2.0"
@@ -84,7 +83,7 @@
                         io.pedestal                "0.4.1"
                         http.async.client          "0.5.2"
                         gniazdo                    "0.4.1b"
-                        compojure                  "1.3.4"
+                        compojure                  "1.5.0"
                         org.clojure/java.jdbc      "0.6.0-alpha1"
                         h2                         "1.3.176"
                         jersey-media-sse           "2.15"
@@ -93,9 +92,9 @@
                         clj-http                   "1.0.1"
                         environ                    "1.0.0"
 
-                        org.projectodd.wunderboss  "0.12.1"
-                        ;;org.projectodd.wunderboss  "1.x.incremental.308"
-                        ;;org.projectodd.wunderboss  "0.12.2-SNAPSHOT"
+                        ;; org.projectodd.wunderboss  "0.12.1"
+                        org.projectodd.wunderboss  "1.x.incremental.310"
+                        ;; org.projectodd.wunderboss  "0.12.2-SNAPSHOT"
 
                         org.immutant               :version
                         fntest                     "2.0.8"}}

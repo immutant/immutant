@@ -14,7 +14,6 @@
 
 (defproject org.immutant/transactions "2.1.5-SNAPSHOT"
   :description "Provides support for distributed (XA) transactions."
-  :pedantic? false
   :plugins [[lein-modules "0.3.11"]]
 
   :dependencies [[org.immutant/core _]
@@ -24,6 +23,6 @@
 
   :profiles {:dev
              {:dependencies [[org.immutant/messaging _]
-                             [org.immutant/caching _]
+                             [org.immutant/caching _ :exclusions [org.jboss.spec.javax.transaction/jboss-transaction-api_1.1_spec]]
                              [org.clojure/java.jdbc _]
                              [com.h2database/h2 _]]}})

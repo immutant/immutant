@@ -14,7 +14,6 @@
 
 (defproject org.immutant/build-helper "0.2.10"
   :description "A plugin to aid in building Immutant"
-  :pedantic? false
   :url "https://github.com/immutant/immutant"
   :license {:name "Apache Software License - v 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"
