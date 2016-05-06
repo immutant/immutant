@@ -15,7 +15,8 @@
 (ns immutant.transactions.jdbc
   "Enables `clojure.java.jdbc` to behave within an XA transaction"
   (:import [java.sql Connection Statement CallableStatement
-            PreparedStatement DatabaseMetaData])
+            PreparedStatement DatabaseMetaData]
+           java.lang.reflect.Method)
   (:require [immutant.transactions :refer (set-rollback-only)]
             [clojure.java.jdbc :as jdbc]))
 
@@ -24,10 +25,10 @@
   (let [delegate (gensym)
         expanded (map macroexpand body)
         overrides (group-by first expanded)
-        methods (for [m (.getMethods (resolve type))
+        methods (for [^Method m (.getMethods ^Class (resolve type))
                       :let [f (-> (.getName m) symbol (with-meta {:tag (-> m .getReturnType .getName)}))]
                       :when (not (overrides f))
-                      :let [args (for [t (.getParameterTypes m)] (with-meta (gensym) {:tag (.getName t)}))]]
+                      :let [args (for [^Class t (.getParameterTypes m)] (with-meta (gensym) {:tag (.getName t)}))]]
                   (list f (vec (conj args '_)) `(. ~delegate ~f ~@(map #(with-meta % nil) args))))]
     `(let [~delegate ~delegate-expr]
        (reify ~type ~@expanded ~@methods))))
