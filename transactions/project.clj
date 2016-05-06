@@ -22,7 +22,7 @@
   :jvm-opts ["-Dhornetq.data.dir=target/hornetq-data"]
 
   :profiles {:dev
-             {:dependencies [[org.immutant/messaging _]
+             {:dependencies [[org.immutant/messaging _ :exclusions [org.hornetq/hornetq-journal org.hornetq/hornetq-commons]]
                              [org.immutant/caching _ :exclusions [org.jboss.spec.javax.transaction/jboss-transaction-api_1.1_spec]]
                              [org.clojure/java.jdbc _]
                              [com.h2database/h2 _]]}})
