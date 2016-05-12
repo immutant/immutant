@@ -123,7 +123,7 @@
   (defn in-eap?
   "Returns true if we're in an EAP container."
   []
-  (= "EAP" @container-type)))
+  (= "EAP6" @container-type)))
 
 (let [streaming-supported? (delay (boolean (invoke-as-util-method "isAsyncStreamingSupported")))]
   (defn async-streaming-supported?
