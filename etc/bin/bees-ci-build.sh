@@ -24,6 +24,9 @@ lein with-profile +pedantic modules all
 mark "Building with Clojure 1.8.0"
 lein with-profile +clojure-1.8 modules all
 
+mark "Building with Clojure 1.9.0"
+lein with-profile +clojure-1.9 modules all
+
 mark "Testing messaging with HornetQ 2.3"
 cd messaging
 lein with-profile +hornetq-2.3 test
