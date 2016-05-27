@@ -162,3 +162,17 @@
     (is (= 1 (:a cache)))
     (is (= (repeat 10 "kiwi")      (repeatedly 10 #(msg/receive queue))))
     (is (= (repeat 10 "starfruit") (repeatedly 10 #(msg/receive local-remote-queue))))))
+
+(deftest remote-xa-listen-should-work
+  (msg/queue "remote-xa-listen" :durable? false)
+  (let [extra-connect-opts
+        (cond-> []
+          (in-container?) (conj :username "testuser" :password "testuser1!")
+          (and (in-container?) (not (in-eap?))) (conj :remote-type :hornetq-wildfly))]
+    (with-open [c (apply msg/context :host "localhost" :port (messaging-remoting-port) :xa? true
+                    extra-connect-opts)]
+      (let [q (msg/queue "remote-xa-listen" :context c)
+            p (promise)]
+        (with-open [listener (msg/listen q (partial deliver p))]
+          (msg/publish q :hi)
+          (is (= :hi (deref p 60000 :fail))))))))
