@@ -12,4 +12,12 @@ setup. The easiest way to do that is by using the ci prep script:
 
     ../etc/bin/ci-prep-as.sh path/to/wildfly/parent/dir wildfly 9.0.1.Final
 
-Then, you can run all of the tests with `lein with-profile +integs  all`.
+To run all of the tests for WildFly or EAP 7.x:
+
+    lein with-profile +integs all
+    lein with-profile +cluster all
+
+EAP 6.4 is supported, but only by using special profiles:
+
+    lein with-profile +eap all
+    lein with-profile +cluster,+eap-base all
