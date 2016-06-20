@@ -26,12 +26,12 @@
 (def cache (csh/cache "tx-test" :transactional? true))
 (def queue (msg/queue "/queue/test" :durable? false))
 (def local-remote-queue (msg/queue "remote" :durable? false))
-(def conn (msg/context (cond-> {:host "localhost" :xa? true}
-                         (in-container?) (assoc :port (messaging-remoting-port)
-                                           :username "testuser" :password "testuser1!"
-                                           :remote-type :hornetq-wildfly)
-                         (in-eap?) (dissoc :remote-type))))
-(def remote-queue (msg/queue "remote" :context conn))
+(def conn (delay (msg/context (cond-> {:host "localhost" :xa? true}
+                                (in-container?) (assoc :port (messaging-remoting-port)
+                                                  :username "testuser" :password "testuser1!"
+                                                  :remote-type :hornetq-wildfly)
+                                (in-eap?) (dissoc :remote-type)))))
+(def remote-queue (delay (msg/queue "remote" :context @conn)))
 (def trigger (msg/queue "/queue/trigger" :durable? false))
 (def spec {:connection-uri "jdbc:h2:mem:ooc;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"})
 
@@ -48,7 +48,7 @@
 (use-fixtures :once
   (fn [f]
     (f)
-    (.close conn)))
+    (.close @conn)))
 
 ;;; Helper methods to verify database activity
 (defn write-thing-to-db [spec name]
@@ -65,7 +65,7 @@
 (defn work [m]
   (csh/swap-in! cache :a (constantly 1))
   (msg/publish queue "kiwi")
-  (msg/publish remote-queue "starfruit")
+  (msg/publish @remote-queue "starfruit")
   (not-supported
     (csh/swap-in! cache :deliveries (fnil inc 0)))
   (sql/with-db-transaction [t spec]
