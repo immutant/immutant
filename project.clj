@@ -73,8 +73,8 @@
                          :deploy-repositories [["releases" {:url "https://clojars.org/repo/" :creds :gpg}]]}
 
              :versions {clojure                    "1.7.0"
-                        java.classpath             "0.2.2"
-                        tools.nrepl                "0.2.7"
+                        java.classpath             "0.2.3"
+                        tools.nrepl                "0.2.11"
                         tools.reader               "0.10.0"
                         ring                       "1.4.0"
                         clj-time                   "0.9.0"
