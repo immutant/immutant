@@ -81,7 +81,7 @@
                         cheshire                   "5.4.0"
                         data.fressian              "0.2.0"
                         core.memoize               "0.5.9"
-                        io.pedestal                "0.5.0"
+                        io.pedestal                "0.4.1"
                         http.async.client          "0.5.2"
                         gniazdo                    "0.4.1b"
                         compojure                  "1.5.0"
