@@ -128,9 +128,10 @@
   (not (System/getenv "LEIN_NO_DEV")))
 
 (defn at-exit
-  "Registers `f` to be called when the application is undeployed from
-  a container, e.g. WildFly. Used internally to shutdown various
-  services, but can be used by application code as well."
+  "Registers `f` to be called when the application is either stopped
+  or, if running within a container, undeployed. Used internally to
+  shutdown various services, but can be used by application code as
+  well."
   [f]
   (wu/at-exit f))
 
