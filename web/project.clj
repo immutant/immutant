@@ -23,7 +23,7 @@
 
   :profiles {:dev
              {:dependencies [[io.pedestal/pedestal.service _]
-                             [org.clojars.jcrossley3/http.async.client _]
+                             [http.async.client _]
                              [org.clojars.tcrawley/gniazdo _]
                              [ring/ring-devel _]
                              [compojure _]

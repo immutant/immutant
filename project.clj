@@ -82,7 +82,7 @@
                         data.fressian              "0.2.0"
                         core.memoize               "0.5.9"
                         io.pedestal                "0.4.1"
-                        http.async.client          "0.5.2"
+                        http.async.client          "1.2.0"
                         gniazdo                    "0.4.1b"
                         compojure                  "1.5.0"
                         org.clojure/java.jdbc      "0.6.1"
