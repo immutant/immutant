@@ -66,7 +66,8 @@
              :eap-base {:env {:eap true}
                         :immutant {:war {:resource-paths ["eap-resources"]}}
                         :exclusions [org.hornetq/hornetq-jms-server org.hornetq/hornetq-server org.jboss.narayana.jta/narayana-jta]
-                        :dependencies [[org.hornetq/hornetq-jms-server "2.3.25.Final"]
+                        :dependencies [[io.netty/netty "3.10.5.Final"] ;required by http.async.client 1.2
+                                       [org.hornetq/hornetq-jms-server "2.3.25.Final"]
                                        [org.hornetq/hornetq-server "2.3.25.Final"]
                                        [org.jboss.jbossts.jta/narayana-jta "4.17.29.Final"]]}
              :eap [:web :scheduling :messaging :caching :transactions :eap-base]})
