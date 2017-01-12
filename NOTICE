@@ -1,6 +1,12 @@
 Immutant
 
-Copyright 2011-2014 Red Hat, Inc, and individual contributors.
+Copyright 2011-2017 Red Hat, Inc, and individual contributors.
 
 This project includes software developed at
 The Red Hat, Inc (http:/redhat.com/)
+
+This project includes code from the following MIT-licensed projects
+(under web/src/from/):
+
+- https://github.com/ztellman/potemkin Copyright 2013 Zachary Tellman
+- https://github.com/ztellman/riddley Copyright 2013 Zachary Tellman

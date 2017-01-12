@@ -15,9 +15,9 @@
 (defproject org.immutant/web "2.1.6-SNAPSHOT"
   :description "Serve web requests using Ring handlers, Servlets, or Undertow HttpHandlers."
   :plugins [[lein-modules "0.3.11"]]
-
+  :java-source-paths ["src"]
+  
   :dependencies [[org.immutant/core _]
-                 [potemkin _]
                  [org.projectodd.wunderboss/wunderboss-web-undertow _]
                  [ring/ring-core _]]
 

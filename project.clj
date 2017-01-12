@@ -89,7 +89,6 @@
                         h2                         "1.3.176"
                         jersey-media-sse           "2.15"
                         jersey-client              "2.15"
-                        potemkin                   "0.4.3"
                         clj-http                   "1.0.1"
                         environ                    "1.0.3"
 

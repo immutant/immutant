@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns ^{:no-doc true} immutant.web.internal.ring
-    (:require [potemkin                      :refer [def-map-type]]
+    (:require [from.potemkin                 :refer [def-map-type]]
               [clojure.java.io               :as io]
               [immutant.web.async            :as async]
               [immutant.web.internal.headers :as hdr]
