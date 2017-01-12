@@ -76,7 +76,7 @@
                         java.classpath             "0.2.3"
                         tools.nrepl                "0.2.11"
                         tools.reader               "0.10.0"
-                        ring                       "1.4.0"
+                        ring                       "1.5.1"
                         clj-time                   "0.9.0"
                         cheshire                   "5.4.0"
                         data.fressian              "0.2.0"
