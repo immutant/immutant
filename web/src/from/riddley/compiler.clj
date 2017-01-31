@@ -1,6 +1,6 @@
 ;; Copied and modified from riddley, v0.1.12 (https://github.com/ztellman/riddley), MIT licnensed, Copyright Zachary Tellman
 
-(ns from.riddley.compiler
+(ns ^:no-doc from.riddley.compiler
   (:import
     [clojure.lang
      Var

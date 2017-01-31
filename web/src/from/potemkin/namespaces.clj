@@ -1,6 +1,6 @@
 ;; Copied and modified from potemkin, v0.4.3 (https://github.com/ztellman/potemkin), MIT licnensed, Copyright Zachary Tellman
 
-(ns from.potemkin.namespaces)
+(ns ^:no-doc from.potemkin.namespaces)
 
 (defn link-vars
   "Makes sure that all changes to `src` are reflected in `dst`."

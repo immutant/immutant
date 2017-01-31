@@ -2,7 +2,7 @@
 ;; Changes:
 ;; - removed fast-memoize and friends to remove need for clj-tuple
 
-(ns from.potemkin.utils
+(ns ^:no-doc from.potemkin.utils
   (:require
     [from.potemkin.macros :refer [unify-gensyms]])
   (:import

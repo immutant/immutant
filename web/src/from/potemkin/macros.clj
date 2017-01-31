@@ -1,6 +1,6 @@
 ;; Copied and modified from potemkin, v0.4.3 (https://github.com/ztellman/potemkin), MIT licnensed, Copyright Zachary Tellman
 
-(ns from.potemkin.macros
+(ns ^:no-doc from.potemkin.macros
   (:require
     [from.potemkin.walk :refer (postwalk)]
     [from.riddley.walk :as r]))

@@ -1,6 +1,6 @@
 ;; Copied and modified from potemkin, v0.4.3 (https://github.com/ztellman/potemkin), MIT licnensed, Copyright Zachary Tellman
 
-(ns from.potemkin.collections
+(ns ^:no-doc from.potemkin.collections
   (:use
     [from.potemkin types macros utils]))
 

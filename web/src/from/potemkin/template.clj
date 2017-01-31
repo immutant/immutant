@@ -1,6 +1,6 @@
 ;; Copied and modified from potemkin, v0.4.3 (https://github.com/ztellman/potemkin), MIT licnensed, Copyright Zachary Tellman
 
-(ns from.potemkin.template
+(ns ^:no-doc from.potemkin.template
   (:require
     [clojure.set :as s]
     [from.riddley.walk :as r]

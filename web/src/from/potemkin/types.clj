@@ -1,6 +1,6 @@
 ;; Copied and modified from potemkin, v0.4.3 (https://github.com/ztellman/potemkin), MIT licnensed, Copyright Zachary Tellman
 
-(ns from.potemkin.types
+(ns ^:no-doc from.potemkin.types
   (:use
     [clojure [set :only (union)]]
     [from.potemkin.macros :only (equivalent? normalize-gensyms safe-resolve unify-gensyms)])

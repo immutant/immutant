@@ -2,7 +2,7 @@
 ;; Changes:
 ;; - fast-memoize removed
 
-(ns from.potemkin
+(ns ^:no-doc from.potemkin
   (:require
     [from.potemkin namespaces types collections macros utils]))
 
