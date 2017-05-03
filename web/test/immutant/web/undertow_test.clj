@@ -42,7 +42,6 @@
          "ioThreads"        1
          "workerThreads"    2
          "bufferSize"       3
-         "buffersPerRegion" 4
          "directBuffers"    false)
     (is (= #{"AJP" "HTTP" "HTTPS"}
           (->> v
@@ -74,7 +73,6 @@
          "ioThreads"        1
          "workerThreads"    2
          "bufferSize"       3
-         "buffersPerRegion" 4
          "directBuffers"    true)
     (is (= #{"AJP" "HTTP" "HTTPS"}
           (->> v

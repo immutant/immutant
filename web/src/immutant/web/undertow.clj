@@ -55,7 +55,6 @@
           io-threads                   (.setIoThreads io-threads)
           worker-threads               (.setWorkerThreads worker-threads)
           buffer-size                  (.setBufferSize buffer-size)
-          buffers-per-region           (.setBuffersPerRegion buffers-per-region)
           (not (nil? direct-buffers?)) (.setDirectBuffers direct-buffers?)))
       (dissoc :io-threads :worker-threads :buffer-size :buffers-per-region :direct-buffers?))))
 
