@@ -491,6 +491,40 @@
     (ws/send-msg socket "hello")
     (is (= :complete! (read-string (get-body (str (cdef-url) "state")))))))
 
+(marktest HEAD-should-close-on-first-send
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-open (fn [ch] (async/send! ch "whatever"))
+           :on-close (fn [_ _] (deliver @client-state :closed))))))
+  (let [{:keys [body headers status]} (get-response (cdef-url) :method :head)]
+    (is (= 200 status))
+    (is (nil? body))
+    ;; I'd like to test for this, but AsyncHttpClient is stripping
+    ;; this header (I've confirmed it's there with Wireshark)
+    ;; (is (= "Chunked" (headers "Transfer-Encoding")))
+    )
+  (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))
+
+(marktest HEAD-should-honor-status
+  (replace-handler
+    '(do
+       (reset! client-state (promise))
+       (fn [request]
+         (async/as-channel request
+           :on-open (fn [ch] (async/send! ch {:status 201 :body "whatever"}))
+           :on-close (fn [_ _] (deliver @client-state :closed))))))
+  (let [{:keys [body headers status]} (get-response (cdef-url) :method :head)]
+    (is (= 201 status))
+    (is (nil? body))
+    ;; I'd like to test for this, but AsyncHttpClient is stripping
+    ;; this header (I've confirmed it's there with Wireshark)
+    ;; (is (= "Chunked" (headers "Transfer-Encoding")))
+    )
+  (is (= :closed (read-string (get-body (str (cdef-url) "state"))))))
+
 (marktest request-should-be-attached-to-channel-for-stream
   (replace-handler
     '(do

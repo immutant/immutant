@@ -22,7 +22,7 @@
             [immutant.internal.util :refer [maybe-deref]]
             [immutant.web.middleware :refer (wrap-session wrap-websocket)]
             [immutant.codecs :refer (encode)]
-            [compojure.core :refer (GET defroutes)]
+            [compojure.core :refer (ANY GET defroutes)]
             [ring.util.response :refer (charset redirect response)]
             [ring.middleware.params :refer [wrap-params]])
   (:import [javax.servlet.http HttpServlet]))
@@ -159,7 +159,7 @@
   (GET "/sse" [] sse))
 
 (defroutes cdef-handler
-  (GET "/" [] use-client-handler)
+  (ANY "/" [] use-client-handler)
   (GET "/set-handler" [new-handler] (set-client-handler new-handler))
   (GET "/state" [] get-client-state))
 
