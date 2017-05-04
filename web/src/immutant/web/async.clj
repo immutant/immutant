@@ -112,7 +112,7 @@
 (defn close
   "Gracefully close the channel.
 
-   This will trigger the :on-close callback if one is registered. with
+   This will trigger the :on-close callback if one is registered with
    [[as-channel]]."
   [^Channel ch]
   (finalize-channel-response ch nil nil)
