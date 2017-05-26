@@ -392,6 +392,18 @@
     (doseq [client @clients]
       (.close client))))
 
+(marktest non-200-response-should-not-open-ws
+  (replace-handler
+    '(fn [request]
+       {:status 403 :body "boom"}))
+  (let [{:keys [body status] :as r} (get-response (cdef-url)
+                                :headers {"Upgrade" "websocket"
+                                          "Connection" "Upgrade"
+                                          "Sec-WebSocket-Key" "WFBpc1FfABzLljnrySji1Q=="
+                                          "Sec-WebSocket-Version" "13"})]
+    (is (= 403 status))
+    (is (= "boom" body))))
+
 (marktest request-should-be-attached-to-channel-for-ws
   (replace-handler
     '(do

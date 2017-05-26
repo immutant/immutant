@@ -25,7 +25,8 @@
                                                 ServletHttpChannel]
            [org.projectodd.wunderboss.web.async.websocket DelegatingJavaxEndpoint
                                                           JavaxWebsocketChannel WebSocketHelpyHelpertonFilter
-                                                          WebsocketChannel WebsocketChannel$OnMessage]
+                                                          WebsocketChannel WebsocketChannel$OnMessage
+                                                          WebsocketConnectionAbortException]
            [javax.servlet.http HttpServlet HttpServletRequest HttpServletResponse HttpSession]
            [javax.servlet Servlet ServletConfig ServletContext]
            [javax.websocket HandshakeResponse]
@@ -159,14 +160,18 @@
                           (getEndpointInstance [_] (DelegatingJavaxEndpoint.))
                           (modifyHandshake [_ _ ^HandshakeResponse response]
                             (let [request (.get WebSocketHelpyHelpertonFilter/requestTL)
-                                  {:keys [body headers]} (handler (ring/ring-request-map request
-                                                                    [:handler-type :servlet]
-                                                                    [:servlet-request request]
-                                                                    [:websocket? true]))]
-                              (hdr/set-headers response headers)
-                              (when (instance? WebsocketChannel body)
-                                (DelegatingJavaxEndpoint/setCurrentDelegate
-                                  (.endpoint ^WebsocketChannel body)))))))
+                                  ring-response (handler (ring/ring-request-map request
+                                                           [:handler-type :servlet]
+                                                           [:servlet-request request]
+                                                           [:websocket? true]))
+                                  {:keys [body headers status]} ring-response]
+                              (if (instance? WebsocketChannel body)
+                                (do
+                                  (hdr/set-headers response headers)
+                                  (DelegatingJavaxEndpoint/setCurrentDelegate
+                                    (.endpoint ^WebsocketChannel body)))
+                                (throw (WebsocketConnectionAbortException.
+                                         status headers body)))))))
           build))
       (if (in-eap?)
         (warn "Websockets unavailable; see the Immutant EAP guide for details.")
