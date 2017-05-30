@@ -128,8 +128,7 @@
 
 (let [sleep-duration 50]
   (deftest concurrent-execution-enabled
-    (doseq [delta (run-with-maybe-concurrent-exec true sleep-duration)]
-      (is (< delta sleep-duration))))
+    (is (some #(< % sleep-duration) (run-with-maybe-concurrent-exec true sleep-duration))))
 
   (deftest concurrent-execution-disabled
     (doseq [delta (run-with-maybe-concurrent-exec false sleep-duration)]
