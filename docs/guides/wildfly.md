@@ -281,7 +281,7 @@ For more details on the plethora of available options, see the [Infinispan User 
 [Red Hat JBoss Enterprise Application Platform]: http://www.jboss.org/products/eap/overview/
 [lein-immutant]: https://github.com/immutant/lein-immutant/
 [boot]: http://boot-clj.com/
-[boot-immutant]: https://github.com/immutant/boot-immutant
+[boot-immutant plugin]: https://github.com/immutant/boot-immutant
 [Midje]: https://github.com/marick/Midje
 [Expectations]: http://jayfields.com/expectations/
 [logging guide]: guide-logging.html
