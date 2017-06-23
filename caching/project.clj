@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/caching "2.1.9-SNAPSHOT"
+(defproject org.immutant/caching "2.1.9"
   :description "Create, manage and manipulate Infinispan caches."
   :plugins [[lein-modules "0.3.11"]]
 

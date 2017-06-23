@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(defproject org.immutant/wildfly "2.1.9-SNAPSHOT"
+(defproject org.immutant/wildfly "2.1.9"
   :description "Utility functions only useful within a WildFly container."
   :plugins [[lein-modules "0.3.11"]]
 
