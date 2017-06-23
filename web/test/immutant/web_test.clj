@@ -56,6 +56,17 @@
   (run (constantly {:status 200 :body nil}))
   (is (nil? (get-body url))))
 
+(deftest hashcode-on-request-works
+  (run #(try
+          (.hashCode %)
+          {:status 200
+           :body "success"}
+          (catch Exception e
+            (.printStackTrace e)
+            {:status 200
+             :body "failure"})))
+  (is (= "success" (get-body url))))
+
 (deftest run-takes-kwargs
   (run hello :path "/kwarg")
   (is (= "hello" (get-body (str url "kwarg")))))
