@@ -209,8 +209,10 @@
         (add-endpoint-with-handler this config handler)))))
 
 (defn async-streaming-supported? []
-  (when-let [f (try-resolve 'immutant.wildfly/async-streaming-supported?)]
-    (f)))
+  "Assume supported, unless deployed on WF, in which we check version"
+  (if-let [f (try-resolve 'immutant.wildfly/async-streaming-supported?)]
+    (f)
+    true))
 
 (defmethod async/initialize-stream :servlet
   [request {:keys [on-open on-error on-close]}]
