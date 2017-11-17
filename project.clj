@@ -36,20 +36,20 @@
             "docs" ["do" "modules" "doc-index" "," "docs-from-index"]}
   :modules  {:subprocess nil
              :inherited {:repositories [["projectodd-upstream"
-                                         {:url "http://repository-projectodd.forge.cloudbees.com/upstream"
+                                         {:url "https://repository-projectodd.forge.cloudbees.com/upstream"
                                           :snapshots false}]
                                         ["projectodd-release"
-                                         {:url "http://repository-projectodd.forge.cloudbees.com/release"
+                                         {:url "https://repository-projectodd.forge.cloudbees.com/release"
                                           :snapshots false}]
                                         ["projectodd-snapshot"
-                                         {:url "http://repository-projectodd.forge.cloudbees.com/snapshot"
+                                         {:url "https://repository-projectodd.forge.cloudbees.com/snapshot"
 
                                           :snapshots true}]
                                         ["projectodd-incremental"
                                          {:url "https://repository-projectodd.forge.cloudbees.com/incremental"
                                           :snapshots false}]
                                         ["jboss"
-                                         "http://repository.jboss.org/nexus/content/groups/public/"]]
+                                         "https://repository.jboss.org/nexus/content/groups/public/"]]
                          :dependencies [[org.projectodd.wunderboss/wunderboss-clojure _]
                                         [org.clojure/clojure _]]
                          :aliases {"-i" ^:replace ["with-profile" "+integs"]
