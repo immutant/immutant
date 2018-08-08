@@ -144,6 +144,7 @@
   (context [exchange]            (.getResolvedPath exchange))
   (path-info [exchange]          (path-info' exchange))
   (ssl-client-cert [_])
+  (protocol [exchange]           (str (.getProtocol exchange)))
 
   ring/RingResponse
   (set-status [exchange status]       (.setResponseCode exchange status))
