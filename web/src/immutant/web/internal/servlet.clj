@@ -108,6 +108,7 @@
   (context [request]            (str (.getContextPath request) (.getServletPath request)))
   (path-info [request]          (path-info' request))
   (ssl-client-cert [request]    (first (.getAttribute request "javax.servlet.request.X509Certificate")))
+  (protocol [request]           (.getProtocol request))
   hdr/Headers
   (get-names [request]      (enumeration-seq (.getHeaderNames request)))
   (get-values [request key] (enumeration-seq (.getHeaders request key))))

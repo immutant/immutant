@@ -246,7 +246,8 @@
          :server-name         "localhost"
          :query-string        "query=help"
          :scheme              :http
-         :request-method      :get)
+         :request-method      :get
+         :protocol            "HTTP/1.1")
     (is (:body @request))
     (is (map? (:headers @request)))
     (is (< 3 (count (:headers @request))))))
