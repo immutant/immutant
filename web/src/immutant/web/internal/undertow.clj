@@ -143,7 +143,7 @@
   (body [exchange]               (when (.isBlocking exchange) (.getInputStream exchange)))
   (context [exchange]            (.getResolvedPath exchange))
   (path-info [exchange]          (path-info' exchange))
-  (ssl-client-cert [_])
+  (ssl-client-cert [exchange]    (.getPeerCertificateChain (.getSslSessionInfo (.getConnection exchange))))
 
   ring/RingResponse
   (set-status [exchange status]       (.setResponseCode exchange status))
