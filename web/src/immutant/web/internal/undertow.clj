@@ -12,6 +12,8 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
+;; Modified by Elknar (Tim Vataev) to fix ssl-client-cert. Git blame ain't good enough for apache >_>
+
 (ns ^{:no-doc true} immutant.web.internal.undertow
     (:require [clojure.string                :as str]
               [immutant.web.async            :as async]
