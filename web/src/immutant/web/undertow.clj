@@ -109,10 +109,12 @@
   "Assoc an SSLContext given a keystore and a truststore, which may be
   either actual KeyStore instances, or paths to them. If truststore is
   ommitted, the keystore is assumed to fulfill both roles"
-  [{:keys [keystore key-password truststore trust-password] :as options}]
-  (-> options
-    (assoc :ssl-context (keystore->ssl-context options))
-    (dissoc :keystore :key-password :truststore :trust-password)))
+  [{:keys [keystore key-password truststore trust-password ssl-context] :as options}]
+  (if ssl-context
+    options
+    (-> options
+        (assoc :ssl-context (keystore->ssl-context options))
+        (dissoc :keystore :key-password :truststore :trust-password))))
 
 (def options
   "Takes a map of Undertow-specific options and replaces them with an
